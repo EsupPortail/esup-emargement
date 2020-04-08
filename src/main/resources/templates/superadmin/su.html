@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+  				<div class="card-body">
+  					<h2>Su</h2>
+  					<div class="row">
+	  					<div class="col-lg-12">
+		  					<form th:action="@{/all/superadmin/impersonate}" id="formSu">
+		  						<div class="form-group">
+								    <label for="suList">Recherche Utilisateur:</label>
+			                    	<select name="username" id="suList" required="required">
+										<option th:each="user : ${users}"
+											th:value="${user.eppn}" th:text="${user.prenom + ' ' + user.nom }"></option>
+									</select>
+								</div>		    
+							    <input type="submit" value="Se substituer" class="btn btn-success" />
+							</form>
+	  					</div>
+  					</div>
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

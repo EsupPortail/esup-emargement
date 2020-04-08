@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+  				<div class="card-body">
+  					<h2>Préférences</h2>
+  					<div class="col-lg-12">
+  						<h3>Ordre des contextes</h3>
+  						<div class="alert alert-primary">
+  							Plus le numéro est élevé moins la priorité l'est! 
+  							<span  th:if="${isSuperAdmin}">En jaune, les contextes que vous voyez en tant que  "superAdmin" mais sur lesquels vous n'avez aucun droit mais présent dans la liste. Ceux-ci seront en dernier.</span>
+  						</div>
+  						<form th:action="@{/{ctx}/supervisor/prefs/updateContextPriority(ctx=${eContext})}" method="post">
+							<table class="table">
+								<thead>
+									<tr>
+										<th scope="col">Contexte</th>
+										<th scope="col">Priorité</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="item, status : ${map}">
+										<td th:text="${item.value.key}"></td>								
+										<td><select class="form-control" name="userApp"><option
+													th:each="i : ${#numbers.sequence(0, 10)}" th:value="${i + '@@' + item.key.id}" 
+													th:text="${i}" th:selected="${i == item.key.contextPriority}">
+												<option></select>
+												</td>
+									</tr>
+									<tr th:if="${isSuperAdmin}" th:each="other : ${otherCtxs}" class="table-warning">
+										<td th:text="${other.key}"></td>
+										<td>---</td>
+									</tr>
+								</tbody>
+							</table>
+							<input type="submit" class="btn btn-success" value="Valider"></input>
+						</form>
+					</div>
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

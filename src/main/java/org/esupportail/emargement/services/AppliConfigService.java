@@ -1,0 +1,172 @@
+package org.esupportail.emargement.services;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+
+import org.esupportail.emargement.domain.AppliConfig;
+import org.esupportail.emargement.domain.AppliConfig.TypeConfig;
+import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.repositories.AppliConfigRepository;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AppliConfigService {
+	
+	@Autowired
+	AppliConfigRepository appliConfigRepository;
+	
+	@Autowired
+    private MessageSource messageSource;
+	
+	@Resource
+	LogService logService;
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	private static final String DELIMITER_MULTIPLE_VALUES = ";";
+
+	enum AppliConfigKey {
+		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
+		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS
+	}
+	
+	public List<String> getTypes() {
+		return Arrays.asList(new String[] {TypeConfig.HTML.name(), TypeConfig.TEXT.name(), TypeConfig.BOOLEAN.name()});
+	}
+	
+	protected AppliConfig getAppliConfigByKey(AppliConfigKey appliConfigKey) {
+		if(!appliConfigRepository.findAppliConfigByKey(appliConfigKey.name()).isEmpty()) {
+			return	appliConfigRepository.findAppliConfigByKey(appliConfigKey.name()).get(0);
+		}else {
+			return null;
+		}
+	}
+	
+	protected AppliConfig getAppliConfigByKeyAndContext(AppliConfigKey appliConfigKey, Context context) {
+		if(!appliConfigRepository.findAppliConfigByKeyAndContext(appliConfigKey.name(), context).isEmpty()) {
+			return	appliConfigRepository.findAppliConfigByKeyAndContext(appliConfigKey.name(), context).get(0);
+		}else {
+			return null;
+		}
+	}
+	
+	private List<String> splitConfigValues(AppliConfig appliConfig) {
+		String userTypeAsString = appliConfig.getValue();
+		List<String> userTypes = new ArrayList<String>();
+		if(userTypeAsString.contains(DELIMITER_MULTIPLE_VALUES)) {
+			userTypes = Arrays.asList(userTypeAsString.split(DELIMITER_MULTIPLE_VALUES));
+		}else {
+			userTypes.add(userTypeAsString);
+		}
+		return userTypes;
+	}
+	
+	public String getConvocationContenu() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_TYPE);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getConvocationConsignes() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_CONSIGNES);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+
+	public String getConvocationSujetMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_SUJET_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getConvocationBodyMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_BODY_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getConsigneType() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONSIGNE_TYPE);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getConsigneSujetMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONSIGNE_SUJET_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getConsigneBodyMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONSIGNE_BODY_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public  List<String> getListeGestionnaires() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.LISTE_GESTIONNAIRES);
+		return splitConfigValues(appliConfig);
+	}
+
+	public Boolean getAutoCloseSession() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.AUTO_CLOSE_SESSION);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public String getTestEmail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.TEST_EMAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public Boolean isSendEmails() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.SEND_EMAILS);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public int getRetentionLogs(Context context) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.RETENTION_LOGS, context);
+		return appliConfig==null ? 36000 : Integer.parseInt(appliConfig.getValue());
+	}
+	
+	public List <AppliConfigKey> checkAppliconfig(Context context) {
+		List <AppliConfigKey> listKey = Arrays.asList(AppliConfigKey.values());
+		List <AppliConfig> list = appliConfigRepository.findAppliConfigByContext(context);
+		List <String> currentKeys = list.stream().map(o -> o.getKey()).collect(Collectors.toList());
+		
+		List <AppliConfigKey> newListKey = new ArrayList<AppliConfigKey>();
+		
+		for (AppliConfigKey key : listKey){
+			if(!currentKeys.contains(key.name())) {
+				newListKey.add(key);
+				log.info("config manquante: " + key);
+			}
+		}
+		return newListKey;
+	}
+	
+	@Transactional
+	public int updateAppliconfig(Context context) {
+		List <AppliConfigKey> list =  checkAppliconfig(context);
+		int nb= 0;
+		if(!list.isEmpty()) {
+			for(AppliConfigKey key : list) {
+				AppliConfig appliconfig = new AppliConfig();
+				String suffixe = key.name().toLowerCase();
+				appliconfig.setContext(context);
+				appliconfig.setDescription(messageSource.getMessage("config.desc.".concat(suffixe), null, null));
+				appliconfig.setKey(messageSource.getMessage("config.key.".concat(suffixe), null, null));
+				appliconfig.setType(TypeConfig.valueOf(messageSource.getMessage("config.type.".concat(suffixe), null, null)));
+				appliconfig.setValue(messageSource.getMessage("config.value.".concat(suffixe), null, null));
+				appliConfigRepository.save(appliconfig);
+				nb++;
+			}
+			log.info("Ajout des configs " +list + " pour le contexte : " + context.getKey());
+			logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Ajout de configs " + list , null,  null, context.getKey(), null);
+		}
+		return nb;
+	}
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header"><h2 >Contexte</h2></div>
+	 			<div class="card-body">
+					<dl class="row">
+			            <dt class="col-sm-2">Clé</dt>
+			            <dd class="col-sm-10" th:text="${context.key}"></dd>
+			            <dt class="col-sm-2">Titre</dt>
+			            <dd class="col-sm-10" th:text="${context.title}"></dd>
+						<dt class="col-sm-2">Commentaire</dt>
+			            <dd class="col-sm-10" th:text="${context.commentaire}"></dd>
+			            <dt class="col-sm-2">Créateur</dt>
+			            <dd class="col-sm-10" th:text="${context.createur}"></dd>
+			            <dt class="col-sm-2">Pied de page</dt>
+			            <dd class="col-sm-10" th:text="${context.pageFooter}"></dd>
+						<dt class="col-sm-2">Date de création</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(context.dateCreation, 'dd-MM-yyyy HH:mm')}"></dd>
+			            <dt class="col-sm-2">Date de modification</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(context.dateModification, 'dd-MM-yyyy HH:mm')}"></dd>			            
+					</dl>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

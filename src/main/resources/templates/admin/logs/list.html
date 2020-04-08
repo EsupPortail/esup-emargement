@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+		    			<div class="row">
+		    				<div class="col-lg-2">
+		    					<h2>Logs</h2>
+		    				</div>
+						    <div class="col-lg-10">
+							    <div class="row mt-3 ml-2 float-right">
+							    	<button class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un log"><i class="fas fa-search"></i></button>
+							    </div>
+						    </div> 
+				 		</div>
+				 	</div>
+	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+						<div class="form-group alert alert-dark pt-1 pb-1">
+							<form th:action="@{/{ctx}/admin/logs/search(ctx=${eContext})}" th:object="${logObject}" method="post" >
+								<div class="row">
+									<div class="col-lg-10">
+										<div class="row">
+											<div class="col-lg-2">
+												<label  class="mb-0">Date</label>
+												<input type="text" id="stringDate" name="stringDate" data-toggle="datetimepicker" data-target="#stringDate" th:value="${logDate}" class="form-control"/>
+											</div>
+											<div class="col-lg-2">
+												<label class="mb-0">Eppn</label>
+												<select th:field="*{eppn}" class="custom-select">
+													<option value="">----choisir----</option>
+													<option th:each="eppn : ${eppns}"
+													th:value="${eppn}" th:text="${eppn}"></option>
+												</select>									
+											</div>
+											<div class="col-lg-2">
+												<label class="mb-0">Action</label>
+												<select th:field="*{action}"  class="custom-select">
+													<option value="">----choisir----</option>
+													<option th:each="action : ${actions}"
+													th:value="${action}" th:text="${action}"></option>
+												</select>	
+											</div>
+											<div class="col-lg-2">
+												<label class="mb-0">Code</label>
+												<select th:field="*{retCode}"class="custom-select">
+													<option value="">----choisir----</option>
+													<option value="SUCCESS">SUCCESS</option>
+													<option value="FAILED">FAILED</option>
+												</select>
+											</div>
+											<div class="col-lg-2">
+												<label class="mb-0">Type</label>
+												<select th:field="*{type}" class="custom-select">
+													<option value="">----choisir----</option>
+													<option value="USER">USER</option>
+													<option value="SYSTEM">SYSTEM</option>
+												</select>
+											</div>
+											<div class="col-lg-2">
+												<label class="mb-0">Eppn cible</label>
+												<select th:field="*{cibleLogin}" class="custom-select">
+													<option value="">----choisir----</option>
+													<option th:each="cible : ${cibleLogins}"
+													th:value="${cible}" th:text="${cible}"></option>
+												</select>
+											</div>
+										</div>
+									</div>
+									<div class="col-lg-2 mt-4">
+										<button class="btn btn-success" type="submit">OK</button>
+										<a th:href="@{/{ctx}/admin/logs(ctx=${eContext})}"  class="btn btn-danger" type="button" ><i class="fas fa-undo"></i></a>
+									</div>
+								</div>
+							</form>
+	    				</div>				 	
+					</div>
+					<table class="table table-hover table-striped table-bordered">
+						<thead>
+							<tr>
+								<th scope="col"><a class="sorted" sd:pagination-sort="logDate">Date</a></th>
+								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+								<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="type">Type</a></th>
+								<th scope="col"><a class="sorted" sd:pagination-sort="action">Action</a></th>
+								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Code</th>
+								<th scope="col" class="d-none d-xl-table-cell">Eppn cible</th>
+								<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Commentaire</th>
+								<th scope="col" class="d-none d-xl-table-cell">Ip</th>
+								<th scope="col" class="center">Voir</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="log : ${logsPage}">
+								<td th:text="${#dates.format(log.logDate, 'dd-MM-yyyy HH:mm:ss')}"></td>
+								<td th:text="${log.eppn}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td th:text="${log.type}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
+								<td th:text="${log.action}"></td>
+								<td th:text="${log.retCode}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td th:text="${log.cibleLogin}"  class="d-none d-xl-table-cell"></td>
+								<td th:text="${log.comment}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
+								<td th:text="${log.remoteAddress}"  class="d-none d-xl-table-cell"></td>
+								<td class="center"><a th:href="@{/{ctx}/admin/logs/{id}(id=${log.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+							</tr>
+						</tbody>
+					</table>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header"><h2 >Lieu</h2></div>
+	 				<div class="card-body">
+					<dl class="row" th:each="person :  ${persons}">
+			            <dt class="col-sm-2">Eppn</dt>
+			            <dd class="col-sm-10" th:text="${person.eppn}"></dd>
+			            <dt class="col-sm-2">Numéro d'dentifiant</dt>
+			            <dd class="col-sm-10" th:text="${person.numIdentifiant}"></dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

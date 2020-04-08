@@ -1,0 +1,221 @@
+package org.esupportail.emargement.web.manager;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.esupportail.emargement.domain.Location;
+import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.repositories.LocationRepository;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.LdapService;
+import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionLocationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/{emargementContext}")
+@PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+public class SessionLocationController {
+	
+	@Autowired
+	SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired
+	LocationRepository locationRepository;
+	
+	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Resource
+	SessionLocationService sessionLocationService;
+	
+	@Resource
+	LogService logService;
+
+	@Resource
+	LdapService ldapService;
+	
+	@Resource
+	ContextService contexteService;
+	
+	@Resource
+	HelpService helpService;
+	
+	private final static String ITEM = "sessionLocation";
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
+    	
+	@ModelAttribute("active")
+	public String getActiveMenu() {
+		return ITEM;
+	}
+	
+	@GetMapping(value = "/manager/sessionLocation/sessionEpreuve/{id}", produces = "text/html")
+    public String listSesionLocationBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
+    		@PageableDefault(size = 20, direction = Direction.ASC, sort = "sessionEpreuve")  Pageable pageable) {
+
+        Page<SessionLocation> sessionLocationPage = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve, pageable);
+        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);
+        model.addAttribute("sessionLocationPage", sessionLocationPage);
+        model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
+		model.addAttribute("paramUrl", sessionEpreuve.getId());
+		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "manager/sessionLocation/list";
+    }
+	
+	@GetMapping(value = "/manager/sessionLocation/{id}", produces = "text/html")
+    public String show(@PathVariable("id") Long id, Model uiModel) {
+        uiModel.addAttribute("sessionLocation",  sessionLocationRepository.findById(id).get());
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "manager/sessionLocation/show";
+    }
+	
+    @GetMapping(value = "/manager/sessionLocation", params = "form", produces = "text/html")
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
+    	SessionLocation SessionLocation = new SessionLocation();
+    	if(id !=null) {
+	    	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+	    	List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+	    	List<Location> allLocations = locationRepository.findAll();
+	    	List<Location> usedLocations = allSl.stream().map(e->e.getLocation()).collect(Collectors.toList());
+	    	allLocations.removeAll(usedLocations);
+	    	uiModel.addAttribute("allLocations", allLocations);
+    	}
+	   populateEditForm(uiModel, SessionLocation, id);
+    	
+        return "manager/sessionLocation/create";
+    }
+    
+    @GetMapping(value = "/manager/sessionLocation/{id}", params = "form", produces = "text/html")
+    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    	SessionLocation sessionLocation = sessionLocationRepository.findById(id).get();
+    	populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
+        return "manager/sessionLocation/update";
+    }
+    
+    void populateEditForm(Model uiModel, SessionLocation SessionLocation, Long id) {
+    	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
+    	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+    	allSe.add(se);
+    	uiModel.addAttribute("allSessionEpreuves", allSe);
+        uiModel.addAttribute("sessionLocation", SessionLocation);
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+    }
+    
+    @PostMapping("/manager/sessionLocation/create")
+    public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest){
+        if (bindingResult.hasErrors()) {
+            populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
+            return "manager/sessionLocation/create";
+        }
+        
+    	int capaciteMax = sessionLocation.getLocation().getCapacite();
+        if (bindingResult.hasErrors() || sessionLocation.getCapacite() > capaciteMax  ) {
+            populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
+            if(sessionLocation.getCapacite() > capaciteMax ) {
+            	uiModel.addAttribute("error", capaciteMax);
+            }
+            return "manager/sessionLocation/create";
+        }
+        
+        uiModel.asMap().clear();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    	sessionLocation.setContext(contexteService.getcurrentContext());
+        sessionLocationRepository.save(sessionLocation);
+        log.info("ajout d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
+    	logService.log(ACTION.AJOUT_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
+    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + sessionLocation.getSessionEpreuve().getId().toString(),emargementContext);
+    }
+    
+    @PostMapping("/manager/sessionLocation/update/{id}")
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel, 
+    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    	
+    	SessionLocation oldSl = sessionLocationRepository.findById(id).get();
+    	int capaciteMax = oldSl.getLocation().getCapacite();
+        if (bindingResult.hasErrors() || sessionLocation.getCapacite() > capaciteMax  ) {
+            populateEditForm(uiModel, oldSl, oldSl.getSessionEpreuve().getId());
+            if(sessionLocation.getCapacite() > capaciteMax ) {
+            	uiModel.addAttribute("error", capaciteMax);
+            }
+            return "manager/sessionLocation/update";
+        }
+        uiModel.asMap().clear();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        oldSl.setCapacite(sessionLocation.getCapacite());
+        oldSl.setPriorite(sessionLocation.getPriorite());
+        oldSl.setIsTiersTempsOnly(sessionLocation.getIsTiersTempsOnly());
+        sessionLocationRepository.save(oldSl);
+        log.info("ajout d'un lieu de session; Site" + oldSl.getSessionEpreuve().getCampus().getSite()+ " Lieu " + oldSl.getLocation().getNom());
+    	logService.log(ACTION.UPDATE_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + oldSl.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + oldSl.getLocation().getNom(), 
+    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + oldSl.getSessionEpreuve().getId().toString(),emargementContext);
+    }
+    
+    @PostMapping(value = "/manager/sessionLocation/{id}")
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    	SessionLocation sessionLocation = sessionLocationRepository.findById(id).get();
+    	String seId =  sessionLocation.getSessionEpreuve().getId().toString();
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	try {
+			sessionLocationRepository.delete(sessionLocation);
+	    	log.info("suppression d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
+	    	logService.log(ACTION.DELETE_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
+	    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+		} catch (Exception e) {
+	    	log.error("suppression du lieu de session impossible car utilisé; Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom(),e);
+	    	logService.log(ACTION.DELETE_SESSION_LOCATION, RETCODE.FAILED, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
+	    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	    	redirectAttributes.addFlashAttribute("item", sessionLocation.getLocation().getNom());
+	    	redirectAttributes.addFlashAttribute("error", "constrainttError");
+		}
+
+        return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + seId, emargementContext);
+    }
+	
+    @GetMapping("/manager/sessionLocation/searchSessionLocations")
+    @ResponseBody
+    public List<Location> search(@RequestParam("searchValue") String searchValue, @RequestParam(value ="sessionEpreuve") Long sessionEpreuveId, @RequestParam(value ="locationsUsed") boolean locationsUsed) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		HashMap <Long, List<Location>> mapSessions = sessionLocationService.getMapSessions(sessionEpreuveId, locationsUsed);
+		List<Location> sessionLocationList= mapSessions.get(Long.valueOf(searchValue));
+    	
+        return sessionLocationList;
+    }
+}

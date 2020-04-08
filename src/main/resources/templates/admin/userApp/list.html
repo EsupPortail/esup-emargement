@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+			    		<div class="row">
+				    		<div class="col-lg-2">
+						    	<h2>Agents</h2>
+						    </div>
+						    <div class="col-lg-10">
+							    <div class="row mt-3 ml-2 float-right">
+							    	<button class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
+							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ml-2" th:if="${isAdminContext}" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
+							    </div>
+						    </div>
+		    			</div>
+		    		 </div>
+		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
+							<input type="text" name="eppn" th:value="${eppn}" class="form-control mr-1" placeholder="Recherche" id="searchUserApp">
+							<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+						</form>
+		    		</div>
+		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
+									<th scope="col" th:if="${eContext=='all'}"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
+									<th scope="col" th:if="${eContext=='all'}"><a class="sorted" sd:pagination-sort="contextPriority">Ordre Contexte</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
+									<th scope="col" class="center">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="userApp : ${userAppPage}" th:id="${userApp.id}" th:class="${#strings.equals(itsme,userApp.eppn)} ? table-info : ''">
+									<td th:text="${userApp.eppn}">Eppn</td>
+									<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
+									<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
+									<td th:text="${userApp.userRole}">Rôle</td>
+									<th th:text="${userApp.context.key}" th:if="${eContext=='all'}">Contexte</th>
+									<th th:text="${userApp.contextPriority}" th:if="${eContext=='all'}">Contexte</th>
+									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
+									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
+									<td class="center"><a th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+										<a class="ml-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
+											<i class="fa fa-pen text-warning"></i>
+										</a>
+										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-pen disabled ml-2"></i>
+										<a class="ml-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${userApp.id }">
+											<i class="fa fa-trash text-danger"></i>
+										</a>
+										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-trash disabled ml-2"></i>
+										<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													          <span aria-hidden="true">&times;</span>
+													        </button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
+											                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

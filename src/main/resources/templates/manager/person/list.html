@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div class="container-fluid">
+		<div  class="alert alert-primary font-weight-bold text-dark mt-2">
+			Liste de toutes les personnes inscrites aux sessions</div>
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header"><h2>Personnes <a th:href="@{/{ctx}/manager/person?form(ctx=${eContext})}" class="btn btn-primary btn-sm float-right"><i class="fa fa-plus fa-lg"></i></a></h2></div>
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+									<th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="numIdentifiant">Identifiant</a></th>
+									<th scope="col">Nom</th>
+									<th scope="col">Prénom</th>
+									<th class ="show" scope="col">Voir</th>
+									<th class ="edit" scope="col">Modifier</th>
+									<th class ="delete" scope="col">Supprimer</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="person : ${personPage}">
+									<td th:text="${person.eppn}"></td>
+									<td th:text="${person.numIdentifiant}"></td>
+									<td th:text="${person.nom}"></td>
+									<td th:text="${person.prenom}"></td>
+									<td class ="show"><a th:href="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" class="show"><i class="fa fa-eye text-primary"></i></a></td>
+									<td class ="edit"><a th:href="@{/{ctx}/manager/person/{id}?form(id=${person.id},ctx=${eContext})}" class="edit"><i class="fa fa-pencil text-warning"></i></a></td>
+									<td class ="delete"><a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${person.id }"><i class="fa fa-trash text-danger"></i></a>
+										<div class="modal modal-warning fade in" th:id="modal-warning+${person.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													          <span aria-hidden="true">&times;</span>
+													        </button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette personne : <br />
+											                	 <span th:text="${person.eppn}" class="font-weight-bold"></span> ?</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>						
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

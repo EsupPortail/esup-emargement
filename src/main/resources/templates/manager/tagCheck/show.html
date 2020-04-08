@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header"><h2 >Inscription</h2></div>
+	 				<div class="card-body">
+					<dl class="row">
+			            <dt class="col-sm-2">Session</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></dd>					
+			            <dt class="col-sm-2">Type</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.person.type}"></dd>					
+			            <dt class="col-sm-2">Eppn</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.person.eppn}"></dd>
+			            <dt class="col-sm-2">Nom</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.person.nom}"></dd>
+			            <dt class="col-sm-2">Prénom</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.person.prenom}"></dd>
+			            <dt class="col-sm-2">N° identifiant</dt>
+			            <dd class="col-sm-10" th:text="${(tagCheck.person.numIdentifiant != null) ? tagCheck.person.numIdentifiant : '---'}"></dd>
+			            <dt class="col-sm-2">Temps aménagé</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.isTiersTemps}"></dd>
+			            <dt class="col-sm-2">Envoi convocation</dt>
+			            <dd class="col-sm-10" th:text="${(tagCheck.dateEnvoiConvocation != null) ? #dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm') : '---'}"></dd>
+			            <dt class="col-sm-2">Emargement</dt>
+			            <dd class="col-sm-10"  th:text="${(tagCheck.tagDate != null) ? #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm') : '---'}"></dd>
+			            <dt class="col-sm-2">Badgeage</dt>
+			            <dd class="col-sm-10"><i th:if= "${tagCheck.isCheckedByCard!=null} " th:class="${tagCheck.isCheckedByCard} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></dd>
+			            <dt class="col-sm-2">Surveillant</dt>
+			            <dd class="col-sm-10" th:text="${(tagCheck.tagChecker!= null) ? tagCheck.tagChecker.userApp.eppn : '---'}"></dd>			            
+			            <dt class="col-sm-2">Répartition</dt>
+			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.location.nom : '---'}"></dd>
+			            <dt class="col-sm-2">Lieu badgé</dt>
+			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : '---'}"></dd>
+			            <dt class="col-sm-2">Commentaire</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.tagDate}"></dd>
+	
+					</dl>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,227 @@
+package org.esupportail.emargement.web.manager;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
+import org.esupportail.emargement.services.AppliConfigService;
+import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.LdapService;
+import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionLocationService;
+import org.esupportail.emargement.services.TagCheckerService;
+import org.esupportail.emargement.services.UserAppService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/{emargementContext}")
+@PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+public class TagCheckerController {
+	
+	@Autowired
+	TagCheckerRepository tagCheckerRepository;
+	
+	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired
+	UserAppRepository userAppRepository;
+	
+	@Resource
+	TagCheckerService tagCheckerService;
+	
+	@Resource
+	UserAppService userAppService;
+	
+	@Resource
+	SessionLocationService sessionLocationService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
+	
+	@Resource
+	LogService logService;
+	
+	@Resource
+	ContextService contexteService;
+
+	@Resource
+	LdapService ldapService;
+	
+	@Resource
+	HelpService helpService;
+	
+	private final static String ITEM = "tagChecker";
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	@ModelAttribute("active")
+	public String getActiveMenu() {
+		return ITEM;
+		
+	}
+	
+	@GetMapping(value = "/manager/tagChecker/sessionEpreuve/{id}", produces = "text/html")
+    public String listTagCheckerBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
+    		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable) {
+
+		Page<TagChecker> tagCheckerPage = tagCheckerService.getListTagCheckerBySessionEpreuve(sessionEpreuve, pageable);
+		tagCheckerService.setNomPrenom4TagCheckers(tagCheckerPage.getContent());
+		model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);
+        model.addAttribute("tagCheckerPage", tagCheckerPage);
+		model.addAttribute("paramUrl", sessionEpreuve.getId());
+		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
+		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "manager/tagChecker/list";
+    }
+	
+	@GetMapping(value = "/manager/tagChecker/{id}", produces = "text/html")
+    public String show(@PathVariable("id") Long id, Model uiModel) {
+		List<TagChecker> tagCheckers = new ArrayList<TagChecker>();
+		tagCheckers.add( tagCheckerRepository.findById(id).get());
+		tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+		
+        uiModel.addAttribute("tagChecker", tagCheckers.get(0));
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "manager/tagChecker/show";
+    }
+	
+    @GetMapping(value = "/manager/tagChecker", params = "form", produces = "text/html")
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
+    	TagChecker tagChecker = new TagChecker();
+    	if(id !=null) {
+    		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+    		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+    		List<TagChecker> allTcUsed = tagCheckerRepository.findTagCheckerBySessionLocationIn(allSl, null).getContent();
+    		List<UserApp> allUserApps = userAppRepository.findByContext(se.getContext());
+    		for (TagChecker tc :allTcUsed) {
+    			allUserApps.remove(tc.getUserApp());
+    		}
+    		uiModel.addAttribute("allSessionLocations", allSl);
+    		uiModel.addAttribute("allUserApps", userAppService.setNomPrenom(allUserApps));
+    	}
+    	populateEditForm(uiModel, tagChecker, id);
+        return "manager/tagChecker/create";
+    }
+    
+    void populateEditForm(Model uiModel, TagChecker TagChecker, Long id) {
+    	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
+    	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+    	allSe.add(se);
+    	uiModel.addAttribute("allSessionEpreuves", allSe);
+        uiModel.addAttribute("tagChecker", TagChecker);
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+    }
+    
+    @PostMapping("/manager/tagChecker/create")
+    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+        if (bindingResult.hasErrors()) {
+            populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
+            return "manager/tagChecker/create";
+        }
+        uiModel.asMap().clear();
+        tagChecker.setContext(contexteService.getcurrentContext());
+        tagCheckerRepository.save(tagChecker);
+        log.info("ajout surveillant : " + tagChecker.getUserApp().getEppn());
+        logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);
+        return String.format("redirect:/%s/manager/tagChecker/sessionEpreuve/" + tagChecker.getSessionEpreuve().getId().toString(), emargementContext);
+    }
+    
+    @PostMapping(value = "/manager/tagChecker/{id}")
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    	TagChecker tagChecker = tagCheckerRepository.findById(id).get();
+    	String seId = tagChecker.getSessionEpreuve().getId().toString();
+    	if(tagChecker.getSessionEpreuve().isSessionEpreuveClosed) {
+	        log.info("suppression du surveillant impossible car la session est cloturée : " + tagChecker.getUserApp().getEppn());
+	        logService.log(ACTION.DELETE_SURVEILLANT, RETCODE.FAILED, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);			
+    	}else {
+	    	try {
+				tagCheckerRepository.delete(tagChecker);
+		        log.info("suppression surveillant : " + tagChecker.getUserApp().getEppn());
+		        logService.log(ACTION.DELETE_SURVEILLANT, RETCODE.SUCCESS, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);
+			} catch (Exception e) {
+		        log.info("suppression du surveillant impossible car utilisé : " + tagChecker.getUserApp().getEppn(), e);
+		        logService.log(ACTION.DELETE_SURVEILLANT, RETCODE.FAILED, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);
+		    	redirectAttributes.addFlashAttribute("item", tagChecker.getUserApp().getEppn());
+		    	redirectAttributes.addFlashAttribute("error", "constrainttError");
+			}
+    	}
+        return String.format("redirect:/%s/manager/tagChecker/sessionEpreuve/" + seId, emargementContext);
+    }
+	
+    @GetMapping("/manager/tagChecker/searchSessionLocations")
+    @ResponseBody
+    public List<SessionLocation> search(@RequestParam("searchValue") String searchValue, @RequestParam(value ="sessionEpreuve") Long sessionEpreuveId, @RequestParam(value ="locationsUsed") boolean locationsUsed) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		HashMap <Long, List<SessionLocation>> mapSessions = sessionLocationService.getMapSessionLocations(sessionEpreuveId, locationsUsed);
+		List<SessionLocation> sessionLocationList= mapSessions.get(Long.valueOf(searchValue));
+    	
+        return sessionLocationList;
+    }
+    
+    @GetMapping(value = "/manager/tagChecker/consignes")
+    public String getConsignes(Model uiModel, @RequestParam("seid") SessionEpreuve sessionEpreuve) {
+    	uiModel.addAttribute("seid",  sessionEpreuve.getId());
+    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+    	uiModel.addAttribute("consignesHtml", appliConfigService.getConsigneType());
+    	uiModel.addAttribute("sujetMailConsignes", appliConfigService.getConsigneSujetMail());
+    	uiModel.addAttribute("bodyMailConsignes", appliConfigService.getConsigneBodyMail());
+    	uiModel.addAttribute("tagCheckers", tagCheckerService.getSnTagCheckers(sessionEpreuve));
+    	uiModel.addAttribute("help", helpService.getValueOfKey("consignes"));
+    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
+        return "manager/tagChecker/consignes";
+    }
+    
+	@Transactional
+	@PostMapping(value = "/manager/tagChecker/sendConsignes", produces = "text/html")
+    public String sendConvocation(@PathVariable String emargementContext, @RequestParam("subject") String subject, @RequestParam("bodyMsg") String bodyMsg, 
+    		@RequestParam(value = "sessionEpreuveId") Long sessionEpreuveId,  @RequestParam("htmltemplatePdf") String htmltemplatePdf, Model uiModel) throws Exception {
+		
+		if(appliConfigService.isSendEmails()){
+			tagCheckerService.sendEmailConsignes(subject, bodyMsg, sessionEpreuveId, htmltemplatePdf, emargementContext);
+		}else {
+			log.info("Envoi de mail désactivé :  ");
+		}
+		
+		return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+    }
+}

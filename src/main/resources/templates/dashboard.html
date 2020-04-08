@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+  				<div class="card-body">
+  					<h2 class="mb-3">Tableau de bord</h2>
+  					<div class="row">
+  						<div class="col-lg-5">
+							<div class="col-md-12">
+						  		<div class="info-box">
+						            <span class="info-box-icon bg-aqua"><i class="fas fa-calendar"></i></span>
+						            <div class="info-box-content">
+						              <span class="info-box-text">Aujourd'hui:</span>
+						              <span class="info-box-number" th:text="${#ctx.containsVariable('seTodayList')? seTodayList.nomSessionEpreuve + ' : ' +  #dates.format(seTodayList.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
+						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"><strong>Surveillants : </strong></span>
+						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"  class="info-box-text"   th:each="userApp : ${userAppsToday}">
+						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
+						              </span>
+						              </span>   
+						            </div>
+						            <!-- /.info-box-content -->
+						         </div>
+							</div>  						
+							<div class="col-md-12">
+						  		<div class="info-box">
+						            <span class="info-box-icon bg-aqua"><i class="fas fa-calendar-day"></i></span>
+						            <div class="info-box-content">
+						              <span class="info-box-text">Prochaine session :</span>
+						              <span class="info-box-number" th:text="${#ctx.containsVariable('seNext')? seNext.nomSessionEpreuve + ' : ' +  #dates.format(seNext.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
+						              <span  th:if="${#ctx.containsVariable('userApps')}"><strong>Surveillants : </strong></span>
+						              <span  th:if="${#ctx.containsVariable('userApps')}"  class="info-box-text"   th:each="userApp : ${userApps}">
+						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
+						              </span>
+						              </span>
+						            </div>
+						            <!-- /.info-box-content -->
+						         </div>
+							</div>
+							<div class="col-md-12">
+						  		<div class="info-box">
+						            <span class="info-box-icon bg-aqua"><i class="fas fa-calendar-check"></i></span>
+						            <div class="info-box-content">
+						              <span class="info-box-text">Dernière session :</span>
+						              <span class="info-box-number" th:text="${#ctx.containsVariable('sePrevious')? sePrevious.nomSessionEpreuve + ' : ' +  #dates.format(sePrevious.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
+						              <span  th:if="${#ctx.containsVariable('userAppsPrevious')}"><strong>Surveillants : </strong></span>
+						              <span  th:if="${#ctx.containsVariable('userAppsPrevious')}"  class="info-box-text"   th:each="userApp : ${userAppsPrevious}">
+						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
+						              </span>
+						              </span>
+						            </div>
+						            <!-- /.info-box-content -->
+						         </div>
+							</div>
+							<div class="col-md-12">
+						  		<div class="info-box">
+						            <span class="info-box-icon bg-aqua"><i class="fas fa-calendar-alt"></i></span>
+						            <div class="info-box-content">
+						              <span class="info-box-text">Nombre de sessions à venir:</span>
+						              <span class="info-box-number" th:text="${nextSessions}">0</span>
+						            </div>
+						            <!-- /.info-box-content -->
+						         </div>
+							</div>							
+						</div>
+						<div class="col-lg-7">
+							<h3>Sessions</h3>
+							<div class="alert alert-info">
+								<strong>Surveillant : </strong><span th:text="${userLdap.prenomNom + ' -- ' +  userLdap.eppn}"></span>
+							</div>
+							<table class="table table-hover table-striped table-bordered">
+								<thead>
+									<tr>
+										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Date</a></th>
+										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Epreuve</a></th>
+										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
+										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve.campus.site">Site</a></th>
+										<th scope="col"><a class="sorted" sd:pagination-sort="userApp">Voir</a></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="tagChecker : ${tagCheckerPage}">
+										<td th:text="${#dates.format(tagChecker.sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>
+										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
+										<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
+										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.campus.site}"></td>
+										<td class="center"><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${tagChecker.sessionLocation.sessionEpreuve.id},ctx=${eContext})}" ><i class="fa fa-eye text-primary"></i></a></td>
+									</tr>
+								</tbody>
+							</table>		
+  						</div>
+					</div>	
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

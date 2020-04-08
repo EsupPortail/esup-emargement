@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid" id="eventsSelect">
+           	<div class="card">
+		    	<div class="card-header"><h2>Ajouter une session</h2></div>
+		    	<div  class="alert alert-danger" th:if="${error}">Une session avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+		    	<div  class="alert alert-danger font-weight-bold" th:if="${compareEpreuve}">L'heure de fin doit être postérieure à l'heure de début</div>
+		    	<div  class="alert alert-danger font-weight-bold" th:if="${compareConvoc}">L'heure de convocation doit être antérieure à l'heure de début</div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/create(ctx=${eContext})}" th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
+	                    <div class="form-group row" th:if="${!#lists.isEmpty(events)}">
+		                    <div class="col-lg-2">
+		                    	<label for="event" class="col-form-label">Evènements ICS</label> <span class="text-danger font-weight-bold"></span>
+		                    </div>
+		                    <div class="col-lg-10">
+		                    	<div class="row">
+		                    		<div class="col-lg-3">
+				                    	<select id="icsSelect">
+				                    		<option th:text="${'Tous (' + #lists.size(events)  + ')'}"></option>
+											<option th:each="ics : ${icsList}"
+												th:value="${ics.id}" th:text="${ics.nom + ' (' + ics.nbEvent + ')'}"></option>
+										</select>
+									</div>
+									<div class="col-lg-9" id="divEvents">
+										<select  id="icsEvents">
+											<option data-placeholder="true"></option>
+											<option th:each="event : ${events}"
+													th:value="${event.uid}" 
+													th:text="${#dates.format(event.startDate, 'dd/MM/yyyy')
+													+ ' || ' + #dates.format(event.startDate, 'HH:mm')
+													+ '-->' + #dates.format(event.endDate, 'HH:mm')
+													+ ' || ' + event.summary
+													+ ' || ' + event.location
+													}"></option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="codSes" class="col-form-label">Année universitaire</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select id="anneeUniv" name="anneeUniv" required="required" class="form-control"> 
+									<option th:each="year : ${years}"
+										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}"></option>
+								</select>
+							</div>
+						</div>						
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                    	<label for="campus" class="col-form-label">*Site</label>
+		                    </div>
+		                    <div class="col-lg-10">
+								<select th:field="*{campus}" class="form-control" required="required">
+									<option th:each="campus : ${allCampuses}"
+										th:value="${campus.id}" th:text="${campus.site}"></option>
+								</select>
+							</div>
+						</div>	 	                    
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                        <label for="nomSessionEpreuve" class="col-form-label">*Nom</label>
+		                    </div>
+		                    <div class="col-lg-10">
+		                        <input type="text" th:field="*{nomSessionEpreuve}" class="form-control" required="required">
+		                    </div>
+	                    </div>
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                        <label for="dateExamen" class="col-form-label">*Date</label>
+		                    </div>
+		                    <div class="col-lg-10">
+		                        <input type="text" placeholder="dd/MM/YYYY" th:field="*{dateExamen}" class="form-control" required="required" id="dateSessionEpreuve" 
+		                        	data-toggle="datetimepicker" data-target="#dateSessionEpreuve">
+		                    </div>
+	                    </div>   	                    
+	                   <div class="form-group row">
+		                   <div class="col-lg-2">
+		                        <label for="heureConvocation" class="col-form-label">Convocation</label>
+		                   </div>
+		                   <div class="col-lg-10">
+		                        <input type="time" th:field="*{heureConvocation}" class="form-control" id="heureConvocation"
+		                        	data-toggle="datetimepicker" data-target="#heureConvocation" required="required">
+		                    </div>
+	                    </div>
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                        <label for="heureEpreuve" class="col-form-label">Début</label>
+	                       	</div>
+	                       	<div class="col-lg-10">
+		                        <input type="time" th:field="*{heureEpreuve}" class="form-control" id="heureEpreuve"
+		                        	data-toggle="datetimepicker" data-target="#heureEpreuve" required="required">
+	                        </div>
+	                    </div>
+	                    <div class="form-group row">
+	                    	<div class="col-lg-2">
+	                        	<label for="finEpreuve" class="col-form-label">Fin</label>
+	                        </div>
+	                        <div class="col-lg-10">
+	                        	<input type="time" th:field="*{finEpreuve}" class="form-control timepicker" id="finEpreuve"
+	                        		data-toggle="datetimepicker" data-target="#finEpreuve" required="required">
+	                        </div>
+	                    </div>	                    
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                    	<label for="file" class="col-form-label">Plan</label>
+		                    </div>
+		                    <div class="col-lg-10">
+			 					<input type="file" class="form-control-file" id="file" name="file">
+			 				</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-lg-2">
+								<label class="form-check-label"  th:for="${isSessionEpreuveClosed}">
+							        Clôturée
+							      </label>
+							</div>
+							<div class="col-lg-10">
+								 <div class="form-check">
+								      <input class="form-check-input" type="checkbox" th:field="*{isSessionEpreuveClosed}">
+								</div>      
+						    </div>
+						</div>                 
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div class="container-fluid">
+           	<div class="card" sec:authorize="isAuthenticated()">
+		    	<div class="card-header"></div>
+		    	<div class="alert alert-danger h5">
+				  <h4 class="alert-heading mb-4">Application d'émargement</h4>
+				  <p>Vous n'avez aucun droit dans ce contexte, c'est pour cela qu'aucun menu n'apparaît ainsi que ce message </p>
+				  <p>Seul un administrateur ou un super-administrateur peut vous donner des droits. Veuillez le contacter. </p>
+				  <hr>
+		    	</div>
+            </div>
+           	<div class="card" sec:authorize="!isAuthenticated()">
+		    	<div class="card-header"></div>
+		    	<div class="alert alert-info">
+				  <h4 class="alert-heading">Gestion de l'émargement </h4>
+				  <p>Application d'émargement, vous n'êtes pas authentifié :</p>
+				  <hr>
+				  <p class="mb-0">Connectez-vous</p>	    	
+		    	</div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

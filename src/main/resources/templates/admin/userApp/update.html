@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Modifier un agent</h2></div>
+		    	<div  class="alert alert-danger" th:if="${error}">L'agent avec l'eppn <strong><span th:text="${eppn}"></span></strong> existe déjà!!</div>
+  				<div class="card-body">
+	                    <form action="#" th:action="@{/{ctx}/admin/userApp/update/{id}(ctx=${eContext}, id=${userApp.id})}" th:object="${userApp}" method="post">
+ 							<div class="form-group row">
+		                   		<div class="col-lg-2">
+		                    		 <label for="eppn" class="col-form-label">Eppn</label>
+		                    	</div>
+		                    	<div class="col-lg-10">
+									<input type="email" th:field="*{eppn}" class="form-control" readonly="readonly">
+								</div>
+							</div>
+ 							<div class="form-group row">
+		                   		<div class="col-lg-2">
+		                    		 <label for="userRole" class="col-form-label">Rôle</label>
+		                    	</div>
+		                    	<div class="col-lg-10">
+									<select th:field="*{userRole}" class="form-control">
+										<option th:each="role : ${allRoles}"
+											th:value="${role}" th:text="${role}"></option>
+									</select>
+								</div>
+							</div>							
+	                        <div class="row">
+	                            <div class="col-md-6 mt-3">
+	                                <input type="submit" class="btn btn-success" value="Valider">
+	                            </div>
+	                        </div>                  
+	                    </form>
+	                </div>
+                </div>
+           	</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

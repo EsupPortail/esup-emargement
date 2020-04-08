@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="alert alert-danger" th:if="${form.list.isEmpty()}">Aucun lieu de session n'existe pour la répartition des inscrits!!</div>
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+		    			<div class="row">
+			    			<div class="col-lg-3">
+		    					<h2>Répartition</h2>
+								<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
+							</div>
+		    				<div class="col-lg-9">
+			    				<div class="row">
+			    					<div class="col-lg-12">	
+										<div class="alert alert-info  p-2" th:if="${not #lists.isEmpty(form.list)}">
+
+										
+											
+											<div class="row mb-2">	
+												<div class="col-lg-6">	
+													<span class="font-weight-bold">Temps non aménagé :</span>
+													<ul class="list-group  list-group-horizontal-sm">
+													  <li class="list-group-item p-2"  th:text="${'A répartir: ' +  countTagChecksNotTiersTemps}"></li>
+													  <li class="list-group-item p-2" th:text="${'Utilisé : ' + countTagChecksRepartisNotTiersTemps + ' / ' + capaciteTotaleNotTiersTemps}"></li>
+													</ul>				
+												</div>			
+												<div class="col-lg-6">	
+													<span class="font-weight-bold">Temps aménagé :</span>
+													<ul class="list-group  list-group-horizontal-sm">
+													  <li class="list-group-item p-2"  th:text="${'A répartir: ' +  countTagChecksTiersTemps}"></li>
+													  <li class="list-group-item p-2" th:text="${'Utilisé : ' + countTagChecksRepartisTiersTemps + ' / ' + capaciteTotaleTiersTemps}"></li>
+													</ul>
+												</div>									
+											</div>
+											<div class="col-lg-12">	
+													<a th:href="@{/{ctx}/manager/sessionEpreuve/executeRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning">Répartir</a>
+													<button class="btn btn-info" id="affinerButton" disabled="disabled">Affiner répartition</button>
+													<a th:href="@{/{ctx}/manager/sessionEpreuve/deleteRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-primary ml-2">Réinitialiser la partition</a>
+											</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<p class="font-weight-bold text-danger" th:text="${isOver} ? 'Le nombre d\'étudiants inscrits est supérieur à la capacité d\'accueil globale.' : ''"></p>
+		    		</div>
+	    			<form id="formAffinage" th:action="@{/{ctx}/manager/sessionEpreuve/affinerRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:object="${form}" method="post">
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col">Lieu</th>
+									<th scope="col">Priorité</th>
+									<th scope="col" class="center">Tiers temps réservé</th>
+									<th scope="col">Capacité</th>
+									<th scope="col">Candidats</th>
+									<th scope="col">Taux de remplissage</th>
+									<th scope="col" class="center">
+									<div class="mb-n3">
+										Temps aménagé:
+										<span class="badge badge-pill badge-primary"><span id="newTotal" th:text="${countTagChecksRepartisNotTiersTemps}"></span>/<span th:text="${countTagChecksRepartisNotTiersTemps}"></span></span>
+										Temps non aménagé:
+										<span class="badge badge-pill badge-info"><span id="newTotalTiers" th:text="${countTagChecksRepartisTiersTemps}"></span>/<span th:text="${countTagChecksRepartisTiersTemps}"></span></span>
+										<p class="p-0"><span id="msgWarning" class="text-danger font-weight-bold"></span></p>
+									</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="repartition, itemStat: *{list}">
+									<td th:text="${repartition.location.nom}"></td>
+									<td th:text="${repartition.priorite}"></td>
+									<td class="text-center"><i  th:id="${'tempsAmenage_' +repartition.id}" th:title="${(repartition.isTiersTempsOnly)? 'Oui' : 'Non'}" 
+										th:class="${repartition.isTiersTempsOnly} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td th:text="${repartition.capacite}" th:id="${'capacite_' +repartition.id}"></td>
+									<td><a th:id="${'candidats_' +repartition.id}" th:text="${repartition.nbInscritsSessionLocation}" th:href="@{/{ctx}/manager/sessionEpreuve/tagCheckList/{id}(id=${repartition.id},ctx=${eContext})}"></a></td>
+									<td th:text="${repartition.tauxRemplissage + ' %'}" th:id="${'txRemplissage_' +repartition.id}"></td>
+									<td class="center">
+										<button type="button" class="btn btn-outline-info btn-sm" th:id="${'minusRepartition_' +repartition.id}"><i class="fas fa-minus text-danger"></i></button>
+										<button type="button" class="btn btn-outline-info btn-sm" th:id="${'plusRepartition_' +repartition.id}"><i class="fas fa-plus text-danger"></i></button>
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].isTiersTempsOnly}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].priorite}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].capacite}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].location}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].sessionEpreuve}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].id}" />
+										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].nbInscritsSessionLocation}" th:id="${'form_' +repartition.id}" />
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</form>	
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+	<script>
+	/*<![CDATA[*/
+    var totalCandidatsNotTempsAmenage = '[[${countTagChecksRepartisNotTiersTemps}]]';
+    var totalCandidatsTempsAmenage = '[[${countTagChecksRepartisTiersTemps}]]';
+	/*]]>*/
+	</script>	
+</html>

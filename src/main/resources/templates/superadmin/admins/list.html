@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+		<div  class="alert alert-danger" th:if="${createOk}"> Création de <strong><span th:text="${createOk.eppn}"></span></strong> dans le contexte <strong><span th:text="${createOk.context.key}"></span></strong>.
+			Le nouvel agent doit se déconnecter puis se reconnecter afin d'être visible dans l'application.</div>
+           	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header"><h2>Agents <a th:href="@{/{ctx}/superadmin/admins?form(ctx=${eContext})}" class="btn btn-primary float-right" th:if="${isAdminContext}" title="Ajouter un administrateur"><i class="fa fa-plus fa-lg"></i></a></h2></div>
+		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
+									<th class ="center" scope="col">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="userApp : ${userAppPage}" th:id="${userApp.id}" th:class="${#strings.equals(itsme,userApp.eppn)} ? table-info : ''">
+									<td th:text="${userApp.eppn}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Eppn</td>
+									<td th:text="${userApp.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
+									<td th:text="${userApp.prenom}">Prénom</td>
+									<td th:text="${userApp.userRole}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Rôle</td>
+									<th th:text="${userApp.context.key}">Contexte</th>
+									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</td>
+									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
+									<td class ="center"><a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+										<a th:if="${isAdminContext}" th:href="@{/{ctx}/superadmin/admins/{id}?form(id=${userApp.id},ctx=${eContext})}">
+											<i class="fa fa-pen text-warning ml-2"></i>
+										</a>
+										<a th:if="${isAdminContext}" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${userApp.id }">
+											<i class="fa fa-trash text-danger ml-2"></i>
+										</a>
+										<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													          <span aria-hidden="true">&times;</span>
+													        </button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
+											                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

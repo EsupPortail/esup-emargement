@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+		    			<div class="row">
+				    		<div class="col-lg-2">
+						    	<h2>Lieux </h2>
+						    </div>
+						    <div class="col-lg-10">
+							    <div class="row mt-3 ml-2 float-right">
+							    	<button class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un lieu"><i class="fas fa-search"></i></button>
+							    	<a th:href="@{/{ctx}/admin/location?form(ctx=${eContext})}" class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>
+							    </div>
+						    </div> 
+		    			</div>
+		    		</div>	
+	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+				    	<form action="#" th:action="@{|/${eContext}/admin/location|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
+							<input type="text" name="location" th:value="${location}" class="form-control mr-1" placeholder="Recherche" id="searchLocation">
+							<a title="Annuler recherche" th:href="@{|/${eContext}/admin/location|}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+						</form>
+	    			</div>
+		    		<div  class="alert alert-danger" th:if="${error}">Suppression impossible : le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session.</div>
+					<table class="table table-hover table-striped table-bordered">
+						<thead>
+							<tr>
+								<th scope="col"><a class="sorted" sd:pagination-sort="nom">Nom</a></th>
+								<th scope="col"><a class="sorted" sd:pagination-sort="capacite">Capacité maximale</a></th>
+								<th scope="col"><a class="sorted" sd:pagination-sort="campus">Site</a></th>
+								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Adresse</th>
+								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Plan</th>
+								<th class ="center" scope="col">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="location : ${locationPage}"  th:id="${location.id}" th:class="${(location.campus== null)? 'table-danger' :''}">
+								<td th:text="${location.nom}"></td>
+								<td th:text="${location.capacite}"></td>
+								<td th:text="${(location.campus!= null)? location.campus.site : ''}"></td>
+								<td th:text="${location.adresse}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td class ="text-center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a target="_blank" th:href="@{/{ctx}/manager/file/{id}(id=${location.plan.id},ctx=${eContext})}" 
+									th:if="${location.plan != null}">
+								<i class="fa fa-file"></i></a></td>
+								<td class ="text-center"><a th:href="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<a class ="ml-2" th:href="@{/{ctx}/admin/location/{id}?form(id=${location.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
+									<a class ="ml-2" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${location.id }"><i class="fa fa-trash text-danger"></i></a>
+									<div class="modal modal-warning fade in" th:id="modal-warning+${location.id}" >
+									    <div class="modal-dialog">
+									        <div class="modal-content">
+									        	<form id="command" th:action="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}" method="POST">
+										        	<input type="hidden" name="_method" value="delete" />
+										            <div class="modal-header">
+										                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												          <span aria-hidden="true">&times;</span>
+												        </button>
+										            </div>
+										            <div class="modal-body">
+										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce lieu : <br />
+										                	 <span th:text="${location.nom}" class="font-weight-bold"></span> ?</div>
+										            </div>
+										            <div class="modal-footer">
+										                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+										            </div>
+									            </form>
+									        </div>
+									    </div>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Ajouter un inscrit</h2></div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
+                    	<div class="form-group row">
+                    		<div class="col-lg-2">
+	                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
+									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+										th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+								</select>
+							</div>
+						</div>
+	                    <div class="form-group row">
+	                    	<div class="col-lg-2">
+	                        	<label for="eppn" class="col-form-label">Eppn</label>
+	                       	</div>
+		                    <div class="col-lg-10">
+		                        <input type="text" th:id="eppn" th:name="person.eppn" class="form-control" placeholder="Pour info : identifiant@univ-ville.fr">
+		                       </div>
+		                    </div>
+	                    <div class="form-group row">
+		                    <div class="col-lg-2">
+		                    	<label for="numIdentifiant" class="col-form-label">N° identifiant</label>
+		                    </div>
+	                    	<div class="col-lg-10">
+								<input type ="number" th:id="numIdentifiant" th:name="person.numIdentifiant" class="form-control">
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-lg-2">
+								<label for="numIdentifiant" class="col-form-label">Temps aménagé</label>
+							</div>						
+							<div class="col-lg-10">
+							    <div class="form-check">
+							      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
+							    </div>
+						  	</div>
+						</div>
+	                    <div class="form-group row">
+	                    	<div class="col-lg-2">
+	                        	<label for="comment" class="col-form-label">Commentaire</label>
+	                        </div>
+	                        <div class="col-lg-10">
+	                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+	                        </div>
+	                    </div>	  
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

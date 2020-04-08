@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<nav th:replace="fragments/modalMsg :: modalMsg"></nav>
+		<div class="container-fluid">
+           	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+		    			<div class="row">
+			    			<div class="col-lg-4">
+				    			<h2>Inscrits <span class="badge badge-secondary badge-size" th:text="${countTagChecks}"></span></h2>
+						    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span><br />
+								<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>
+							</div>
+			    			<div class="col-lg-8">
+			    				<div class="row">
+									<div class="col-lg-12">	
+										<div class="row mt-3 ml-2 float-right">
+											<button th:if="${countTagChecks>0}" class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
+											<span class="btn-separator" th:if="${countTagChecks>0}"></span>	
+											<a th:if="${!isSessionEpreuveClosed}" title="Ajouter un iscrit" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+							    				class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>			
+											<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}"
+												class="btn btn-warning ml-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
+											<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
+												class="btn btn-danger ml-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
+											<span class="btn-separator" th:if="${!isSessionEpreuveClosed}"></span>	
+											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
+											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}"></span>
+											<button th:if="${!isSessionEpreuveClosed}" class="btn btn-dark ml-2" type="button" data-toggle="collapse" data-target="#importCollapse" title="Importer des inscrits" id="btnImport">
+												<i class="fas fa-file-import"></i></button>
+											<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ml-2" type="button" data-toggle="collapse" data-target="#exportCollapse" 
+												title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
+					    				</div>
+									</div>
+								</div>
+							</div>
+							<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countTagChecks>0}">
+								<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger mr-2" th:text="${'A répartir : ' + countRepartition}"></span>
+								<span th:if="${countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
+								<span th:if="${countCheckedBycard > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Emargé(s) manuellement : ' + countCheckedBycard}"></span>
+								<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
+							</div>
+						</div>
+		    		</div>
+		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+						<form action="#" th:action="@{|/${eContext}/manager/tagCheck/sessionEpreuve/${sid}|}" id="formSearch" class="form-inline alert alert-dark pl-2 pr-0">
+							<input type="text" name="eppn" th:value="${eppn}" class="form-control mr-1" placeholder="Recherche" id="searchTagCheck">
+			    			<select name="tempsAmenage" id="tempsAmenage" class="form-control mr-1"> 
+							    <option value="" th:selected="${tempsAmenage==''}">---Temps aménagé---</option>
+							    <option value="tiers" th:selected="${tempsAmenage=='tiers'}">Tiers-temps</option>
+							    <option value="notTiers" th:selected="${tempsAmenage=='notTiers'}">Non tiers-temps</option>
+							</select>								
+			    			<select  name="repartition" id="repartition" class="form-control"  th:if="${not #lists.isEmpty(listeRepartition)}"> 
+							    <option value="">---Répartition ---</option>
+								<option th:each="rep : ${listeRepartition}"
+										th:value="${rep.id}" th:text="${rep.nom}" th:selected="${rep.id==repartitionId}"></option>
+							</select>
+							<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+						</form>
+		    		</div>
+		    		<div class="collapse" id="importCollapse">
+						<div class="alert alert-info  pl-2 pr-1" th:if="${paramUrl &gt; '0' and !isSessionEpreuveClosed}">
+							<form action="#" th:action="@{/{ctx}/manager/tagCheck/importCsv(ctx=${eContext})}"
+								enctype="multipart/form-data" method="post" class="form-inline">
+								<input type="hidden" th:id="sessionEpreuve"	th:name="sessionEpreuve" th:value="${paramUrl}">
+								<input type="file"  id="filename" name="file">
+								<input type="submit" class="btn btn-success" value="importer" />
+							</form>
+						</div>
+		    		</div>
+		    		<div class="collapse" id="exportCollapse">
+		    			<div class="alert alert-info  pl-2 pr-1">
+			    			<form th:action="@{/{ctx}/manager/tagCheck/export(ctx=${eContext})}" method="post">
+								<input type="hidden" id="sessionId" name="sessionId" th:value="${sessionEpreuve.id}" />
+								<input type="hidden" id="tiersTemps" name="tempsAmenage" th:value="${tempsAmenage}" />
+				    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
+								<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
+							</form>
+						</div>
+		    		</div>
+						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
+							<thead>
+								<tr>
+									<th th:if="${!isSessionEpreuveClosed}" scope="col"><input type="checkbox" id="selectall" /></th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>								
+									<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Eppn</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N°identifiant</th>									
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" >Temps aménagé</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="isCheckedByCard">Badgeage</a></th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
+									<th class ="center" scope="col">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.person.nom==null)? 'table-warning' : ''}">
+									<td th:if="${!isSessionEpreuveClosed}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
+										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
+									<td class="hiddenBlock" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
+									<td th:text="${tagCheck.person.eppn}"></td>
+									<td th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td class="text-center d-none d-lg-table-cell d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
+									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
+									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" 
+											th:text="${tagCheck.sessionLocationBadged != null} ? ${tagCheck.sessionLocationBadged.location.nom}"></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell text-center"><i th:if= "${tagCheck.isCheckedByCard!=null} " th:class="${tagCheck.isCheckedByCard} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
+									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+										<a th:if="${!isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/tagCheck/{id}?form(id=${tagCheck.id},ctx=${eContext})}">
+										<i class="fa fa-pen text-warning ml-2"></i></a>
+										<a th:if="${!tagCheck.sessionEpreuve.isSessionEpreuveClosed} "data-toggle="modal" data-target="#modal-warning" 
+											th:attr="data-target='#modal-warning'+${tagCheck.id }"><i class="fa fa-trash text-danger ml-2"></i></a>
+										<div class="modal modal-warning fade in" th:id="modal-warning+${tagCheck.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													          <span aria-hidden="true">&times;</span>
+													        </button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'étudiant : <br />
+											                	 <span th:text="${tagCheck.person.eppn}" class="font-weight-bold"></span> ?</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+		<div class="modal modal-warning fade in" id="convocModal">
+		    <div class="modal-dialog">
+		        <div class="modal-content">
+		            <div class="modal-header">
+		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+		            </div>
+		            <div class="modal-body">
+		                <div class="alert alert-danger text-center font-weight-bold mb-2">Vous allez accéder au formulaire d'envoi de convocation, elle sera envoyée aux personnes sélectionnées précédemment ou à l'ensemble des inscrits répartis :  <br />
+							<form th:action="@{/{ctx}/manager/tagCheck/convocationForm(ctx=${eContext})}" method="post" class="mt-3">
+								<button type="submit" class="btn btn-success" title="Tous" name="submit" value="all">Tous</button>
+								<button type="submit" class="btn btn-primary" title="Sélection" name="submit" value="selected">Sélection</button>
+								<input type="hidden" th:id="listeIds" th:name="listeIds"  value="">
+								<input type="hidden" th:id="sessionEpreuveId" th:name="sessionEpreuveId" th:value="${sessionEpreuve.id}">
+							</form>
+						</div>	 
+		            </div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Fermer</button>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+	</body>
+</html>

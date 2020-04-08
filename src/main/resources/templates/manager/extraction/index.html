@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid" id="extractionPage">
+           	<div class="card">
+		    	<div class="card-header" id="toto"><h2>Extraction des inscrits</h2></div>
+  				<div class="card-body">
+  					<div class="row">
+	  					<div class = "col-lg-6">
+	  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
+			                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
+				                    <div class="form-group row">
+				                   		<div class="col-lg-4">
+				                    		<label for="codSes" class="col-form-label">Année universitaire</label>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select id="codAnu" name="codAnu" required="required" class="step1"> 
+												<option th:each="year : ${years}"
+													th:value="${year}" th:text="${year}"></option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-lg-4">
+									    	<label for="codSes"  class="col-form-label">Code session APOGEE</label>
+									    </div>
+									    <div class="col-lg-8">
+										    <select id="codSes" name="codSes" class="step2">
+										      <option>0</option>
+										      <option selected="selected">1</option>
+										      <option>2</option>
+										    </select>
+										 </div>
+									</div>
+			                    	<div class="form-group row">
+			                    		<div class="col-lg-4">
+				                    		<label for="composante" class="col-form-label">Composantes</label>
+				                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select  th:id="codCmp" th:name="codCmp" required="required" class="step3">
+												<option value ="">-----choisir----</option>
+												<option th:each="composante : ${allComposantes}"
+													th:value="${composante.codCmp}" th:text="${composante.libCmp}"></option>
+											</select>
+										</div>
+									</div>
+			                    	<div class="form-group row">
+			                    		<div class="col-lg-4">
+				                    		<label for="codEtp" class="col-form-label" id="labelCodEtp">Diplômes</label>
+				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodEtp'>[0]</span>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select th:id="codEtp" th:name="codEtp" required="required" class="step4">
+											</select>
+										</div>
+									</div>	
+			                    	<div class="form-group row">
+			                    		<div class="col-lg-4">
+				                    		<label for="codElp" id="labelCodElp"  class="col-form-label">Matières</label>
+				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodElp'>[0]</span>
+				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsMatiere">[0]</span>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select th:id="codElp" th:name="codElp" required="required" class="step5"></select>
+										</div>
+									</div>	
+			                    	<div class="form-group row">
+			                    		<div class="col-lg-4">
+				                    		<label for="codExtGpe" id="labelCodExtGpe"  class="col-form-label">Groupes</label>
+				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodExtGpe'>[0]</span>
+				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsGroupe">[0]</span>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select th:id="codExtGpe" th:name="codExtGpe" class="step6"></select>
+										</div>
+									</div>								
+				                    <div class="form-group row">
+				                    	<div class="col-lg-4">
+				                    		<label for="sessionEpreuve" class="col-form-label">Session « d’émargement »</label>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<select name="sessionEpreuve"  id="sessionEpreuve">
+												<option value ="">-----choisir----</option>
+												<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+													th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+											</select>
+										</div>
+									</div>			
+			                        <div class="row">
+		                            <div class="mt-5">
+			                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
+			                                <button id="import" type="submit" class="btn btn-primary" th:object="${apogeebean}" th:formaction="@{/{ctx}/manager/extraction/importFromApogee(ctx=${eContext})}">
+			                                <span class="spinner-border spinner-border-sm mr-2 statusExport" role="status" aria-hidden="true"></span>Importer directement</button>
+			                                <span class="text-danger font-weight-bold statusExport ml-2">Importation en cours ...</span>
+			                            </div>
+			                        </div>                  
+			                    </form>
+	                    	</div>
+	                 	 </div>
+	                    <div class = "col-lg-6">
+	                    		<div class="bg-light p-3 "><div class="card-header h3 pl-2 mb-2">Ldap </div>
+			                    <form id="searchLdapGroupForm" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
+			                   		<div class="form-group row">
+			                   			<div class="col-lg-4">
+				                    		<label for="codSes" class="col-form-label">Groupes Ldap</label>
+				                    	</div>
+				                    	<div class="col-lg-8">
+											<input type="text" th:value="${group}" name="searchGroup" id="searchGroup" class="form-control" placeholder="Recherchez ici ..."/>
+										</div>
+									</div>
+								</form>
+								<form id="importUsersLdapform" name="importUsersLdapform" th:action="@{/{ctx}/manager/extraction/csvFromLdap(ctx=${eContext})}" method="post">
+									<div class="form-group row">
+							   			<div class="col-lg-4">
+							   				<label for="usersGroupLdap">Liste des membres du groupe <span class="font-weight-bold text-primary" th:text="${group}"></span></label>
+							    		
+								    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
+										    	<span id="selectedUsers">0</span> / 
+										    	<span th:text="${#maps.size(ldapMembers)}" id="ldapMembersSize"></span>
+										    	<span>
+											    	<button id="selectAll" type="button" class="btn btn-info btn-sm ml-2 mt-n1">Sélection</button>
+										    	</span>										    	
+									    	</div>
+									    </div>
+									    <div class="col-lg-8">
+										    <select multiple class="form-control" id="usersGroupLdap" name="usersGroupLdap" required="required">
+												<option th:each="member : ${ldapMembers}"
+														th:value="${member.key}" th:text="${member.value}"></option>
+										    </select>
+									    </div>
+								  	</div>
+				                    <div class="form-group row">
+				                    	<div class="col-lg-4">
+				                    		<label for="sessionEpreuve" class="col-form-label">Session « d’émargement »</label>
+				                    	</div>
+				                    	<div class="col-lg-8">	
+											<select name="sessionEpreuveLdap"  id="sessionEpreuveLdap">
+												<option value ="">-----choisir----</option>
+												<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+													th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+											</select>
+										</div>
+									</div>
+			                        <div class="row">
+			                            <div class="col-lg-12 mt-5">
+			                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
+			                                <button id="importLdap" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromLdap(ctx=${eContext})}">
+			                                <span class="spinner-border spinner-border-sm mr-2 statusExportLdap" role="status" aria-hidden="true"></span>Importer directement</button>
+			                                <span class="text-danger font-weight-bold statusExportLdap ml-2">Importation en cours ...</span>
+			                            </div>
+			                        </div>  		  
+								</form>
+							</div>
+	                    </div>
+	            	</div>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+		<div class="modal fade" id="modalBilanCsv" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"  
+			th:if="${#ctx.containsVariable('bilanCsv')}">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="exampleModalLabel">Bilan</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body" id="modalBilanCsvBody">
+		      	 <div th:if="${bilanCsv==null}" class="alert alert-danger">
+					<p>Votre fichier CSV n'est pas conforme, veuillez le vérifier....</p>
+		      	 </div>
+		     	 <div th:if="${not #lists.isEmpty(bilanCsv)}">
+					<table class="table table-hover table-striped table-bordered">
+						<thead>
+							<tr>
+								<th scope="col">Eppn</th>
+								<th scope="col">N° identifiant</th>
+								<th scope="col">Commentaire</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr  th:each="tagCheck : ${bilanCsv}" th:classappend="${'table-' + tagCheck.flagCSv}">
+							<td  th:text="${tagCheck.person.eppn}"></td>
+								<td  th:text="${tagCheck.person.numIdentifiant}"></td>
+								<td th:text="${tagCheck.comment}"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+		      </div>
+		  	</div>
+		  </div>
+		</div>		
+	</body>
+</html>

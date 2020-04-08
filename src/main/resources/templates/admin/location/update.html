@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Modifier un lieu</h2></div>
+		    	<div  class="alert alert-danger" th:if="${error}">Le lieu avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/admin/location/update/{id}(ctx=${eContext}, id=${location.id})}" th:object="${location}" method="post" enctype="multipart/form-data">
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="nom" class="col-form-label">Nom</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<input type="text" th:field="*{nom}" class="form-control" required="required">
+							</div>
+						</div>
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="adresse" class="col-form-label">Adresse</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<textarea  th:field="*{adresse}" class="form-control" required="required"></textarea>
+							</div>
+						</div>
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="capacite" class="col-form-label">Capacité maximale</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
+							</div>
+						</div>
+						<div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="campus" class="col-form-label">Site</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select th:field="*{campus}" class="form-control" required="required">
+									<option th:each="campus : ${allCampuses}"
+										th:value="${campus.id}" th:text="${campus.site}"></option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="file" class="col-form-label">Plan</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<input type="file" class="form-control-file" id="file" name="file">
+								<span th:if="${location.plan != null}"><a th:href="@{/{ctx}/manager/file/{id}(id=${location.plan.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
+								Voir fichier actuel  </a> (sera conservé si aucun fichier n'est sélectionné))</span>
+								<span class="text-danger font-weight-bold" th:if="${location.plan == null}">Aucun fichier actuellement</span>									
+							</div>
+						</div>							
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

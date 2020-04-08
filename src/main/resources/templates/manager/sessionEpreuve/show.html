@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2 >Session</h2></div>
+  				<div class="card-body">
+					<dl class="row">
+			            <dt class="col-sm-2">Date</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></dd>					
+			            <dt class="col-sm-2">Nom</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.nomSessionEpreuve}"></dd>
+			            <dt class="col-sm-2">Clôturée</dt>
+			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></dd>
+			            <dt class="col-sm-2">Lieux</dt>
+			            <dd class="col-sm-10">
+			            	<a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a>
+			            </dd>
+			            <dt class="col-sm-2">Inscrits</dt>
+			            <dd class="col-sm-10">
+			            	<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbInscritsSession}"></a>
+			            </dd>
+			            <dt class="col-sm-2">Surveillants</dt>
+			            <dd class="col-sm-10">
+			            	<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a>
+			            </dd>
+			            <dt class="col-sm-2">Site</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.campus.site}"></dd>
+			            <dt class="col-sm-2">Plan</dt>
+			            <dd class="col-sm-10">
+							<span th:if="${sessionEpreuve.planSessionEpreuve != null}">
+								<a th:href="@{/{ctx}/manager/file/{id}(id=${sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
+								<i class="fa fa-file"></i></a></span>
+							<span class="text-danger font-weight-bold" th:if="${sessionEpreuve.planSessionEpreuve == null}">Aucun fichier actuellement</span>
+			            </dd>    			            
+			            <dt class="col-sm-2">Convocation</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}"></dd>   
+			            <dt class="col-sm-2">Début</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></dd> 
+			            <dt class="col-sm-2">Fin</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></dd>
+			            <dt class="col-sm-2">Durée</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.dureeEpreuve}"></dd>       
+			            <dt class="col-sm-2">Répartition</dt>
+			            <dd class="col-sm-10">
+							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
+							<i class="fa fa-exchange-alt text-primary mr-2"></i></a>
+							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  mr-2"></i>
+							<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
+			            </dd>
+			            <dt class="col-sm-2">Présence</dt>
+			            <dd class="col-sm-10">
+							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center">
+							<i class="fa fa-id-badge text-success  mr-2"></i></a>
+							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
+								' / ' + sessionEpreuve.nbInscritsSession}"></span>
+			            </dd>
+			            <dt class="col-sm-2">Actions</dt>
+			            <dd class="col-sm-10">
+							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
+							<a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2"><i class="fa fa-trash text-danger"></i></a>
+								<div class="modal modal-warning fade in" th:id="modal-warning+${sessionEpreuve.id}" >
+								    <div class="modal-dialog">
+								        <div class="modal-content">
+								        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+									        	<input type="hidden" name="_method" value="delete" />
+									            <div class="modal-header">
+									                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											          <span aria-hidden="true">&times;</span>
+											        </button>
+									            </div>
+									            <div class="modal-body">
+									                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+									                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+									            </div>
+									            <div class="modal-footer">
+									                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+									                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+									            </div>
+								            </form>
+								        </div>
+								    </div>
+								</div>
+			            </dd> 			            
+					</dl>
+                </div>
+           	</div>
+		</div>		
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Ajouter un surveillant</h2></div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/manager/tagChecker/create(ctx=${eContext})}" th:object="${tagChecker}" method="post">
+						<div class="form-group row">
+							<div class="col-lg-2">
+	                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select name="sessionEpreuve" class="form-control" id="sessionEpreuve" required="required">
+									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+										th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-lg-2">
+	                    		<label for="sessionLocation" class="col-form-label">Lieu de Session</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select class="form-control" th:id="location" th:name="sessionLocation" required="required">
+									<option th:each="sessionLocation : ${allSessionLocations}"
+										th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-lg-2">
+	                    		<label for="userApp" class="col-form-label">Nom - Prénom</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select th:field="*{userApp}" class="form-control" required="required">
+									<option th:each="userApp : ${allUserApps}"
+										th:value="${userApp.id}" th:text="${userApp.nom + ' ' + userApp.prenom}"></option>
+								</select>
+								<div th:if="${#lists.isEmpty(allUserApps)}"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
+							</div>
+						</div>
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider" id="submitForm">
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

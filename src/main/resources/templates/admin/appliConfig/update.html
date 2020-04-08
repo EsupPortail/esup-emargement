@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Modifier une configuration</h2></div>
+		    	<div  class="alert alert-danger" th:if="${error}">Le site avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/admin/appliConfig/update/{id}(ctx=${eContext}, id=${appliConfig.id})}" th:object="${appliConfig}" method="post" id="configForm">
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="key" class="col-form-label">Clé</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								 <input type="text" th:field="*{key}" class="form-control" required="required" readonly="readonly">
+							</div>
+						</div>
+	                    <div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="type" class="col-form-label">Type</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+							<label class="radio-inline">
+							  <input type="radio" name="type" id="typeText" value="TEXT" th:checked="${checked=='TEXT'}" disabled="disabled"/> Texte
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="type" id="typeHtml" value="HTML" th:checked="${checked=='HTML'}" disabled="disabled"/> Html
+							</label>
+							<label class="radio-inline">
+							  <input type="radio" name="type" id="typeBoolean" value="BOOLEAN" th:checked="${checked=='BOOLEAN'}" disabled="disabled"/> Booléen
+							</label>
+							</div>
+						</div>			
+						<div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="value" class="col-form-label" id="suneditor">Valeur</label>
+	                    	</div>
+						</div>
+						<div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="description" class="col-form-label">Description</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<textarea  th:field="*{description}" class="form-control" ></textarea>
+							</div>
+						</div>	
+	                     <input type="hidden" id="hiddenValeur" th:value="${appliConfig.value}"/>
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>                  
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

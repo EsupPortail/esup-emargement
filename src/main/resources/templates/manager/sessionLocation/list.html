@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+			    		<div class="row">
+				    		<div class="col-lg-4">
+					    		<h2>Lieux de Session </h2>
+					    		<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>	
+								<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>					    		
+			    			</div>
+							<div class="col-lg-8">
+							    <div class="row mt-3 ml-2 float-right">
+									<a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}"  th:if="${!isSessionEpreuveClosed}" title="Ajouter un lieu de session" 
+			    					class="btn btn-primary ">
+			    					<i class="fa fa-plus fa-lg"></i></a>							    
+		    					</div>
+							</div>		    			
+			    		</div>
+		    		</div>
+   					<div class="alert alert-danger" th:if="${error}">Le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
+   						veuillez supprimer les dépendances avant de supprimer ce lieu.</div>
+					<table class="table table-hover table-striped table-bordered">
+						<thead>
+							<tr>
+								<th scope="col"><a class="sorted" sd:pagination-sort="location">Lieu</a></th>
+								<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell"><a class="sorted" sd:pagination-sort="priorite">Priorité</a></th>
+								<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell"><a class="sorted" sd:pagination-sort="isTiersTempsOnly">Temps aménagé</a></th>
+								<th scope="col" class="center d-xs-table-cell d-none d-sm-table-cell d-md-table-cell"><a class="sorted" sd:pagination-sort="capacite">Capacité</a></th>
+								<th class ="center" scope="col">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="sessionLocation : ${sessionLocationPage}">
+								<td th:text="${sessionLocation.location.nom  + ' (' + sessionLocation.location.capacite + ' max)'}"></td>
+								<td class="center d-none d-sm-table-cell d-md-table-cell" th:text="${sessionLocation.priorite}"></td>
+								<td class="center d-none d-sm-table-cell d-md-table-cell"><i th:class="${sessionLocation.isTiersTempsOnly} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+								<td class="center d-xs-table-cell d-none d-sm-table-cell d-md-table-cell" th:text="${sessionLocation.capacite}"></td>
+								<td class ="center"><a th:href="@{/{ctx}/manager/sessionLocation/{id}(id=${sessionLocation.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<a  th:if="${!sessionLocation.sessionEpreuve.isSessionEpreuveClosed} " 
+										th:href="@{/{ctx}/manager/sessionLocation/{id}?form(id=${sessionLocation.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ml-2"></i></a>
+									<a th:if="${!sessionLocation.sessionEpreuve.isSessionEpreuveClosed} " data-toggle="modal" data-target="#modal-warning" 
+														th:attr="data-target='#modal-warning'+${sessionLocation.id }"><i class="fa fa-trash text-danger ml-2"></i></a>
+									<div class="modal modal-warning fade in" th:id="modal-warning+${sessionLocation.id}" >
+									    <div class="modal-dialog">
+									        <div class="modal-content">
+									        	<form id="command" th:action="@{/{ctx}/manager/sessionLocation/{id}(id=${sessionLocation.id},ctx=${eContext})}" method="POST">
+										        	<input type="hidden" name="_method" value="delete" />
+										            <div class="modal-header">
+										                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												          <span aria-hidden="true">&times;</span>
+												        </button>
+										            </div>
+										            <div class="modal-body">
+										                <div class="alert alert-danger text-center">Confirmez-vous la suppression du lieu de session: <br />
+										                	 <span th:text="${sessionLocation.sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+										            </div>
+										            <div class="modal-footer">
+										                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+										            </div>
+									            </form>
+									        </div>
+									    </div>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+				</div>
+		    	</div>	
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

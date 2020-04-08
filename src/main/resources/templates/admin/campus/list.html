@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header"><h2>Sites <a th:href="@{/{ctx}/admin/campus?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un lieu"><i class="fa fa-plus fa-lg"></i></a></h2></div>
+		    			<div  class="alert alert-danger" th:if="${error}">Un lieu possède le site <span class="font-weight-bold" th:text="${item}"></span>, Veuillez supprimer ce lieu avant de supprimer ce site </div>
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="site">Site</a></th>
+									<th scope="col">Description</th>
+									<th class ="center" scope="col">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="campus : ${campusPage}">
+									<td th:text="${campus.site}"></td>
+									<td th:text="${campus.description}"></td>
+									<td class ="center"><a th:href="@{/{ctx}/admin/campus/{id}(id=${campus.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+										<a class ="ml-2" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${campus.id }"><i class="fa fa-trash text-danger"></i></a>
+										<a class ="ml-2" th:href="@{/{ctx}/admin/campus/{id}?form(id=${campus.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
+										<div class="modal modal-warning fade in" th:id="modal-warning+${campus.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/admin/campus/{id}(id=${campus.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													          <span aria-hidden="true">&times;</span>
+													        </button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce site : <br />
+											                	 <span th:text="${campus.site}" class="font-weight-bold"></span> ?</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>
