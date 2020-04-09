@@ -2,6 +2,7 @@ package org.esupportail.emargement.services;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
@@ -473,5 +475,12 @@ public class SessionEpreuveService {
 		}
 		return currentYear;
 	}
-
+	public List<String> getListTypeSessionEpreuve() {
+		List<TypeSessionEpreuve> enumTypes = new ArrayList<TypeSessionEpreuve>(Arrays.asList(TypeSessionEpreuve.values()));
+		List<String> types = new ArrayList<String>();
+		for(TypeSessionEpreuve t: enumTypes) {
+			types.add(t.name());
+		}
+		return types;
+	}
 }

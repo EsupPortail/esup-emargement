@@ -5,7 +5,10 @@ package org.esupportail.emargement.domain;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -32,6 +35,14 @@ public class SessionEpreuve implements ContextSupport {
 	
 	@ManyToOne
 	private Context context;
+	
+	public static enum TypeSessionEpreuve {
+		TD, TP, CM, EX, RE, FR, OT
+	}
+	
+	@Column
+    @Enumerated(EnumType.STRING)
+    private TypeSessionEpreuve type = TypeSessionEpreuve.TD;
 	
     private String nomSessionEpreuve;
     
@@ -233,6 +244,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setAnneeUniv(String anneeUniv) {
 		this.anneeUniv = anneeUniv;
+	}
+
+	public TypeSessionEpreuve getType() {
+		return type;
+	}
+
+	public void setType(TypeSessionEpreuve type) {
+		this.type = type;
 	}
 	
 }

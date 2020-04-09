@@ -35,6 +35,7 @@
 							<thead class ="center">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateExamen">Date</a></th>
+									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="type">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="isSessionEpreuveClosed">Cloturée</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
@@ -55,6 +56,7 @@
 							<tbody class ="center">
 								<tr th:each="sessionEpreuve : ${sessionEpreuvePage}" th:classappend="${sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${sessionEpreuve.id}">
 									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}">Date</td>
+									<td th:text="${sessionEpreuve.type}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>

@@ -241,6 +241,7 @@ public class SessionEpreuveController {
     }
     
     void populateEditForm(Model uiModel, SessionEpreuve SessionEpreuve) {
+    	uiModel.addAttribute("types", sessionEpreuveService.getListTypeSessionEpreuve());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", SessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());
