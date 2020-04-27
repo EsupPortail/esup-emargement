@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
@@ -46,7 +47,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import edu.internet2.middleware.grouperClientExt.org.apache.commons.lang3.StringUtils;
 import net.fortuna.ical4j.data.ParserException;
 
 @Controller
