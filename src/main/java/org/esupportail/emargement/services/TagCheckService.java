@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -24,6 +25,8 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -60,6 +63,12 @@ public class TagCheckService {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	GroupeRepository groupeRepository;
+	
+	@Autowired
+	ContextRepository contextRepository;
 	
 	@Autowired
 	UserLdapRepository userLdapRepository;
@@ -190,7 +199,7 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<TagCheck> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext) throws Exception {
+    public List<TagCheck> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	String dataType = null;
     	if(reader!=null) {
@@ -240,6 +249,10 @@ public class TagCheckService {
 			    			}
 			    			person.setType(dataType);
 			    			tc.setPerson(person);
+			    			if(groupeId != null){
+			    				Groupe groupe = groupeRepository.findById(groupeId).get();
+			    				tc.setGroupe(groupe);
+			    			}
 			    			if(!userLdaps.isEmpty()) {
 			    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
 			    			}
@@ -292,7 +305,7 @@ public class TagCheckService {
     }
     
     
-    public List<List<String>> getListLdapForimport(List<String> usersGroupLdap) {
+    public List<List<String>> getListForimport(List<String> usersGroupLdap) {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	for(String user: usersGroupLdap) {
     		List<String> subList = new ArrayList<String>();
@@ -893,5 +906,14 @@ public class TagCheckService {
     		}
     	}
 		return tagCheckPage;
+	}
+	
+	public List<String> getUsersForImport(Long id) {
+		List<TagCheck> tcs = tagCheckRepository.findTagCheckByGroupeId(id);
+		List<String> listEppn = new ArrayList<String>();
+		for(TagCheck tc : tcs) {
+			listEppn.add(tc.getPerson().getEppn());
+		}
+		return listEppn;
 	}
 }

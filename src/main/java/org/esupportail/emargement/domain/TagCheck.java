@@ -53,6 +53,9 @@ public class TagCheck implements ContextSupport {
     @ManyToOne
     private SessionLocation sessionLocationExpected;
     
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    private Groupe groupe;
+    
     private String numAnonymat;
     
     private Boolean isCheckedByCard;
@@ -180,4 +183,13 @@ public class TagCheck implements ContextSupport {
 	public void setIsUnknown(Boolean isUnknown) {
 		this.isUnknown = isUnknown;
 	}
+
+	public Groupe getGroupe() {
+		return groupe;
+	}
+
+	public void setGroupe(Groupe groupe) {
+		this.groupe = groupe;
+	}
+	
 }

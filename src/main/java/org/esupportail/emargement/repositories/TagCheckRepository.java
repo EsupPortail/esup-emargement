@@ -151,7 +151,11 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id);
 	
-	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(Long id);	
+	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(Long id);
+	
+	Long countTagCheckByGroupeId(Long id);
+	
+	List<TagCheck> findTagCheckByGroupeId(Long id);
 	
 	@Query(value = "select count(*) from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "
@@ -230,9 +234,9 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and is_checked_by_card='t' GROUP BY timeTag order by timeTag", nativeQuery = true)
 	List<Object> countTagChecksByTimeBadgeage(Long seId);
 	
-	@Query(value = "select CASE WHEN is_checked_by_card ='t' THEN 'Par carte' ELSE 'Manuellement' END AS type, count(*) from tag_check, context, session_epreuve  where "
+	@Query(value = "select CASE WHEN is_checked_by_card ='t' THEN 'Par carte' ELSE 'Manuellement' END AS type, count(*) as count from tag_check, context, session_epreuve  where "
 			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "AND tag_check.context_id=:context and is_checked_by_card is not null and  is_session_epreuve_closed = 't' group by type", nativeQuery = true)
+			+ "AND tag_check.context_id=:context and is_checked_by_card is not null and  is_session_epreuve_closed = 't' group by is_checked_by_card", nativeQuery = true)
 	List<Object> countTagChecksByTypeBadgeage(Long context);
 	
 	@Query(value = "select event_count, count(*) as users_count  from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "

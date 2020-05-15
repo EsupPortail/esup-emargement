@@ -14,8 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.services.ApogeeService;
+import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.ImportExportService;
 import org.esupportail.emargement.services.LdapService;
@@ -56,6 +59,9 @@ public class ExtractionController {
 	
 	@Resource
 	LogService logService;
+	
+	@Resource
+	GroupeService groupeService;
 
 	@Resource
 	LdapService ldapService;
@@ -71,6 +77,12 @@ public class ExtractionController {
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
+	@Autowired
+	GroupeRepository groupeRepository;
+	
+	@Autowired
+	TagCheckRepository tagCheckRepository;
+	
 	@Resource
 	HelpService helpService;
 	
@@ -85,6 +97,7 @@ public class ExtractionController {
 	public String index(Model model){
 		model.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve());
 		model.addAttribute("allComposantes", apogeeService.getComposantes());
+		model.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
 		model.addAttribute("years", importExportService.getYearsUntilNow());
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "manager/extraction/index";
@@ -110,12 +123,12 @@ public class ExtractionController {
 			}
 	        // closing writer connection 
 	        writer.close(); 
-			log.info("Extraction csv :  " + inscrits.size() + "résultats" );
-			logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv :" +  inscrits.size() + " résultats" , null,
+			log.info("Extraction csv (apogee):  " + inscrits.size() + "résultats" );
+			logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv (apogee):" +  inscrits.size() + " résultats" , null,
 							null, emargementContext, null);
 		} catch (Exception e) {
-			log.error("Erreur lors de lxtraction csv");
-			logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction csv" , null, null, emargementContext, null);
+			log.error("Erreur lors de l'extraction csv");
+			logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction csv (apogee)" , null, null, emargementContext, null);
 			e.printStackTrace();
 		}
 	}
@@ -140,13 +153,44 @@ public class ExtractionController {
 				}
 		        // closing writer connection 
 		        writer.close(); 
-				log.info("Extraction csv :  " + usersGroupLdap.size() + "résultats" );
-				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv :" +  usersGroupLdap.size() + " résultats" , null,
+				log.info("Extraction csv (ldap):  " + usersGroupLdap.size() + "résultats" );
+				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv (ldap):" +  usersGroupLdap.size() + " résultats" , null,
 								null, emargementContext, null);
 			}
 		} catch (Exception e) {
-			log.error("Erreur lors de lxtraction csv");
-			logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction csv" , null, null, emargementContext, null);
+			log.error("Erreur lors de l'extraction csv");
+			logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction csv (ldap)" , null, null, emargementContext, null);
+			e.printStackTrace();
+		}
+	}
+	
+	@PostMapping(value = "/manager/extraction/csvFromGroupe")
+	public void csvFromGroup(@PathVariable String emargementContext,Model model, @RequestParam(value = "groupe") Long idGroupe, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		try {
+			if(idGroupe != null) {
+				String filename = "users.csv";
+	
+				response.setContentType("text/csv");
+				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+				        "attachment; filename=\"" + filename + "\"");
+	
+				//create a csv writer
+				CSVWriter writer = new CSVWriter(response.getWriter()); 
+				List<TagCheck> tcs = tagCheckRepository.findTagCheckByGroupeId(idGroupe);
+				for(TagCheck inscrit : tcs) {
+					List <String> line = new ArrayList<String>();
+					line.add(inscrit.getPerson().getNumIdentifiant());
+					writer.writeNext(line.toArray(new String[1]));
+				}
+		        // closing writer connection 
+		        writer.close(); 
+				log.info("Extraction csv (groupe) :  " + tcs.size() + "résultats" );
+				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv (groupe) :" +  tcs.size() + " résultats" , null,
+								null, emargementContext, null);
+			}
+		} catch (Exception e) {
+			log.error("Erreur lors de l'extraction csv");
+			logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction csv (groupe)" , null, null, emargementContext, null);
 			e.printStackTrace();
 		}
 	}
@@ -227,7 +271,7 @@ public class ExtractionController {
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
     public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuve") Long id, Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
     	InputStream is = file.getInputStream();
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
@@ -239,7 +283,7 @@ public class ExtractionController {
     		final RedirectAttributes redirectAttributes) throws Exception {
         uiModel.asMap().clear();
         List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(apogeebean);
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, null);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
@@ -249,8 +293,20 @@ public class ExtractionController {
     @Transactional
     public String importFromLdap(@PathVariable String emargementContext, @RequestParam("sessionEpreuveLdap") Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
     		 Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
-    	List<List<String>> finalList = tagCheckService.getListLdapForimport(usersGroupLdap);
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext);
+    	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null);
+    	redirectAttributes.addFlashAttribute("paramUrl", id);
+    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	return String.format("redirect:/%s/manager/extraction", emargementContext);
+    }
+    
+    @PostMapping("/manager/extraction/importFromGroupe")
+    @Transactional
+    public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuveGroupe") Long id, @RequestParam("groupe") Long idGroupe,
+    		 Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
+    	List<String> usersGroupe = tagCheckService.getUsersForImport(idGroupe);
+    	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupe);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, idGroupe);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);

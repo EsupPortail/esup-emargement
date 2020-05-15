@@ -957,11 +957,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     $.getJSON(emargementContextUrl + "/manager/extraction/searchMatieres", request, function(data) {
                         $("#nbCodElp").text("[" + data.length + "]");
                         response($.map(data, function(item, index) {
+                        	
                             return {
                                 label: item.libElp + " (" + item.codElp + ")",
                                 value: item.codElp,
                                 selected: index == 0 // Select first available option
-
+                                
                             };
                         }));
                     });
@@ -972,6 +973,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 source: function(request, response) {
                     $.getJSON(emargementContextUrl + "/manager/extraction/searchGroupes", request, function(data) {
                         $("#nbCodExtGpe").text("[" + data.length + "]");
+                       
                         response($.map(data, function(item, index) {
                             return {
                                 label: item.libGpe + " (" + item.codExtGpe + ")",
@@ -1017,6 +1019,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    }
+    var importGroupe = document.getElementById('importGroupe');
+    $(".statusExportGroupe").hide();
+    if (importGroupe != null) {
+	    importGroupe.addEventListener('click', function(e) {
+	        var sessionEpreuve = document.getElementById('sessionEpreuveGroupe');
+	        if (sessionEpreuve.value == "") {
+	            e.preventDefault();
+	            alert("Vous devez choisr une Session!");
+	        } else {
+	            $(".statusExportGroupe").show();
+	            submitExport.submit();
+	        }
+	    });
     }
     $('#selectAll').on("click", function() {
         var selectedItems = 0;
@@ -1379,6 +1395,12 @@ document.addEventListener('DOMContentLoaded', function() {
         new SlimSelect({
             select: '#sessionEpreuveLdap'
         });
+        new SlimSelect({
+            select: '#sessionEpreuveGroupe'
+        }); 
+		new SlimSelect({
+		    select: '#groupe'
+		}); 
     }
     if (document.getElementById('eventsSelect') != null) {
         new SlimSelect({
@@ -1394,6 +1416,12 @@ document.addEventListener('DOMContentLoaded', function() {
         new SlimSelect({
             select: '#suList',
             placeholder: 'Rechercher Utilisateur'
+        });
+    }
+    if (document.getElementById('gpId') != null) {
+        new SlimSelect({
+            select: '#gpId',
+            placeholder: 'Rechercher groupe'
         });
     }
     //Presence

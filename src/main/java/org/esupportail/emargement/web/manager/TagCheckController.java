@@ -8,15 +8,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.ApogeeService;
 import org.esupportail.emargement.services.AppliConfigService;
@@ -26,6 +30,8 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.TagCheckService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.PdfGenaratorUtil;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
@@ -33,10 +39,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -57,6 +66,12 @@ public class TagCheckController {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	UserLdapRepository userLdapRepository;
+	
+	@Autowired
+	GroupeRepository groupeRepository;
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
@@ -150,6 +165,7 @@ public class TagCheckController {
 		model.addAttribute("countCheckedBycard",tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(id));
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);
+		model.addAttribute("groupes", groupeRepository.findAll(Sort.by(Sort.Direction.ASC, "nom")));
         return "manager/tagCheck/list";
     }
 	
@@ -195,7 +211,7 @@ public class TagCheckController {
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, null);
     	redirectAttributes.addFlashAttribute("paramUrl", tagCheck.getSessionEpreuve());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
@@ -305,6 +321,25 @@ public class TagCheckController {
     		}
     	}
         return persons;
+    }
+    
+    @PostMapping("/manager/tagCheck/addGroup")
+    public String addGroup(@PathVariable String emargementContext, @RequestParam("seId") Long seId,  @RequestParam("gpId") Long gpId) {
+    	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
+    	Groupe groupe = groupeRepository.findById(gpId).get();
+    	if(!tcs.isEmpty()) {
+    		for(TagCheck tc : tcs) {
+    			tc.setGroupe(groupe);
+    			tagCheckRepository.save(tc);
+    		}
+    	}
+    	log.info("ajout des inscrits de la session  "  + seId + " au groupe " + groupe.getNom());
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+        logService.log(ACTION.IMPORT_GROUPE, RETCODE.SUCCESS, 
+				"import " + tcs.size() + " inscrits dans le groupe " + groupe.getNom() , userLdap.get(0).getEppn(),
+				null, emargementContext, null);
+    	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + seId.toString(), emargementContext);
     }
     
 }
