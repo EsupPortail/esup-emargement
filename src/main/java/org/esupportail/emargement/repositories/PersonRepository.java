@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface PersonRepository extends JpaRepository<Person, Long>{
 	
 	List<Person> findByContext(Context context);
+
+	List<Person> findByEppn(String eppn);
 }

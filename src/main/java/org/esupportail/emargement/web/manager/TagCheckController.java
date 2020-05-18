@@ -28,10 +28,10 @@ import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
-import org.esupportail.emargement.services.PersonService;
-import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PersonService;
+import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.utils.PdfGenaratorUtil;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
@@ -236,13 +236,19 @@ public class TagCheckController {
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);
     }
     
+    @Transactional
     @PostMapping(value = "/manager/tagCheck/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	if(tagCheck.getSessionEpreuve().isSessionEpreuveClosed) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
+    		Person person = tagCheck.getPerson();
     		tagCheckRepository.delete(tagCheck);
+    		Long count = tagCheckRepository.countTagCheckByPerson(person);
+    		if(count==0) {
+    			personRepository.delete(person);
+    		}
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tagCheck.getSessionEpreuve().getId(), emargementContext);
     }

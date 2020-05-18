@@ -30,7 +30,7 @@ public class TagCheck implements ContextSupport {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date tagDate;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private Person person;
 
     private Boolean isTiersTemps = false;

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.springframework.data.domain.Page;
@@ -156,6 +157,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckByGroupeId(Long id);
 	
 	List<TagCheck> findTagCheckByGroupeId(Long id);
+	
+	Long  countTagCheckByPerson(Person person);
 	
 	@Query(value = "select count(*) from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "

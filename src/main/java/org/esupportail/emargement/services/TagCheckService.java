@@ -218,7 +218,8 @@ public class TagCheckService {
 	    		for(List<String> row : rows) {
 		    		if(se != null) {
 		    			TagCheck tc = new TagCheck();
-		    			Person person = new Person();
+		    			Person person = null;
+		    			String eppn  = null;
 		    			List<UserLdap>  userLdaps = null;
 		    			String line = row.get(0).trim();
 		    			Long tcTest = new Long(1);
@@ -226,28 +227,43 @@ public class TagCheckService {
 		    				if(line.chars().allMatch(Character::isDigit)){
 		    					userLdaps = userLdapRepository.findByNumEtudiantEquals(line);
 								if(!userLdaps.isEmpty()) {
-									person.setNumIdentifiant(line);
-									dataType = "student";
+									eppn = userLdaps.get(0).getEppn();
+									List<Person> existingPersons = personRepository.findByEppn(eppn);
+									if(!existingPersons.isEmpty()) {
+										person = existingPersons.get(0);
+									}else {
+										person = new Person();
+										person.setNumIdentifiant(line);
+										person.setType("student");
+										person.setContext(contexteService.getcurrentContext());
+										person.setEppn(eppn);
+										personRepository.save(person);
+									}
 								}
 		    				}else {
 		    					userLdaps = userLdapRepository.findByEppnEquals(line);
 		    					if(!userLdaps.isEmpty()) {
-		    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
-										person.setNumIdentifiant(line);
-										dataType = "student";
-		    						}
-		    						else {
-										dataType = "staff";
+		    						eppn = userLdaps.get(0).getEppn();
+		    						List<Person> existingPersons = personRepository.findByEppn(eppn);
+		    						if(!existingPersons.isEmpty()) {
+										person = existingPersons.get(0);
+									}else {
+										person = new Person();
+			    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
+											person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
+											person.setType("student");
+			    						}
+			    						else {
+			    							person.setType("staff");
+										}
+			    						person.setContext(contexteService.getcurrentContext());
+			    						person.setEppn(eppn);
+			    						personRepository.save(person);
 									}
 								}
 		    				}
-			    			person.setContext(contexteService.getcurrentContext());
 			    			tc.setSessionEpreuve(se);
 			    			tc.setContext(contexteService.getcurrentContext());
-			    			if(!userLdaps.isEmpty()) {
-			    				person.setEppn(userLdaps.get(0).getEppn());
-			    			}
-			    			person.setType(dataType);
 			    			tc.setPerson(person);
 			    			if(groupeId != null){
 			    				Groupe groupe = groupeRepository.findById(groupeId).get();
@@ -333,7 +349,12 @@ public class TagCheckService {
 		List<TagCheck> tagChecks =  tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
 		if(!tagChecks.isEmpty()) {
 			for(TagCheck tc : tagChecks){
+				Person person = tc.getPerson();
 				tagCheckRepository.deleteById(tc.getId());
+				Long count = tagCheckRepository.countTagCheckByPerson(person);
+				if(count==0) {
+	    			personRepository.delete(person);
+	    		}
 			}
 		}
     }
