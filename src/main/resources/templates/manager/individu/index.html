@@ -30,6 +30,7 @@
 							<thead>
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Session</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Groupe</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Date</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
@@ -42,6 +43,7 @@
 							<tbody>
 								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}">
 									<td th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:text="${(tagCheck.groupe != null )? tagCheck.groupe.nom : ''}"></td>
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								

@@ -179,24 +179,28 @@ public class TagCheckController {
     }
 	
     @GetMapping(value = "/manager/tagCheck", params = "form", produces = "text/html")
-    public String createForm(Model uiModel) {
+    public String createForm(Model uiModel, @RequestParam("sessionEpreuve") String sessionEpreuve) {
     	TagCheck TagCheck = new TagCheck();
-    	populateEditForm(uiModel, TagCheck);
+    	populateEditForm(uiModel, TagCheck, Long.valueOf(sessionEpreuve));
         return "manager/tagCheck/create";
     }
     
     @GetMapping(value = "/manager/tagCheck/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
-    	TagCheck TagCheck = tagCheckRepository.findById(id).get();
-    	populateEditForm(uiModel, TagCheck);
+    	TagCheck tagCheck = tagCheckRepository.findById(id).get();
+    	populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
         return "manager/tagCheck/update";
     }
     
-    void populateEditForm(Model uiModel, TagCheck TagCheck) {
+    void populateEditForm(Model uiModel, TagCheck TagCheck, Long id) {
+    	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
+    	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+    	allSe.add(se);
+    	uiModel.addAttribute("allSessionEpreuves", allSe);
     	uiModel.addAttribute("allPersons", personRepository.findAll());
     	uiModel.addAttribute("allTagCheckers", tagCheckerRepository.findAll());
-    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findAll());
     	uiModel.addAttribute("allSessionLocations", sessionLocationRepository.findAll());
+    	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
     	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
     }
@@ -206,13 +210,13 @@ public class TagCheckController {
     public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
     		final RedirectAttributes redirectAttributes) throws Exception {
         if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, tagCheck);
+            populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
             return "manager/tagCheck/create";
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, null);
-    	redirectAttributes.addFlashAttribute("paramUrl", tagCheck.getSessionEpreuve());
+        Long groupeId = (tagCheck.getGroupe() != null )? tagCheck.getGroupe().getId() : null;
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
@@ -220,7 +224,7 @@ public class TagCheckController {
     @PostMapping("/manager/tagCheck/update/{id}")
     public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, tagCheck);
+            populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
             return "manager/tagCheck/update";
         }
         uiModel.asMap().clear();
@@ -231,6 +235,7 @@ public class TagCheckController {
     		tc.setContext(contexteService.getcurrentContext());
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
     		tc.setComment(tagCheck.getComment());
+    		tc.setGroupe(tagCheck.getGroupe());
     		tagCheckService.save(tc, emargementContext);
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);
