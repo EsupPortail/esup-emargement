@@ -106,15 +106,7 @@ public class SessionLocationController {
     @GetMapping(value = "/manager/sessionLocation", params = "form", produces = "text/html")
     public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
     	SessionLocation SessionLocation = new SessionLocation();
-    	if(id !=null) {
-	    	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-	    	List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
-	    	List<Location> allLocations = locationRepository.findAll();
-	    	List<Location> usedLocations = allSl.stream().map(e->e.getLocation()).collect(Collectors.toList());
-	    	allLocations.removeAll(usedLocations);
-	    	uiModel.addAttribute("allLocations", allLocations);
-    	}
-	   populateEditForm(uiModel, SessionLocation, id);
+	    populateEditForm(uiModel, SessionLocation, id);
     	
         return "manager/sessionLocation/create";
     }
@@ -126,12 +118,19 @@ public class SessionLocationController {
         return "manager/sessionLocation/update";
     }
     
-    void populateEditForm(Model uiModel, SessionLocation SessionLocation, Long id) {
+    void populateEditForm(Model uiModel, SessionLocation sessionLocation, Long id) {
     	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
     	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     	allSe.add(se);
+    	if(sessionLocation.getId() == null && id !=null) {
+    		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+	    	List<Location> allLocations = locationRepository.findAll();
+	    	List<Location> usedLocations = allSl.stream().map(e->e.getLocation()).collect(Collectors.toList());
+	    	allLocations.removeAll(usedLocations);
+	    	uiModel.addAttribute("allLocations", allLocations);
+    	}
     	uiModel.addAttribute("allSessionEpreuves", allSe);
-        uiModel.addAttribute("sessionLocation", SessionLocation);
+        uiModel.addAttribute("sessionLocation", sessionLocation);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     

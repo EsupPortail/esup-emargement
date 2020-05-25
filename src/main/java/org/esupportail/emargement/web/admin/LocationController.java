@@ -130,16 +130,16 @@ public class LocationController {
 	
     @GetMapping(value = "/admin/location", params = "form", produces = "text/html")
     public String createForm(Model uiModel) throws IOException, ParserException {
-    	Location Location = new Location();
+    	Location location = new Location();
     	uiModel.addAttribute("eventLocations", locationService.getSuggestedLocation());
-    	populateEditForm(uiModel, Location);
+    	populateEditForm(uiModel, location);
         return "admin/location/create";
     }
     
     @GetMapping(value = "/admin/location/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
-    	Location Location = locationRepository.findById(id).get();
-    	populateEditForm(uiModel, Location);
+    	Location location = locationRepository.findById(id).get();
+    	populateEditForm(uiModel, location);
         return "admin/location/update";
     }
     

@@ -52,7 +52,7 @@
 	                    	</div>
 	                    	<div class="col-lg-10">	
 								<select name="groupe" id="groupe" class="form-control">
-									<option value ="">-----choisir----</option>
+									<option value ="">-----Aucun----</option>
 									 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
 								</select>
 							</div> 

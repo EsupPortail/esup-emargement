@@ -97,6 +97,8 @@ Crédits & Licence
 Copyright (C) 2020 Esup Portail http://www.esup-portail.org
 @Author (C) 2020 Jean-Pierre Tran <Jean-Pierre.Tran@univ-rouen.fr>
 @Contributor (C) 2020 Vincent Bonamy <Vincent.Bonamy@univ-rouen.fr>
+@Contributor (C) 2020 Fabrice Sebbe <Fabrice.Sebbe@univ-rouen.fr>
+@Contributor (C) 2020 Dominique Wormser <Dominique.wormser@univ-rouen.fr>
 @Contributor (C) 2020 Olivier Lefebvre <olivier.lefebvre@univ-rouen.fr>
 @Contributor (C) 2020 Hugo Sadaune
 @Contributor (C) 2020 Gauthier Girot

@@ -140,15 +140,15 @@ public class UserAppController {
 	
     @GetMapping(value = "/admin/userApp", params = "form", produces = "text/html")
     public String createForm(@PathVariable String emargementContext, Model uiModel) {
-    	UserApp UserApp = new UserApp();
-    	populateEditForm(uiModel, UserApp, emargementContext);
+    	UserApp userApp = new UserApp();
+    	populateEditForm(uiModel, userApp, emargementContext);
         return "admin/userApp/create";
     }
     
     @GetMapping(value = "/admin/userApp/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
-    	UserApp UserApp = userAppRepository.findById(id).get();
-    	populateEditForm(uiModel, UserApp, emargementContext);
+    	UserApp userApp = userAppRepository.findById(id).get();
+    	populateEditForm(uiModel, userApp, emargementContext);
         return "admin/userApp/update";
     }
     

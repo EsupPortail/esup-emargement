@@ -116,15 +116,15 @@ public class SuperAdminController {
 	
     @GetMapping(value = "/superadmin/admins", params = "form", produces = "text/html")
     public String createForm(@PathVariable String emargementContext, Model uiModel) {
-    	UserApp UserApp = new UserApp();
-    	populateEditForm(uiModel, UserApp, emargementContext);
+    	UserApp userApp = new UserApp();
+    	populateEditForm(uiModel, userApp, emargementContext);
         return "superadmin/admins/create";
     }
     
     @GetMapping(value = "/superadmin/admins/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
-    	UserApp UserApp = userAppRepository.findById(id).get();
-    	populateEditForm(uiModel, UserApp, emargementContext);
+    	UserApp userApp = userAppRepository.findById(id).get();
+    	populateEditForm(uiModel, userApp, emargementContext);
         return "superadmin/admins/update";
     }
     

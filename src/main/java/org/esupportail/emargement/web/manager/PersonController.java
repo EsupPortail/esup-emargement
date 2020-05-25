@@ -65,15 +65,15 @@ public class PersonController {
 	
     @GetMapping(value = "/manager/person", params = "form", produces = "text/html")
     public String createForm(Model uiModel) {
-    	Person Person = new Person();
-    	populateEditForm(uiModel, Person);
+    	Person person = new Person();
+    	populateEditForm(uiModel, person);
         return "manager/person/create";
     }
     
     @GetMapping(value = "/manager/person/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
-    	Person Person = personRepository.findById(id).get();
-    	populateEditForm(uiModel, Person);
+    	Person person = personRepository.findById(id).get();
+    	populateEditForm(uiModel, person);
         return "manager/person/update";
     }
     

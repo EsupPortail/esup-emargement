@@ -180,8 +180,8 @@ public class TagCheckController {
 	
     @GetMapping(value = "/manager/tagCheck", params = "form", produces = "text/html")
     public String createForm(Model uiModel, @RequestParam("sessionEpreuve") String sessionEpreuve) {
-    	TagCheck TagCheck = new TagCheck();
-    	populateEditForm(uiModel, TagCheck, Long.valueOf(sessionEpreuve));
+    	TagCheck tagCheck = new TagCheck();
+    	populateEditForm(uiModel, tagCheck, Long.valueOf(sessionEpreuve));
         return "manager/tagCheck/create";
     }
     
