@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
+import org.esupportail.emargement.domain.BigFile;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
@@ -23,6 +25,7 @@ import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
+import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
@@ -37,7 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -71,9 +77,15 @@ public class SessionEpreuveService {
 	@Autowired
 	StoredFileRepository storedFileRepository;
 	
+	@Autowired
+	BigFileRepository bigFileRepository;
+	
 	@Resource
 	SessionEpreuveService sessionEpreuveService;
 	
+	@Resource
+	LdapService ldapService;
+		
 	@Resource
 	TagCheckService tagCheckService;
 	
@@ -483,4 +495,89 @@ public class SessionEpreuveService {
 		}
 		return types;
 	}
+	
+	 public SessionEpreuve duplicateSessionEpreuve(Long id) throws IOException {
+		SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
+		Context context = originalSe.getContext();
+        SessionEpreuve newSe = new SessionEpreuve();
+        newSe.setAnneeUniv(originalSe.getAnneeUniv());
+        newSe.setCampus(originalSe.getCampus());
+        newSe.setContext(context);
+        newSe.setDateExamen(new Date());
+        newSe.setFile(originalSe.getFile());
+        newSe.setFinEpreuve(originalSe.getFinEpreuve());
+        newSe.setHeureConvocation(originalSe.getHeureConvocation());
+        newSe.setIsSessionEpreuveClosed(false);
+        String newNomEpreuve = "";
+        int  x = 0 ;
+        Long count = new Long(0);
+        do {
+          x++;
+          count = sessionEpreuveRepository.countByNomSessionEpreuve(originalSe.getNomSessionEpreuve() + "(" + x + ")");
+        } while (count!=0);
+        newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
+        newSe.setNomSessionEpreuve(newNomEpreuve);
+        newSe.setType(originalSe.getType());
+        newSe.setHeureEpreuve(originalSe.getHeureEpreuve());
+        newSe.setHeureConvocation(originalSe.getHeureConvocation());
+        
+        if(originalSe.getPlanSessionEpreuve()!=null) {
+        	BigFile bigFile = new BigFile();
+	        bigFile.setBinaryFile(originalSe.getPlanSessionEpreuve().getBigFile().getBinaryFile());
+	        bigFile.setContext(context);
+	        bigFileRepository.save(bigFile);
+	        StoredFile storedFile = new StoredFile();
+	        storedFile.setBigFile(bigFile);
+	        StoredFile plan = originalSe.getPlanSessionEpreuve();
+	        storedFile.setContentType(plan.getContentType());
+	        storedFile.setContext(context);
+	        storedFile.setFilename(plan.getFilename());
+	        storedFile.setFileSize(plan.getFileSize());
+	        storedFile.setImageData(plan.getImageData());
+	        storedFile.setSendTime(new Date());
+	        storedFileRepository.save(storedFile);
+	        newSe.setPlanSessionEpreuve(storedFile);
+        }
+        sessionEpreuveRepository.save(newSe);
+        List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(originalSe);
+        
+        for(SessionLocation sl : sls) {
+        	SessionLocation newSl = new SessionLocation();
+        	newSl.setCapacite(sl.getCapacite());
+        	newSl.setContext(context);
+        	newSl.setIsTiersTempsOnly(sl.getIsTiersTempsOnly());
+        	newSl.setLocation(sl.getLocation());
+        	newSl.setPriorite(sl.getPriorite());
+        	newSl.setSessionEpreuve(newSe);
+        	sessionLocationRepository.save(newSl);
+        	List<TagChecker> tcs = tagCheckerRepository.findBySessionLocation(sl);
+        	for(TagChecker  tc : tcs) {
+        		TagChecker newTc = new TagChecker();
+        		newTc.setContext(context);
+        		newTc.setSessionLocation(newSl);
+        		newTc.setUserApp(tc.getUserApp());
+        		tagCheckerRepository.save(newTc);
+        	}
+        }
+        
+        List<TagCheck> listTc  = tagCheckRepository.findTagCheckBySessionEpreuveId(originalSe.getId());
+        if(!listTc.isEmpty()) {
+        	for(TagCheck t : listTc) {
+        		TagCheck newTagCheck = new TagCheck();
+        		newTagCheck.setContext(context);
+        		newTagCheck.setGroupe(t.getGroupe());
+        		newTagCheck.setIsTiersTemps(t.getIsTiersTemps());
+        		newTagCheck.setIsUnknown(t.getIsUnknown());
+        		newTagCheck.setNumAnonymat(t.getNumAnonymat());
+        		newTagCheck.setPerson(t.getPerson());
+        		newTagCheck.setSessionEpreuve(newSe);
+        		tagCheckRepository.save(newTagCheck);
+        	}
+        }
+       	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
+    	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
+
+        return newSe;
+	 }
 }

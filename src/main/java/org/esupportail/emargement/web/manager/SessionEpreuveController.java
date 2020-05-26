@@ -352,4 +352,14 @@ public class SessionEpreuveController {
 		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext);
     	 return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
+    
+    @Transactional
+    @GetMapping("/manager/sessionEpreuve/duplicate/{id}")
+    public String duplicateSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) throws IOException {
+    	
+    	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id);
+    	redirectAttributes.addFlashAttribute("duplicate", "duplicate");
+    	return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext, newSe.getId());
+    	
+    }
 }

@@ -10,6 +10,7 @@
 		    	<div  class="alert alert-danger" th:if="${error}">Une session avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
 		    	<div  class="alert alert-danger font-weight-bold" th:if="${compareEpreuve}">L'heure de fin doit être postérieure à l'heure de début</div>
 		    	<div  class="alert alert-danger font-weight-bold" th:if="${compareConvoc}">L'heure de convocation doit être antérieure à l'heure de début</div>
+		    	<div  class="alert alert-success font-weight-bold" th:if="${#ctx.containsVariable('duplicate')}">La Session a été dupliquée avec succès.</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/update/{id}(ctx=${eContext}, id=${sessionEpreuve.id})}" th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
 	                    <div class="form-group row">

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Repository;
 public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	Long countBySessionLocationId(Long id);
+	
+	List<TagChecker> findBySessionLocation(SessionLocation sl);
 
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveId(Long id);
 

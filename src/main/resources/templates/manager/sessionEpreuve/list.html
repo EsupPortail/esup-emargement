@@ -86,9 +86,10 @@
 										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 											' / ' + sessionEpreuve.nbInscritsSession}"></span>
 									</td>
-									<td><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center"><i class="fa fa-eye text-primary"></i></a>
-									<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
-									<a data-toggle="modal" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2"><i class="fa fa-trash text-danger"></i></a>
+									<td>
+										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
+										<a data-toggle="modal" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
 										<div class="modal fade in" th:id="modal-warning+${sessionEpreuve.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">
@@ -111,6 +112,7 @@
 										        </div>
 										    </div>
 										</div>
+										<a th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
 									</td>
 								</tr>
 							</tbody>
