@@ -104,7 +104,6 @@ public class CasConfig {
 	@Bean
 	public SingleSignOutFilter singleSignOutFilter() {
 		SingleSignOutFilter singleSignOutFilter = new SingleSignOutFilter();
-		singleSignOutFilter.setCasServerUrlPrefix(url);
 		singleSignOutFilter.setIgnoreInitConfiguration(true);
 		return singleSignOutFilter;
 	}
