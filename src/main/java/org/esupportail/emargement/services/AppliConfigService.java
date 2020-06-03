@@ -38,7 +38,8 @@ public class AppliConfigService {
 
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
-		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS
+		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
+		PROCURATION_MAX
 	}
 	
 	public List<String> getTypes() {
@@ -130,6 +131,11 @@ public class AppliConfigService {
 	public int getRetentionLogs(Context context) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.RETENTION_LOGS, context);
 		return appliConfig==null ? 36000 : Integer.parseInt(appliConfig.getValue());
+	}
+	
+	public int getMaxProcurations() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.PROCURATION_MAX);
+		return appliConfig==null ? 2 : Integer.parseInt(appliConfig.getValue());
 	}
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

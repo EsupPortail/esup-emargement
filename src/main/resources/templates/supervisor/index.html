@@ -17,8 +17,9 @@
 							<small th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"  class="font-weight-bold h6">Nombre de présents : <span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" th:id="${'totalPresent' + sessionLocation.id}" th:text="${nbTagChecksPresent}">
 								</span>  / <span th:text="${nbTagChecksExpected}"></span></small><br />
 							<small th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and totalNotExpected>0}"  class="font-weight-bold h6">Nombre d'intrus : <span id="totalNotExpected" class="badge badge-pill badge-warning" th:text="${totalNotExpected}">
-								</span></small><br />		
+								</span></small>		
 								<small th:if="${sessionEpreuve !=null and sessionLocation !=null}"  th:text="${(sessionLocation.isTiersTempsOnly)? 'Temps aménagé' : ''}"></small>
+							<span th:if="${sessionEpreuve.isProcurationEnabled}" class="font-weight-bold h6" th:text="${'Procurations : ' + countProxyPerson + '/' + maxProxyPerson}"></span><br/>
 							<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>	
 						</div>
 					    <div class="col-lg-9">
@@ -77,7 +78,7 @@
 								<span th:text="${nbNonRepartis}"></span> incrit(s)  non réparti(s) dans cette session. </p>
 							<p th:if="${nbTagChecksExpected==0 and currentLocation!=null}" class="h1 text-center">
 								<span th:text="${nbNonRepartis}"></span> incrit(s) dans ce lieu. </p>								
-						</div>					    
+						</div>	
 					</div>
 	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 						<div class="form-group alert alert-dark pt-1 pb-1">
@@ -102,12 +103,13 @@
 							<div class="progress">
 							  <div  th:if="${sessionEpreuve.id !=null and sessionLocation !=null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar font-weight-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}"  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 							</div>
-							<table class="table table-hover table-striped table-bordered">
+							<table class="table table-hover table-striped table-bordered table-sm">
 								<thead>
 									<tr>
 										<th scope="col" th:if="${#lists.isEmpty(tagCheckPage) and  tagCheckPage.content[0].person.numIdentifiant!=null}"><a class="sorted" sd:pagination-sort="person.numIdentifiant">N° identifiant</a></th>
 										<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
+										<th scope="col" class="center" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></th>
 										<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="isCheckedByCard">Badgeage</a></th>
 										<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
@@ -117,7 +119,7 @@
 								<tbody>
 									<tr th:each="tagCheck : ${tagCheckPage}" th:class="${tagCheck.tagDate == null}? table-danger : table-success" th:id="${tagCheck.id}">
 										<td th:if="${#lists.isEmpty(tagCheckPage) and  tagCheckPage.content[0].person.numIdentifiant!=null}" th:text="${tagCheck.person.numIdentifiant}"></td>
-										<td th:class="${tagCheck.isUnknown}? bg-warning : ''">
+										<td th:classappend="${tagCheck.isUnknown}? bg-warning : ''" class="nomPrenom">
 											<a href="#" class="mr-1 userModal" 
 											th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' +tagCheck.person.numIdentifiant}">
 											<i class="fa fa-user" aria-hidden="true"></i></a>
@@ -128,6 +130,13 @@
 												th:if="${tagCheck.tagDate==null}">
 											<input type="checkbox" class="presenceCheck" name="presenceCheck" th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}" 
 												th:unless="${tagCheck.tagDate==null}" th:disabled="${tagCheck.isUnknown}" checked="checked">												
+										</td>
+										<td class="center"  th:if="${sessionEpreuve.isProcurationEnabled}">
+											<input th:if="${tagCheck.tagDate==null && tagCheck.proxyPerson==null && !isOver}" type="checkbox" class="proxyPersonCheck" name="proxyPersonCheck" 
+											th:value="${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom}" />
+											<a th:if="${tagCheck.proxyPerson!=null}" href="#" data-toggle="modal" data-target="#staticBackdrop" class="proxyPersonCheck btn btn-primary btn-sm" 
+											 th:attr="data-whatever=${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom + ',' + tagCheck.proxyPerson.id}"> 
+											<i class="fa fa-user mr-2" aria-hidden="true"></i><span th:text="${tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom}"></span></a>
 										</td>
 										<td class="center" id="tagDate" th:text="${(#dates.format(tagCheck.tagDate, 'dd-MM-yyyy')==#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy'))?  
 											#dates.format(tagCheck.tagDate, 'HH:mm:ss') : #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm:ss')}"></td>
@@ -140,7 +149,32 @@
 									</tr>
 								</tbody>
 							</table>
-							<nav th:replace="fragments/pagination :: pagination"></nav>					
+							<nav th:replace="fragments/pagination :: pagination"></nav>
+							<div class="modal" id="procurationModal" tabindex="-1" role="dialog" >
+							  <div class="modal-dialog" role="document">
+							    <div class="modal-content">
+							      <div class="modal-header">
+							        <h5 class="modal-title">Procuration</h5>
+							        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							          <span aria-hidden="true">&times;</span>
+							        </button>
+							      </div>
+							      <div class="modal-body">
+									<div class="alert alert-info text-center">
+										<p>Personne à qui est donné la procuration pour :<br /> <span id="procurationPerson" class="font-weight-bold"> </span></p> 
+										<form th:action="@{/{ctx}/supervisor/saveProcuration(ctx=${eContext})}" method="POST">
+											<select id="substituteId" name="substituteId" class="mt-2">
+												<option value="">---Aucun---</option>
+											    <option th:each="tagCheck : ${tagCheckPage}" th:value="${tagCheck.person.id}" th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}" />
+											</select>
+											<input type="hidden" id="tcId" name="tcId" value="" />
+											<input type="submit" value="Valider" class="btn btn-success mt-2">
+										</form>					
+									</div>
+							      </div>
+							    </div>
+							  </div>
+							</div>		
 						</div>
 						<div th:if="${#lists.isEmpty(tagCheckPage)}" class="alert alert-warning">
 							<p class="font-weight-bold">Aucun élément à afficher</p>

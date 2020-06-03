@@ -100,6 +100,7 @@
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="isCheckedByCard">Badgeage</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
@@ -121,6 +122,7 @@
 											th:text="${tagCheck.sessionLocationBadged != null} ? ${tagCheck.sessionLocationBadged.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center"><i th:if= "${tagCheck.isCheckedByCard!=null} " th:class="${tagCheck.isCheckedByCard} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:if="${sessionEpreuve.isProcurationEnabled}"><span th:text="${(tagCheck.proxyPerson != null) ? tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom :''}"></span></td>
 									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
 									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/tagCheck/{id}?form(id=${tagCheck.id},ctx=${eContext})}">

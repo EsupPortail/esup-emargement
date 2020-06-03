@@ -160,6 +160,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long  countTagCheckByPerson(Person person);
 	
+	Long  countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(Long id);
+	
 	@Query(value = "select count(*) from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_location.id = tag_check.session_location_expected_id "

@@ -64,6 +64,9 @@ public class TagCheck implements ContextSupport {
     private String flagCSv;
     
     private Boolean isUnknown = false;
+    
+    @ManyToOne
+    private Person proxyPerson;
 
 	public Long getId() {
 		return id;
@@ -190,6 +193,14 @@ public class TagCheck implements ContextSupport {
 
 	public void setGroupe(Groupe groupe) {
 		this.groupe = groupe;
+	}
+
+	public Person getProxyPerson() {
+		return proxyPerson;
+	}
+
+	public void setProxyPerson(Person proxyPerson) {
+		this.proxyPerson = proxyPerson;
 	}
 	
 }

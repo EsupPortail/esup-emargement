@@ -48,6 +48,8 @@ public class SessionEpreuve implements ContextSupport {
     
     public Boolean isSessionEpreuveClosed = false;
     
+    public Boolean isProcurationEnabled = false;
+    
     @ManyToOne
     private Campus campus;
     
@@ -252,6 +254,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setType(TypeSessionEpreuve type) {
 		this.type = type;
+	}
+
+	public Boolean getIsProcurationEnabled() {
+		return isProcurationEnabled;
+	}
+
+	public void setIsProcurationEnabled(Boolean isProcurationEnabled) {
+		this.isProcurationEnabled = isProcurationEnabled;
 	}
 	
 }

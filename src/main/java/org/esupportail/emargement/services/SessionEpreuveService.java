@@ -269,7 +269,6 @@ public class SessionEpreuveService {
     	if(isTiersTemps) {
     		sessionLocationList= sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndIsTiersTempsOnlyTrueOrderByPriorite(sessionEpreuveId);
     	}
-    	//List<SessionLocation> sessionLocationList= sessionLocationRepository.findSessionLocationBySessionEpreuveIdOrderByCapacite(sessionEpreuveId);
     	if(!sessionLocationList.isEmpty()) {
 			for(SessionLocation sl:  sessionLocationList) {
 				capaciteTotal += sl.getCapacite();
@@ -308,6 +307,7 @@ public class SessionEpreuveService {
 	public void exportEmargement(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String type) {
 		
 		List<TagCheck> list = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
+		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
 		tagCheckService.setNomPrenomTagChecks(list);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
 			@Override
@@ -317,7 +317,8 @@ public class SessionEpreuveService {
 		});
 		PdfPTable table = null;
 		if("Liste".equals(type)) {
-	    	table = new PdfPTable(5);
+			int nbColumn = (se.getIsProcurationEnabled())? 6 : 5;
+	    	table = new PdfPTable(nbColumn);
 	    	
 	    	table.setWidthPercentage(100);
 	    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -329,7 +330,7 @@ public class SessionEpreuveService {
 	        		concat(list.get(0).getSessionLocationExpected().getLocation().getNom()));
 	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
 	        cell.setBackgroundColor(BaseColor.GREEN);
-	        cell.setColspan(5);
+	        cell.setColspan(nbColumn);
 	        table.addCell(cell);
 	   
 	        //contenu du tableau.
@@ -337,12 +338,16 @@ public class SessionEpreuveService {
 	        PdfPCell header2 = new PdfPCell(new Phrase("Prénom")); header2.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header3 = new PdfPCell(new Phrase("Numéro identifiant")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Tiers-temps")); header4.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header4bis = new PdfPCell(new Phrase("Procuration")); header4bis.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header5 = new PdfPCell(new Phrase("Signature")); header5.setBackgroundColor(BaseColor.GRAY);
 	        
 	        table.addCell(header1);
 	        table.addCell(header2);
 	        table.addCell(header3);
 	        table.addCell(header4);
+	        if(se.getIsProcurationEnabled()) {
+	        	table.addCell(header4bis);
+	        }
 	        table.addCell(header5);
 	        
 	        if(!list.isEmpty()) {
@@ -352,11 +357,15 @@ public class SessionEpreuveService {
 	        		PdfPCell cell3 = new PdfPCell(new Phrase(tc.getPerson().getNumIdentifiant())); cell3.setMinimumHeight(30);
 	        		PdfPCell cell4 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell4.setMinimumHeight(30);
 	        		PdfPCell cell5 = new PdfPCell(new Phrase("")); cell5.setMinimumHeight(30);
+	        		PdfPCell cell4bis = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell4.setMinimumHeight(30);
 	        		
 	    	        table.addCell(cell1);
 	    	        table.addCell(cell2);
 	    	        table.addCell(cell3);
 	    	        table.addCell(cell4);
+	    	        if(se.getIsProcurationEnabled()) {
+	    	        	 table.addCell(cell4bis);
+	    	        }
 	    	        table.addCell(cell5);
 	        	}
 	        }
@@ -508,6 +517,7 @@ public class SessionEpreuveService {
         newSe.setFinEpreuve(originalSe.getFinEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
         newSe.setIsSessionEpreuveClosed(false);
+        newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);

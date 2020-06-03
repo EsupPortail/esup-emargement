@@ -19,11 +19,13 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.LocationRepository;
+import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.PresenceService;
@@ -61,6 +63,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -71,6 +74,12 @@ public class PresenceController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired	
+	AppliConfigService appliConfigService;
+	
+	@Autowired
+	PersonRepository personRepository;
 	
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
@@ -125,6 +134,8 @@ public class PresenceController {
     		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
 
         uiModel.asMap().clear();
+        
+        String some = (String) uiModel.asMap().get("isOver");
         
 		Page<TagCheck> tagCheckPage = null;
 		Long totalExpected = new Long(0) ;
@@ -189,6 +200,17 @@ public class PresenceController {
 				uiModel.addAttribute("sls", sls);
 			}
 		}
+		if(sessionEpreuve.getIsProcurationEnabled()!=null && sessionEpreuve.getIsProcurationEnabled()) {
+			Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuve.getId());
+			uiModel.addAttribute("countProxyPerson", countProxyPerson);
+	    	boolean isOver = false;
+	    	if(countProxyPerson >= appliConfigService.getMaxProcurations()) {
+	    		isOver = true;
+	    	}
+	    	uiModel.addAttribute("isOver", isOver);
+	    	uiModel.addAttribute("maxProxyPerson", appliConfigService.getMaxProcurations());
+		}
+		
 		
         uiModel.addAttribute("currentLocation", currentLocation);
     	uiModel.addAttribute("nbTagChecksExpected", totalExpected);
@@ -287,5 +309,26 @@ public class PresenceController {
     			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
     	
     	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type);
+    }
+    
+    @PostMapping("/supervisor/saveProcuration")
+    public String saveProcuration(@PathVariable String emargementContext, @RequestParam("substituteId") Long substituteId, @RequestParam("tcId") Long id , 
+    		final RedirectAttributes redirectAttributes) {
+    	
+    	TagCheck tc = tagCheckRepository.findById(id).get();
+    	Person p  = null;
+    	if(substituteId != null) {
+    		p = personRepository.findById(substituteId).get();
+    		tc.setTagDate(new Date());
+    	}else {
+    		if(tc.getProxyPerson()!=null) {
+    			tc.setTagDate(null);
+    		}
+    	}
+    	tc.setProxyPerson(p);
+    	tagCheckRepository.save(tc);
+
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
 }

@@ -1588,4 +1588,27 @@ document.addEventListener('DOMContentLoaded', function() {
     	var annee = this.value
     	window.location.href = emargementContextUrl + "/manager/sessionEpreuve?anneeUniv=" + annee;
     });
+    
+    //procuration
+    $(".proxyPersonCheck").click(function(e) {
+    	e.preventDefault();
+    	var splitProxy = null;
+
+    	if(typeof $(this).attr("data-whatever") == "undefined"){
+    		splitProxy = this.value.split(",");
+    		$("#substituteId option[value='']").prop("selected","selected");
+    	}else{
+    		splitProxy = $(this).attr("data-whatever").split(",");
+    		let el = document.querySelector('#substituteId');
+    		$("#substituteId option[value='" + splitProxy[2] + "']").prop("selected","selected");
+    	}
+    	var select = new SlimSelect({
+            select: '#substituteId'
+        })
+      	$("#procurationPerson").text(splitProxy[1]);
+    	$("#tcId").val(splitProxy[0]);
+    	$("#procurationModal").modal('show');
+    	
+    });
+
 });

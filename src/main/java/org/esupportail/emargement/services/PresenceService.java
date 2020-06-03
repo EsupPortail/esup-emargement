@@ -71,7 +71,9 @@ public class PresenceService {
 	DataEmitterService dataEmitterService;
     
 	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId) {
-    	PdfPTable table = new PdfPTable(6);
+		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
+		int nbColumn = (countProxyPerson>0)? 7 : 6;
+    	PdfPTable table = new PdfPTable(nbColumn);
     	
     	table.setWidthPercentage(100);
     	table.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -92,7 +94,7 @@ public class PresenceService {
         		
         PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
         cell.setBackgroundColor(BaseColor.GREEN);
-        cell.setColspan(6);
+        cell.setColspan(nbColumn);
         table.addCell(cell);
    
         //contenu du tableau.
@@ -102,6 +104,7 @@ public class PresenceService {
         PdfPCell header4 = new PdfPCell(new Phrase("Présent")); header4.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header5 = new PdfPCell(new Phrase("Badgeage")); header5.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header6 = new PdfPCell(new Phrase("Lieu badgé")); header6.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Procuration")); header7.setBackgroundColor(BaseColor.GRAY);
         
         table.addCell(header1);
         table.addCell(header2);
@@ -109,7 +112,9 @@ public class PresenceService {
         table.addCell(header4);
         table.addCell(header5);
         table.addCell(header6);
-        
+        if(countProxyPerson>0) {
+        	table.addCell(header7);
+        }
         
         if(!list.isEmpty()) {
         	for(TagCheck tc : list) {
@@ -147,6 +152,11 @@ public class PresenceService {
         		dateCell = new PdfPCell(new Paragraph(badged));
         		dateCell.setBackgroundColor(b);
                 table.addCell(dateCell);
+                if(countProxyPerson>0) {
+	        		dateCell = new PdfPCell(new Paragraph((tc.getProxyPerson()!=null)? tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): ""));
+	        		dateCell.setBackgroundColor(b);
+	                table.addCell(dateCell);
+                }
         	}
         }
         
