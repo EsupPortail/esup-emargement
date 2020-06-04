@@ -1577,6 +1577,9 @@ document.addEventListener('DOMContentLoaded', function() {
     	if(splitField[3]!="null"){
     		$("#numIdentifiantPresence").text(splitField[3]);
     	}
+    	if(splitField[4]!="null"){
+    		$("#codeEtape").text(splitField[4]);
+    	}
     });
     $('#photoModal2').on('hidden.bs.modal', function (e) {
     	$("#photoPresent").prop("src", "");

@@ -199,7 +199,7 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<TagCheck> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId) throws Exception {
+    public List<TagCheck> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId, String origine) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	String dataType = null;
     	if(reader!=null) {
@@ -240,6 +240,7 @@ public class TagCheckService {
 										personRepository.save(person);
 									}
 								}
+								tc.setCodeEtape(origine);
 		    				}else {
 		    					userLdaps = userLdapRepository.findByEppnEquals(line);
 		    					if(!userLdaps.isEmpty()) {
@@ -936,5 +937,14 @@ public class TagCheckService {
 			listEppn.add(tc.getPerson().getEppn());
 		}
 		return listEppn;
+	}
+	
+	public List<String> findDistinctCodeEtapeSessionEpreuve(Long id) {
+		List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(id);
+		List<String> codesEtape = new ArrayList<>();
+		if(!tcs.isEmpty()) {
+			codesEtape  = tcs.stream() .filter(l ->l.getCodeEtape() != null && !l.getCodeEtape().equals("")).map(l -> l.getCodeEtape()).distinct().collect(Collectors.toList());
+		}
+		return codesEtape;
 	}
 }

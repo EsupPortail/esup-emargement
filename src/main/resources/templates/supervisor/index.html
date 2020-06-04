@@ -121,7 +121,7 @@
 										<td th:if="${#lists.isEmpty(tagCheckPage) and  tagCheckPage.content[0].person.numIdentifiant!=null}" th:text="${tagCheck.person.numIdentifiant}"></td>
 										<td th:classappend="${tagCheck.isUnknown}? bg-warning : ''" class="nomPrenom">
 											<a href="#" class="mr-1 userModal" 
-											th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' +tagCheck.person.numIdentifiant}">
+											th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 											<i class="fa fa-user" aria-hidden="true"></i></a>
 											<span th:text="${tagCheck.person.nom + ' ' + tagCheck.person.prenom}"></span><span class="font-weight-bold" th:text="${(tagCheck.isUnknown) ? ' (Inconnu dans cette session)' : '' }"></span>
 										</td>
@@ -226,6 +226,7 @@
 							<p class="h2 text-center"><span id="prenomPresence"></span><br/>
 							<span id="nomPresence" class="font-weight-bold"></span></p>
 							<p id="numIdentifiantPresence" class="h3 text-center"></p>
+							<p id="codeEtape" class="h5 text-center"></p>
 						</div>
 					</div>
 				</div>   

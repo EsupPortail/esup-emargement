@@ -110,7 +110,12 @@
 									<td th:if="${!isSessionEpreuveClosed}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
-									<td th:text="${tagCheck.person.eppn}"></td>
+									<td>
+										<a href="#" class="mr-1 userModal" 
+										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
+										<i class="fa fa-user" aria-hidden="true"></i></a>
+										<span th:text="${tagCheck.person.eppn}"></span>
+									</td>
 									<td th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}"></td>
@@ -232,6 +237,32 @@
 		            </div>
 		        </div>
 		    </div>
+		</div>
+		<div class="modal" id="photoModal2" tabindex="-1" role="dialog" >
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title"></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+				<div class="media">
+				  <img id="photoPresent"  src=""  alt="" width="160" height="200" />
+				  <div class="media-body ml-2">
+				    <h5 class="mt-0 text-primary font-weight-bold" id="nomPrenom"></h5>
+						<div class="alert alert-info col-lg-12 pt-3 pb-3 pl-1 pr-1 custom-alert">
+							<p class="h2 text-center"><span id="prenomPresence"></span><br/>
+							<span id="nomPresence" class="font-weight-bold"></span></p>
+							<p id="numIdentifiantPresence" class="h3 text-center"></p>
+							<p id="codeEtape" class="h5 text-center"></p>
+						</div>
+					</div>
+				</div>   
+		      </div>
+		    </div>
+		  </div>
 		</div>	
 	</body>
 </html>

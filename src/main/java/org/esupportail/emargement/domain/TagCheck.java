@@ -67,6 +67,8 @@ public class TagCheck implements ContextSupport {
     
     @ManyToOne
     private Person proxyPerson;
+    
+    private String codeEtape;
 
 	public Long getId() {
 		return id;
@@ -201,6 +203,14 @@ public class TagCheck implements ContextSupport {
 
 	public void setProxyPerson(Person proxyPerson) {
 		this.proxyPerson = proxyPerson;
+	}
+
+	public String getCodeEtape() {
+		return codeEtape;
+	}
+
+	public void setCodeEtape(String codeEtape) {
+		this.codeEtape = codeEtape;
 	}
 	
 }

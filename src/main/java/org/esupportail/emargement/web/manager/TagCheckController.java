@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -179,9 +180,9 @@ public class TagCheckController {
     }
 	
     @GetMapping(value = "/manager/tagCheck", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam("sessionEpreuve") String sessionEpreuve) {
+    public String createForm(Model uiModel, @RequestParam("sessionEpreuve") Long sessionEpreuve) {
     	TagCheck tagCheck = new TagCheck();
-    	populateEditForm(uiModel, tagCheck, Long.valueOf(sessionEpreuve));
+    	populateEditForm(uiModel, tagCheck, sessionEpreuve);
         return "manager/tagCheck/create";
     }
     
@@ -203,6 +204,7 @@ public class TagCheckController {
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
     	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
+        uiModel.addAttribute("codeEtapes", tagCheckService.findDistinctCodeEtapeSessionEpreuve(id));
     }
     
     @PostMapping("/manager/tagCheck/create")
@@ -216,7 +218,7 @@ public class TagCheckController {
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
         Long groupeId = (tagCheck.getGroupe() != null )? tagCheck.getGroupe().getId() : null;
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId);
+    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }

@@ -48,6 +48,18 @@
 							    </div>
 						    </div>
 						</div>
+                    	<div class="form-group row">
+                    		<div class="col-lg-2">
+	                    		<label for="sessionEpreuve" class="col-form-label">Etape</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
+									<option value ="">-----Aucune----</option>
+									<option th:each="code : ${codeEtapes}"
+										th:value="${code}" th:text="${code}" th:selected="${tagCheck.codeEtape != null &&  (code == tagCheck.codeEtape)}"></option>
+								</select>
+							</div>
+						</div>							
 	                    <div class="form-group row">
 	                    	<div class="col-lg-2">
 	                        	<label for="comment" class="col-form-label">Commentaire</label>

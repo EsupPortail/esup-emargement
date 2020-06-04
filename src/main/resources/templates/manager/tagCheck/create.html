@@ -46,6 +46,18 @@
 							    </div>
 						  	</div>
 						</div>
+                    	<div class="form-group row">
+                    		<div class="col-lg-2">
+	                    		<label for="sessionEpreuve" class="col-form-label">Etape</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
+									<option value ="">-----Aucune----</option>
+									<option th:each="code : ${codeEtapes}"
+										th:value="${code}" th:text="${code}"></option>
+								</select>
+							</div>
+						</div>						
               			<div class="form-group row">
 	                    	<div class="col-lg-2">
 	                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>
@@ -53,7 +65,7 @@
 	                    	<div class="col-lg-10">	
 								<select name="groupe" id="groupe" class="form-control">
 									<option value ="">-----Aucun----</option>
-									 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
+									<option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
 								</select>
 							</div> 
 						</div>						
