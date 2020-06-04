@@ -1402,14 +1402,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		    select: '#groupe'
 		}); 
     }
-    if (document.getElementById('eventsSelect') != null) {
+    if (document.getElementById('icsSelect') != null) {
         new SlimSelect({
             select: '#icsSelect',
             showSearch: false
-        });
-        new SlimSelect({
-            select: '#icsEvents',
-            placeholder: 'Recherche épreuve'
         });
     }
     if (document.getElementById('suList') != null) {
@@ -1445,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, false);
         
         eventSource.addEventListener('sl', response => {
-            var sl = JSON.parse(response.data); console.log(sl);
+            var sl = JSON.parse(response.data);
             $("#sl" + sl.id ).html(sl.nbPresentsSessionLocation);
         }, false);
         
@@ -1485,6 +1481,10 @@ document.addEventListener('DOMContentLoaded', function() {
     //Remplissage form session à partir d'ics
     var icsEvents = document.getElementById('icsEvents');
     if (icsEvents != null) {
+        new SlimSelect({
+            select: '#icsEvents',
+            placeholder: 'Recherche épreuve'
+        });
         var icsSelect = document.getElementById('icsSelect');
         icsSelect.addEventListener("change", function() {
             setSelectEvent(this.value, "#divEvents");
