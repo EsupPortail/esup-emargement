@@ -1610,5 +1610,23 @@ document.addEventListener('DOMContentLoaded', function() {
     	$("#procurationModal").modal('show');
     	
     });
+    
+    var fileInput = document.querySelector('#file');
+	if(fileInput != null){
+	    fileInput.addEventListener('change', function() {
+	        var reader = new FileReader();
+	        reader.addEventListener('load', function() {
+	        	var size = fileInput.files[0].size;
+	        	var name = fileInput.files[0].name;
+	        	var sizeOctets = size /1048576;
+	        	var sizeMax = 1;
+	        	if(sizeOctets>1){
+	        		alert('Le fichier ' + name  + " est trop volumineux : " + sizeOctets.toFixed(2) + " Mo \n\n Taille maximum : 1 Mo") ;
+	        	}
+	            fileInput.value = "";
+	        });
+	        reader.readAsText(fileInput.files[0]);
+	    });
+	}
 
 });
