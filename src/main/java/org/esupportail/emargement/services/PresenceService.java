@@ -250,7 +250,9 @@ public class PresenceService {
     		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
     	}
     	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
-    	sessionLocationBadged.setNbPresentsSessionLocation(countPresent);
+    	if(sessionLocationBadged != null) {
+    		sessionLocationBadged.setNbPresentsSessionLocation(countPresent);
+    	}
     	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged);
     	return list;
 	}

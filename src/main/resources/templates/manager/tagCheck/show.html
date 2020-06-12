@@ -11,8 +11,6 @@
 					<dl class="row">
 			            <dt class="col-sm-2">Session</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></dd>
-			            <dt class="col-sm-2">Groupe</dt>
-			            <dd class="col-sm-10" th:text="${tagCheck.groupe.nom}"></dd>		            
 			            <dt class="col-sm-2">Type</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.person.type}"></dd>					
 			            <dt class="col-sm-2">Eppn</dt>
@@ -22,7 +20,7 @@
 			            <dt class="col-sm-2">Prénom</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.person.prenom}"></dd>
 			            <dt class="col-sm-2">Groupe</dt>
-			            <dd class="col-sm-10" th:text="${tagCheck.groupe.nom}"></dd>
+			            <dd class="col-sm-10" th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}"></dd>
 			            <dt class="col-sm-2">N° identifiant</dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.person.numIdentifiant != null) ? tagCheck.person.numIdentifiant : '---'}"></dd>
 			            <dt class="col-sm-2">Temps aménagé</dt>
