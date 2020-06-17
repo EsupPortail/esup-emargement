@@ -39,7 +39,7 @@ public class AppliConfigService {
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
-		PROCURATION_MAX
+		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR
 	}
 	
 	public List<String> getTypes() {
@@ -136,6 +136,16 @@ public class AppliConfigService {
 	public int getMaxProcurations() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.PROCURATION_MAX);
 		return appliConfig==null ? 2 : Integer.parseInt(appliConfig.getValue());
+	}
+	
+	public String getAppDeskTopExe() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.APP_DESKTOP_EXE);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getAppDeskTopJar() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.APP_DESKTOP_JAR);
+		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

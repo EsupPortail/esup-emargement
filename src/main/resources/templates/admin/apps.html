@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+  				<div class="card-body">
+  					<h2>Applications</h2>
+  					<div class="row">
+	  					<div class="col-lg-12">
+	  						<div class="alert alert-info">
+		  						<p>Esup-emargement fonctionne avec <strong>lee applications clientes "esup-nfc-tag-*'</strong> pour le badgeage des cartes une fois <a href="https://www.esup-portail.org/wiki/display/ESUPNFC/ESUP-NFC-TAG-SERVER" target="_blank">esup-nfc-tag-server</a> installé.</p>
+		  						
+		  						<p>Voici les liens vers les téléchargements et documenation des clients esup-nfc-tags :</p>
+		  						
+		  						<ul>
+		  							<li>Sur Google Play Store, <strong>ESUP-NFC-TAG-DROID</strong> : <a href="https://play.google.com/store/apps/details?id=org.esupportail.esupnfctagdroid" target="_blank">Lecteur NFC pour Android (apk) </a></li>
+		  							<li th:if="${!#strings.isEmpty(appExe) or !#strings.isEmpty(appJar)}">Versions desktop:
+		  								<ul>
+				  							<li th:if="${!#strings.isEmpty(appExe)}"><a th:href="@{${appExe}}">Installateur Win64 des clients ESUP-SGC</a></li>
+				  							<li th:if="${!#strings.isEmpty(appJar)}"><a th:href="@{${appJar}}">Lecteur NFC pour Desktop (jar)</a></li>
+		  								</ul>
+		  							</li>	  							
+		  							<li>Documenation Esup :
+		  								<ul>
+			  							<li><a href="https://www.esup-portail.org/wiki/display/ESUPNFC/ESUP-NFC-TAG-DESKTOP">ESUP-NFC-TAG-DESKTOP</a></li>
+			  							<li><a href="https://www.esup-portail.org/wiki/display/ESUPNFC/ESUP-NFC-TAG-DROID">ESUP-NFC-TAG-DROID</a></li>
+		  								</ul>
+		  							</li>
+		  						</ul>
+	  						</div>
+	  					</div>
+  					</div>
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>
