@@ -252,8 +252,9 @@ public class PresenceService {
     	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
     	if(sessionLocationBadged != null) {
     		sessionLocationBadged.setNbPresentsSessionLocation(countPresent);
+    		dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged);
     	}
-    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged);
+    	
     	return list;
 	}
 }
