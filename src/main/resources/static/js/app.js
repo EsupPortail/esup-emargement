@@ -1034,6 +1034,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	        }
 	    });
     }
+    var importCsv = document.getElementById('importCsv');
+    $(".statusExportCsv").hide();
+    if (importCsv != null) {
+	    importCsv.addEventListener('click', function(e) {
+	        var sessionEpreuve = document.getElementById('sessionEpreuveCsv');
+	        if (sessionEpreuve.value == "") {
+	            e.preventDefault();
+	            alert("Vous devez choisr une Session!");
+	        } else {
+	            $(".statusExportCsv").show();
+	            submitExport.submit();
+	        }
+	    });
+    }
     $('#selectAll').on("click", function() {
         var selectedItems = 0;
         var nbSelected = $("#usersGroupLdap option:selected").length;
@@ -1398,6 +1412,9 @@ document.addEventListener('DOMContentLoaded', function() {
         new SlimSelect({
             select: '#sessionEpreuveGroupe'
         }); 
+        new SlimSelect({
+            select: '#sessionEpreuveCsv'
+        });
 		new SlimSelect({
 		    select: '#groupe'
 		}); 

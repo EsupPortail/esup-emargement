@@ -269,7 +269,7 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuve") Long id, Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
+    public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuveCsv") Long id, Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
     	InputStream is = file.getInputStream();
     	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);

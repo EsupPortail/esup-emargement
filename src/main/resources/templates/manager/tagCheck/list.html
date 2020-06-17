@@ -32,8 +32,6 @@
 											<span class="btn-separator" th:if="${!isSessionEpreuveClosed}"></span>	
 											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
 											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}"></span>
-											<button th:if="${!isSessionEpreuveClosed}" class="btn btn-dark ml-2" type="button" data-toggle="collapse" data-target="#importCollapse" title="Importer des inscrits" id="btnImport">
-												<i class="fas fa-file-import"></i></button>
 											<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ml-2" type="button" data-toggle="collapse" data-target="#exportCollapse" 
 												title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
 					    				</div>
@@ -63,16 +61,6 @@
 							</select>
 							<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
 						</form>
-		    		</div>
-		    		<div class="collapse" id="importCollapse">
-						<div class="alert alert-info  pl-2 pr-1" th:if="${paramUrl &gt; '0' and !isSessionEpreuveClosed}">
-							<form action="#" th:action="@{/{ctx}/manager/tagCheck/importCsv(ctx=${eContext})}"
-								enctype="multipart/form-data" method="post" class="form-inline">
-								<input type="hidden" th:id="sessionEpreuve"	th:name="sessionEpreuve" th:value="${paramUrl}">
-								<input type="file"  id="filename" name="file">
-								<input type="submit" class="btn btn-success" value="importer" />
-							</form>
-						</div>
 		    		</div>
 		    		<div class="collapse" id="exportCollapse">
 		    			<div class="alert alert-info  pl-2 pr-1">
