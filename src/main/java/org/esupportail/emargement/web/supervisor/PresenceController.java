@@ -163,7 +163,6 @@ public class PresenceController {
 		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, toolUtil.updatePageable(pageable, size), eppn, true);
 		    		//The list is not modifiable, obviously your client method is creating an unmodifiable list (using e.g. Collections#unmodifiableList etc.). Simply create a modifiable list before sorting:
 		    		List<TagCheck> modifiableList = new ArrayList<TagCheck>(tagCheckPage.getContent());
-		    		Collections.sort(modifiableList, Comparator.comparing(TagCheck::getTagDate, Comparator.nullsLast(Comparator.reverseOrder())));
 		    		Page <TagCheck> page = new PageImpl<TagCheck>(modifiableList, toolUtil.updatePageable(pageable, size), Long.valueOf(modifiableList.size()));
 		        	uiModel.addAttribute("sessionLocation", sessionLocationRepository.findById(sessionLocationId).get());
 		        	totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
