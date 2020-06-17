@@ -38,7 +38,7 @@ public class HelpService {
 	public List<String> getHelpCategories(){
 		List<String> list = Arrays.asList("context", "admins", "help", "userApp", "campus", "location", "logs", "appliConfig", "tagCheck", "tagChecker", "event",
 										"sessionEpreuve", "sessionLocation", "extraction", "repartition", "convocation", "consignes", "presence", "stats", "individu", 
-										"calendrier", "su", "dashboard", "groupe");
+										"calendrier", "su", "dashboard", "groupe", "user");
 		Collections.sort(list);
 		return list;
 	}

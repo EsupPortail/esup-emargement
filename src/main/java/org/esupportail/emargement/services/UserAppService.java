@@ -185,4 +185,8 @@ public class UserAppService {
 	public boolean isSupervisor() {
 		return WebUtils.isSupervisor();
 	}
+	
+	public boolean isUser() {
+		return WebUtils.isUser();
+	}
 }

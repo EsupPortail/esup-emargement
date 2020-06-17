@@ -17,7 +17,7 @@ public class AuthorizeRequestsHelper {
 		.antMatchers("/login/impersonate").access("hasRole('ROLE_ADMIN')")
 		.antMatchers("/admin/", "/admin/**").access("hasRole('ROLE_ADMIN')")
 		.antMatchers("/manager/", "/manager/**").access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-		.antMatchers("/user/", "/user/**").access("isAuthenticated()")
+		.antMatchers("/user/", "/user/**").access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 		.antMatchers("/**").access("permitAll");
 		
 	}

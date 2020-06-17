@@ -1,19 +1,13 @@
 package org.esupportail.emargement.web;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.UserLdap;
-import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.ContextService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,14 +25,6 @@ public class IndexController {
 
     @Resource
     ContextService contextService;
-    
-        
-   @Autowired
-   private UserLdapRepository userLdapRepository;
-   
-   @Autowired      
-   TagCheckRepository tagCheckRepository;
-
 	
     @GetMapping("/")
     public String index(@RequestParam(required = false) String emargementContext, Model model) {
@@ -48,22 +34,6 @@ public class IndexController {
     				&& auth.getPrincipal() instanceof UserDetails) {
 	            if(emargementContext == null) {
 	                emargementContext = contextService.getDefaultContext();
-				if (emargementContext == null) {
-					List<UserLdap> userLdap = (auth != null) ? userLdapRepository.findByUid(auth.getName()) : null;
-					String eppn = (userLdap != null) ? userLdap.get(0).getEppn() : "";
-					if (!eppn.isEmpty()) {
-						try {
-							List<TagCheck> tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, null).getContent();
-							if (!tcs.isEmpty()) {
-								emargementContext = tcs.get(0).getContext().getKey();
-							}
-						} catch (Exception e) {
-							emargementContext = null;
-							log.error("contexte null");
-						}
-					}
-				}
-
 	            }
 	            if(emargementContext == null || emargementContext.isEmpty()) {
 	            	model.addAttribute("noContext", true);
@@ -72,6 +42,7 @@ public class IndexController {
 					model.addAttribute("isManager", WebUtils.isManager());
 					model.addAttribute("isSupervisor", WebUtils.isSupervisor());
 					model.addAttribute("isSwitchUser", WebUtils.isSwitchUser());
+					model.addAttribute("isUser", WebUtils.isUser());
 	            	return "index";
 	            }
 	            return "redirect:/" + emargementContext;
@@ -103,8 +74,12 @@ public class IndexController {
 			} else if (authorities.contains(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))) {
 				return String.format("redirect:/%s/dashboard", emargementContext);
 			} else {
-				model.addAttribute("index","index");
-				return "index";
+				if (authorities.contains(new SimpleGrantedAuthority("ROLE_USER"))) {
+					return String.format("redirect:/%s/user", emargementContext);
+				}else {
+					model.addAttribute("index","index");
+					return "index";
+				}
 			}
 		}
 		

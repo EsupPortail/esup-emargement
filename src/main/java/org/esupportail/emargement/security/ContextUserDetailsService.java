@@ -13,11 +13,15 @@ import java.util.stream.Collectors;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
 import org.jasig.cas.client.validation.Assertion;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,12 +35,15 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 	
 	UserLdapRepository userLdapRepository;
 	
+	PersonRepository personRepository;
+	
 	EmargementConfig config;
 	
-	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository) {
+	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, PersonRepository personRepository){
 		this.config = config;
 		this.userAppRepository = userAppRepository;
 		this.contextRepository = contextRepository;
+		this.personRepository = personRepository;
 	}
 
 	@Override
@@ -131,6 +138,10 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		
 		if(userApp!=null) {
 			extraRoles.add(new SimpleGrantedAuthority("ROLE_".concat(userApp.getUserRole().name())));
+		}
+		Person person = personRepository.findByEppnAndContext(eppn, context);
+		if(person != null) {
+			extraRoles.add(new SimpleGrantedAuthority("ROLE_USER"));
 		}
 		return extraRoles;
 	}

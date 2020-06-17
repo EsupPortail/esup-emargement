@@ -3,6 +3,7 @@ package org.esupportail.emargement.config;
 import javax.servlet.http.HttpSessionEvent;
 
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextCasAuthenticationProvider;
 import org.esupportail.emargement.security.ContextUserDetailsService;
@@ -78,11 +79,11 @@ public class CasConfig {
 	}
 
 	@Bean
-	public ContextCasAuthenticationProvider casAuthenticationProvider(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository) {
+	public ContextCasAuthenticationProvider casAuthenticationProvider(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, PersonRepository personRepository) {
 		ContextCasAuthenticationProvider provider = new ContextCasAuthenticationProvider();
 		provider.setServiceProperties(serviceProperties());
 		provider.setTicketValidator(ticketValidator());
-		provider.setAuthenticationUserDetailsService(new ContextUserDetailsService(config, userAppRepository, contextRepository));
+		provider.setAuthenticationUserDetailsService(new ContextUserDetailsService(config, userAppRepository, contextRepository, personRepository));
 		provider.setKey(key);
 		return provider;
 	}

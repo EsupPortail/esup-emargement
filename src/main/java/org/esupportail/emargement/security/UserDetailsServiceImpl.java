@@ -15,9 +15,11 @@ import javax.naming.InvalidNameException;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
@@ -49,6 +51,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	
 	@Autowired	
 	UserAppRepository userAppRepository;
+	
+	@Autowired
+	PersonRepository personRepository;;
 	
 	@Autowired
 	EmargementConfig config;
@@ -148,6 +153,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		
 		if(userApp!=null) {
 			extraRoles.add(new SimpleGrantedAuthority("ROLE_".concat(userApp.getUserRole().name())));
+		}
+		Person person = personRepository.findByEppnAndContext(eppn, context);
+		if(person != null) {
+			extraRoles.add(new SimpleGrantedAuthority("ROLE_USER"));
 		}
 		return extraRoles;
 	}

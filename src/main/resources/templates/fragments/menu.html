@@ -13,9 +13,12 @@
 		
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav mr-auto">
- 				<li class="nav-item mr-2">
+ 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager}">
 			     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
-			      </li>
+			     </li>
+ 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor or isUser}">
+			     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
+			     </li>
 		    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">
 			       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			         <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.supervisor}__')}"></span>

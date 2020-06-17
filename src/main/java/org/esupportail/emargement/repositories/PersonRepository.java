@@ -13,4 +13,7 @@ public interface PersonRepository extends JpaRepository<Person, Long>{
 	List<Person> findByContext(Context context);
 
 	List<Person> findByEppn(String eppn);
+	
+	Person findByEppnAndContext(String eppn, Context context);
+	
 }

@@ -67,6 +67,7 @@ public class WebInterceptor extends HandlerInterceptorAdapter {
 				modelAndView.addObject("isAdmin", WebUtils.isAdmin());
 				modelAndView.addObject("isManager", WebUtils.isManager());
 				modelAndView.addObject("isSupervisor", WebUtils.isSupervisor());
+				modelAndView.addObject("isUser", WebUtils.isUser());
 				modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
 				modelAndView.addObject("availableContexts", WebUtils.availableContexts());
 				modelAndView.addObject("name", name);
