@@ -217,7 +217,7 @@ public class TagCheckController {
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
         Long groupeId = (tagCheck.getGroupe() != null )? tagCheck.getGroupe().getId() : null;
-    	List<TagCheck> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape());
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }

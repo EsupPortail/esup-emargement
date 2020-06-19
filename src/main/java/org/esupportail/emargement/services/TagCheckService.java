@@ -199,16 +199,15 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<TagCheck> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId, String origine) throws Exception {
+    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId, String origine) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
-    	String dataType = null;
+    	List<Integer> bilanCsv = new ArrayList<Integer>();
     	if(reader!=null) {
     		rows  = importExportService.readAll(reader);
     	}else if(finalList != null) {
     		rows = finalList;
     	}
-    	if(rows != null) {
-	    	List<TagCheck> bilanCsv = new ArrayList<TagCheck>();
+    	if(rows != null) {	    	
 	    	List<TagCheck> tcToSave = new ArrayList<TagCheck>();
 	    	List<String> unknowns = new ArrayList<String>();
 	    	//De la forme [NumEtu,CodeGestion]
@@ -279,26 +278,16 @@ public class TagCheckService {
 						}
 			    		if(!userLdaps.isEmpty() && tcTest == 0) {
 		    				tc.setFlagCSv("success");
-		    				bilanCsv.add(tc);
 		    				tcToSave.add(tc);
 		    				i++;
 			    			//tagCheckRepository.save(tc);
 		    			}else if(tcTest >0 && !userLdaps.isEmpty()){
 		    				tc.setComment("Personne déjà inscrite dans la session");
 		    				tc.setFlagCSv("warning");
-		    				bilanCsv.add(tc);
 		    				j++;
 		    			}else{
 		    				tc.setComment("Personne inconnue dans le ldap");
-		    				if(userLdaps.isEmpty()) {
-			    				if("student".equals(dataType)) {
-			    					person.setNumIdentifiant(line);
-								}else {
-									person.setEppn(line);
-								}
-		    				}
 		    				tc.setPerson(person);
-		    				bilanCsv.add(tc);
 		    				unknowns.add(line);
 		    				tc.setFlagCSv("danger");
 		    				k++;
@@ -314,11 +303,12 @@ public class TagCheckService {
 	            logService.log(ACTION.IMPORT_INSCRIPTION, RETCODE.SUCCESS, 
 	            				"import inscriptions " + se.getNomSessionEpreuve() + " : Succès : " + i + " - Déjà inscrits : " + j + " - Inconnus dans le ldap : " +  k + inconnus , null,
 	            				null, emargementContext, null);
+	            bilanCsv.add(i);
+	            bilanCsv.add(j);
+	            bilanCsv.add(k);
 	    	}
-	    	return bilanCsv;
-    	}else {
-    		return null;
     	}
+    	return bilanCsv;
     }
     
     

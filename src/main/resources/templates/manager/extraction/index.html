@@ -244,24 +244,24 @@
 		        </button>
 		      </div>
 		      <div class="modal-body" id="modalBilanCsvBody">
-		      	 <div th:if="${bilanCsv==null}" class="alert alert-danger">
-					<p>Votre fichier CSV n'est pas conforme, veuillez le vérifier....</p>
-		      	 </div>
 		     	 <div th:if="${not #lists.isEmpty(bilanCsv)}">
 					<table class="table table-hover table-striped table-bordered">
 						<thead>
 							<tr>
-								<th scope="col">Eppn</th>
-								<th scope="col">N° identifiant</th>
+								<th scope="col" class="table-success">Importés</th>
+								<th scope="col" class="table-warning">Déja  inscrits</th>
+								<th scope="col" class="table-danger">Inconnus dans le Ldap</th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr  th:each="tagCheck : ${bilanCsv}" th:classappend="${'table-' + tagCheck.flagCSv}">
-							<td  th:text="${tagCheck.person.eppn}"></td>
-								<td  th:text="${tagCheck.person.numIdentifiant}"></td>
+							<tr>
+								<td th:each="int : ${bilanCsv}"  th:text="${int}" class="center"></td>
 							</tr>
 						</tbody>
 					</table>
+				</div>
+				<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
+					<p><strong>Votre fichier CSV n'est pas conforme, veuillez le vérifier....</strong></p>
 				</div>
 		      </div>
 		  	</div>
