@@ -228,13 +228,23 @@ function updatePresence(url, numEtu) {
                 var url = emargementContextUrl + "/supervisor/" + person.eppn + "/photo";
                 var modal = $('#photoModal2');
                 modal.find('.modal-title').text(date);
-                modal.find('.modal-body #nomPresence').text(person.nom.toUpperCase());
-                modal.find('.modal-body #prenomPresence').text(person.prenom);
+            	var nom ="";
+            	var prenom = "";
+            	var eppn = "";
+                if(person.nom != "null"){
+                	nom = person.nom.toUpperCase();
+                	prenom = person.prenom;
+            	}else{
+            		eppn = person.eppn;
+            	}
+                modal.find('.modal-body #nomPresence').text(nom);
+                modal.find('.modal-body #prenomPresence').text(prenom);
+                modal.find('.modal-body #eppnPresence').text(eppn);
                 if (person.numIdentifiant != null) {
                     modal.find('.modal-body #numIdentifiantPresence').text('N° ' + person.numIdentifiant);
                 }
                 modal.find('.modal-body #photoPresent').prop("src", url);
-                modal.find('.modal-body #photoPresent').prop("alt", person.prenom + " " + person.nom);
+                modal.find('.modal-body #photoPresent').prop("alt", person.eppn);
                 modal.modal('show');
                 setTimeout(function() {
                     window.location.href = redirect;
@@ -1588,8 +1598,18 @@ document.addEventListener('DOMContentLoaded', function() {
     	var splitField = this.getAttribute("data-whatever").split("//");
     	$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
     	$("#photoPresent").prop("alt", "Photo" + splitField[0]);
-    	$("#nomPresence").text(splitField[1]);
-    	$("#prenomPresence").text(splitField[2]);
+    	var nom ="";
+    	var prenom = "";
+    	var eppn = "";
+    	if(splitField[1]!= "null"){
+			nom = splitField[1];
+			prenom = splitField[2];
+    	}else{
+    		eppn = splitField[0];
+    	}
+    	$("#eppnPresence").text(eppn);
+    	$("#nomPresence").text(nom);
+    	$("#prenomPresence").text(prenom);
     	$('#photoModal2').modal('show');
     	if(splitField[3]!="null"){
     		$("#numIdentifiantPresence").text(splitField[3]);

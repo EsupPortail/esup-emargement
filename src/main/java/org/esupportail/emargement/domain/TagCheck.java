@@ -69,6 +69,8 @@ public class TagCheck implements ContextSupport {
     private Person proxyPerson;
     
     private String codeEtape;
+    
+    private Boolean checkLdap = true;
 
 	public Long getId() {
 		return id;
@@ -211,6 +213,14 @@ public class TagCheck implements ContextSupport {
 
 	public void setCodeEtape(String codeEtape) {
 		this.codeEtape = codeEtape;
+	}
+
+	public Boolean getCheckLdap() {
+		return checkLdap;
+	}
+
+	public void setCheckLdap(Boolean checkLdap) {
+		this.checkLdap = checkLdap;
 	}
 	
 }

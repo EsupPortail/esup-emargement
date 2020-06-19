@@ -199,7 +199,8 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Long groupeId, String origine) throws Exception {
+    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, 
+    		Long groupeId, String origine, Boolean checkLdap, Person formPerson) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
     	if(reader!=null) {
@@ -236,6 +237,14 @@ public class TagCheckService {
 										person.setType("student");
 										person.setContext(contexteService.getcurrentContext());
 										person.setEppn(eppn);
+										person.setType("student");
+										personRepository.save(person);
+									}
+								}else {
+									if(formPerson!=null) {
+										person = formPerson;
+										person.setType("student");
+										person.setContext(contexteService.getcurrentContext());
 										personRepository.save(person);
 									}
 								}
@@ -259,6 +268,18 @@ public class TagCheckService {
 			    						person.setContext(contexteService.getcurrentContext());
 			    						person.setEppn(eppn);
 			    						personRepository.save(person);
+									}
+								}else {
+									if(formPerson!=null) {
+										person = formPerson;
+										if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
+											person.setType("student");
+			    						}
+			    						else {
+			    							person.setType("staff");
+										}
+										person.setContext(contexteService.getcurrentContext());
+										personRepository.save(person);
 									}
 								}
 		    				}
@@ -287,9 +308,11 @@ public class TagCheckService {
 		    				j++;
 		    			}else{
 		    				tc.setComment("Personne inconnue dans le ldap");
-		    				tc.setPerson(person);
 		    				unknowns.add(line);
 		    				tc.setFlagCSv("danger");
+		    				if(!checkLdap) {
+		    					tcToSave.add(tc);
+		    				}
 		    				k++;
 		    			}
 	    			}
