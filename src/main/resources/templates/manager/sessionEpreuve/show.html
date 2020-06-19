@@ -53,6 +53,7 @@
 							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  mr-2"></i>
 							<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
 			            </dd>
+			            
 			            <dt class="col-sm-2">Présence</dt>
 			            <dd class="col-sm-10">
 							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center">
@@ -60,6 +61,8 @@
 							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 								' / ' + sessionEpreuve.nbInscritsSession}"></span>
 			            </dd>
+			            <dt class="col-sm-2">Commentaire</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.comment}"></dd>			            
 			            <dt class="col-sm-2">Actions</dt>
 			            <dd class="col-sm-10">
 							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>

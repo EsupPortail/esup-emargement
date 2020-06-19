@@ -517,6 +517,7 @@ public class SessionEpreuveService {
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
         newSe.setIsSessionEpreuveClosed(false);
         newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
+        newSe.setComment(originalSe.getComment());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);

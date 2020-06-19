@@ -76,6 +76,9 @@ public class SessionEpreuve implements ContextSupport {
     private @Transient
     String dureeEpreuve = "";
     
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+    
     private @Transient
     Long nbLieuxSession = Long.valueOf("0");
     
@@ -262,6 +265,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setIsProcurationEnabled(Boolean isProcurationEnabled) {
 		this.isProcurationEnabled = isProcurationEnabled;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 	
 }

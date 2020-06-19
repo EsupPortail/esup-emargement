@@ -50,6 +50,7 @@
 									<th scope="col" class="d-none d-xl-table-cell">Temps</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Repartition</th>
 									<th scope="col" class="d-none d-xl-table-cell">Présence</th>
+									<th scope="col" class ="hiddenBlock">Commentaire</th>
 									<th scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -86,6 +87,7 @@
 										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 											' / ' + sessionEpreuve.nbInscritsSession}"></span>
 									</td>
+									<td th:text="${sessionEpreuve.comment}"></td>
 									<td>
 										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
