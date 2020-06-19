@@ -8,7 +8,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -59,9 +58,6 @@ public class TagCheck implements ContextSupport {
     private String numAnonymat;
     
     private Boolean isCheckedByCard;
-    
-    @Transient
-    private String flagCSv;
     
     private Boolean isUnknown = false;
     
@@ -160,13 +156,6 @@ public class TagCheck implements ContextSupport {
 		this.numAnonymat = numAnonymat;
 	}
 
-	public String getFlagCSv() {
-		return flagCSv;
-	}
-
-	public void setFlagCSv(String flagCSv) {
-		this.flagCSv = flagCSv;
-	}
 	public Context getContext() {
 		return context;
 	}

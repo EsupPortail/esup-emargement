@@ -298,18 +298,15 @@ public class TagCheckService {
 							log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
 						}
 			    		if(!userLdaps.isEmpty() && tcTest == 0) {
-		    				tc.setFlagCSv("success");
 		    				tcToSave.add(tc);
 		    				i++;
 			    			//tagCheckRepository.save(tc);
 		    			}else if(tcTest >0 && !userLdaps.isEmpty()){
 		    				tc.setComment("Personne déjà inscrite dans la session");
-		    				tc.setFlagCSv("warning");
 		    				j++;
 		    			}else{
 		    				tc.setComment("Personne inconnue dans le ldap");
 		    				unknowns.add(line);
-		    				tc.setFlagCSv("danger");
 		    				if(!checkLdap) {
 		    					tcToSave.add(tc);
 		    				}
