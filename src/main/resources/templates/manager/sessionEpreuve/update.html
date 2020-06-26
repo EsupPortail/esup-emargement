@@ -40,11 +40,10 @@
 		                    	<label for="campus" class="col-form-label">*Site</label>
 		                    </div>
 		                    <div class="col-lg-10">
-								<select th:field="*{campus}" class="form-control" required="required" th:disabled="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+								<select th:field="*{campus}" class="form-control" required="required">
 									<option th:each="campus : ${allCampuses}"
 										th:value="${campus.id}" th:text="${campus.site}"></option>
 								</select>
-								<input type="hidden" id="hiddenCampus" name="campus" th:value="${sessionEpreuve.campus.id}" th:disabled="${(sessionEpreuve.isSessionEpreuveClosed)? false : true}"/>
 							</div>
 						</div>	 	                    
 	                    <div class="form-group row">
@@ -52,7 +51,7 @@
 		                        <label for="nomSessionEpreuve" class="col-form-label">*Nom</label>
 		                    </div>
 		                    <div class="col-lg-10">
-		                        <input type="text" th:field="*{nomSessionEpreuve}" class="form-control" required="required"  th:readonly="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+		                        <input type="text" th:field="*{nomSessionEpreuve}" class="form-control" required="required">
 		                    </div>
 	                    </div>
 	                    <div class="form-group row">
@@ -61,7 +60,7 @@
 		                    </div>
 		                    <div class="col-lg-10">
 		                        <input type="text" placeholder="dd/MM/YYYY" th:field="*{dateExamen}" class="form-control" required="required" id="dateSessionEpreuve" 
-		                        	data-toggle="datetimepicker" data-target="#dateSessionEpreuve" th:readonly="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+		                        	data-toggle="datetimepicker" data-target="#dateSessionEpreuve">
 		                    </div>
 	                    </div>   	                    
 	                   <div class="form-group row">
@@ -70,7 +69,7 @@
 		                   </div>
 		                   <div class="col-lg-10">
 		                        <input type="time" th:field="*{heureConvocation}" class="form-control" id="heureConvocation"
-		                        	data-toggle="datetimepicker" data-target="#heureConvocation" required="required" th:readonly="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+		                        	data-toggle="datetimepicker" data-target="#heureConvocation" required="required">
 		                    </div>
 	                    </div>
 	                    <div class="form-group row">
@@ -79,7 +78,7 @@
 	                       	</div>
 	                       	<div class="col-lg-10">
 		                        <input type="time" th:field="*{heureEpreuve}" class="form-control" id="heureEpreuve"
-		                        	data-toggle="datetimepicker" data-target="#heureEpreuve" required="required" th:readonly="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+		                        	data-toggle="datetimepicker" data-target="#heureEpreuve" required="required">
 	                        </div>
 	                    </div>
 	                    <div class="form-group row">
@@ -88,7 +87,7 @@
 	                        </div>
 	                        <div class="col-lg-10">
 	                        	<input type="time" th:field="*{finEpreuve}" class="form-control timepicker" id="finEpreuve"
-	                        		data-toggle="datetimepicker" data-target="#finEpreuve" required="required" th:readonly="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+	                        		data-toggle="datetimepicker" data-target="#finEpreuve" required="required">
 	                        </div>
 	                    </div>
 	                    <div class="form-group row">
@@ -96,7 +95,7 @@
 		                    	<label for="file" class="col-form-label">Plan</label>
 		                    </div>
 		                    <div class="col-lg-10">
-			 					<input type="file" class="form-control-file" id="file" name="file" th:disabled="${(sessionEpreuve.isSessionEpreuveClosed)? true : false}">
+			 					<input type="file" class="form-control-file" id="file" name="file">
 			 					<span th:if="${sessionEpreuve.planSessionEpreuve != null}" >
 							<a  th:href="@{/{ctx}/manager/file/{id}(id=${sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
 						Voir fichier actuel  </a> (sera conservé si aucun fichier n'est sélectionné))</span>
@@ -122,18 +121,6 @@
 								</div>
 						    </div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-								<label class="form-check-label" th:for="${isSessionEpreuveClosed}">
-							        Clôturée
-							      </label>
-							</div>
-							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isSessionEpreuveClosed}">
-								</div>      
-						    </div>
-						</div>    
                         <div class="row">
                             <div class="col-md-6 mt-5">
                                 <input type="submit" class="btn btn-success" value="Valider">

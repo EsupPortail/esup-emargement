@@ -362,4 +362,19 @@ public class SessionEpreuveController {
     	return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext, newSe.getId());
     	
     }
+    
+    @GetMapping("/manager/sessionEpreuve/close/{id}")
+    public String closeSession(@PathVariable String emargementContext, @PathVariable("id") Long id) throws IOException {
+    	
+    	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
+    	boolean isClosed = (sessionEpreuve.getIsSessionEpreuveClosed())? false : true;
+    	String  msg = (sessionEpreuve.getIsSessionEpreuveClosed())?  "Réouverture" : "Clôture";
+    	sessionEpreuve.setIsSessionEpreuveClosed(isClosed);
+    	sessionEpreuveRepository.save(sessionEpreuve);
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + msg, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+    	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+    	
+    }
 }

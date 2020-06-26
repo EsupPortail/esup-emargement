@@ -90,7 +90,9 @@
 									<td th:text="${sessionEpreuve.comment}"></td>
 									<td>
 										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
-										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
+										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" 
+											class="center ml-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
+										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-pen disabled ml-2"></i>
 										<a data-toggle="modal" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
 										<div class="modal fade in" th:id="modal-warning+${sessionEpreuve.id}" >
 										    <div class="modal-dialog">
@@ -114,7 +116,12 @@
 										        </div>
 										    </div>
 										</div>
-										<a th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
+										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+											onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
+										<a th:unless="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+											onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
+										<a th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+											onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
 									</td>
 								</tr>
 							</tbody>

@@ -1576,23 +1576,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     }
 
-    //Form update Session
-    $("#isSessionEpreuveClosed1").click(function() {
-        $("input[type=text]").prop("readonly", false);
-        $("input[type=time]").prop("readonly", false);
-        $("select").prop("disabled", false);
-        $("#hiddenCampus").prop("disabled", true);
-        $("#file").prop("disabled", false);
-
-        if ($(this).is(":checked")) {
-            $("input[type=text]").prop("readonly", true);
-            $("input[type=time]").prop("readonly", true);
-            $("select").prop("disabled", true);
-            $("#hiddenCampus").prop("disabled", false);
-            $("#file").prop("disabled", true);
-        }
-    });
-    
     //affiche modal photo
     $('.userModal').on("click", function(event) {
     	var splitField = this.getAttribute("data-whatever").split("//");
