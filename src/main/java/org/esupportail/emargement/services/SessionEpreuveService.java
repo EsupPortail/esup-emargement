@@ -523,7 +523,7 @@ public class SessionEpreuveService {
         Long count = new Long(0);
         do {
           x++;
-          count = sessionEpreuveRepository.countByNomSessionEpreuve(originalSe.getNomSessionEpreuve() + "(" + x + ")");
+          count = sessionEpreuveRepository.countExistingNomSessionEpreuve(originalSe.getNomSessionEpreuve() + "(" + x + ")");
         } while (count!=0);
         newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
         newSe.setNomSessionEpreuve(newNomEpreuve);

@@ -192,13 +192,13 @@ public class PresenceService {
 			Date date = dateFormat.parse(dateFormat.format(new Date()));
 			TagCheck presentTagCheck = null;
 			Long realSlId = null;
-			Long sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], esupNfcTagLog.getEppn(), date);
+			Long sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], esupNfcTagLog.getEppn(), date, splitLocationNom[0]);
 			if(sessionLocationId!=null) {
 				realSlId = sessionLocationId;
 				presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, esupNfcTagLog.getEppn());
 			}else {
 				//on regarde si la personne est dans une autre salle de la session
-				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date);
+				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date, splitLocationNom[0]);
 				SessionLocation sl = sessionLocationRepository.findById(slId).get();
 				realSlId = sl.getId();
 				presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());

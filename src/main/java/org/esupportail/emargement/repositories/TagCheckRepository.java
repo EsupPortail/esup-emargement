@@ -167,16 +167,16 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and session_location.id = tag_check.session_location_expected_id "
 			+ "and location.id= session_location.location_id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
-	Long checkIsTagable(String nomLocation, String eppn, Date date);
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	Long checkIsTagable(String nomLocation, String eppn, Date date, String nom);
 	
 	@Query(value = "select session_location.id from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_location.id = tag_check.session_location_expected_id "
 			+ "and location.id= session_location.location_id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
-	Long getSessionLocationId(String nomLocation, String eppn, Date date);
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	Long getSessionLocationId(String nomLocation, String eppn, Date date, String nom);
 	
 	@Query(value = "select context.key from tag_check, session_location, person, location, session_epreuve, context "
 			+ "where tag_check.person_id = person.id "
@@ -184,8 +184,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and location.id= session_location.location_id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
 			+ "and context.id = session_location.context_id "
-			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
-	String getContextId(String nomLocation, String eppn, Date date);
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	String getContextId(String nomLocation, String eppn, Date date, String nom);
 	
 	@Query(value = "select context.key from tag_check, session_location, person, location, session_epreuve, context "
 			+ "where tag_check.person_id = person.id "
@@ -201,8 +201,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and session_location.id = tag_check.session_location_expected_id "
 			+ "and location.id= session_location.location_id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and location.nom= :nomLocation and date_examen= :date LIMIT 1", nativeQuery = true)
-	Long getSessionLocationId(String nomLocation, Date date);
+			+ "and location.nom= :nomLocation and date_examen= :date and session_epreuve.nom_session_epreuve = :nom LIMIT 1", nativeQuery = true)
+	Long getSessionLocationId(String nomLocation, Date date, String nom);
 	
 	
 	@Query(value = "select session_location.id from tag_check, session_location, person, location, session_epreuve "
@@ -210,8 +210,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and session_location.id = tag_check.session_location_expected_id "
 			+ "and location.id= session_location.location_id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
-	Long getSessionLocationIdExpected(String eppn, Date date);
+			+ "and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	Long getSessionLocationIdExpected(String eppn, Date date, String nom);
 	
 	@Query(value = "select * from tag_check, person where tag_check.person_id = person.id and person.eppn= :eppn and session_location_expected_id= :id", nativeQuery = true)
 	TagCheck findTagCheckBySessionLocationExpectedIdAndEppn(Long id, String eppn);

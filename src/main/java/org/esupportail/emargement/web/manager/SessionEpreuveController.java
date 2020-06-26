@@ -259,10 +259,14 @@ public class SessionEpreuveController {
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0) {
+    	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
+    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
+    	
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0) {
             populateEditForm(uiModel, sessionEpreuve);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
+            uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
             return "manager/sessionEpreuve/create";
         }
         uiModel.asMap().clear();
@@ -287,11 +291,14 @@ public class SessionEpreuveController {
         
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
+    	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
+    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0) {
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || count > 0) {
             populateEditForm(uiModel, sessionEpreuve);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
+            uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
             return "manager/sessionEpreuve/update";
         }
         uiModel.asMap().clear();

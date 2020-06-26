@@ -37,6 +37,9 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
 	
+	@Query(value = "select count(*) from session_epreuve where nom_session_epreuve=:nom", nativeQuery = true)
+	Long countExistingNomSessionEpreuve(String nom);
+	
 	//STATS
 	@Query(value = "select site, count(*) as count from session_epreuve, campus where "
 			+ "session_epreuve.campus_id=campus.id and session_epreuve.context_id=:context "
