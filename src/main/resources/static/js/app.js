@@ -1169,6 +1169,10 @@ document.addEventListener('DOMContentLoaded', function() {
     //Affiche modal present
     var photoModal = document.getElementById('photoModal');
     if (photoModal != null) {
+    	var id = $("[id^='header']")[0].id.replace("header", "");
+    	$([document.documentElement, document.body]).animate({
+    	    scrollTop: ($("#" + id).position().top + $("#" + id).height())
+    	}, 1000);
         if (photoModal != "") {
             $('#photoModal').fadeIn(100, function() {
                 $('#photoModal').modal('show');
