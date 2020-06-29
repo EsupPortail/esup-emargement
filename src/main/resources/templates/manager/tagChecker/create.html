@@ -33,14 +33,34 @@
 						</div>
 						<div class="form-group row">
 							<div class="col-lg-2">
-	                    		<label for="userApp" class="col-form-label">Nom - Prénom</label>
+	                    		<label for="userApp" class="col-form-label">Agent</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
-								<select th:field="*{userApp}" class="form-control" required="required">
-									<option th:each="userApp : ${allUserApps}"
-										th:value="${userApp.id}" th:text="${userApp.nom + ' ' + userApp.prenom}"></option>
-								</select>
-								<div th:if="${#lists.isEmpty(allUserApps)}"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
+								<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
+								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 . notUsed">
+									<h4>Surveillants disponibles</h4>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="selectAll">
+										<label class="text-primary font-weight-bold">Tout sélectionner</label>
+									</div>
+									<div th:each="userApp : ${allUserApps}">
+										<div class="form-check">
+										  <input class="form-check-input" name="users" type="checkbox" th:value="${userApp.id}" id="defaultCheck1">
+										  <label class="form-check-label" th:text="${userApp.nom + ' ' + userApp.prenom}">
+										  </label>
+										</div>
+									</div>
+								</div>
+								 <div th:if="${not #lists.isEmpty(usedUsers)}">
+									<h4>Surveillants utilisés</h4>
+									<div th:each="userApp2 : ${usedUsers}">
+										<div class="form-check">
+										  <input class="form-check-input" type="checkbox" th:value="${userApp2.id}" checked disabled>
+										  <label class="form-check-label" th:text="${userApp2.nom + ' ' + userApp2.prenom}">
+										  </label>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
                         <div class="row">

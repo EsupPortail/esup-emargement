@@ -1,6 +1,7 @@
 package org.esupportail.emargement.web.manager;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -132,11 +133,17 @@ public class TagCheckerController {
     		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
     		List<TagChecker> allTcUsed = tagCheckerRepository.findTagCheckerBySessionLocationIn(allSl, null).getContent();
     		List<UserApp> allUserApps = userAppRepository.findByContext(se.getContext());
+    		List <UserApp> usedUsers  = new ArrayList<UserApp>();
     		for (TagChecker tc :allTcUsed) {
     			allUserApps.remove(tc.getUserApp());
+    			usedUsers.add(tc.getUserApp());
     		}
     		uiModel.addAttribute("allSessionLocations", allSl);
-    		uiModel.addAttribute("allUserApps", userAppService.setNomPrenom(allUserApps));
+    		userAppService.setNomPrenom(allUserApps);
+    		userAppService.setNomPrenom(usedUsers);
+    		allUserApps.sort(Comparator.comparing(UserApp::getNom));
+    		uiModel.addAttribute("allUserApps", allUserApps);
+    		uiModel.addAttribute("usedUsers", usedUsers);
     	}
     	populateEditForm(uiModel, tagChecker, id);
         return "manager/tagChecker/create";
@@ -152,16 +159,28 @@ public class TagCheckerController {
     }
     
     @PostMapping("/manager/tagChecker/create")
-    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam("users") List<Long> users,  BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
             return "manager/tagChecker/create";
         }
         uiModel.asMap().clear();
-        tagChecker.setContext(contexteService.getcurrentContext());
-        tagCheckerRepository.save(tagChecker);
-        log.info("ajout surveillant : " + tagChecker.getUserApp().getEppn());
-        logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);
+        if(!users.isEmpty()){
+        	for(Long id : users) {
+        		UserApp userApp = userAppRepository.findById(id).get();
+        		if(userApp!=null) {
+        			TagChecker tc = new TagChecker();
+        			tc.setUserApp(userApp);
+        			tc.setContext(contexteService.getcurrentContext());
+        			tc.setSessionLocation(tagChecker.getSessionLocation());
+        			tagCheckerRepository.save(tc);
+        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
+        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
+        		}
+        	}
+        }
+       
+        
         return String.format("redirect:/%s/manager/tagChecker/sessionEpreuve/" + tagChecker.getSessionEpreuve().getId().toString(), emargementContext);
     }
     

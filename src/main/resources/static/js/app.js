@@ -1651,5 +1651,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	        reader.readAsText(fileInput.files[0]);
 	    });
 	}
+	
+	//Select all !!
+	$("#selectAll").click(function(){
+		$('.notUsed').find("input[type=checkbox]").prop('checked', $(this).prop('checked'));
+	});
+	
+	$('.notUsed').find("input[type=checkbox]").click(function() {
+	    if (!$(this).prop("checked")) {
+	        $("#selectAll").prop("checked", false);
+	    }
+	});
+
 
 });
