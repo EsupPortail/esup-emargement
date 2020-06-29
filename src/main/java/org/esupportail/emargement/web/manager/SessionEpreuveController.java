@@ -292,9 +292,10 @@ public class SessionEpreuveController {
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
-    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || count > 0) {
+    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
+    	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {
             populateEditForm(uiModel, sessionEpreuve);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
