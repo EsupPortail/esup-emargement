@@ -20,11 +20,10 @@ function remove(id) {
 
 function getCalendar(calendarEl, urlEvents, editable) {
     var calendar = new FullCalendar.Calendar(calendarEl, {
-        plugins: ['bootstrap', 'dayGrid', 'timeGrid', 'list'],
-        header: {
-            left: 'prev,next today',
+        headerToolbar: {
+            start: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+            end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
         },
         navLinks: true, // can click day/week names to navigate views
         editable: editable,
