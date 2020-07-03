@@ -17,5 +17,5 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
 	
 	//STATS
 	@Query(value = "select key, count(*) as count from campus, context where campus.context_id=context.id group by key order by key, count desc", nativeQuery = true)
-	List<Object> countCampusesByContext();
+	List<Object[]> countCampusesByContext();
 }

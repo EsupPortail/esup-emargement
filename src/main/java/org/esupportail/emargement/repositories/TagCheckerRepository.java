@@ -32,10 +32,10 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	@Query(value = "select eppn, count(*) from tag_checker, user_app, session_location where tag_checker.user_app_id = user_app.id "
 			+ "and tag_checker.session_location_id=session_location.id  and session_epreuve_id in (select id from session_epreuve where is_session_epreuve_closed='t') "
 			+ "and tag_checker.context_id = :context group by eppn order by count desc", nativeQuery = true)
-	List<Object> countTagCheckersByContext(Long context);
+	List<Object[]> countTagCheckersByContext(Long context);
 
-	@Query(value = "select key, count(*) as count from tag_checker, context where tag_checker.context_id=context.id and "
+	@Query(value = "select distinct key,  count(*) as count from tag_checker, context where tag_checker.context_id=context.id and "
 			+ "session_location_id is not null group by key order by key, count desc", nativeQuery = true)
-	List<Object> countNbTagCheckerByContext();
+	List<Object[]> countNbTagCheckerByContext();
 
 }

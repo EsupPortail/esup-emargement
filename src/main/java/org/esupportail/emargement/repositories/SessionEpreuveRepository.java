@@ -44,14 +44,14 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	@Query(value = "select site, count(*) as count from session_epreuve, campus where "
 			+ "session_epreuve.campus_id=campus.id and session_epreuve.context_id=:context "
 			+ "and is_session_epreuve_closed = 't' group by site order by count desc;", nativeQuery = true)
-	List<Object> countSessionEpreuveByCampus(Long context);
+	List<Object[]> countSessionEpreuveByCampus(Long context);
 	
-	@Query(value = "SELECT CAST(DATE_PART('year',date_examen) AS INTEGER) AS year, CAST(DATE_PART('month', date_examen) AS INTEGER) AS month, count(*) "
-			+ "AS count FROM session_epreuve  WHERE context_id=:context AND is_session_epreuve_closed = 't' GROUP BY year, month", nativeQuery = true)
-	List<Object> countSessionEpreuveByYearMonth(Long context);
+	@Query(value = "SELECT CAST(DATE_PART('month', date_examen) AS INTEGER) AS month, count(*) "
+			+ "AS count FROM session_epreuve  WHERE context_id=:context AND is_session_epreuve_closed = 't' GROUP BY month", nativeQuery = true)
+	List<Object[]> countSessionEpreuveByYearMonth(Long context);
 	
 	@Query(value = "select key, CASE WHEN is_session_epreuve_closed='t' THEN 'Fermée' ELSE 'Ouverte' END AS statut, count(*) as count "
 			+ "from session_epreuve, context where session_epreuve.context_id=context.id group by key, statut order by key, statut, count", nativeQuery = true)
-	List<Object> countAllSessionEpreuvesByContext();
+	List<Object[]> countAllSessionEpreuvesByContext();
 
 }

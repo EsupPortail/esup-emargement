@@ -1,8 +1,14 @@
 package org.esupportail.emargement.services;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.CampusRepository;
@@ -43,41 +49,93 @@ public class StatsService {
 	@Autowired
 	ContextRepository contextRepository;
 	
-    public LinkedHashMap<String, Object> mapField(List<Object> listes, int level){
+public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
     	
-    	LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+    	List data = new ArrayList<>();
     	
-    	LinkedHashMap<String, Object> secondMap = new LinkedHashMap<String, Object>();
+    	List<String> labels1 = new ArrayList<String>();
+    	for(Object[] r : queryResults) {
+    		if(!labels1.contains(r[0].toString())) {
+    			labels1.add(r[0].toString());
+    		}
+    	}   	
+    	data.add(labels1);
     	
-    	String test = null;
-    	int i = 1;
+        List<String> labels2 = new ArrayList<String>();
+        for(Object[] r : queryResults) {
+        	if(!labels2.contains(r[1].toString())) {
+        		labels2.add(r[1].toString());
+        	}
+    	}    	
     	
-   		for (Object result : listes) {
-   			Object[] r = (Object[]) result;	
-   			if (level == 2){
-   				String r0 = "Aucune donnée";
-   				if(r[0]!=null){
-   					r0 = r[0].toString();
-   				}
-	   		    map.put(r0,r[1]);
-   			}else{
-   				//Hack '_' pour ne pas changer pas l'ordre de la requête dans le navigateur
-   				if(test== null || test.equals("_" + r[0].toString())){
-   					secondMap.put(r[1].toString(),r[2]);
-   				}else{
-   					map.put(test, secondMap);
-   					secondMap = new LinkedHashMap<String, Object>();
-   					secondMap.put(r[1].toString(),r[2]);
-   				}
-   			//Hack '_' pour ne pas changer pas l'ordre de la requête dans le navigateur
-   				test = "_" +  r[0].toString();
-   				if(i ==  listes.size()){
-   					map.put(test, secondMap);
-   				}
-   				i++;
-   			}
-   		}
-        return map;
+        Map<String, List<Long>> valuesMap = new HashMap<String, List<Long>>();
+    	for(String label2: labels2) {
+    		ArrayList<Long> values = new ArrayList<Long>();
+    		// initialize to 0
+    		for(String label1: labels1) {
+    			values.add(0L);
+    		}
+    		for(Object[] r : queryResults) {
+    	       	if(label2.equals(r[1].toString())) {
+    	       		values.set(labels1.indexOf(r[0].toString()), Long.valueOf(r[2].toString()));
+    	       	}
+    		 }
+    		valuesMap.put(label2, values);
+    	}
+    	if(order) {
+	    	// order valuesMap
+	    	Map<String, List<Long>> valuesMapSorted = valuesMap
+	    	        .entrySet()
+	    	        .stream()
+	    	        .sorted(Entry.comparingByValue(new Comparator<List<Long>>() {
+						@Override
+						public int compare(List<Long> o1, List<Long> o2) {
+							Long v1 = 0L;
+							Long v2 = 0L;
+							for(Long s: o1) {
+								v1 += s;
+							}
+							for(Long s: o2) {
+								v2 += s;
+							}
+							return v2.compareTo(v1);
+						}
+					}))
+	    	        .collect(
+	    	            Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2,
+	    	                LinkedHashMap::new));
+	    	
+	    	data.add(valuesMapSorted);
+    	} else {
+    		data.add(valuesMap);
+    	}
+    	
+        return data;
+    }
+
+    
+    public List mapFieldWith1Labels(List<Object[]> queryResults) {
+    	
+    	List data = new ArrayList<>();
+    	
+    	List<String> labels1 = new ArrayList<String>();
+    	for(Object[] r : queryResults) {
+    		if(r[0] == null) {
+    			labels1.add("");
+    		} else if(!labels1.contains(r[0].toString())) {
+    			labels1.add(r[0].toString());
+    		}
+    	}   	
+    	data.add(labels1);
+
+    	ArrayList<Long> values = new ArrayList<Long>();
+
+    	for(Object[] r : queryResults) {
+    	    values.add(Long.valueOf(r[1].toString()));
+    	}
+    	data.add(values);
+    	
+        return data;
     }
     
     @SuppressWarnings("serial")
@@ -88,25 +146,23 @@ public class StatsService {
 			   
 	        {
 	        	if("sessionEpreuvesByCampus".equals(typeStats)){
-	        		put("sessionEpreuvesByCampus",mapField(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId()), 2));
+	        		put("sessionEpreuvesByCampus",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId())));
 	        	}else if("sessionLocationByLocation".equals(typeStats)){
-	        		put("sessionLocationByLocation",mapField(sessionLocationRepository.countSessionLocationByLocation(ctx.getId()), 2));
+	        		put("sessionLocationByLocation",mapFieldWith1Labels(sessionLocationRepository.countSessionLocationByLocation(ctx.getId())));
 	        	}else if("tagCheckersByContext".equals(typeStats)){
-	        		put("tagCheckersByContext",mapField(tagCheckerRepository.countTagCheckersByContext(ctx.getId()), 2));
+	        		put("tagCheckersByContext",mapFieldWith1Labels(tagCheckerRepository.countTagCheckersByContext(ctx.getId())));
 	        	}else if("presenceByContext".equals(typeStats)){
-	        		put("presenceByContext",mapField(tagCheckRepository.countPresenceByContext(ctx.getId()), 2));
+	        		put("presenceByContext",mapFieldWith1Labels(tagCheckRepository.countPresenceByContext(ctx.getId())));
 	        	}else if("sessionEpreuveByYearMonth".equals(typeStats)){
-	        		put("sessionEpreuveByYearMonth",mapField(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId()), 3));
+	        		put("sessionEpreuveByYearMonth",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId())));
 	        	}else if("countTagCheckByYearMonth".equals(typeStats)){
-	        		put("countTagCheckByYearMonth",mapField(tagCheckRepository.countTagCheckByYearMonth(ctx.getId()), 3));
-	        	}else if("countCampusesByContext".equals(typeStats)){
-	        		put("countCampusesByContext",mapField(tagCheckRepository.countTagCheckByYearMonth(ctx.getId()), 3));
+	        		put("countTagCheckByYearMonth",mapFieldWith1Labels(tagCheckRepository.countTagCheckByYearMonth(ctx.getId())));
 	        	}else if("countTagChecksByTimeBadgeage".equals(typeStats)){
-	        		put("countTagChecksByTimeBadgeage",mapField(tagCheckRepository.countTagChecksByTimeBadgeage(Long.valueOf(param)), 2));
+	        		put("countTagChecksByTimeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTimeBadgeage(Long.valueOf(param))));
 	        	}else if("countTagChecksByTypeBadgeage".equals(typeStats)){
-	        		put("countTagChecksByTypeBadgeage",mapField(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId()), 2));
+	        		put("countTagChecksByTypeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId())));
 	        	}else if("countTagCheckBySessionLocationBadgedAndPerson".equals(typeStats)){
-	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapField(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId()), 2));
+	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapFieldWith1Labels(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId())));
 	        	}
 	        }
 	    };
@@ -120,17 +176,15 @@ public class StatsService {
 			   
 	        {
 	        	if("sessionEpreuvesByContext".equals(typeStats)){
-	        		put("sessionEpreuvesByContext",mapField(sessionEpreuveRepository.countAllSessionEpreuvesByContext(), 3));
+	        		put("sessionEpreuvesByContext",mapFieldWith2Labels(sessionEpreuveRepository.countAllSessionEpreuvesByContext(), true));
 	        	}else if("countTagChecksByContext".equals(typeStats)){
-	        		put("countTagChecksByContext",mapField(tagCheckRepository.countTagChecksByContext(), 3));
-	        	}else if("countNbTagCheckerByContext".equals(typeStats)){
-	        		put("countNbTagCheckerByContext",mapField(tagCheckerRepository.countNbTagCheckerByContext(), 2));
+	        		put("countTagChecksByContext",mapFieldWith2Labels(tagCheckRepository.countTagChecksByContext(), true));
 	        	}else if("countLocationsByContext".equals(typeStats)){
-	        		put("countLocationsByContext",mapField(locationRepository.countLocationsByContext(), 2));
+	        		put("countLocationsByContext",mapFieldWith1Labels(locationRepository.countLocationsByContext()));
 	        	}else if("countUserAppsByContext".equals(typeStats)){
-	        		put("countUserAppsByContext",mapField(userAppRepository.countUserAppsByContext(), 3));
+	        		put("countUserAppsByContext",mapFieldWith2Labels(userAppRepository.countUserAppsByContext(), true));
 	        	}else if("countCampusesByContext".equals(typeStats)){
-	        		put("countCampusesByContext",mapField(campusRepository.countCampusesByContext(), 2));
+	        		put("countCampusesByContext",mapFieldWith1Labels(campusRepository.countCampusesByContext()));
 	        	}
 	        }
 	    };

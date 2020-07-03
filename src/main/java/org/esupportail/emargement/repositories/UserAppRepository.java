@@ -32,6 +32,6 @@ public interface UserAppRepository extends JpaRepository<UserApp, Long>{
 	
 	//STATS
 	@Query(value = "select key, user_role, count(*) as count from user_app, context where user_app.context_id=context.id group by key, user_role order by  key, user_role, count desc", nativeQuery = true)
-	List<Object> countUserAppsByContext();
+	List<Object[]> countUserAppsByContext();
 	
 }
