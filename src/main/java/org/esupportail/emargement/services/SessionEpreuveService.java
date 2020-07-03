@@ -115,9 +115,11 @@ public class SessionEpreuveService {
 			session.setNbDispatchTagCheck(countDispatch);
 			session.setNbPresentsSession(tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(session.getId()));
 			session.setNbTagCheckerSession(nbTagCheckerSession);
-			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId()));
+			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
+			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
 			session.setDureeEpreuve(getDureeEpreuve(session));
 			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId()));
+			session.setNbUnknown(unknown);
 		}
 	}
 

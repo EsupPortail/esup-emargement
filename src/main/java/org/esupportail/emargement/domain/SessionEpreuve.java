@@ -97,6 +97,9 @@ public class SessionEpreuve implements ContextSupport {
     private @Transient
     Long nbCheckedByCardTagCheck = Long.valueOf("0");
     
+    private @Transient
+    Long nbUnknown = Long.valueOf("0");
+    
     @Transient
     private MultipartFile file;
     
@@ -273,6 +276,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	public Long getNbUnknown() {
+		return nbUnknown;
+	}
+
+	public void setNbUnknown(Long nbUnknown) {
+		this.nbUnknown = nbUnknown;
 	}
 	
 }

@@ -75,7 +75,8 @@
 										class="center modalChartSeBtn"><i class="fas fa-chart-bar text-success"></i></a>
 										<i th:if="${sessionEpreuve.nbCheckedByCardTagCheck == 0}" class="fas fa-chart-bar disabled"></i>
 									</td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" 
+										th:classappend="${!sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.nbDispatchTagCheck != sessionEpreuve.nbInscritsSession}? 'bg-warning' : ''">
 										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
 										<i class="fa fa-exchange-alt text-primary mr-2"></i></a>
 										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  mr-2"></i>
@@ -86,6 +87,7 @@
 										<i class="fa fa-id-badge text-success  mr-2"></i></a>
 										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 											' / ' + sessionEpreuve.nbInscritsSession}"></span>
+											<span class="badge badge-pill badge-warning" th:if="${sessionEpreuve.nbUnknown >0}" th:text="${sessionEpreuve.nbUnknown}"></span>
 									</td>
 									<td th:text="${sessionEpreuve.comment}"></td>
 									<td>
