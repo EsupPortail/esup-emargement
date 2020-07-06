@@ -113,7 +113,7 @@ public class SessionEpreuveService {
 			}
 			Long countDispatch = tagCheckService.countNbTagCheckRepartitionNotNull(session.getId(), true) + tagCheckService.countNbTagCheckRepartitionNotNull(session.getId(), false);
 			session.setNbDispatchTagCheck(countDispatch);
-			session.setNbPresentsSession(tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(session.getId()));
+			session.setNbPresentsSession(tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedIsNotNull(session.getId()));
 			session.setNbTagCheckerSession(nbTagCheckerSession);
 			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
@@ -149,13 +149,17 @@ public class SessionEpreuveService {
 				if(!tagCheckList.isEmpty()) {
 					if(nbUsedPlace.intValue()<sl.getCapacite()) {
 		    			for(TagCheck tc:  tagCheckList) {
-		    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
-		    					tc.setSessionLocationExpected(sl);
-		    					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
-		    					tagCheckRepository.save(tc);
-		    					nbUsedPlace++;
-		    					j++;
-		    				}
+    	    				if(tc.getIsUnknown()) {
+    	    					tagCheckRepository.delete(tc);
+    	    				}else {
+			    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
+			    					tc.setSessionLocationExpected(sl);
+			    					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
+			    					tagCheckRepository.save(tc);
+			    					nbUsedPlace++;
+			    					j++;
+			    				}
+    	    				}
 		    			}
 					}
 	    		}else {
@@ -172,12 +176,16 @@ public class SessionEpreuveService {
 				if(!tagCheckList.isEmpty()) {
     				if(nbUsedPlace.intValue()<sl.getCapacite()) {
     	    			for(TagCheck tc:  tagCheckList) {
-    	    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
-	        					tc.setSessionLocationExpected(sl);
-	        					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
-	        					tagCheckRepository.save(tc);
-	        					nbUsedPlace++;
-	        					j++;
+    	    				if(tc.getIsUnknown()) {
+    	    					tagCheckRepository.delete(tc);
+    	    				}else {
+	    	    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
+		        					tc.setSessionLocationExpected(sl);
+		        					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
+		        					tagCheckRepository.save(tc);
+		        					nbUsedPlace++;
+		        					j++;
+	    	    				}
     	    				}
     	    			}	
     				}

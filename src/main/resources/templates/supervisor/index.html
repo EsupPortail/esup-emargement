@@ -123,7 +123,8 @@
 											<a href="#" class="mr-1 userModal" 
 											th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 											<i class="fa fa-user" aria-hidden="true"></i></a>
-											<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="font-weight-bold" th:text="${(tagCheck.isUnknown) ? ' (Inconnu dans cette session)' : '' }"></span>
+											<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="font-weight-bold" 
+											th:text="${(tagCheck.isUnknown) ? ' (Inconnu dans cette session)' : '' }"></span>
 										</td>
 										<td class="center">
 											<input type="checkbox" class="presenceCheck" name="presenceCheck" th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}" 

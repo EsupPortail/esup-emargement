@@ -136,6 +136,8 @@ public class TagCheckController {
     			Long repartitionId) {
 		
 		Long count = tagCheckService.countTagchecks(tempsAmenage, eppn, id, repartitionId);
+		Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(id);
+		count = count -unknown;
 		int size = pageable.getPageSize();
 		if( size == 1 && count>0) {
 			size = count.intValue();
@@ -160,9 +162,10 @@ public class TagCheckController {
 		model.addAttribute("eppn", eppn);
 		model.addAttribute("collapse", collapse);
 
-		model.addAttribute("countRepartition", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNull(id));
-		model.addAttribute("countConvocations", tagCheckRepository.countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(id));
-		model.addAttribute("countCheckedBycard",tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(id));
+		model.addAttribute("countRepartition", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNull(id) - unknown);
+		model.addAttribute("countConvocations", tagCheckRepository.countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(id) - unknown);
+		model.addAttribute("countCheckedBycard",tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(id) - unknown);
+		model.addAttribute("countUnknown", unknown);
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);
 		model.addAttribute("groupes", groupeRepository.findAll(Sort.by(Sort.Direction.ASC, "nom")));
