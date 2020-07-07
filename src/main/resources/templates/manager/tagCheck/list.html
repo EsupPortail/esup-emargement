@@ -95,7 +95,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.person.nom==null or tagCheck.isUnknown)? 'table-warning' : ''}">
+								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown)? 'table-warning' : ''}" th:classappend="${(tagCheck.person.nom==null)? 'table-info' : ''}"> 
 									<td th:if="${!isSessionEpreuveClosed}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>

@@ -24,7 +24,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionEpreuveId(Long id);
 	
-	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(Long id);
+	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullOrderByPersonEppn(Long id);
 	
 	Page<TagCheck> findTagCheckByPersonEppn(String eppn, Pageable pageable);
 	
@@ -80,6 +80,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedIsNotNull(Long id);
 	
+	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(Long id);
+	
 	Long countBySessionEpreuveIdAndPersonEppnEquals(Long id, String eppn);
 
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrue(Long id);
@@ -112,6 +114,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countTagCheckBySessionEpreuveIdAndTagDateIsNotNull(Long Id);
 	
+	Long countTagCheckBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedLocationIdIsNotNull(Long Id);
+	
 	Long countTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(Long Id);
 	
 	Long countTagCheckBySessionEpreuveIdAndIsTiersTempsTrueAndTagDateIsNotNull(Long Id);
@@ -132,7 +136,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionLocationExpectedIdOrderByPersonEppn(Long id);
 	
-	List<TagCheck> findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedIdOrderByPersonEppn(Long id, Long slbId);
+	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIdOrderByPersonEppn(Long id, Long slbId);
 	
 	List<TagCheck> findTagCheckByContext(Context context);
 	

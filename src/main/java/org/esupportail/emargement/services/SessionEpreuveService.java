@@ -313,20 +313,28 @@ public class SessionEpreuveService {
 	
 	
 	
-	public void exportEmargement(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String type) {
+	public void exportEmargement(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String type, String emargementContext) {
 		
 		List<TagCheck> list = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
 		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+		SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+    	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+    	nomFichier = nomFichier.replace(" ", "_");		
 		tagCheckService.setNomPrenomTagChecks(list);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
+			
 			@Override
             public int compare(TagCheck obj1, TagCheck obj2) {
-				return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
-			} 
+				if(obj1.getPerson().getNom() !=null) {
+					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
+				}else {
+					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
+				}
+			}
 		});
 		PdfPTable table = null;
 		if("Liste".equals(type)) {
-			int nbColumn = (se.getIsProcurationEnabled())? 6 : 5;
+			int nbColumn = (se.getIsProcurationEnabled())? 7 : 6;
 	    	table = new PdfPTable(nbColumn);
 	    	
 	    	table.setWidthPercentage(100);
@@ -345,80 +353,66 @@ public class SessionEpreuveService {
 	        //contenu du tableau.
 	        PdfPCell header1 = new PdfPCell(new Phrase("Nom")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header2 = new PdfPCell(new Phrase("Prénom")); header2.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header3 = new PdfPCell(new Phrase("Numéro identifiant")); header3.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header4 = new PdfPCell(new Phrase("Tiers-temps")); header4.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header4bis = new PdfPCell(new Phrase("Procuration")); header4bis.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header5 = new PdfPCell(new Phrase("Signature")); header5.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header3 = new PdfPCell(new Phrase("Eppn")); header3.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header4 = new PdfPCell(new Phrase("Numéro identifiant")); header4.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header5 = new PdfPCell(new Phrase("Tiers-temps")); header5.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header6 = new PdfPCell(new Phrase("Procuration")); header6.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header7 = new PdfPCell(new Phrase("Signature")); header7.setBackgroundColor(BaseColor.GRAY);
 	        
 	        table.addCell(header1);
 	        table.addCell(header2);
 	        table.addCell(header3);
 	        table.addCell(header4);
-	        if(se.getIsProcurationEnabled()) {
-	        	table.addCell(header4bis);
-	        }
 	        table.addCell(header5);
+	        if(se.getIsProcurationEnabled()) {
+	        	table.addCell(header6);
+	        }
+	        table.addCell(header7);
 	        
 	        if(!list.isEmpty()) {
 	        	for(TagCheck tc : list) {
 	        		PdfPCell cell1 = new PdfPCell(new Phrase(tc.getPerson().getNom())); cell1.setMinimumHeight(30); 
 	        		PdfPCell cell2 = new PdfPCell(new Phrase(tc.getPerson().getPrenom())); cell2.setMinimumHeight(30);
-	        		PdfPCell cell3 = new PdfPCell(new Phrase(tc.getPerson().getNumIdentifiant())); cell3.setMinimumHeight(30);
-	        		PdfPCell cell4 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell4.setMinimumHeight(30);
-	        		PdfPCell cell5 = new PdfPCell(new Phrase("")); cell5.setMinimumHeight(30);
-	        		PdfPCell cell4bis = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell4.setMinimumHeight(30);
+	        		PdfPCell cell3 = new PdfPCell(new Phrase(tc.getPerson().getEppn())); cell3.setMinimumHeight(30);
+	        		PdfPCell cell4 = new PdfPCell(new Phrase(tc.getPerson().getNumIdentifiant())); cell4.setMinimumHeight(30);
+	        		PdfPCell cell5 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell5.setMinimumHeight(30);
+	        		PdfPCell cell6 = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell6.setMinimumHeight(30);
+	        		PdfPCell cell7 = new PdfPCell(new Phrase("")); cell7.setMinimumHeight(30);
+	        		
 	        		
 	    	        table.addCell(cell1);
 	    	        table.addCell(cell2);
 	    	        table.addCell(cell3);
 	    	        table.addCell(cell4);
-	    	        if(se.getIsProcurationEnabled()) {
-	    	        	 table.addCell(cell4bis);
-	    	        }
 	    	        table.addCell(cell5);
+	    	        if(se.getIsProcurationEnabled()) {
+	    	        	 table.addCell(cell6);
+	    	        }
+	    	        table.addCell(cell7);
 	        	}
 	        }
 	       
-		}else {
-			table = new PdfPTable(2);
-			table.setWidthPercentage(100);
-	    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
-	        if(!list.isEmpty()) {
-	        	for(TagCheck tc : list) {
-	        		PdfPCell cell = new PdfPCell();
-	        		Paragraph preface = new Paragraph(tc.getPerson().getNom().toUpperCase().concat(" ").concat(tc.getPerson().getPrenom().toUpperCase()).
-	        				concat("\n\n\n").concat(tc.getPerson().getNumIdentifiant().concat("\n").concat(""))); 
-	        	
-	        		preface.setAlignment(Element.ALIGN_CENTER);
-	        		 cell.addElement(preface);
-	        		 cell.setHorizontalAlignment(Element.ALIGN_JUSTIFIED);
-	        		 cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-	        		 cell.setMinimumHeight(80);
-	        		 cell.setPaddingTop(20);
-	        		 cell.setPaddingBottom(20);
-	        		 cell.setBorder(Rectangle.NO_BORDER);
-	        		 table.addCell(cell); 
-	        	}
-	        }
 		}
 		
 		 Document document = new Document();
-	        document.setMargins(40, 40, 40, 40);
-	        try 
-	        {
-	          response.setContentType("application/pdf");
-	          PdfWriter.getInstance(document,  response.getOutputStream());
-	          document.open();
-	
-	          document.add(table);
-	
-	        } catch (DocumentException de) {
-	          de.printStackTrace();
-	        } catch (IOException de) {
-	          de.printStackTrace();
-	        }
-	       
-	        document.close();
+        document.setMargins(40, 40, 40, 40);
+        try 
+        {
+          response.setContentType("application/pdf");
+          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+          PdfWriter.getInstance(document,  response.getOutputStream());
+          document.open();
+
+          document.add(table);
+          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Export pdf Liste :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+        } catch (DocumentException de) {
+          de.printStackTrace();
+        } catch (IOException de) {
+          de.printStackTrace();
+        }
+       
+        document.close();
     }
 	
 	@Scheduled(cron = "0 0 7 * * ?")//Tous les jours à 10h

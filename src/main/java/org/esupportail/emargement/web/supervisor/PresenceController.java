@@ -245,10 +245,10 @@ public class PresenceController {
     }
     
     @GetMapping("/supervisor/exportPdf")
-    public void exportPdf(HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) Long sessionLocationId, 
+    public void exportPdf(@PathVariable String emargementContext,HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) Long sessionLocationId, 
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId) throws Exception {
 
-    	presenceService.getPdfPresence(response, sessionLocationId, sessionEpreuveId);
+    	presenceService.getPdfPresence(response, sessionLocationId, sessionEpreuveId, emargementContext);
     }
     
     @GetMapping("/supervisor/search")
@@ -305,7 +305,7 @@ public class PresenceController {
     public void exportEamrgement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
     			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
     	
-    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type);
+    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
     }
     
     @PostMapping("/supervisor/saveProcuration")

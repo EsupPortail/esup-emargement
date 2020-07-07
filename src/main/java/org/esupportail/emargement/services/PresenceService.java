@@ -11,16 +11,20 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.PersonRepository;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -51,6 +55,9 @@ public class PresenceService {
 	
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
+		
+	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
 	
     @Resource
     UserLdapRepository userLdapRepository;
@@ -69,28 +76,32 @@ public class PresenceService {
     
     @Resource
 	DataEmitterService dataEmitterService;
-    
-	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId) {
+	
+	@Resource
+	LogService logService;
+	
+	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
 		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
-		int nbColumn = (countProxyPerson>0)? 7 : 6;
+		int nbColumn = (countProxyPerson>0)? 8 : 7;
     	PdfPTable table = new PdfPTable(nbColumn);
     	
     	table.setWidthPercentage(100);
     	table.setHorizontalAlignment(Element.ALIGN_CENTER);
     	
-    	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedIdOrderByPersonEppn(sessionLocationId, sessionLocationId);
+    	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIdOrderByPersonEppn(sessionEpreuveId, sessionLocationId);
     	tagCheckService.setNomPrenomTagChecks(list);
-    	
+    	SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+    	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+    	nomFichier = nomFichier.replace(" ", "_");
     	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
     	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
-    	Long totalNotExpected = tagCheckRepository.countTagCheckBySessionLocationExpectedIdIsNullAndSessionLocationBadgedId(sessionLocationId);
         //On créer l'objet cellule.
-        String libelleSe = list.get(0).getSessionLocationExpected().getSessionEpreuve().getNomSessionEpreuve().concat(" ").
-        		concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionLocationExpected().getSessionEpreuve().getDateExamen())).
-        		concat(" à ").concat(list.get(0).getSessionLocationExpected().getLocation().getCampus().getSite()).concat(" --  ").
-        		concat(list.get(0).getSessionLocationExpected().getLocation().getNom()).concat(" --  nb de présents :  ").
-        		concat(totalPresent.toString()).concat("/").concat(totalExpected.toString())).concat((list.get(0).getSessionLocationExpected().getIsTiersTempsOnly())? " -- Temps aménagé" : "").
-        		concat((totalNotExpected>0)? " -- nb d'intrus : " + totalNotExpected.toString() : "");
+        String libelleSe = se.getNomSessionEpreuve().concat(" ").
+        		concat(String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).
+        		concat(" à ").concat(sl.getLocation().getCampus().getSite()).concat(" --  ").
+        		concat(sl.getLocation().getNom()).concat(" --  nb de présents :  ").
+        		concat(totalPresent.toString()).concat("/").concat(totalExpected.toString())).concat((sl.getIsTiersTempsOnly())? " -- Temps aménagé" : "");
         		
         PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
         cell.setBackgroundColor(BaseColor.GREEN);
@@ -103,8 +114,9 @@ public class PresenceService {
         PdfPCell header3 = new PdfPCell(new Phrase("Prénom")); header3.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header4 = new PdfPCell(new Phrase("Présent")); header4.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header5 = new PdfPCell(new Phrase("Badgeage")); header5.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header6 = new PdfPCell(new Phrase("Lieu badgé")); header6.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Procuration")); header7.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header6 = new PdfPCell(new Phrase("Carte")); header6.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Lieu badgé")); header7.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header8 = new PdfPCell(new Phrase("Procuration")); header8.setBackgroundColor(BaseColor.GRAY);
         
         table.addCell(header1);
         table.addCell(header2);
@@ -112,51 +124,61 @@ public class PresenceService {
         table.addCell(header4);
         table.addCell(header5);
         table.addCell(header6);
+        table.addCell(header7);
         if(countProxyPerson>0) {
-        	table.addCell(header7);
+        	table.addCell(header8);
         }
         
         if(!list.isEmpty()) {
         	for(TagCheck tc : list) {
-        		String presence = "Absent";
-        		String date  = "--";
-        		PdfPCell dateCell = null;
-        		String badged  = "--";
-        		BaseColor b = new BaseColor(232, 97, 97, 50);
-        		if(tc.getTagDate() != null) {
-        			presence = "Présent";
-        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
-        			b = new BaseColor(19, 232, 148, 50);
-        		}
-        		if(tc.getSessionLocationBadged()!=null && tc.getSessionLocationExpected() == null) {
-        			b = new BaseColor(55, 0, 237, 50);
-        		}
-        		if(tc.getSessionLocationBadged()!=null) {
-        			badged = tc.getSessionLocationBadged().getLocation().getNom();
-        		}
-        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNom()));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getPrenom()));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(presence));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(date));
-        		dateCell.setBackgroundColor(b);
-                table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(badged));
-        		dateCell.setBackgroundColor(b);
-                table.addCell(dateCell);
-                if(countProxyPerson>0) {
-	        		dateCell = new PdfPCell(new Paragraph((tc.getProxyPerson()!=null)? tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): ""));
+        		if(tc.getSessionLocationExpected()!=null) {
+	        		String presence = "Absent";
+	        		String date  = "--";
+	        		PdfPCell dateCell = null;
+	        		String badged  = "--";
+	        		BaseColor b = new BaseColor(232, 97, 97, 50);
+	        		if(tc.getTagDate() != null) {
+	        			presence = "Présent";
+	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
+	        			b = new BaseColor(19, 232, 148, 50);
+	        		}
+	        		String carte = "Oui";
+	        		if(tc.getIsCheckedByCard()!=null && !tc.getIsCheckedByCard()) {
+	        			carte = "Non";
+	        		}
+	        		if(tc.getSessionLocationBadged()!=null && tc.getSessionLocationExpected() == null) {
+	        			b = new BaseColor(55, 0, 237, 50);
+	        		}
+	        		if(tc.getSessionLocationBadged()!=null) {
+	        			badged = tc.getSessionLocationBadged().getLocation().getNom();
+	        		}
+	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNom()));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getPrenom()));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(presence));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(date));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-                }
+	        		dateCell = new PdfPCell(new Paragraph(carte));
+	        		dateCell.setBackgroundColor(b);
+	                table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(badged));
+	        		dateCell.setBackgroundColor(b);
+	                table.addCell(dateCell);
+	                if(countProxyPerson>0) {
+		        		dateCell = new PdfPCell(new Paragraph((tc.getProxyPerson()!=null)? tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): ""));
+		        		dateCell.setBackgroundColor(b);
+		                table.addCell(dateCell);
+	                }
+        		}
         	}
         }
         
@@ -165,15 +187,21 @@ public class PresenceService {
         try 
         {
           response.setContentType("application/pdf");
+          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
           PdfWriter.getInstance(document,  response.getOutputStream());
           document.open();
 
           document.add(table);
-
+          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
         } catch (DocumentException de) {
           de.printStackTrace();
+          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
         } catch (IOException de) {
           de.printStackTrace();
+          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
         }
        
         document.close();

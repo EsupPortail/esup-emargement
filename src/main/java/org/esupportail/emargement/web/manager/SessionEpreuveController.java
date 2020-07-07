@@ -340,7 +340,7 @@ public class SessionEpreuveController {
     public void exportEamrgement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
     			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
     	
-    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type);
+    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
     }
     
     @GetMapping("/manager/sessionEpreuve/search")
