@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.GroupeRepository;
@@ -198,12 +199,14 @@ public class TagCheckController {
     void populateEditForm(Model uiModel, TagCheck TagCheck, Long id) {
     	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
     	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+    	List<SessionLocation>  sessionLocations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(id);
     	allSe.add(se);
     	uiModel.addAttribute("allSessionEpreuves", allSe);
     	uiModel.addAttribute("allPersons", personRepository.findAll());
     	uiModel.addAttribute("allTagCheckers", tagCheckerRepository.findAll());
     	uiModel.addAttribute("allSessionLocations", sessionLocationRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
+    	uiModel.addAttribute("allSessionLocations", sessionLocations);
     	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
         uiModel.addAttribute("codeEtapes", tagCheckService.findDistinctCodeEtapeSessionEpreuve(id));
@@ -213,26 +216,44 @@ public class TagCheckController {
     @Transactional
     public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
     		final RedirectAttributes redirectAttributes) throws Exception {
-        if (bindingResult.hasErrors()) {
+    	
+    	boolean isOk = true;
+    	if(tagCheck.getSessionLocationExpected()!= null && !tagCheckService.checkImportIntoSessionLocations(tagCheck.getSessionLocationExpected().getId(), 1)) {
+    		isOk = false;
+    	}
+        if (bindingResult.hasErrors()|| !isOk) {
             populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
+            if(!isOk) {
+            	uiModel.addAttribute("capaciteOver", tagCheck.getSessionLocationExpected().getLocation().getNom());
+            }
             return "manager/tagCheck/create";
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
         Long groupeId = (tagCheck.getGroupe() != null )? tagCheck.getGroupe().getId() : null;
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape(), tagCheck.getCheckLdap(), tagCheck.getPerson());
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape(), 
+    			tagCheck.getCheckLdap(), tagCheck.getPerson(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
     
     @PostMapping("/manager/tagCheck/update/{id}")
     public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
-        if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
+    	
+    	boolean isOk = true;
+    	TagCheck tc = tagCheckRepository.findById(id).get();
+    	if(tc.getSessionLocationExpected()!= tagCheck.getSessionLocationExpected() && tagCheck.getSessionLocationExpected()!= null && !tagCheckService.checkImportIntoSessionLocations(tagCheck.getSessionLocationExpected().getId(), 1)) {
+    		isOk = false;
+    	}    	
+        if (bindingResult.hasErrors() || !isOk) {
+            populateEditForm(uiModel, tc, tc.getSessionEpreuve().getId());
+            if(!isOk) {
+            	uiModel.addAttribute("capaciteOver", tagCheck.getSessionLocationExpected().getLocation().getNom());
+            }            
             return "manager/tagCheck/update";
         }
         uiModel.asMap().clear();
-        TagCheck tc = tagCheckRepository.findById(id).get();
+       
     	if(tc.getSessionEpreuve().isSessionEpreuveClosed) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
@@ -240,6 +261,7 @@ public class TagCheckController {
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
     		tc.setComment(tagCheck.getComment());
     		tc.setGroupe(tagCheck.getGroupe());
+    		tc.setSessionLocationExpected(tagCheck.getSessionLocationExpected());
     		tagCheckService.save(tc, emargementContext);
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);

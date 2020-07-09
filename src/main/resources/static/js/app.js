@@ -682,6 +682,33 @@ function setSelectEvent(id, idEvent) {
     };
     request.send();
 }
+//Choix lieu import
+function getLocations(type){
+    $('#formImportCascading' + type).cascadingDropdown({
+      	 selectBoxes: [{
+      		 selector: '.step1Import'
+           }, {
+               selector: '.step2Import',
+               requires: ['.step1Import'],
+               source: function(request, response) {
+                   $.getJSON(emargementContextUrl + "/manager/extraction/searchLocations", request, function(data) {
+                       response($.map(data, function(item, index) {
+                           return {
+                               label: item.location.nom + " (" + item.capacite + ")",
+                               value: item.id,
+                           };
+                       }));
+                   });
+               },
+           }],        		 
+           onChange: function(event, value, requiredValues, requirementsMet) {
+          	 var sessionEpreuveCsv = $('#sessionEpreuve' + type).val();
+           },
+           onReady: function(event, value, requiredValues, requirementsMet) {
+          	 $('#sessionLocation' + type).prop("disabled", false)
+           }
+      }); 	
+}
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
     //Autocomplete
@@ -953,6 +980,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 countItem(apogeeBean, countUrlGroupe, "groupe");
             }
         });
+        
+        //Choix lieu import
+        getLocations("Ldap");
+        getLocations("Csv");
+        getLocations("Groupe");
+        getLocations("");
+
     }
 
     var importUsersLdapform = document.getElementById('importUsersLdapform');
@@ -1332,48 +1366,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //Extraction
     if (document.getElementById('extractionPage') != null) {
-        new SlimSelect({
-            select: '#codSes',
-            showSearch: false
+        var slimArray = ['codCmp', 'sessionEpreuve','sessionEpreuveLdap', 'sessionEpreuveGroupe', 'sessionEpreuveCsv', 'groupe', 'sessionLocationCsv', 'sessionLocationLdap', 
+        	'sessionLocationGroupe', 'sessionLocation'];
+        
+        slimArray.forEach(function(item, index, array) {
+        	var select = '#' + item;
+        	 new SlimSelect({
+                 select: select
+             });
         });
-        new SlimSelect({
-            select: '#codAnu',
-            showSearch: false
+        
+        var slimArraySearchFalse = ['codSes', 'codAnu'];
+        slimArraySearchFalse.forEach(function(item, index, array) {
+        	var select = '#' + item;
+        	 new SlimSelect({
+                 select: select,
+                 showSearch: false
+             });
         });
-        new SlimSelect({
-            select: '#sessionEpreuve'
+        	
+        var slimArrayEnabled = ['codEtp', 'codElp', 'codExtGpe'];
+        slimArrayEnabled.forEach(function(item, index, array) {
+        	var select = '#' + item;
+        	var slim = new SlimSelect({
+                 select: select,
+             });
+        	slim.enable();
         });
-        selectCmp = new SlimSelect({
-            select: '#codCmp',
-            searchText: 'Sorry nothing to see here'
-        });
-        selectEtp = new SlimSelect({
-            select: '#codEtp'
-        });
-        selectEtp.enable();
-        selectElp = new SlimSelect({
-            select: '#codElp',
-            placeholder: true,
-            text: 'placeholder text'
-        });
-        selectElp.enable();
-        selectGroupes = new SlimSelect({
-            select: '#codExtGpe',
-            allowDeselect: true
-        });
-        selectGroupes.enable();
-        new SlimSelect({
-            select: '#sessionEpreuveLdap'
-        });
-        new SlimSelect({
-            select: '#sessionEpreuveGroupe'
-        }); 
-        new SlimSelect({
-            select: '#sessionEpreuveCsv'
-        });
-		new SlimSelect({
-		    select: '#groupe'
-		}); 
+        
     }
     if (document.getElementById('icsSelect') != null) {
         new SlimSelect({
@@ -1391,6 +1411,13 @@ document.addEventListener('DOMContentLoaded', function() {
         new SlimSelect({
             select: '#gpId',
             placeholder: 'Rechercher groupe'
+        });
+    }
+    
+    if (document.getElementById('sessionLocationExpected') != null) {
+        new SlimSelect({
+            select: '#sessionLocationExpected',
+            placeholder: 'Rechercher Lieu'
         });
     }
     //Presence

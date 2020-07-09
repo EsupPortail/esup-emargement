@@ -7,6 +7,10 @@
 		<div class="container-fluid">
            	<div class="card">
 		    	<div class="card-header"><h2>Modifier une inscription</h2></div>
+           		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
+					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
+						vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
+				</div>		    	
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/tagCheck/update/{id}(ctx=${eContext}, id=${tagCheck.id})}" th:object="${tagCheck}" method="post">
 	                    <div class="form-group row">
@@ -25,6 +29,19 @@
 	                    		<input type="text"  class="form-control" th:id="*{person}"  th:value="${tagCheck.person.eppn}" disabled="disabled">
 							</div>
 						</div>
+						<div class="form-group row">              				
+	                    	<div class="col-lg-2">
+	                    		<label for="sessionLocationExpected" class="col-form-label">Lieu</label>
+	                    	</div>
+	                    	<div class="col-lg-10">	
+								<select name="sessionLocationExpected"  id="sessionLocationExpected">
+									<option value ="">-----Aucun----</option>
+									<option th:each="sl : ${allSessionLocations}"
+										th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}" 
+										th:selected="${tagCheck.sessionLocationExpected != null &&  (sl.id == tagCheck.sessionLocationExpected.id)}" ></option>									
+								</select>
+							</div>
+						</div>							
               			<div class="form-group row">
 	                    	<div class="col-lg-2">
 	                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>

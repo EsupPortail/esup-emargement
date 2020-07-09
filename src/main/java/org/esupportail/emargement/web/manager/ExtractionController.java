@@ -13,9 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.ApogeeBean;
+import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.services.ApogeeService;
 import org.esupportail.emargement.services.GroupeService;
@@ -79,6 +81,9 @@ public class ExtractionController {
 	
 	@Autowired
 	GroupeRepository groupeRepository;
+	
+	@Autowired
+	SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
@@ -224,6 +229,31 @@ public class ExtractionController {
     	
         return groupes;
     }
+	
+	@GetMapping("/manager/extraction/searchLocations")
+    @ResponseBody
+    public List<SessionLocation>  searchLocations(@RequestParam(value = "sessionEpreuveLdap", required = false) Long sessionEpreuveLdap, 
+    						@RequestParam(value = "sessionEpreuveCsv", required = false) Long sessionEpreuveCsv,
+    						@RequestParam(value = "sessionEpreuveGroupe", required = false) Long sessionEpreuveGroupe,
+    						@RequestParam(value = "sessionEpreuve", required = false) Long sessionEpreuveApogee){
+		Long seId = null;
+		List<SessionLocation>  locations = new ArrayList<SessionLocation>();
+		if(sessionEpreuveLdap != null) {
+			seId = sessionEpreuveLdap;
+		}else if(sessionEpreuveCsv != null) {
+			seId = sessionEpreuveCsv;
+		}else if(sessionEpreuveGroupe != null) {
+			seId = sessionEpreuveGroupe;
+		}else if(sessionEpreuveApogee != null) {
+			seId = sessionEpreuveApogee;
+		}
+		if(seId != null) {
+	    	HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json; charset=utf-8");
+			locations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(seId);
+		}
+        return locations;
+    }
     
 	@GetMapping("/manager/extraction/countAutorises")
     @ResponseBody
@@ -269,9 +299,10 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuveCsv") Long id, Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
+    public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuveCsv") Long id, @RequestParam("sessionLocationCsv") Long slId,
+    		Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
     	InputStream is = file.getInputStream();
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null, true, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
@@ -280,12 +311,12 @@ public class ExtractionController {
     @PostMapping("/manager/extraction/importFromApogee")
     @Transactional
     public String importFromApogee(@PathVariable String emargementContext, ApogeeBean apogeebean, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
-    		final RedirectAttributes redirectAttributes) throws Exception {
+    		@RequestParam("sessionLocation") Long slId, final RedirectAttributes redirectAttributes) throws Exception {
         uiModel.asMap().clear();
         List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(apogeebean);
         List<ApogeeBean> list = apogeeService.getElementsPedagogiques(apogeebean);
         String etape = (!list.isEmpty())? list.get(0).getCodEtp() + " - "  + list.get(0).getLibEtp() : "";
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, null , etape, true, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, null , etape, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
@@ -294,9 +325,9 @@ public class ExtractionController {
     @PostMapping("/manager/extraction/importFromLdap")
     @Transactional
     public String importFromLdap(@PathVariable String emargementContext, @RequestParam("sessionEpreuveLdap") Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
-    		 Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
+    		@RequestParam("sessionLocationLdap") Long slId, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, null, true, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
@@ -305,10 +336,10 @@ public class ExtractionController {
     @PostMapping("/manager/extraction/importFromGroupe")
     @Transactional
     public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuveGroupe") Long id, @RequestParam("groupe") Long idGroupe,
-    		 Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
+    		@RequestParam("sessionLocationGroupe") Long slId, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
     	List<String> usersGroupe = tagCheckService.getUsersForImport(idGroupe);
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupe);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, idGroupe, null, true, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, idGroupe, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction", emargementContext);
