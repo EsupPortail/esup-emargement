@@ -30,8 +30,8 @@
 											<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
 												class="btn btn-danger ml-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
 											<span class="btn-separator" th:if="${!isSessionEpreuveClosed}"></span>	
-											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
-											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}"></span>
+											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
+											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}"></span>
 											<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ml-2" type="button" data-toggle="collapse" data-target="#exportCollapse" 
 												title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
 					    				</div>
@@ -41,7 +41,7 @@
 							<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countTagChecks>0}">
 								<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger mr-2" th:text="${'A répartir : ' + countRepartition}"></span>
 								<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger mr-2" th:text="${'Intrus : ' + countUnknown}"></span>
-								<span th:if="${countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
+								<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
 								<span th:if="${countCheckedBycard > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Emargé(s) manuellement : ' + countCheckedBycard}"></span>
 								<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
 							</div>
@@ -76,7 +76,7 @@
 						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
 							<thead>
 								<tr>
-									<th th:if="${!isSessionEpreuveClosed}" scope="col"><input type="checkbox" id="selectall" /></th>
+									<th th:if="${!isSessionEpreuveClosed and isConvocationEnabled}" scope="col"><input type="checkbox" id="selectall" /></th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>								
 									<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Eppn</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
@@ -84,7 +84,7 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Groupe</th>					
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N°identifiant</th>									
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" >Temps aménagé</th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
+									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></a></th>
@@ -96,7 +96,7 @@
 							</thead>
 							<tbody>
 								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown)? 'table-warning' : ''}" th:classappend="${(tagCheck.person.nom==null)? 'table-info' : ''}"> 
-									<td th:if="${!isSessionEpreuveClosed}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
+									<td th:if="${!isSessionEpreuveClosed and isConvocationEnabled}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 									<td>
@@ -110,7 +110,7 @@
 									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}"></td>
 									<td th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
+									<td th:if="${isConvocationEnabled}" class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" 
 											th:text="${tagCheck.sessionLocationBadged != null} ? ${tagCheck.sessionLocationBadged.location.nom}"></td>

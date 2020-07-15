@@ -33,7 +33,7 @@
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Groupe</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Date</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
+									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Repartition</a></th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Badgeage</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
@@ -46,7 +46,7 @@
 									<td th:text="${(tagCheck.groupe != null )? tagCheck.groupe.nom : ''}"></td>
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
+									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>

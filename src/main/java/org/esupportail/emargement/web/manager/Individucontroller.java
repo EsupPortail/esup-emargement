@@ -15,6 +15,7 @@ import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.repositories.custom.TagCheckerRepositoryCustom;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -42,6 +43,9 @@ public class Individucontroller {
 	
 	@Resource
 	PersonService personService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
 	
 	@Autowired
 	TagCheckRepositoryCustom tagCheckRepositoryCustom;
@@ -93,6 +97,7 @@ public class Individucontroller {
 		
 		model.addAttribute("types", personService.getTypesPerson());
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
 		return "manager/individu/index";
 	}
 	

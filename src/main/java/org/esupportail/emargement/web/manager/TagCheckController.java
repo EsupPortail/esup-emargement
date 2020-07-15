@@ -170,6 +170,7 @@ public class TagCheckController {
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);
 		model.addAttribute("groupes", groupeRepository.findAll(Sort.by(Sort.Direction.ASC, "nom")));
+		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
         return "manager/tagCheck/list";
     }
 	

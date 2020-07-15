@@ -39,7 +39,7 @@ public class AppliConfigService {
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
-		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR
+		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR, CONVOC_ENABLED
 	}
 	
 	public List<String> getTypes() {
@@ -146,6 +146,10 @@ public class AppliConfigService {
 	public String getAppDeskTopJar() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.APP_DESKTOP_JAR);
 		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	public Boolean isConvocationEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_ENABLED);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
