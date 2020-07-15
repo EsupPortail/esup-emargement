@@ -322,10 +322,9 @@ public class SessionEpreuveService {
     	nomFichier = nomFichier.replace(" ", "_");		
 		tagCheckService.setNomPrenomTagChecks(list);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
-			
 			@Override
             public int compare(TagCheck obj1, TagCheck obj2) {
-				if(obj1.getPerson().getNom() !=null) {
+				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
 					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
 				}else {
 					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
