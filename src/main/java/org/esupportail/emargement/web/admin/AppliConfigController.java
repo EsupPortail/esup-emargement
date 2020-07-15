@@ -143,8 +143,10 @@ public class AppliConfigController {
         }
         uiModel.asMap().clear();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        appliConfig.setContext(contexteService.getcurrentContext());
-        appliConfigRepository.save(appliConfig);
+        AppliConfig original = appliConfigRepository.findById(id).get();
+        original.setValue(appliConfig.getValue());
+        original.setDescription(appliConfig.getDescription());
+        appliConfigRepository.save(original);
         log.info("Maj config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
         logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), ldapService.getEppn(auth.getName()), null, 
         		emargementContext, null);
