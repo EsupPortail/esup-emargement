@@ -42,15 +42,14 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >Inscrits</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Surveillants</th>
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="campus">Site</a></th>
-									<th scope="col" class=" hiddenBlock" >Plan</th>
+									<th scope="col" class="hiddenBlock" >Plan</th>
 									<th scope="col" class="d-none d-xl-table-cell">Convocation</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
 									<th scope="col" class="d-none d-xl-table-cell">Durée</th>
-									<th scope="col" class="d-none d-xl-table-cell">Temps</th>
+									<th scope="col" class="hiddenBlock">Temps</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Repartition</th>
 									<th scope="col" class="d-none d-xl-table-cell">Présence</th>
-									<th scope="col" class ="hiddenBlock">Commentaire</th>
 									<th scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -69,8 +68,8 @@
 									<td th:text="${#dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:text="${sessionEpreuve.dureeEpreuve}" class="d-none d-xl-table-cell"></td>
-									<td><a href="#" th:if="${sessionEpreuve.nbCheckedByCardTagCheck > 0}" data-toggle="modal" data-target="#modal-chart" th:attr="data-whatever=${sessionEpreuve.nomSessionEpreuve}" 
+									<td th:text="${sessionEpreuve.dureeEpreuve}" class="hiddenBlock"></td>
+									<td class ="text-center hiddenBlock"><a href="#" th:if="${sessionEpreuve.nbCheckedByCardTagCheck > 0}" data-toggle="modal" data-target="#modal-chart" th:attr="data-whatever=${sessionEpreuve.nomSessionEpreuve}" 
 										th:id="modalChartSeBtn-+${sessionEpreuve.id}" 
 										class="center modalChartSeBtn"><i class="fas fa-chart-bar text-success"></i></a>
 										<i th:if="${sessionEpreuve.nbCheckedByCardTagCheck == 0}" class="fas fa-chart-bar disabled"></i>
@@ -89,7 +88,6 @@
 											' / ' + sessionEpreuve.nbInscritsSession}"></span>
 											<span class="badge badge-pill badge-warning" th:if="${sessionEpreuve.nbUnknown >0}" th:text="${sessionEpreuve.nbUnknown}"></span>
 									</td>
-									<td th:text="${sessionEpreuve.comment}"></td>
 									<td>
 										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" 
