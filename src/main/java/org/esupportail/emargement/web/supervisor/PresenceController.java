@@ -263,23 +263,6 @@ public class PresenceController {
     	presenceService.getPdfPresence(response, sessionLocationId, sessionEpreuveId, emargementContext);
     }
     
-    @GetMapping("/supervisor/search")
-    @ResponseBody
-    public List<Person> search(@RequestParam("searchValue") String searchString, @RequestParam(value ="sessionEpreuve") Long sessionEpreuveId, @RequestParam(value ="sessionLocation") Long sessionLocation, 
-    						Pageable pageable) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<Person> persons = new ArrayList<Person>();
-    	List<TagCheck>  tagChecksList =  tagCheckRepositoryCustom.findAll( searchString, sessionEpreuveId);
-    	if(!tagChecksList.isEmpty()) {
-    		tagCheckService.setNomPrenomTagChecks(tagChecksList);
-    		for(TagCheck tc : tagChecksList) {
-    			persons.add(tc.getPerson());
-    		}
-    	}
-        return persons;
-    }
-    
 	@RequestMapping(value = "/supervisor/{eppn}/photo")
 	@ResponseBody
 	public ResponseEntity<byte[]> getPhoto(@PathVariable("eppn") String eppn) {

@@ -65,7 +65,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                         var labelNumEtu = "";
                         var valueNumEtu = "";
                         data.forEach(function(value, key) {
-                            if (id == "searchTagCheck" || id == "searchUserApp" || id == "searchPresence" || id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker") {
+                            if (id == "searchTagCheck" || id == "searchUserApp" || id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker") {
                                 var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                 list.push({
                                     label: labelValue,
@@ -1134,10 +1134,6 @@ document.addEventListener('DOMContentLoaded', function() {
         submitSearchForm("searchLocation", emargementContextUrl + "/admin/location/search", "");
     } else if (document.getElementById("searchSessionEpreuve") != null) {
         submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
-    } else if (document.getElementById("searchPresence") != null) {
-        var seId = document.getElementById("sessionEpreuvePresence");
-        var slId = document.getElementById("location");
-        submitSearchForm("searchPresence", emargementContextUrl + "/supervisor/search", "&sessionEpreuve=" + seId.value + "&sessionLocation=" + slId.value);
     } else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null) {
         submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
         submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
@@ -1466,10 +1462,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, false);
         
-       var selectPresence =  new SlimSelect({
-            select: '#searchTagCheck',
-            allowDeselect: true
-        });
+        
+       if (document.getElementById('searchTagCheck') != null) {
+	       var selectPresence =  new SlimSelect({
+	            select: '#searchTagCheck',
+	            allowDeselect: true
+	        });
+       }
+       
+       new SlimSelect({
+           select: '#sessionEpreuvePresence'
+       });       
+       new SlimSelect({
+           select: '#location'
+       }); 
        
        $("#searchTagCheck").change(function() {
     	  $("#formSearch").submit();

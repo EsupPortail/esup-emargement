@@ -8,7 +8,7 @@
            	<div class="card">
 		    	<div class="card-header">
 					<div class="row">
-				    	<div class="col-lg-3">
+				    	<div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
 					    	<h2>Emargement</h2>
 					    	<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" class="font-weight-bold h6 text-danger" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
 								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
@@ -22,15 +22,15 @@
 							<span th:if="${sessionEpreuve.isProcurationEnabled}" class="font-weight-bold h6" th:text="${'Procurations : ' + countProxyPerson + '/' + maxProxyPerson}"></span><br/>
 							<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>	
 						</div>
-					    <div class="col-lg-9">
-						    <div class="row mt-3 ml-2">
-								<div class="col-lg-9">
-				  					<div th:if="${!#lists.isEmpty(allSessionEpreuves)}" class="alert alert-info pt-0">
+					    <div class="col-xl-7 col-lg-6 col-md-7 col-sm-6">
+						    <div class="row ">
+								<div class="col-lg-9 col-md-11">
+				  					<div th:if="${!#lists.isEmpty(allSessionEpreuves)}" class="alert alert-info pt-0 mr-2">
 				  						<form action="#" th:action="@{/{ctx}/supervisor/presence(ctx=${eContext})}"  method="get" id="presenceForm">
 											<div class="form-row align-items-center">
 												<div class="col-auto">
 													<label for="sessionEpreuve" class="col-form-label">Session</label>
-													<select  name="sessionEpreuve" class="slimSelectClass form-control" 
+													<select  name="sessionEpreuve" class="slimSelectClass" 
 														id="sessionEpreuvePresence" required="required">
 														<option th:each="se : ${allSessionEpreuves}"
 															th:selected="(${se.id == sessionEpreuve.id})"
@@ -40,7 +40,7 @@
 												</div>
 												<div class="col-auto">
 													<label for="sessionEpreuve" class="col-form-label">Lieu</label>
-													<select name="location" id="location" class="slimSelectClass form-control"
+													<select name="location" id="location" class="slimSelectClass"
 														required="required">
 														<option th:each="sl : ${allSessionLocations}"
 															th:selected="(${sl.id == sessionLocation.id})"
@@ -56,22 +56,20 @@
 				                        </form> 
 				  					</div>						
 								</div>
-							    <div class="col-lg-3">
-							    	<div class="float-right">
-								    	<button th:if="${tagCheckPage!=null}" class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un inscrit">
-								    	<i class="fas fa-search"></i></button>
-										<form th:if="${sessionEpreuve !=null and sessionLocation !=null}"  th:action="@{/{ctx}/supervisor/emargementPdf(ctx=${eContext})}" method="post" id="modalFormChoixExport" class="float-right ml-2">
-											<input type="hidden" id="sessionId" name="sessionLocationId" th:value="${sessionLocation.id}" />
-											<input type="hidden" id="sessionEpreuveId" name="sessionEpreuveId" th:value="${sessionEpreuve.id}" />
-											<input type="hidden" name="type" value="Liste"/>
-											<button type="submit" class="btn btn-primary exportInscrits" title="Liste d'émargement" ><i class="fas fa-file-signature"></i></button>
-											<!-- input type="submit" class="btn btn-success exportInscrits" name='type' value="Etiquettes" / -->
-										</form>		
-								    	<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}" 
-		    								class="btn btn-danger ml-2" title="Exporter les émargements"><i class="fas fa-file-export"></i></a>
-	    						    </div>
-							    </div>
+
 							</div>
+					    </div>
+					    <div class="col-xl-2 col-lg-3 col-md-1 col-sm-1">
+								<form th:if="${sessionEpreuve !=null and sessionLocation !=null}"  th:action="@{/{ctx}/supervisor/emargementPdf(ctx=${eContext})}" method="post" id="modalFormChoixExport" class="float-right ml-2">
+									<button th:if="${tagCheckPage!=null}" class="btn btn-info mb-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un inscrit">
+						    		<i class="fas fa-search"></i></button>
+									<input type="hidden" id="sessionId" name="sessionLocationId" th:value="${sessionLocation.id}" />
+									<input type="hidden" id="sessionEpreuveId" name="sessionEpreuveId" th:value="${sessionEpreuve.id}" />
+									<input type="hidden" name="type" value="Liste"/>
+									<button type="submit" class="btn btn-primary exportInscrits mb-1" title="Liste d'émargement" ><i class="fas fa-file-signature"></i></button>
+															    	<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}" 
+    								class="btn btn-danger mb-1" title="Exporter les émargements"><i class="fas fa-file-export"></i></a>
+								</form>		
 					    </div>
 						<div class="alert alert-warning col-lg-12 mt-2 mb-0" th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and nbNonRepartis>0 or nbTagChecksExpected==0 and currentLocation!=null}" >
 							<p th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and nbNonRepartis>0}" class="h1 text-center">Attention!!
