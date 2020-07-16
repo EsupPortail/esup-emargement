@@ -717,6 +717,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var userAppPrenom = document.getElementById("prenom");
     var numIdentifiant = document.getElementById("numIdentifiant");
     var superAdmin = document.getElementById("searchSuperAdmin");
+    var searchSuEppn = document.getElementById("searchSuEppn");
+    
+ /*   if(searchSuEppn !=null){
+    	searchUsersAutocomplete("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "", 100);
+    }*/
 
     if (userAppPrenom != null) {
         if (superAdmin != null) {
@@ -1137,6 +1142,8 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null) {
         submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
         submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
+    }else if (document.getElementById("searchSuEppn") != null) {
+        submitSearchForm("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "");
     }
 
     //Affiche modal present

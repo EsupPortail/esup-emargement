@@ -10,15 +10,15 @@
   					<h2>Su</h2>
   					<div class="row">
 	  					<div class="col-lg-12">
-		  					<form th:action="@{/all/superadmin/impersonate}" id="formSu" method="post">
+		  					<form th:action="@{/all/superadmin/impersonate}" id="formSearch" method="post">
 		  						<div class="form-group">
-								    <label for="suList">Recherche Utilisateur:</label>
-			                    	<select name="username" id="suList" required="required">
-										<option th:each="user : ${users}"
-											th:value="${user.eppn}" th:text="${user.prenom + ' ' + user.nom }"></option>
-									</select>
+			                    	<div class="col-lg-2">
+			                        	<label for="eppn" class="col-form-label">Individu</label><span id="searchSuEppnNom"></span>
+			                       	</div>
+				                    <div class="col-lg-10">
+				                        <input type="email" th:id="searchSuEppn" name="username" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+				                       </div>
 								</div>		    
-							    <input type="submit" value="Se substituer" class="btn btn-success" />
 							</form>
 	  					</div>
   					</div>
