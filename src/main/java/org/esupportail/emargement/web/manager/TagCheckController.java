@@ -380,4 +380,15 @@ public class TagCheckController {
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + seId.toString(), emargementContext);
     }
     
+    @GetMapping("/manager/tagCheck/searchUsersLdap")
+    @ResponseBody
+    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	userAppsList = ldapService.search(searchValue);
+    	
+        return userAppsList;
+    }
+    
 }

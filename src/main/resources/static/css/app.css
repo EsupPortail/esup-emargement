@@ -201,3 +201,9 @@ info-box-text {
 .bg-custom{
 	background-color: #dfdfdf;
 }
+.awesomplete > ul {
+    max-height: 410px;
+    overflow-y: auto;
+}
+
+?

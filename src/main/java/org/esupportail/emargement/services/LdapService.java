@@ -53,8 +53,10 @@ public class LdapService {
 	      this.ldapTemplate = ldapTemplate;
 	   }
 
-	public List<UserLdap> search(final String username) {
-		List<UserLdap> userList = userLdapRepository.findByUsernameLikeIgnoreCase(username);
+	public List<UserLdap> search(final String search) {
+		List<UserLdap> userList = null;
+		userList = userLdapRepository.findByNomPrenomContainingIgnoreCase(search);
+
 		if (userList == null) {
 			return Collections.emptyList();
 		}

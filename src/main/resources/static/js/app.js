@@ -50,7 +50,8 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
     if (searchBox != null) {
         var awesomplete = new Awesomplete(searchBox, {
             minChars: 3,
-            maxItems: maxItems
+            maxItems: maxItems,
+            autoFirst : false
         });
         searchBox.addEventListener("keyup", function() {
             if (this.value.length > 2) {
@@ -95,8 +96,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                     valueNumEtu = "//" + value.numEtudiant
                                 }
                                 if (value.username != null) {
-                                    var labelValue = "<strong>Nom : </strong>" + value.username + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Eppn : </strong>" +
-                                        value.eppn + labelNumEtu;
+                                	 var labelValue = "<strong>Individu: </strong>" + value.username + " " + value.prenom + "<strong class='ml-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                     list.push({
                                         label: labelValue,
                                         value: value.eppn + "//" + value.username + "//" + value.prenom + valueNumEtu
@@ -328,7 +328,7 @@ function submitSearchForm(id, url, endUrl) {
         search.onfocus = function() {
             this.value = "";
         };
-        searchUsersAutocomplete(id, url, endUrl, 10);
+        searchUsersAutocomplete(id, url, endUrl, 100);
         var formSearch = document.getElementById("formSearch");
         search.addEventListener("awesomplete-selectcomplete", function(event) {
             var splitResult = this.value.split("//");
@@ -720,9 +720,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (userAppPrenom != null) {
         if (superAdmin != null) {
-            searchUsersAutocomplete("eppn", emargementContextUrl + "/superadmin/admins/searchUsersLdap", "", 10);
+            searchUsersAutocomplete("eppn", emargementContextUrl + "/superadmin/admins/searchUsersLdap", "", 100);
         } else {
-            searchUsersAutocomplete("eppn", emargementContextUrl + "/admin/userApp/searchUsersLdap", "", 10);
+            searchUsersAutocomplete("eppn", emargementContextUrl + "/admin/userApp/searchUsersLdap", "", 100);
         }
         userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
             var splitEppn = this.value.split("//");
@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     //input num Etu
     if (numIdentifiant != null) {
-        searchUsersAutocomplete("eppn", emargementContextUrl + "/admin/userApp/searchUsersLdap", "", 10);
+        searchUsersAutocomplete("eppn", emargementContextUrl + "/manager/tagCheck/searchUsersLdap", "", 100);
         if (userAppEppn != null) {
             userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
                 var splitEppn = this.value.split("//");
@@ -1471,7 +1471,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var searchGroup = document.getElementById('searchLdapGroupForm');
     var searchLdapGroupForm = document.getElementById('searchLdapGroupForm');
     if (searchGroup != null) {
-        searchUsersAutocomplete("searchGroup", emargementContextUrl + "/manager/extraction/ldap/searchGroup", "", 20);
+        searchUsersAutocomplete("searchGroup", emargementContextUrl + "/manager/extraction/ldap/searchGroup", "", 100);
 
         searchGroup.addEventListener("awesomplete-selectcomplete", function(event) {
             searchLdapGroupForm.submit();

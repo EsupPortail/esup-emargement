@@ -17,4 +17,8 @@ public interface UserLdapRepository extends LdapRepository<UserLdap> {
 	
 	List<UserLdap> findByNumEtudiantEquals(String numEtudiant);
 	
+	List<UserLdap> findByUsernameContainingIgnoreCase(String username);
+	
+	List<UserLdap> findByNomPrenomContainingIgnoreCase(String cn);
+	
 }
