@@ -3,6 +3,8 @@ package org.esupportail.emargement.web.supervisor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -133,8 +135,6 @@ public class PresenceController {
 
         uiModel.asMap().clear();
         
-        String some = (String) uiModel.asMap().get("isOver");
-        
 		Page<TagCheck> tagCheckPage = null;
 		Long totalExpected = new Long(0) ;
 		Long totalAll = new Long(0) ;
@@ -208,13 +208,25 @@ public class PresenceController {
 	    	uiModel.addAttribute("maxProxyPerson", appliConfigService.getMaxProcurations());
 		}
 		
-		
+		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
+		tagCheckService.setNomPrenomTagChecks(allTagChecks);
+		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {	
+			@Override
+            public int compare(TagCheck obj1, TagCheck obj2) {
+				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
+					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
+				}else {
+					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
+				}
+			}
+		});
         uiModel.addAttribute("currentLocation", currentLocation);
     	uiModel.addAttribute("nbTagChecksExpected", totalExpected);
     	uiModel.addAttribute("nbTagChecksPresent", totalPresent);
     	uiModel.addAttribute("nbNonRepartis", totalNonRepartis);
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+        uiModel.addAttribute("allTagChecks", allTagChecks);
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth));
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));

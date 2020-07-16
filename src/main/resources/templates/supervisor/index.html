@@ -81,14 +81,14 @@
 						</div>	
 					</div>
 	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-						<div class="form-group alert alert-dark pt-1 pb-1">
-                           <form th:if="${tagCheckPage!=null}" action="#" th:action="@{|/${eContext}/supervisor/presence|}" id="formSearch" class="form-inline" >
-                                    <input type="text" name="present" th:value="${eppn}" class="form-control mr-1" placeholder="Recherche" id="searchPresence">
+						<div class="form-group alert alert-dark pt-1 pb-1 mt-2">
+                           <form th:if="${tagCheckPage!=null}" action="#" th:action="@{|/${eContext}/supervisor/presence|}" id="formSearch" >
                                     <input th:if="${sessionEpreuve.id !=null}" type="hidden" name="sessionEpreuve" th:value="${sessionEpreuve.id}" />
                                     <input th:if="${sessionLocation !=null}" type="hidden" name="location" th:value="${sessionLocation.id}" />
-                                    <a th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" title="Annuler recherche" 
-                                            th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={param1}&location={param2}(param1=${sessionEpreuve.id},param2=${sessionLocation.id},ctx=${eContext})}" 
-                                            class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+		                            <select id="searchTagCheck"  name="present" >
+		                            	 <option>--Choisir--</option>
+		                            	 <option th:each="tagCheck : ${allTagChecks}" th:value="${tagCheck.person.eppn}" th:text="${tagCheck.person.nom + ' ' + tagCheck.person.prenom + ' (' + tagCheck.person.eppn + ')'}" />
+		                            </select>
                             </form>
 						</div>
 					</div>

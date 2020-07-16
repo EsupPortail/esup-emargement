@@ -1465,6 +1465,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1750);
             }
         }, false);
+        
+       var selectPresence =  new SlimSelect({
+            select: '#searchTagCheck',
+            allowDeselect: true
+        });
+       
+       $("#searchTagCheck").change(function() {
+    	  $("#formSearch").submit();
+       });
     }
 
     //Extraction ldap
