@@ -74,7 +74,7 @@
 						</div>
 		    		</div>
 						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
-							<thead>
+							<thead class="sticky-top">
 								<tr>
 									<th th:if="${!isSessionEpreuveClosed and isConvocationEnabled}" scope="col"><input type="checkbox" id="selectall" /></th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>								

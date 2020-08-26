@@ -1,5 +1,4 @@
 body{
-	padding-top: 130px;
 	padding-bottom: 50px;
 }
 form label{
@@ -205,5 +204,8 @@ info-box-text {
     max-height: 410px;
     overflow-y: auto;
 }
-
-?
+table thead.sticky-top {
+	top: 128px;
+	z-index: 1000;
+	background-color: white;
+}

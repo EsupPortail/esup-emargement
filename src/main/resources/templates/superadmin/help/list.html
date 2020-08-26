@@ -15,7 +15,7 @@
 						</div>
 						<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold" th:text="${nbUpdate + ' '}"></span>rubrique(s) d'aide ajoutée(s)</div>
 						<table class="table table-hover table-striped table-bordered">
-							<thead>
+							<thead class="sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="key">Clé</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="description">Description</a></th>

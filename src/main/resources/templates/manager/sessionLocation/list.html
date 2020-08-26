@@ -27,7 +27,7 @@
    					<div class="alert alert-danger" th:if="${error}">Le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
    						veuillez supprimer les dépendances avant de supprimer ce lieu.</div>
 					<table class="table table-hover table-striped table-bordered">
-						<thead>
+						<thead class="sticky-top">
 							<tr>
 								<th scope="col"><a class="sorted" sd:pagination-sort="location">Lieu</a></th>
 								<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell"><a class="sorted" sd:pagination-sort="priorite">Priorité</a></th>

@@ -51,7 +51,7 @@
 		    		</div>
 	    			<form id="formAffinage" th:action="@{/{ctx}/manager/sessionEpreuve/affinerRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:object="${form}" method="post">
 						<table class="table table-hover table-striped table-bordered">
-							<thead>
+							<thead class="sticky-top">
 								<tr>
 									<th scope="col">Lieu</th>
 									<th scope="col">Priorité</th>

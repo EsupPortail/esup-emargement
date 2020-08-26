@@ -29,7 +29,7 @@
 		    		<div class="alert alert-danger" th:if="${error}">Le surveillant <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
    						veuillez supprimer les dépendances avant de supprimer celui-ci.</div>
 					<table class="table table-hover table-striped table-bordered">
-						<thead>
+						<thead class="sticky-top">
 							<tr>
 								<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
 								<th scope="col"><a class="sorted" sd:pagination-sort="userApp">Eppn</a></th>

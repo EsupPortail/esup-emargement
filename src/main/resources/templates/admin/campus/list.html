@@ -10,7 +10,7 @@
 		    		<div class="card-header"><h2>Sites <a th:href="@{/{ctx}/admin/campus?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un lieu"><i class="fa fa-plus fa-lg"></i></a></h2></div>
 		    			<div  class="alert alert-danger" th:if="${error}">Un lieu possède le site <span class="font-weight-bold" th:text="${item}"></span>, Veuillez supprimer ce lieu avant de supprimer ce site </div>
 						<table class="table table-hover table-striped table-bordered">
-							<thead>
+							<thead class="sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="site">Site</a></th>
 									<th scope="col">Description</th>
