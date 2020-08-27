@@ -36,7 +36,7 @@
 								<th scope="col">N° Identifiant</th>
 								<th scope="col">Nom</th>
 								<th scope="col">Prénom</th>
-								<th scope="col"  class="text-center">Temps aménagé</th>
+								<th scope="col" class="text-center d-none d-lg-table-cell d-xl-table-cell">Temps aménagé</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -44,7 +44,7 @@
 								<td th:text="${tagCheck.person.numIdentifiant}"></td>
 								<td th:text="${tagCheck.person.nom}"></td>
 								<td th:text="${tagCheck.person.prenom}"></td>
-								<td  class="text-center"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+								<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 							</tr>
 						</tbody>
 					</table>

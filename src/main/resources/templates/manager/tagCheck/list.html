@@ -107,8 +107,8 @@
 									</td>
 									<td th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}"></td>
-									<td th:text="${tagCheck.person.numIdentifiant}" class="d-none d-xl-table-cell"></td>
+									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}" class="d-none d-xl-table-cell"></td>
+									<td th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="text-center d-none  d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>

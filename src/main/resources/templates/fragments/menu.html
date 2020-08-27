@@ -4,7 +4,7 @@
 </head>
 <body>
 	<nav th:fragment="menu(activeMenu)" class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
-		<a class="navbar-brand"th:href="@{/{ctx}/(ctx=${eContext})}" ><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top" alt="URN"/><br /><span class = "titleNav" th:text="${title != null ? title : 'Emargement'}"></span></a>
+		<a class="navbar-brand"th:href="@{/{ctx}/(ctx=${eContext})}" ><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br /><span class = "titleNav" th:text="${title != null ? title : 'Emargement'}"></span></a>
 		<button class="navbar-toggler" type="button" data-toggle="collapse"
 			data-target="#navbarNav" aria-controls="navbarNav"
 			aria-expanded="false" aria-label="Toggle navigation">
@@ -87,9 +87,9 @@
 			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 			      		<a class="nav-link" th:classappend="${active == 'su'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/su(ctx=${eContext})}">SU</a>
 			      </li>
-			      <li th:if="${!#ctx.containsVariable('index') and !#ctx.containsVariable('noContext')}"  class="nav-item"><a class="nav-link" href="#collapseHelp" role="button" data-toggle="collapse"><i class="fas fa-question-circle"></i> Aide</a></li>
+			      <li th:if="${!#ctx.containsVariable('index') and !#ctx.containsVariable('noContext')}"  class="nav-item"><a class="nav-link" href="#collapseHelp" role="button" data-toggle="collapse"><i class="fas fa-question-circle"></i></a></li>
 			</ul>
-			<ul class="mb-1 ml-5 list-unstyled" th:if="${availableContexts!=null and availableContexts.size() > 1}">
+			<ul class="mb-1 ml-5 mr-5 list-unstyled" th:if="${availableContexts!=null and availableContexts.size() > 1}">
 				<li>
 					<form class="emargementContextForm" th:action="@{/}">
 						<select name="emargementContext" id="selectContext"	class="form-control">
@@ -103,9 +103,6 @@
 						</select>
 					</form>
 				</li>
-			</ul>
-			<ul class="mb-1 ml-5 list-unstyled">
-				
 			</ul>
 			<ul class="mt-4 ml-2 mb-1 list-unstyled">
 				<li class="nav-item mb-1">

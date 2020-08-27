@@ -12,10 +12,10 @@
 							<thead class="sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nom">Nom</a></th>
-									<th scope="col">Date de création</th>
-									<th scope="col">Date de modification</th>
-									<th scope="col">Modificateur</th>
-									<th scope="col">Description</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de modification</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Modificateur</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Description</th>
 									<th scope="col">Membres</th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
@@ -23,10 +23,10 @@
 							<tbody>
 								<tr th:each="groupe : ${groupePage}">
 									<td th:text="${groupe.nom}"></td>
-									<td th:text="${#dates.format(groupe.dateCreation, 'dd-MM-yyyy HH:mm')}"></td>
-									<td th:text="${#dates.format(groupe.dateModification, 'dd-MM-yyyy HH:mm')}"></td>
-									<td th:text="${groupe.modificateur}"></td>
-									<td th:text="${groupe.description}"></td>
+									<td th:text="${#dates.format(groupe.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
+									<td th:text="${#dates.format(groupe.dateModification, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
+									<td th:text="${groupe.modificateur}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
+									<td th:text="${groupe.description}" class="d-none d-md-table-cell  d-lg-table-cell d-xl-table-cell">></td>
 									<td th:text="${groupe.nbTagCheck}"></td>
 									<td class ="center">
 										<a th:href="@{/{ctx}/manager/groupe/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
