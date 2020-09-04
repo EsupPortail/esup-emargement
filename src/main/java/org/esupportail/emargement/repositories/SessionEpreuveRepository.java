@@ -35,7 +35,20 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenLessThan(Date date);
 	
+	List<SessionEpreuve> findAByAnneeUnivAndDateArchivageIsNotNull(String anneeUniv);
+	
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
+	
+	Long countByAnneeUniv(String anneeUniv);
+	
+	@Query(value = "select date_examen from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId order by date_examen limit 1;", nativeQuery = true)
+	Date findFirstDateExamen(String anneeUniv, Long ctxId);
+	
+	@Query(value = "select date_examen from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId order by date_examen DESC limit 1;", nativeQuery = true)
+	Date findLastDateExamen(String anneeUniv, Long ctxId);
+	
+	@Query(value = "select distinct annee_univ from session_epreuve", nativeQuery = true)
+	List<String> findDistinctAnneeUniv(Long context);
 	
 	@Query(value = "select count(*) from session_epreuve where nom_session_epreuve=:nom", nativeQuery = true)
 	Long countExistingNomSessionEpreuve(String nom);

@@ -72,6 +72,11 @@ public class SessionEpreuve implements ContextSupport {
     private Date finEpreuve;
     
     private String anneeUniv;
+    
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateArchivage;
+    
+    public String loginArchivage;
 
     private @Transient
     String dureeEpreuve = "";
@@ -285,5 +290,20 @@ public class SessionEpreuve implements ContextSupport {
 	public void setNbUnknown(Long nbUnknown) {
 		this.nbUnknown = nbUnknown;
 	}
-	
+
+	public Date getDateArchivage() {
+		return dateArchivage;
+	}
+
+	public void setDateArchivage(Date dateArchivage) {
+		this.dateArchivage = dateArchivage;
+	}
+
+	public String getLoginArchivage() {
+		return loginArchivage;
+	}
+
+	public void setLoginArchivage(String loginArchivage) {
+		this.loginArchivage = loginArchivage;
+	}
 }

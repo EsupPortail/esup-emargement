@@ -22,6 +22,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdOrderByPersonEppn(Long id, Pageable pageable);
 	
+	List<TagCheck> findTagCheckBySessionEpreuveAnneeUniv(String anneeUniv);
+	
 	List<TagCheck> findTagCheckBySessionEpreuveId(Long id);
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullOrderByPersonEppn(Long id);
@@ -171,6 +173,12 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long  countTagCheckByPerson(Person person);
 	
 	Long  countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(Long id);
+	
+	@Query(value = "select count(*) from tag_check  where session_epreuve_id in (select id from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId ) and person_id= :personId", nativeQuery = true)
+	Long countAnonymousTagCheckBySAnneeUnivAndContextId(String anneeUniv, Long ctxId, Long personId);
+	
+	@Query(value = "select count(*) from tag_check  where session_epreuve_id in (select id from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId)", nativeQuery = true)
+	Long countTagCheckByAnneeUnivAndContextId(String anneeUniv, Long ctxId);
 	
 	@Query(value = "select count(*) from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "

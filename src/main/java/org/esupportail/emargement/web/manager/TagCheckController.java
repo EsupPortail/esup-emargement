@@ -326,7 +326,7 @@ public class TagCheckController {
     public void exportTagChecks(@PathVariable String emargementContext,@RequestParam("type") String type, @RequestParam("sessionId") Long id, 
     		@RequestParam("tempsAmenage") String tempsAmenage, HttpServletResponse response){
     	
-    	tagCheckService.exportTagChecks(type, id, tempsAmenage, response, emargementContext);
+    	tagCheckService.exportTagChecks(type, id, tempsAmenage, response, emargementContext, null);
     }
     
 	@Transactional

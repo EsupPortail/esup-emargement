@@ -26,7 +26,7 @@ public class Person implements ContextSupport {
 
     private String numIdentifiant;
     
-    private String type ="student";
+    private String type;
     
     @Transient
     private String civilite;

@@ -43,7 +43,7 @@
 			          <a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a>
 			          <a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a>
 			          <div class="dropdown-divider"></div>
-			          <a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export des inscrits</a>
+			          <a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a>
 			          <a class="dropdown-item" th:classappend="${active == 'event'} ? 'active' : ''" th:href="@{/{ctx}/manager/event(ctx=${eContext})}">Evènements</a>
 			          <a class="dropdown-item" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/manager/stats(ctx=${eContext})}">Statistiques</a>
 			        </div>			        
@@ -51,7 +51,8 @@
 			     <li class="nav-item dropdown"th:if="${isAdmin}">
 			        <a class="nav-link dropdown-toggle" th:classappend="${active == 'userApp' or active == 'location' 
 			        						or active == 'campus'  or active == 'logs'
-			        						or active == 'apps' or active == 'appliConfig'} ? 'active font-weight-bold' : ''" 
+			        						or active == 'apps' or active == 'appliConfig'
+			        						or active == 'archives'} ? 'active font-weight-bold' : ''" 
 			        href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.admin}__')}"></span>
 			        </a>
@@ -63,6 +64,7 @@
 				          <a class="dropdown-item" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/admin/logs(ctx=${eContext})}">Logs</a>
 				          <a class="dropdown-item" th:classappend="${active == 'appliConfig'} ? 'active' : ''" th:href="@{/{ctx}/admin/appliConfig(ctx=${eContext})}">Configurations</a>
 				          <a class="dropdown-item" th:classappend="${active == 'apps'} ? 'active' : ''" th:href="@{/{ctx}/admin/apps(ctx=${eContext})}">Applications</a>
+				          <a class="dropdown-item" th:classappend="${active == 'archives'} ? 'active' : ''" th:href="@{/{ctx}/admin/archives(ctx=${eContext})}">Archives</a>
 			          </div>
 			        </div>
 			      </li>

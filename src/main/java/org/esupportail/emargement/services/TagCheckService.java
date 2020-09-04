@@ -15,8 +15,10 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
@@ -41,9 +43,12 @@ import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.itextpdf.text.BaseColor;
@@ -113,9 +118,17 @@ public class TagCheckService {
     
     @Resource   
     TagCheckerService tagCheckerService;
+    
+	@Resource
+	LdapService ldapService;
 	
 	@Resource
 	LogService logService;
+	
+	@Value("${app.nomDomaine}")
+	private String nomDomaine;
+	
+	private static final String ANONYMOUS = "anonymous";
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -654,38 +667,59 @@ public class TagCheckService {
 				null, emargementContext, null);
 	}
 	
-	public void exportTagChecks(String type, Long id, String tempsAmenage,HttpServletResponse response, String emargementContext) {
+	public void exportTagChecks(String type, Long id, String tempsAmenage, HttpServletResponse response, String emargementContext, String anneeUniv) {
 		List<TagCheck> list = null;
         Long count = new Long(0);
         Long presentTotal = new Long(0);
-        
-        SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-        String nomFichier = se.getNomSessionEpreuve().concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
-        nomFichier = nomFichier.replace(" ", "_");
-   		list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
-		count = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(id);
-		presentTotal = tagCheckRepository.countTagCheckBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedLocationIdIsNotNull(id);
+        String nomFichier = "export";
+		if(anneeUniv != null) {
+			list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
+			nomFichier = "Export_inscrits_annee_universitaire_" + anneeUniv;
+		}else {
+			SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+			nomFichier = se.getNomSessionEpreuve().concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+	   		list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
+	   		nomFichier = nomFichier.replace(" ", "_");
+			count = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(id);
+			presentTotal = tagCheckRepository.countTagCheckBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedLocationIdIsNotNull(id);
+		}
+		
 
 		this.setNomPrenomTagChecks(list);
 		if ("PDF".equals(type)) {
+			int nnColumns = 0;
+			if(anneeUniv != null) {
+				nnColumns = 12;
+			}else {
+				nnColumns = 10 ;
+			}
 			
-		   	PdfPTable table = new PdfPTable(10);
+		   	PdfPTable table = new PdfPTable(nnColumns);
 	    	
 	    	table.setWidthPercentage(100);
 	    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
 
 	        //On créer l'objet cellule.
-	    	TagCheck tch = list.get(0);
-	    	String libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
-	    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen())))
-	    			.concat(" --  nb de présents :  ").concat(presentTotal.toString()).concat("/").concat(count.toString());
-
+	    	String libelleSe = null;
+	    	if(anneeUniv != null) {
+	    		libelleSe = "Année universitaire " + anneeUniv;
+	    	}else {
+		    	TagCheck tch = list.get(0);
+		    	libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
+		    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen())))
+		    			.concat(" --  nb de présents :  ").concat(presentTotal.toString()).concat("/").concat(count.toString());
+	    	}
 	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
 	        cell.setBackgroundColor(BaseColor.GREEN);
-	        cell.setColspan(10);
+	        cell.setColspan(nnColumns);
 	        table.addCell(cell);
-	   
+	        PdfPCell header0 = null;
+	        PdfPCell header00 = null;
 	        //contenu du tableau.
+	        if(anneeUniv != null) {
+	        	header0 = new PdfPCell(new Phrase("Session")); header0.setBackgroundColor(BaseColor.GRAY);
+	        	header00 = new PdfPCell(new Phrase("Date")); header00.setBackgroundColor(BaseColor.GRAY);
+	        }
 	        PdfPCell header1 = new PdfPCell(new Phrase("N° Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header2 = new PdfPCell(new Phrase("Eppn")); header2.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
@@ -697,6 +731,10 @@ public class TagCheckService {
 	        PdfPCell header9 = new PdfPCell(new Phrase("Lieu badgé")); header9.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header10 = new PdfPCell(new Phrase("Temps aménagé")); header10.setBackgroundColor(BaseColor.GRAY);
 	        
+	        if(anneeUniv != null) {
+		        table.addCell(header0);
+		        table.addCell(header00);
+	        }
 	        table.addCell(header1);
 	        table.addCell(header2);
 	        table.addCell(header3);
@@ -708,7 +746,6 @@ public class TagCheckService {
 	        table.addCell(header9);
 	        table.addCell(header10);
 	        
-	        
 	        if(!list.isEmpty()) {
 	        	for(TagCheck tc : list) {
 	        		String presence = "Absent";
@@ -716,6 +753,8 @@ public class TagCheckService {
 	        		String attendu  = "--";
 	        		String badged  = "--";
 	        		String tiersTemps  = "--";
+	        		String dateSessionEpreuve = "";
+	        		String nomSessionEpreuve = "";
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		PdfPCell dateCell = null;
 	        		if(tc.getTagDate() != null) {
@@ -737,6 +776,17 @@ public class TagCheckService {
 	        			carte = "Non";
 	        		}else if(tc.getIsCheckedByCard()!=null && tc.getIsCheckedByCard()){
 	        			carte = "Oui";
+	        		}
+	        		if(anneeUniv != null) {
+	        			if(tc.getSessionEpreuve() != null) {
+	    	                dateCell = new PdfPCell(new Paragraph(tc.getSessionEpreuve().getNomSessionEpreuve()));
+	    	                dateCell.setBackgroundColor(b);
+	    	                table.addCell(dateCell);
+	        				dateSessionEpreuve = String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen());
+	        				dateCell = new PdfPCell(new Paragraph(dateSessionEpreuve));
+	    	        		dateCell.setBackgroundColor(b);
+	    	                table.addCell(dateCell);
+	        			}
 	        		}
 	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
 	        		dateCell.setBackgroundColor(b);
@@ -1034,5 +1084,42 @@ public class TagCheckService {
 			isOk = true;
 		}
 		return isOk;
+	}
+	
+	@Transactional
+	public void archiverTagChecks(String anneeUniv, String emargementContext) {
+		List<TagCheck> list  = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
+		Context ctx = contextRepository.findByContextKey(emargementContext);
+		String anonymousEppn = ANONYMOUS.concat("_").concat(emargementContext).concat("@").concat(nomDomaine);
+		if (!list.isEmpty()) {
+			List<Person> persons = personRepository.findByEppn(anonymousEppn);
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			String loginArchivage = ldapService.getEppn(auth.getName());
+			Person  p = null;
+			if(!persons.isEmpty()) {
+				p = persons.get(0);
+			}else {
+				p = new Person();
+				p.setEppn(anonymousEppn);
+				p.setContext(ctx);
+				personRepository.save(p);
+			}
+			for(TagCheck tc : list) {
+				tc.setPerson(p);
+				tc.getSessionEpreuve().setDateArchivage(new Date());
+				tc.getSessionEpreuve().setLoginArchivage(loginArchivage);
+				tc.getSessionEpreuve().setIsSessionEpreuveClosed(true);
+				tagCheckRepository.save(tc);
+			}
+		}
+		log.info("Archivage effectuée pour l'année universitaire " + anneeUniv);
+		logService.log(ACTION.ARCHIVE_SESSIONS, RETCODE.SUCCESS, "Année universitaire: " + anneeUniv + " Nombre " + list.size(), null, null, emargementContext, null);
+		//Nettoyage
+		int clean = personRepository.cleanPersons(ctx.getId());
+		if(clean >0) {
+			log.info("Nettoyage après archivage : " + clean);
+			logService.log(ACTION.CLEAN_PERSONS, RETCODE.SUCCESS, " Nombre " + clean, null, null, emargementContext, null);
+
+		}
 	}
 }

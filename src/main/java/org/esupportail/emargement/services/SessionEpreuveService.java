@@ -48,9 +48,7 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
-import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -483,7 +481,7 @@ public class SessionEpreuveService {
 			start = year-1;
 		}
 		
-		for(int i= start;i<end; i++) {
+		for(int i= start-1;i<end; i++) {
 			years.add(String.valueOf(i) + "/" + String.valueOf(i + 1));
 		}
 		return years;
