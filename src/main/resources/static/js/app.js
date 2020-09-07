@@ -362,11 +362,11 @@ const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'Déc'], [1, 'Jan
 let moisMap = new Map(moisArray);
 
 //affiche stats
-function getStats(param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
+function getStats(year, param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
     var prefId = document.getElementById(id);
     var request = new XMLHttpRequest();
     var paramUrl = (param != null) ? '&' + param : '';
-    request.open('GET', emargementContextUrl + "/" + url + "/stats/json?type=" + id + paramUrl, true);
+    request.open('GET', emargementContextUrl + "/" + url + "/stats/json?&anneeUniv=" + year + "&type=" + id + paramUrl, true);
     request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
             var data = JSON.parse(this.response);
@@ -1261,36 +1261,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     //stats
+    var year = $( "#anneeUnivSelect option:selected").val();
     if (document.getElementById('statsCharts') != null) {
         var url = "manager";
         $("body").css("background-color", "#f2f2f2");
-        //getStats(param, null,id, chartType,  option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, byMonth)
-        getStats(null, url, "sessionEpreuvesByCampus", "pie");
-        getStats(null, url, "sessionLocationByLocation", "doughnut");
-        getStats(null, url, "tagCheckersByContext", "pie", "legend");
-        getStats(null, url, "presenceByContext", "pie");
-        getStats(null, url, "sessionEpreuveByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
-        getStats(null, url, "countTagCheckByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
-        getStats(null, url, "countTagChecksByTypeBadgeage", "doughnut");
-        getStats(null, url, "countTagCheckBySessionLocationBadgedAndPerson", "doughnut");
+        //getStats(year, param, null,id, chartType,  option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, byMonth)
+        getStats(year, null, url, "sessionEpreuvesByCampus", "pie");
+        getStats(year, null, url, "sessionLocationByLocation", "doughnut");
+        getStats(year, null, url, "tagCheckersByContext", "pie", "legend");
+        getStats(year, null, url, "presenceByContext", "pie");
+        getStats(year, null, url, "sessionEpreuveByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
+        getStats(year, null, url, "countTagCheckByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
+        getStats(year, null, url, "countTagChecksByTypeBadgeage", "doughnut");
+        getStats(year, null, url, "countTagCheckBySessionLocationBadgedAndPerson", "doughnut");
     }
     //stats superadmin
     if (document.getElementById('statsSuperAdminCharts') != null) {
         var url = "superadmin";
         $("body").css("background-color", "#f2f2f2");
         //getStats(param, null,id, chartType,  spinner, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, byMonth)
-        getStats(null, url, "sessionEpreuvesByContext", "multiBar");
-        getStats(null, url, "countTagChecksByContext", "multiBar");
-        getStats(null, url, "countLocationsByContext", "chartBar");
-        getStats(null, url, "countUserAppsByContext", "multiBar");
-        getStats(null, url, "countCampusesByContext", "chartBar");
+        getStats(year,null, url, "sessionEpreuvesByContext", "multiBar");
+        getStats(year,null, url, "countTagChecksByContext", "multiBar");
+        getStats(year,null, url, "countLocationsByContext", "chartBar");
+        getStats(year,null, url, "countUserAppsByContext", "multiBar");
+        getStats(year,null, url, "countCampusesByContext", "chartBar");
     }
 
     //stats session epreuve
     $('[id^=modalChartSeBtn]').on('click', function(e) {
         var url = "manager";
         var splitId = this.id.split("-");
-        getStats("&param=" + splitId[1], url, "countTagChecksByTimeBadgeage", "chartBar");
+        getStats(null, "&param=" + splitId[1], url, "countTagChecksByTimeBadgeage", "chartBar");
     })
     $('#modal-chart').on('show.bs.modal', function(event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
@@ -1603,8 +1604,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     //Changement année univ
     $("#anneeUnivSelect").on("change",  function (e) {
-    	var annee = this.value
-    	window.location.href = emargementContextUrl + "/manager/sessionEpreuve?anneeUniv=" + annee;
+    	var annee = this.value;
+    	console.log(window.location);
+    	window.location.href = window.location.pathname + "?anneeUniv=" + annee;
     });
     
     //procuration

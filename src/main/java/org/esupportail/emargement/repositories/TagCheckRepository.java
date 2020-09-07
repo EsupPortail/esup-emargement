@@ -241,17 +241,17 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	//STATS
 	@Query(value = "select (CASE WHEN session_location_badged_id IS NOT NULL THEN 'Present' WHEN session_location_badged_id IS NULL THEN 'Absent' END) as tagcheck,  count(*) "
 			+ "from tag_check, session_epreuve where tag_check.session_epreuve_id = session_epreuve.id AND tag_check.context_id = :context and session_location_expected_id is not null "
-			+ "AND is_session_epreuve_closed = 't' group by tagcheck order by count desc", nativeQuery = true)
-	List<Object[]> countPresenceByContext(Long context);
+			+ "AND is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by tagcheck order by count desc", nativeQuery = true)
+	List<Object[]> countPresenceByContext(Long context, String anneeUniv);
 	
 	@Query(value = "SELECT CAST(DATE_PART('month', tag_date) AS INTEGER) AS month, count(*) AS count FROM tag_check, session_epreuve "
-			+ "WHERE tag_check.session_epreuve_id = session_epreuve.id AND tag_date is not null AND tag_check.context_id=:context AND is_session_epreuve_closed = 't' GROUP BY month", nativeQuery = true)
-	List<Object[]> countTagCheckByYearMonth(Long context);
+			+ "WHERE tag_check.session_epreuve_id = session_epreuve.id AND tag_date is not null AND tag_check.context_id=:context AND is_session_epreuve_closed = 't' and annee_univ like :anneeUniv GROUP BY month", nativeQuery = true)
+	List<Object[]> countTagCheckByYearMonth(Long context, String anneeUniv);
 	
 	@Query(value = "select key, CASE WHEN tag_date is null THEN 'Absent' ELSE 'Présent' END AS statut, count(*) as count  from tag_check, session_epreuve, context where  "
 			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "and is_session_epreuve_closed='t' group by key, statut order by key, statut, count desc", nativeQuery = true)
-	List<Object[]> countTagChecksByContext();
+			+ "and is_session_epreuve_closed='t' and annee_univ like :anneeUniv group by key, statut order by key, statut, count desc", nativeQuery = true)
+	List<Object[]> countTagChecksByContext(String anneeUniv);
 	
 	@Query(value = "SELECT to_char(date_trunc('minute',  tag_date), 'HH24:MI') as timeTag, count(*) as count FROM tag_check where session_epreuve_id = :seId and tag_date is not null "
 			+ "and is_checked_by_card='t' GROUP BY timeTag order by timeTag", nativeQuery = true)
@@ -259,11 +259,12 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	@Query(value = "select CASE WHEN is_checked_by_card ='t' THEN 'Par carte' ELSE 'Manuellement' END AS type, count(*) as count from tag_check, context, session_epreuve  where "
 			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "AND tag_check.context_id=:context and is_checked_by_card is not null and  is_session_epreuve_closed = 't' group by is_checked_by_card", nativeQuery = true)
-	List<Object[]> countTagChecksByTypeBadgeage(Long context);
+			+ "AND tag_check.context_id=:context and is_checked_by_card is not null and  is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by is_checked_by_card", nativeQuery = true)
+	List<Object[]> countTagChecksByTypeBadgeage(Long context, String anneeUniv);
 	
 	@Query(value = "select event_count, count(*) as users_count  from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "
-			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null and is_session_epreuve_closed = 't' group by eppn) t group by event_count", nativeQuery = true)
-	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context);
+			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null and is_session_epreuve_closed = 't' "
+			+ "and annee_univ like :anneeUniv  group by eppn) t group by event_count", nativeQuery = true)
+	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context, String anneeUniv);
 }
 

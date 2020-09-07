@@ -139,30 +139,32 @@ public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
     }
     
     @SuppressWarnings("serial")
-	public  LinkedHashMap<String,Object> getStats(String typeStats, String key, String param) throws ParseException {
+	public  LinkedHashMap<String,Object> getStats(String typeStats, String key, String param, String year) throws ParseException {
 			
     	Context ctx = contextRepository.findByContextKey(key);
 		LinkedHashMap<String, Object> results = new LinkedHashMap<String, Object>() {
 			   
 	        {
+	    		String anneeUniv = (!"all".equals(year))?  year : "20%";
+
 	        	if("sessionEpreuvesByCampus".equals(typeStats)){
-	        		put("sessionEpreuvesByCampus",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId())));
+	        		put("sessionEpreuvesByCampus",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId(), anneeUniv)));
 	        	}else if("sessionLocationByLocation".equals(typeStats)){
-	        		put("sessionLocationByLocation",mapFieldWith1Labels(sessionLocationRepository.countSessionLocationByLocation(ctx.getId())));
+	        		put("sessionLocationByLocation",mapFieldWith1Labels(sessionLocationRepository.countSessionLocationByLocation(ctx.getId(), anneeUniv)));
 	        	}else if("tagCheckersByContext".equals(typeStats)){
-	        		put("tagCheckersByContext",mapFieldWith1Labels(tagCheckerRepository.countTagCheckersByContext(ctx.getId())));
+	        		put("tagCheckersByContext",mapFieldWith1Labels(tagCheckerRepository.countTagCheckersByContext(ctx.getId(), anneeUniv)));
 	        	}else if("presenceByContext".equals(typeStats)){
-	        		put("presenceByContext",mapFieldWith1Labels(tagCheckRepository.countPresenceByContext(ctx.getId())));
+	        		put("presenceByContext",mapFieldWith1Labels(tagCheckRepository.countPresenceByContext(ctx.getId(), anneeUniv)));
 	        	}else if("sessionEpreuveByYearMonth".equals(typeStats)){
-	        		put("sessionEpreuveByYearMonth",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId())));
+	        		put("sessionEpreuveByYearMonth",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId(), anneeUniv)));
 	        	}else if("countTagCheckByYearMonth".equals(typeStats)){
-	        		put("countTagCheckByYearMonth",mapFieldWith1Labels(tagCheckRepository.countTagCheckByYearMonth(ctx.getId())));
+	        		put("countTagCheckByYearMonth",mapFieldWith1Labels(tagCheckRepository.countTagCheckByYearMonth(ctx.getId(), anneeUniv)));
 	        	}else if("countTagChecksByTimeBadgeage".equals(typeStats)){
 	        		put("countTagChecksByTimeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTimeBadgeage(Long.valueOf(param))));
 	        	}else if("countTagChecksByTypeBadgeage".equals(typeStats)){
-	        		put("countTagChecksByTypeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId())));
+	        		put("countTagChecksByTypeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId(), anneeUniv)));
 	        	}else if("countTagCheckBySessionLocationBadgedAndPerson".equals(typeStats)){
-	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapFieldWith1Labels(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId())));
+	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapFieldWith1Labels(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId(), anneeUniv)));
 	        	}
 	        }
 	    };
@@ -170,15 +172,17 @@ public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
     }
     
     @SuppressWarnings("serial")
-	public  LinkedHashMap<String,Object> getStatsSuperAdmin(String typeStats) throws ParseException {
+	public  LinkedHashMap<String,Object> getStatsSuperAdmin(String typeStats,  String year) throws ParseException {
 			
 		LinkedHashMap<String, Object> results = new LinkedHashMap<String, Object>() {
 			   
 	        {
+	        	String anneeUniv = (!"all".equals(year))?  year : "20%";
+	        	
 	        	if("sessionEpreuvesByContext".equals(typeStats)){
-	        		put("sessionEpreuvesByContext",mapFieldWith2Labels(sessionEpreuveRepository.countAllSessionEpreuvesByContext(), true));
+	        		put("sessionEpreuvesByContext",mapFieldWith2Labels(sessionEpreuveRepository.countAllSessionEpreuvesByContext(anneeUniv), true));
 	        	}else if("countTagChecksByContext".equals(typeStats)){
-	        		put("countTagChecksByContext",mapFieldWith2Labels(tagCheckRepository.countTagChecksByContext(), true));
+	        		put("countTagChecksByContext",mapFieldWith2Labels(tagCheckRepository.countTagChecksByContext(anneeUniv), true));
 	        	}else if("countLocationsByContext".equals(typeStats)){
 	        		put("countLocationsByContext",mapFieldWith1Labels(locationRepository.countLocationsByContext()));
 	        	}else if("countUserAppsByContext".equals(typeStats)){

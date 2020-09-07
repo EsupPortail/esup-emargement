@@ -37,7 +37,7 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 	//STATS
 	@Query(value = "select nom, count(*) from session_location, location, session_epreuve where session_location.location_id=location.id "
 			+ "and session_location.session_epreuve_id = session_epreuve.id and session_location.context_id=:context "
-			+ "AND is_session_epreuve_closed = 't' group by nom order by count desc", nativeQuery = true)
-	List<Object[]> countSessionLocationByLocation(Long context);
+			+ "AND is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by nom order by count desc", nativeQuery = true)
+	List<Object[]> countSessionLocationByLocation(Long context, String anneeUniv);
 	
 }
