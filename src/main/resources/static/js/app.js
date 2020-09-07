@@ -363,6 +363,20 @@ let moisMap = new Map(moisArray);
 
 //affiche stats
 function getStats(year, param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
+	Chart.plugins.register({
+		  afterDraw: chart => {
+		    if (chart.data.datasets[0].data.length === 0) {
+		      var ctx = chart.chart.ctx;
+		      ctx.save();
+		      ctx.textAlign = 'center';
+		      ctx.textBaseline = 'middle';
+		      ctx.font = "22px Arial";
+		      ctx.fillStyle = "gray";
+		      ctx.fillText('Aucune donnée disponible', chart.chart.width / 2, chart.chart.height / 2);
+		      ctx.restore();
+		    }
+		  }
+		});
     var prefId = document.getElementById(id);
     var request = new XMLHttpRequest();
     var paramUrl = (param != null) ? '&' + param : '';
@@ -1478,13 +1492,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	        });
        }
        
-       new SlimSelect({
-           select: '#sessionEpreuvePresence'
-       });       
-       new SlimSelect({
-           select: '#location'
-       }); 
-       
+       if (document.getElementById('sessionEpreuvePresence') != null) {
+	       new SlimSelect({
+	           select: '#sessionEpreuvePresence'
+	       });
+       }
+       if (document.getElementById('location') != null) {
+	       new SlimSelect({
+	           select: '#location'
+	       }); 
+       }
        $("#searchTagCheck").change(function() {
     	  $("#formSearch").submit();
        });
