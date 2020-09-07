@@ -50,7 +50,7 @@
 	                    	<div class="col-lg-10">
 								<select id="anneeUniv" name="anneeUniv" required="required" class="form-control"> 
 									<option th:each="year : ${years}"
-										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}"></option>
+										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}" th:selected="${#strings.substringBefore(year,'/') ==anneeUniv}"></option>
 								</select>
 							</div>
 						</div>

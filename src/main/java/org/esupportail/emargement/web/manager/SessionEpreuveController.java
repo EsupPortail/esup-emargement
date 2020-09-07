@@ -223,9 +223,9 @@ public class SessionEpreuveController {
     }
 	
     @GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
-    public String createForm(@PathVariable String emargementContext, Model uiModel) throws IOException, ParserException, ParseException {
+    public String createForm(@PathVariable String emargementContext, Model uiModel, @RequestParam(value = "anneeUniv", required = false) String anneeUniv) throws IOException, ParserException, ParseException {
     	SessionEpreuve SessionEpreuve = new SessionEpreuve();
-    	populateEditForm(uiModel, SessionEpreuve);
+    	populateEditForm(uiModel, SessionEpreuve, anneeUniv);
     	List<Event> icsList = eventRepository.findByIsEnabledTrue();
     	eventService.setNbEvent(icsList);
     	uiModel.addAttribute("icsList", icsList);
@@ -236,16 +236,17 @@ public class SessionEpreuveController {
     @GetMapping(value = "/manager/sessionEpreuve/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
     	SessionEpreuve SessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	populateEditForm(uiModel, SessionEpreuve);
+    	populateEditForm(uiModel, SessionEpreuve, null);
         return "manager/sessionEpreuve/update";
     }
     
-    void populateEditForm(Model uiModel, SessionEpreuve SessionEpreuve) {
+    void populateEditForm(Model uiModel, SessionEpreuve SessionEpreuve, String anneeUniv) {
     	uiModel.addAttribute("types", sessionEpreuveService.getListTypeSessionEpreuve());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", SessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        uiModel.addAttribute("anneeUniv", anneeUniv);
         Date date = Calendar.getInstance().getTime();  
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
         String strDate = dateFormat.format(date);  
@@ -263,7 +264,7 @@ public class SessionEpreuveController {
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0) {
-            populateEditForm(uiModel, sessionEpreuve);
+            populateEditForm(uiModel, sessionEpreuve, null);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
@@ -281,7 +282,7 @@ public class SessionEpreuveController {
         	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         	log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
         	logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
-            return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+            return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }        
     }
     
@@ -296,11 +297,11 @@ public class SessionEpreuveController {
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {
-            populateEditForm(uiModel, sessionEpreuve);
+            populateEditForm(uiModel, sessionEpreuve, null);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
-            return "manager/sessionEpreuve/update";
+            return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }
         uiModel.asMap().clear();
         if(sessionEpreuveRepository.countByNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve())>0 && 
@@ -315,7 +316,7 @@ public class SessionEpreuveController {
         	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
         	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
-            return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+        	return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }        
     }
     
