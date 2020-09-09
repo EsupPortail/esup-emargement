@@ -1,5 +1,6 @@
 package org.esupportail.emargement.repositories;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +41,18 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
 	
 	Long countByAnneeUniv(String anneeUniv);
+	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
+	Long countSessionEpreuveIdExpected(String eppn, Date date);
+	
+	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve <= :now and fin_epreuve >= :now", nativeQuery = true)
+	Long getSessionEpreuveIdExpected(String eppn, Date date, LocalTime now);
 	
 	@Query(value = "select date_examen from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId order by date_examen limit 1;", nativeQuery = true)
 	Date findFirstDateExamen(String anneeUniv, Long ctxId);

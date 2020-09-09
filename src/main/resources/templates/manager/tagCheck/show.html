@@ -37,9 +37,10 @@
 			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.location.nom : '---'}"></dd>
 			            <dt class="col-sm-2">Lieu badgé</dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : '---'}"></dd>
-			            <dt class="col-sm-2">Commentaire</dt>
+			            <dt class="col-sm-2">Eamrgement</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.tagDate}"></dd>
-	
+			            <dt class="col-sm-2">Commentaire</dt>
+			            <dd class="col-sm-10" th:text="${tagCheck.comment}"></dd>
 					</dl>
 				</div>
 			</div>
