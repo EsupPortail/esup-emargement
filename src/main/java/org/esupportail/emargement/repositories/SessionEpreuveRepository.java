@@ -79,5 +79,12 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	@Query(value = "select key, CASE WHEN is_session_epreuve_closed='t' THEN 'Fermée' ELSE 'Ouverte' END AS statut, count(*) as count "
 			+ "from session_epreuve, context where session_epreuve.context_id=context.id and annee_univ like :anneeUniv group by key, statut order by key, statut, count", nativeQuery = true)
 	List<Object[]> countAllSessionEpreuvesByContext(String anneeUniv);
+	
+	@Query(value = " select type, count(*) from session_epreuve where context_id=:context and is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by type", nativeQuery = true)
+	List<Object[]> countSessionEpreuveByType(Long context, String anneeUniv);
+	
+	@Query(value = " select key, type, count(*) from session_epreuve, context where session_epreuve.context_id=context.id and is_session_epreuve_closed = 't' and annee_univ like :anneeUniv "
+			+ "group by key, type order by key, type, count", nativeQuery = true)
+	List<Object[]> countSessionEpreuveByTypeByContext(String anneeUniv);
 
 }

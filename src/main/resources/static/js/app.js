@@ -1293,6 +1293,7 @@ document.addEventListener('DOMContentLoaded', function() {
         getStats(year, null, url, "countTagCheckByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
         getStats(year, null, url, "countTagChecksByTypeBadgeage", "doughnut");
         getStats(year, null, url, "countTagCheckBySessionLocationBadgedAndPerson", "doughnut");
+        getStats(year, null, url, "countSessionEpreuveByType", "pie");
     }
     //stats superadmin
     if (document.getElementById('statsSuperAdminCharts') != null) {
@@ -1304,6 +1305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         getStats(year,null, url, "countLocationsByContext", "chartBar");
         getStats(year,null, url, "countUserAppsByContext", "multiBar");
         getStats(year,null, url, "countCampusesByContext", "chartBar");
+        getStats(year,null, url, "countSessionEpreuveByTypeByContext", "multiBar");
     }
 
     //stats session epreuve

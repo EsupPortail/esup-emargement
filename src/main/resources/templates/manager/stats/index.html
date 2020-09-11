@@ -175,6 +175,25 @@
 									</div>
 								</div>
 							</div>
+							<div class="col-lg-3 col-md-6">
+								<div class="box box-primary">
+									<div class="box-header with-border">
+										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countSessionEpreuveByType}__')}"></h3>
+										<div class="box-tools float-right">
+											<button type="button" class="btn btn-box-tool"
+												data-toggle="collapse"  data-target="#collapse1">
+												<i class="fa fa-minus"></i>
+											</button>
+										</div>
+									</div>
+									<div class="box-body collapse show" id="collapse1">
+										<div class="chart">
+											<canvas id="countSessionEpreuveByType" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<div  class="no-data">Aucune donnée disponible</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

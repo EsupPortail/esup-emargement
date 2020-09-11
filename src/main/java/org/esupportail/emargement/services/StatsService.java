@@ -165,6 +165,8 @@ public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
 	        		put("countTagChecksByTypeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId(), anneeUniv)));
 	        	}else if("countTagCheckBySessionLocationBadgedAndPerson".equals(typeStats)){
 	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapFieldWith1Labels(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId(), anneeUniv)));
+	        	}else if("countSessionEpreuveByType".equals(typeStats)){
+	        		put("countSessionEpreuveByType",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByType(ctx.getId(), anneeUniv)));
 	        	}
 	        }
 	    };
@@ -189,6 +191,8 @@ public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
 	        		put("countUserAppsByContext",mapFieldWith2Labels(userAppRepository.countUserAppsByContext(), true));
 	        	}else if("countCampusesByContext".equals(typeStats)){
 	        		put("countCampusesByContext",mapFieldWith1Labels(campusRepository.countCampusesByContext()));
+	        	}else if("countSessionEpreuveByTypeByContext".equals(typeStats)){
+	        		put("countSessionEpreuveByTypeByContext",mapFieldWith2Labels(sessionEpreuveRepository.countSessionEpreuveByTypeByContext(anneeUniv), true));
 	        	}
 	        }
 	    };
