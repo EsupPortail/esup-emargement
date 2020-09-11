@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
@@ -26,6 +27,7 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
@@ -64,6 +66,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	private TagCheckerRepository tagCheckerRepository;
+	
+	@Autowired
+	PrefsRepository prefsRepository;
 	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
@@ -457,14 +462,26 @@ public class SessionEpreuveService {
 		return duree;
 	}
 	
-	public List<SessionEpreuve> getListSessionEpreuveByTagchecker(String eppn){
+	public List<SessionEpreuve> getListSessionEpreuveByTagchecker(String eppn, String nom){
 		
 		Page<TagChecker> tagCheckerList = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null);
+		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, nom);
+		Prefs pref = null;
+		if(!prefs.isEmpty()) {
+			pref = prefs.get(0);
+		}
 		List<SessionEpreuve> newList = new ArrayList<SessionEpreuve>();
 		for (TagChecker tc :  tagCheckerList.getContent()) {
 			SessionEpreuve se = tc.getSessionLocation().getSessionEpreuve();
 			if(!newList.contains(se) && !se.getIsSessionEpreuveClosed()) {
-				newList.add(tc.getSessionLocation().getSessionEpreuve());
+				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
+					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
+					if(check>=0) {
+						newList.add(se);
+					}
+				}else {
+					newList.add(se);
+				}
 			}
 		}
 		return newList;

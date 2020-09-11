@@ -24,14 +24,15 @@
 						</div>
 					    <div class="col-xl-7 col-lg-6 col-md-7 col-sm-6">
 						    <div class="row ">
-								<div class="col-lg-9 col-md-11">
-				  					<div th:if="${!#lists.isEmpty(allSessionEpreuves)}" class="alert alert-info pt-0 mr-2">
+								<div class="col-lg-12 col-md-11">
+				  					<div class="alert alert-info pt-0 mr-2">
 				  						<form action="#" th:action="@{/{ctx}/supervisor/presence(ctx=${eContext})}"  method="get" id="presenceForm">
 											<div class="form-row align-items-center">
 												<div class="col-auto">
 													<label for="sessionEpreuve" class="col-form-label">Session</label>
 													<select  name="sessionEpreuve" class="slimSelectClass" 
 														id="sessionEpreuvePresence" required="required">
+														<option data-placeholder="true"></option>
 														<option th:each="se : ${allSessionEpreuves}"
 															th:selected="(${se.id == sessionEpreuve.id})"
 															th:value="${se.id}"
@@ -48,11 +49,13 @@
 															th:text="${sl.location.nom}"></option>
 													</select>
 												</div>
-												<div class="col-auto mt-2">
-				                         			<input type="submit" class="btn btn-success mt-4" value="Valider" id="submitForm">
-					                    		 </div>
 					                     	</div>
-					                      	<p class="text-danger font-weight-bold " th:if="${sessionLocation == null}">Vous n'avez encore pas validé de choix</p>
+					                     		<p th:if="${allSessionEpreuves.isEmpty()}" class="mb-1">Aucune session disponible</p>
+					                     		<p th:unless="${allSessionEpreuves.isEmpty()}" th:text="${#lists.size(allSessionEpreuves) + ' session(s) disponibles'}" class="mb-1"></p>
+					                     		<div class="form-group form-check m-0 mt-1">
+											    	<input type="checkbox" class="form-check-input" id="oldSessionsCheck" th:checked="${oldSessions}" >
+											    	<label class="form-check-label" for="exampleCheck1"><span title="voir les sessions antérieures à aujourd'hui">Sessions antérieures</span></label>
+											  </div>
 				                        </form> 
 				  					</div>						
 								</div>
@@ -72,7 +75,6 @@
 								</form>		
 					    </div>
 						<div class="alert alert-warning col-lg-12 mt-2 mb-0" th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and nbNonRepartis>0 or nbTagChecksExpected==0 and currentLocation!=null}" >
-							<p th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and nbNonRepartis>0}" class="h1 text-center">Attention!!
 								<span th:text="${nbNonRepartis}"></span> incrit(s)  non réparti(s) dans cette session. </p>
 							<p th:if="${nbTagChecksExpected==0 and currentLocation!=null}" class="h1 text-center">
 								<span th:text="${nbNonRepartis}"></span> incrit(s) dans ce lieu. </p>								

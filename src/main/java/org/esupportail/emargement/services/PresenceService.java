@@ -10,17 +10,23 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -49,6 +55,15 @@ public class PresenceService {
 	
 	@Autowired
 	PersonRepository personRepository;
+	
+	@Autowired	
+	ContextRepository contextRepository;
+	
+	@Autowired
+	PrefsRepository prefsRepository;
+	
+	@Autowired
+	UserAppRepository userAppRepository;
 	
 	@Autowired
 	private TagCheckerRepository tagCheckerRepository;
@@ -82,7 +97,7 @@ public class PresenceService {
 	
 	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
 		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
-		int nbColumn = (countProxyPerson>0)? 8 : 7;
+		int nbColumn = (countProxyPerson>0)? 9 : 8;
     	PdfPTable table = new PdfPTable(nbColumn);
     	
     	table.setWidthPercentage(100);
@@ -109,14 +124,15 @@ public class PresenceService {
         table.addCell(cell);
    
         //contenu du tableau.
-        PdfPCell header1 = new PdfPCell(new Phrase("N°Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header2 = new PdfPCell(new Phrase("Nom")); header2.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header3 = new PdfPCell(new Phrase("Prénom")); header3.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header4 = new PdfPCell(new Phrase("Présent")); header4.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header5 = new PdfPCell(new Phrase("Badgeage")); header5.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header6 = new PdfPCell(new Phrase("Carte")); header6.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Lieu badgé")); header7.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header8 = new PdfPCell(new Phrase("Procuration")); header8.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header1 = new PdfPCell(new Phrase("N° Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header2 = new PdfPCell(new Phrase("Eppn")); header2.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header5 = new PdfPCell(new Phrase("Présent")); header5.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header6 = new PdfPCell(new Phrase("Badgeage")); header6.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Carte")); header7.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header8 = new PdfPCell(new Phrase("Lieu badgé")); header8.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.GRAY);
         
         table.addCell(header1);
         table.addCell(header2);
@@ -125,8 +141,9 @@ public class PresenceService {
         table.addCell(header5);
         table.addCell(header6);
         table.addCell(header7);
+        table.addCell(header8);        
         if(countProxyPerson>0) {
-        	table.addCell(header8);
+        	table.addCell(header9);
         }
         
         if(!list.isEmpty()) {
@@ -153,6 +170,9 @@ public class PresenceService {
 	        			badged = tc.getSessionLocationBadged().getLocation().getNom();
 	        		}
 	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getEppn()));
 	        		dateCell.setBackgroundColor(b);
 	        		table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNom()));
@@ -284,5 +304,23 @@ public class PresenceService {
     	}
     	
     	return list;
+	}
+	
+	public void updatePrefs(String nom, String value, String eppn, String key) {
+		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, nom);
+		Prefs pref = null;
+		if(!prefs.isEmpty()) {
+			pref = prefs.get(0);
+			pref.setValue(value);
+		}else {
+			Context context = contextRepository.findByContextKey(key);
+			pref = new Prefs();
+			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, context);
+			pref.setUserApp(userApp);
+			pref.setContext(context);
+			pref.setNom(nom);
+			pref.setValue(value);
+		}
+		prefsRepository.save(pref);
 	}
 }

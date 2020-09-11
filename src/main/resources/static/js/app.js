@@ -140,6 +140,11 @@ function changeSelectSessionEpreuve2(id, id2, url) {
                 $("#" + id2).prop("disabled", true);
                 $("#submitForm").prop("disabled", true);
             } else {
+            	option = document.createElement('option');
+            	option.value = "";
+                option.textContent = ""; 
+                option.setAttribute("data-placeholder", "true");
+                selectToPopulate.appendChild(option);
                 data.forEach(function(value, key) {
                     $(".alertmsg").remove();
                     $("#" + id2).removeAttr("disabled");
@@ -1494,12 +1499,14 @@ document.addEventListener('DOMContentLoaded', function() {
        
        if (document.getElementById('sessionEpreuvePresence') != null) {
 	       new SlimSelect({
-	           select: '#sessionEpreuvePresence'
+	           select: '#sessionEpreuvePresence',
+	           placeholder: 'Choisir une session'
 	       });
        }
        if (document.getElementById('location') != null) {
 	       new SlimSelect({
-	           select: '#location'
+	           select: '#location',
+	           placeholder: 'Choisir un lieu'
 	       }); 
        }
        $("#searchTagCheck").change(function() {
@@ -1676,6 +1683,23 @@ document.addEventListener('DOMContentLoaded', function() {
 	        $("#selectAll").prop("checked", false);
 	    }
 	});
-
-
+	
+	//Préférence : voir sessions antérieure
+	$(document).on('change', '#oldSessionsCheck', function() {
+		var value = (this.checked) ? "true" : "false";
+		var redirect = window.location.origin + window.location.pathname;
+		console.log(url);
+        var request = new XMLHttpRequest();
+        request.open('GET', emargementContextUrl + "/supervisor/updatePrefs?pref=seeOldSessions&value=" + value, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+            	window.location.href = redirect;
+            }
+        }
+        request.send();
+	});
+	//Foemulaire présence
+	$("#presencePage #location").on( "change", function() {
+		$("#presenceForm").submit();
+	});
 });

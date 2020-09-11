@@ -14,12 +14,14 @@ import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -96,6 +98,9 @@ public class PresenceController {
 	@Autowired
 	TagCheckRepositoryCustom tagCheckRepositoryCustom;
 	
+	@Autowired
+	PrefsRepository prefsRepository;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Resource
@@ -117,6 +122,8 @@ public class PresenceController {
 	HelpService helpService;
 	
 	private final static String ITEM = "presence";
+	
+	private final static String SEE_OLD_SESSIONS = "seeOldSessions";
 	
 	@Autowired
 	ToolUtil toolUtil;
@@ -220,6 +227,8 @@ public class PresenceController {
 				}
 			}
 		});
+		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
+		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
         uiModel.addAttribute("currentLocation", currentLocation);
     	uiModel.addAttribute("nbTagChecksExpected", totalExpected);
     	uiModel.addAttribute("nbTagChecksPresent", totalPresent);
@@ -227,12 +236,13 @@ public class PresenceController {
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("allTagChecks", allTagChecks);
-        uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth));
+        uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("isDateOver", isDateOver);
 		uiModel.addAttribute("eppn", eppn);
 		uiModel.addAttribute("selectAll", totalAll);
+		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
         return "supervisor/index";
     }
     
@@ -241,8 +251,12 @@ public class PresenceController {
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-	
-		List<SessionLocation> sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
+		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, SEE_OLD_SESSIONS);
+		List<SessionLocation> sessionLocationList = null;
+		sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
     	
         return sessionLocationList;
     }
@@ -323,4 +337,16 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
+    
+    @GetMapping("/supervisor/updatePrefs")
+    @ResponseBody
+    public void updatePrefs(@PathVariable String emargementContext, @RequestParam(value ="pref") String pref, @RequestParam(value ="value") String value) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
+        presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
+    }
+    
 }
