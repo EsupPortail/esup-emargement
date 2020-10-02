@@ -48,6 +48,10 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
 	Long countSessionEpreuveIdExpected(String eppn, Date date);
 	
+	@Query(value = "select * from session_epreuve "
+			+ "where date_examen >= :startDate and date_examen <= :endDate", nativeQuery = true)
+	List<SessionEpreuve> getAllSessionEpreuveForCalendar(Date startDate, Date endDate);
+	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
