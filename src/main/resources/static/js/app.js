@@ -1338,14 +1338,13 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#dateSessionEpreuve').datetimepicker({
         format: 'DD/MM/YYYY',
         locale: 'fr',
-        daysOfWeekDisabled: [0, 6],
+        daysOfWeekDisabled: [0],
         useCurrent: false
 
     });
     $('#stringDate').datetimepicker({
         format: 'DD/MM/YYYY',
         locale: 'fr',
-        daysOfWeekDisabled: [0, 6],
         useCurrent: false
 
     });
