@@ -99,12 +99,31 @@ public class ExtractionController {
 	}
 	
 	@GetMapping(value = "/manager/extraction")
-	public String index(Model model){
-		model.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve());
-		model.addAttribute("allComposantes", apogeeService.getComposantes());
-		model.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
-		model.addAttribute("years", importExportService.getYearsUntilNow());
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+	public String index(Model model, @RequestParam(value = "type", required = false) String type){
+		if("apogee".equals(type)) {
+			return redirectTab(model, type);
+		}else if("ldap".equals(type)) {
+			return redirectTab(model, type);
+		}else if("csv".equals(type)) {
+			return redirectTab(model, type);
+		}else if("groupes".equals(type)) {
+			return redirectTab(model, type);
+		}else {
+			return redirectTab(model, "apogee");
+		}
+	}
+	
+	@RequestMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
+    public String redirectTab(Model uiModel, @PathVariable("type") String type ) {
+		uiModel.addAttribute("type", type);
+		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+		uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve());
+		if("apogee".equals(type)) {
+			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
+			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+		}else if("groupes".equals(type)) {
+			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
+		}
 		return "manager/extraction/index";
 	}
 	
@@ -295,6 +314,7 @@ public class ExtractionController {
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("size", helpService.getValueOfKey(ITEM));
+		uiModel.addAttribute("type", "ldap");
     	return "manager/extraction/index";
     }
     
@@ -305,7 +325,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
-    	return String.format("redirect:/%s/manager/extraction", emargementContext);
+    	return String.format("redirect:/%s/manager/extraction/tabs/csv", emargementContext);
     }
     
     @PostMapping("/manager/extraction/importFromApogee")
@@ -319,7 +339,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, null , etape, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
-    	return String.format("redirect:/%s/manager/extraction", emargementContext);
+    	return String.format("redirect:/%s/manager/extraction/tabs/apogee", emargementContext);
     }
     
     @PostMapping("/manager/extraction/importFromLdap")
@@ -330,7 +350,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
-    	return String.format("redirect:/%s/manager/extraction", emargementContext);
+    	return String.format("redirect:/%s/manager/extraction/tabs/ldap", emargementContext);
     }
     
     @PostMapping("/manager/extraction/importFromGroupe")
@@ -342,6 +362,6 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, idGroupe, null, true, null, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
-    	return String.format("redirect:/%s/manager/extraction", emargementContext);
+    	return String.format("redirect:/%s/manager/extraction/tabs/groupes", emargementContext);
     }
 }

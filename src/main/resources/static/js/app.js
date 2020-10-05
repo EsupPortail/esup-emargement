@@ -1004,14 +1004,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 countItem(apogeeBean, countUrlGroupe, "groupe");
             }
         });
-        
-        //Choix lieu import
-        getLocations("Ldap");
-        getLocations("Csv");
-        getLocations("Groupe");
-        getLocations("");
-
     }
+    
+    //Choix lieu import
+    getLocations("Ldap");
+    getLocations("Csv");
+    getLocations("Groupe");
+    getLocations("");
 
     var importUsersLdapform = document.getElementById('importUsersLdapform');
     if (importUsersLdapform != null) {
@@ -1395,27 +1394,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         slimArray.forEach(function(item, index, array) {
         	var select = '#' + item;
-        	 new SlimSelect({
-                 select: select
-             });
+        	if(document.getElementById(item) != null){
+	        	 new SlimSelect({
+	                 select: select
+	             });
+	        }
         });
         
         var slimArraySearchFalse = ['codSes', 'codAnu'];
         slimArraySearchFalse.forEach(function(item, index, array) {
         	var select = '#' + item;
-        	 new SlimSelect({
-                 select: select,
-                 showSearch: false
-             });
+        	if(document.getElementById(item) != null){
+	        	 new SlimSelect({
+	                 select: select,
+	                 showSearch: false
+	             });
+	        }
         });
         	
         var slimArrayEnabled = ['codEtp', 'codElp', 'codExtGpe'];
         slimArrayEnabled.forEach(function(item, index, array) {
         	var select = '#' + item;
-        	var slim = new SlimSelect({
-                 select: select,
-             });
-        	slim.enable();
+        	if(document.getElementById(item) != null){
+	        	var slim = new SlimSelect({
+	                 select: select,
+	             });
+	        	slim.enable();
+        	}
         });
         
     }

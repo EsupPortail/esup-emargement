@@ -8,8 +8,14 @@
            	<div class="card">
 		    	<div class="card-header" id="toto"><h2>Import/export des inscrits</h2></div>
   				<div class="card-body">
+  				    <ul class="nav nav-tabs" role="tablist" >
+					    <li class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
+					    <li class="nav-item"><a th:classappend="${type == 'ldap'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}">LDAP</a></li>
+					    <li class="nav-item"><a th:classappend="${type == 'csv'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/csv(ctx=${eContext})}">CSV</a></li>
+					    <li class="nav-item"><a th:classappend="${type == 'groupes'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/groupes(ctx=${eContext})}">GROUPES</a></li>
+				  	</ul>
   					<div class="row">
-	  					<div class = "col-lg-4">
+	  					<div class = "col-lg-12" th:if="${type == 'apogee'}">
 	  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
 			                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
 				                    <div class="form-group row">
@@ -113,7 +119,7 @@
 			                    </form>
 	                    	</div>
 	                 	 </div>
-	                     <div class = "col-lg-4">
+	                     <div class = "col-lg-12" th:if="${type == 'ldap'}">
 	                     	<div class="bg-light p-3 ">
 	                     		<div class="card-header h3 pl-2 mb-2">Ldap </div>
 			                    <form id="searchLdapGroupForm" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
@@ -181,7 +187,7 @@
 								</form>
 							</div>
 	                    </div>
-						<div class = "col-lg-4">
+	                    <div class = "col-lg-12" th:if="${type == 'csv'}">
 							<div class="bg-light p-3 ">
 								<div class="card-header h3 pl-2 mb-2">Import CSV</div>
 								<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
@@ -227,6 +233,8 @@
 			                        </div>
 								</form>
 							</div>
+						</div>
+						<div class = "col-lg-12" th:if="${type == 'groupes'}">
 	                    	<div class="bg-light p-3 ">
 		                    	<div class="card-header h3 pl-2 mb-2">Groupes locaux</div>
 		                    	<form id="importUsersGroupeForm" name="importUsersGroupeForm" th:action="@{/{ctx}/manager/extraction/csvFromGroupe(ctx=${eContext})}" method="post">
@@ -270,12 +278,12 @@
 			                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
 			                                <button id="importGroupe" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromGroupe(ctx=${eContext})}">
 			                                <span class="spinner-border spinner-border-sm mr-2 statusExportGroupe" role="status" aria-hidden="true"></span>Importer</button>
-			                                <span class="text-danger font-weight-bold statusExportLdap ml-2">Importation en cours ...</span>
+			                                <span class="text-danger font-weight-bold statusExportGroupe ml-2">Importation en cours ...</span>
 			                            </div>
-			                        </div>  		  
+			                        </div>
 								</form>
-		                    </div>                
-		            	</div>
+		                    </div>
+		                </div>               
 	                </div>
 	            </div>
             </div>
