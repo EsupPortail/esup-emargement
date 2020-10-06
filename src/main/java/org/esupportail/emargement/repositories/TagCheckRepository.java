@@ -92,6 +92,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(Long id, String eppn);
 	
+	List<TagCheck> findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(Long id, String eppn);
+	
 	Page<TagCheck> findTagCheckBySessionLocationExpectedIdOrderByTagDate(Long id, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionLocationExpectedIdAndPersonEppnEqualsOrSessionLocationBadgedIdAndPersonEppnEquals(Long id, String eppn, Long id1, String eppn1, Pageable pageable);

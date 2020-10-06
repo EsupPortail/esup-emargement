@@ -551,7 +551,7 @@ public class TagCheckService {
 		if("isTagable".equals(action)) {
 			log.info("isTagable pour l'eppn : " + eppn);
 			Long tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn, date, splitLocationNom[0]);
-			
+			boolean isUnknown = false;
 			if (tc ==1) {
 				isOk = true;
 			}else {
@@ -565,13 +565,15 @@ public class TagCheckService {
 					//on regarde si la personne est dans une autre salle de la session
 					Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
 					Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
+					SessionLocation sl = null;
+					Long seId = null;
 					if(sessionLocationId != null) {
-						SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+						sl = sessionLocationRepository.findById(sessionLocationId).get();
 						comment = "Inconnu dans cette salla, Salle atttendue : " +  sl.getLocation().getNom();
 					}
 					else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
 						LocalTime now = LocalTime.now();
-						Long seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
+						seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
 						String lieu = " Autre session ans la journée";
 						if(seId != null) {
 							SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
@@ -586,35 +588,45 @@ public class TagCheckService {
 							comment = "Inconnu dans cette session " + lieu;
 						}else {
 							comment = "Inconnu dans cette session, Attendue dans une autre session aujourd'hui";
+							isUnknown = true;
 						}
 					}else { //Il est vraiment inconnu!!!
 						comment = "Inconnu";
+						isUnknown = true;
 					}
 					log.info("On enregistre l'inconnu dans la session : " +  eppn);
-					
-					TagCheck unknownTc = new TagCheck();
-					unknownTc.setComment(comment);
-					unknownTc.setSessionEpreuve(sessionEpreuve);
-					unknownTc.setContext(ctx);
-					Person p = personRepository.findByEppnAndContext(eppn, ctx);
-					if(p == null) {
-						p = new Person();
-						p.setContext(ctx);
-						p.setEppn(eppn);
-						personRepository.save(p);
+					TagCheck unknownTc = null;
+					if(sl != null || seId != null || isUnknown) {
+						List<TagCheck> badgedTcs = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(sessionLocationBadged.getId(), eppn);
+						if(!badgedTcs.isEmpty()) {
+							unknownTc = badgedTcs.get(0);
+							unknownTc.setTagDate(new Date());
+						}else {
+							unknownTc = new TagCheck();
+							unknownTc.setComment(comment);
+							unknownTc.setSessionEpreuve(sessionEpreuve);
+							unknownTc.setContext(ctx);
+							Person p = personRepository.findByEppnAndContext(eppn, ctx);
+							if(p == null) {
+								p = new Person();
+								p.setContext(ctx);
+								p.setEppn(eppn);
+								personRepository.save(p);
+							}
+							List<UserLdap> users = userLdapRepository.findByEppnEquals(eppn);
+							if(!users.isEmpty()) {
+								p.setType((users.get(0).getNumEtudiant()!=null)? "student" : "staff");
+								p.setNumIdentifiant(users.get(0).getNumEtudiant());
+							}
+							unknownTc.setPerson(p);
+							unknownTc.setTagChecker(tagChecker);
+							unknownTc.setSessionLocationBadged(sessionLocationBadged);
+							unknownTc.setTagDate(new Date());
+							unknownTc.setIsCheckedByCard(true);
+						}
+						tagCheckRepository.save(unknownTc);
+						dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation());
 					}
-					List<UserLdap> users = userLdapRepository.findByEppnEquals(eppn);
-					if(!users.isEmpty()) {
-						p.setType((users.get(0).getNumEtudiant()!=null)? "student" : "staff");
-						p.setNumIdentifiant(users.get(0).getNumEtudiant());
-					}
-					unknownTc.setPerson(p);
-					unknownTc.setTagChecker(tagChecker);
-					unknownTc.setSessionLocationBadged(sessionLocationBadged);
-					unknownTc.setTagDate(new Date());
-					unknownTc.setIsCheckedByCard(true);
-					tagCheckRepository.save(unknownTc);
-					dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation());	
 				} catch (Exception e) {
 					log.error("Problème de carte pour l'eppn : "  + eppn, e);
 				}
