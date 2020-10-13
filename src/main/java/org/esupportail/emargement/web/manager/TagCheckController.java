@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserLdap;
@@ -150,8 +151,10 @@ public class TagCheckController {
 		if(!eppn.isEmpty() || repartitionId !=null || !tempsAmenage.isEmpty()) {
 			collapse = "show";
 		}
+		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+		model.addAttribute("isSessionLibre", se.getIsSessionLibre());
         model.addAttribute("tagCheckPage", tagCheckPage);
-        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(id).get().isSessionEpreuveClosed);
+        model.addAttribute("isSessionEpreuveClosed", se.isSessionEpreuveClosed);
 		model.addAttribute("paramUrl", String.valueOf(id));
 		model.addAttribute("countTagChecks", count);
 		model.addAttribute("tempsAmenage",tempsAmenage);

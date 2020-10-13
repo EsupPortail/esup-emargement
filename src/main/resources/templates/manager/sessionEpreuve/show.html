@@ -13,6 +13,8 @@
 			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></dd>					
 			            <dt class="col-sm-2">Nom</dt>
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.nomSessionEpreuve}"></dd>
+			            <dt class="col-sm-2">Type</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.type}"></dd>
 			            <dt class="col-sm-2">Clôturée</dt>
 			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></dd>
 			            <dt class="col-sm-2 mt-2">Procuration activée</dt>

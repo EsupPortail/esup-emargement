@@ -235,15 +235,20 @@ public class SessionEpreuveController {
     
     @GetMapping(value = "/manager/sessionEpreuve/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
-    	SessionEpreuve SessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	populateEditForm(uiModel, SessionEpreuve, null);
+    	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
+    	populateEditForm(uiModel, sessionEpreuve, null);
+    	boolean isSessionLibreDisabled = true;
+    	if(sessionEpreuve.getIsSessionLibre() || tagCheckRepository.countTagCheckBySessionEpreuveId(id) == 0) {
+    		isSessionLibreDisabled = false;
+    	}
+    	uiModel.addAttribute("isSessionLibreDisabled", isSessionLibreDisabled);
         return "manager/sessionEpreuve/update";
     }
     
-    void populateEditForm(Model uiModel, SessionEpreuve SessionEpreuve, String anneeUniv) {
+    void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv) {
     	uiModel.addAttribute("types", sessionEpreuveService.getListTypeSessionEpreuve());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
-        uiModel.addAttribute("sessionEpreuve", SessionEpreuve);
+        uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("anneeUniv", anneeUniv);

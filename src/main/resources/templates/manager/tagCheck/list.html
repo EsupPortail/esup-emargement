@@ -22,10 +22,10 @@
 										<div class="row mt-3 ml-2 float-right">
 											<button th:if="${countTagChecks>0}" class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
 											<span class="btn-separator" th:if="${countTagChecks>0}"></span>	
-											<a th:if="${!isSessionEpreuveClosed}" title="Ajouter un inscrit" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+											<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
 							    				class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>
 							    			<a th:if="${!isSessionEpreuveClosed}" title="Ajouter inscrits dans un groupe" data-toggle="modal"  data-target="#groupeModal" class="btn btn-primary ml-2"><i class="fa fa-users fa-lg"></i></a>
-											<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}"
+											<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and !isSessionLibre}"
 												class="btn btn-warning ml-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
 											<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
 												class="btn btn-danger ml-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
@@ -38,7 +38,8 @@
 									</div>
 								</div>
 							</div>
-							<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countTagChecks>0}">
+							<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
+										or countCheckedBycard > 0 or notInLdap > 0}">
 								<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger mr-2" th:text="${'A répartir : ' + countRepartition}"></span>
 								<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger mr-2" th:text="${'Intrus : ' + countUnknown}"></span>
 								<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>

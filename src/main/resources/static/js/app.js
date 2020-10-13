@@ -737,10 +737,6 @@ document.addEventListener('DOMContentLoaded', function() {
     var numIdentifiant = document.getElementById("numIdentifiant");
     var superAdmin = document.getElementById("searchSuperAdmin");
     var searchSuEppn = document.getElementById("searchSuEppn");
-    
- /*   if(searchSuEppn !=null){
-    	searchUsersAutocomplete("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "", 100);
-    }*/
 
     if (userAppPrenom != null) {
         if (superAdmin != null) {
@@ -1163,7 +1159,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }else if (document.getElementById("searchSuEppn") != null) {
         submitSearchForm("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "");
     }
-
+    if (document.getElementById("searchLdap") != null) {
+        submitSearchForm("searchLdap", emargementContextUrl + "/supervisor/searchUsersLdap", "");
+    }
+    
     //Affiche modal present
     var photoModal = document.getElementById('photoModal');
     if (photoModal != null) {
@@ -1635,7 +1634,6 @@ document.addEventListener('DOMContentLoaded', function() {
     //Changement année univ
     $("#anneeUnivSelect").on("change",  function (e) {
     	var annee = this.value;
-    	console.log(window.location);
     	window.location.href = window.location.pathname + "?anneeUniv=" + annee;
     });
     
@@ -1694,7 +1692,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	$(document).on('change', '#oldSessionsCheck', function() {
 		var value = (this.checked) ? "true" : "false";
 		var redirect = window.location.origin + window.location.pathname;
-		console.log(url);
         var request = new XMLHttpRequest();
         request.open('GET', emargementContextUrl + "/supervisor/updatePrefs?pref=seeOldSessions&value=" + value, true);
         request.onload = function() {
@@ -1707,5 +1704,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	//Foemulaire présence
 	$("#presencePage #location").on( "change", function() {
 		$("#presenceForm").submit();
+	});
+	$("#searchTagCheck").on( "change", function() {
+		$("#formSearchTc").submit();
 	});
 });

@@ -117,7 +117,7 @@ public class ExtractionController {
     public String redirectTab(Model uiModel, @PathVariable("type") String type ) {
 		uiModel.addAttribute("type", type);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-		uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve());
+		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
 		if("apogee".equals(type)) {
 			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());

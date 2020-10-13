@@ -50,6 +50,8 @@ public class SessionEpreuve implements ContextSupport {
     
     public Boolean isProcurationEnabled = false;
     
+    public Boolean isSessionLibre = false;
+    
     @ManyToOne
     private Campus campus;
     
@@ -273,6 +275,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setIsProcurationEnabled(Boolean isProcurationEnabled) {
 		this.isProcurationEnabled = isProcurationEnabled;
+	}
+
+	public Boolean getIsSessionLibre() {
+		return isSessionLibre;
+	}
+
+	public void setIsSessionLibre(Boolean isSessionLibre) {
+		this.isSessionLibre = isSessionLibre;
 	}
 
 	public String getComment() {

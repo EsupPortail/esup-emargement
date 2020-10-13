@@ -323,4 +323,44 @@ public class PresenceService {
 		}
 		prefsRepository.save(pref);
 	}
+	
+	public void saveTagCheckSessionLibre(Long slId, String eppn, String emargementContext, SessionLocation sl) {
+		
+    	List<TagCheck> existingTc = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(slId, eppn);
+    	
+    	if(existingTc.isEmpty()) {
+    		Long nbTc =  tagCheckRepository.countBySessionLocationExpectedId(slId);
+    		if(nbTc < sl.getCapacite()){
+		    	List<Person> list = personRepository.findByEppn(eppn);
+		    	Context context = contextRepository.findByContextKey(emargementContext);
+		    	Person p = null;
+		    	UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+		    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		    	UserLdap authUser = userLdapRepository.findByUid(auth.getName()).get(0);
+		    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
+		    	if(!list.isEmpty()) {
+		    		p = list.get(0);
+		    	}else {
+		    		p = new Person();
+		    		p.setEppn(eppn);
+		    		p.setContext(context);
+		    		String type = (user.getNumEtudiant() == null)? "staff" : "qtudent";
+		    		p.setType(type);
+		    		p.setNumIdentifiant(user.getNumEtudiant());
+		    		personRepository.save(p);
+		    	}
+		    	TagCheck tc = new TagCheck();
+		    	tc.setContext(context);
+		    	tc.setIsCheckedByCard(false);
+		    	tc.setPerson(p);
+		    	tc.setSessionEpreuve(sl.getSessionEpreuve());
+		    	tc.setSessionLocationBadged(sl);
+		    	tc.setSessionLocationExpected(sl);
+		    	tc.setTagChecker(tagChecker);
+		    	tc.setTagDate(new Date());
+		    	tc.setIsTiersTemps(sl.getIsTiersTempsOnly());
+		    	tagCheckRepository.save(tc);
+    		}
+    	}
+	}
 }

@@ -6,10 +6,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.opencsv.CSVParserBuilder;
@@ -21,6 +26,9 @@ import com.opencsv.CSVReaderBuilder;
 public class ImportExportService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	public  List<List<String>>  readAll(Reader reader) throws Exception {
 		char separator = ';';
@@ -55,6 +63,20 @@ public class ImportExportService {
 		}
 		Collections.reverse(years);
 		return years;
+	}
+	
+	public List<SessionEpreuve> getNotFreeSessionEpreuve(){
+		List<SessionEpreuve> newSe = new LinkedList<SessionEpreuve>();
+		
+		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve();
+		if(!se.isEmpty()) {
+			for (SessionEpreuve item : se) {
+				if(!item.getIsSessionLibre()) {
+					newSe.add(item);
+				}
+			}
+		}
+		return newSe;
 	}
 
 }

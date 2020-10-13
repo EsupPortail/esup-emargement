@@ -13,23 +13,29 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeSessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
+import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -84,10 +90,16 @@ public class PresenceController {
 	PersonRepository personRepository;
 	
 	@Autowired
+	ContextRepository contextRepository;
+	
+	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	private TagCheckerRepository tagCheckerRepository;
 	
     @Resource
     UserLdapRepository userLdapRepository;
@@ -100,6 +112,9 @@ public class PresenceController {
 	
 	@Autowired
 	PrefsRepository prefsRepository;
+	
+	@Resource
+	LdapService ldapService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -141,7 +156,8 @@ public class PresenceController {
     		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
 
         uiModel.asMap().clear();
-        
+        boolean isSessionLibre = false;
+        boolean isCapaciteFull = false;
 		Page<TagCheck> tagCheckPage = null;
 		Long totalExpected = new Long(0) ;
 		Long totalAll = new Long(0) ;
@@ -169,7 +185,7 @@ public class PresenceController {
 		    		//The list is not modifiable, obviously your client method is creating an unmodifiable list (using e.g. Collections#unmodifiableList etc.). Simply create a modifiable list before sorting:
 		    		List<TagCheck> modifiableList = new ArrayList<TagCheck>(tagCheckPage.getContent());
 		    		Page <TagCheck> page = new PageImpl<TagCheck>(modifiableList, toolUtil.updatePageable(pageable, size), Long.valueOf(modifiableList.size()));
-		        	uiModel.addAttribute("sessionLocation", sessionLocationRepository.findById(sessionLocationId).get());
+		        	
 		        	totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
 		        	totalNonRepartis = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNull(sessionEpreuve.getId());
 		        	totalNotExpected = tagCheckRepository.countTagCheckBySessionLocationExpectedIdIsNullAndSessionLocationBadgedId(sessionLocationId);
@@ -179,6 +195,11 @@ public class PresenceController {
 		        	}
 		        	uiModel.addAttribute("percent", percent);
 		        	uiModel.addAttribute("tagCheckPage", page);
+    			}
+    			SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+    			uiModel.addAttribute("sessionLocation", sl);
+    			if(totalPresent>=sl.getCapacite()) {
+    				isCapaciteFull = true;
     			}
 	        }
     		currentLocation = sessionLocationId.toString();
@@ -227,14 +248,19 @@ public class PresenceController {
 				}
 			}
 		});
+		if(sessionEpreuve != null ) {
+			isSessionLibre = sessionEpreuve.getIsSessionLibre();
+		}
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
+		uiModel.addAttribute("isCapaciteFull", isCapaciteFull);
         uiModel.addAttribute("currentLocation", currentLocation);
     	uiModel.addAttribute("nbTagChecksExpected", totalExpected);
     	uiModel.addAttribute("nbTagChecksPresent", totalPresent);
     	uiModel.addAttribute("nbNonRepartis", totalNonRepartis);
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+        uiModel.addAttribute("isSessionLibre", isSessionLibre);
         uiModel.addAttribute("allTagChecks", allTagChecks);
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addAttribute("active", ITEM);
@@ -349,4 +375,27 @@ public class PresenceController {
         presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
     }
     
+    @GetMapping("/supervisor/searchUsersLdap")
+    @ResponseBody
+    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	userAppsList = ldapService.search(searchValue);
+    	
+        return userAppsList;
+    }
+    
+    @PostMapping("/supervisor/add")
+    public String addFreeUser(@PathVariable String emargementContext, @RequestParam("slId") Long slId, @RequestParam("eppn") String eppn) {
+    	
+    	SessionLocation sl = sessionLocationRepository.findById(slId).get();
+    	
+    	presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
+
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			sl.getSessionEpreuve().getId(), slId);
+    }
+    		
+    		
 }

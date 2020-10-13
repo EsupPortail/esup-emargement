@@ -212,3 +212,9 @@ table thead.sticky-top {
 .ss-main .ss-single-selected .placeholder .ss-disabled {
     color: red!important;
 }
+.big{
+	font-size: 1em
+}
+#awesomplete_list_1, #awesomplete_list_2{
+	z-index: 500000;
+}
