@@ -203,6 +203,19 @@ public class PresenceController {
     			}
 	        }
     		currentLocation = sessionLocationId.toString();
+    		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
+    		tagCheckService.setNomPrenomTagChecks(allTagChecks);
+    		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {
+    			@Override
+                public int compare(TagCheck obj1, TagCheck obj2) {
+    				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
+    					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
+    				}else {
+    					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
+    				}
+    			}
+    		});
+    		uiModel.addAttribute("allTagChecks", allTagChecks);
         }
         if(tc !=null) {
         	uiModel.addAttribute("tagCheck", tagCheckRepository.findById(tc).get());
@@ -235,19 +248,6 @@ public class PresenceController {
 	    	uiModel.addAttribute("isOver", isOver);
 	    	uiModel.addAttribute("maxProxyPerson", appliConfigService.getMaxProcurations());
 		}
-		
-		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
-		tagCheckService.setNomPrenomTagChecks(allTagChecks);
-		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {	
-			@Override
-            public int compare(TagCheck obj1, TagCheck obj2) {
-				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
-					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
-				}else {
-					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
-				}
-			}
-		});
 		if(sessionEpreuve != null ) {
 			isSessionLibre = sessionEpreuve.getIsSessionLibre();
 		}
@@ -261,7 +261,7 @@ public class PresenceController {
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("isSessionLibre", isSessionLibre);
-        uiModel.addAttribute("allTagChecks", allTagChecks);
+        
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
