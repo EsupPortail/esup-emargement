@@ -36,14 +36,6 @@ public class SessionEpreuve implements ContextSupport {
 	@ManyToOne
 	private Context context;
 	
-	public static enum TypeSessionEpreuve {
-		TD, TP, CM, EX, RE, FR, OT
-	}
-	
-	@Column
-    @Enumerated(EnumType.STRING)
-    private TypeSessionEpreuve type = TypeSessionEpreuve.TD;
-	
     private String nomSessionEpreuve;
     
     public Boolean isSessionEpreuveClosed = false;
@@ -51,6 +43,9 @@ public class SessionEpreuve implements ContextSupport {
     public Boolean isProcurationEnabled = false;
     
     public Boolean isSessionLibre = false;
+    
+    @ManyToOne
+    private TypeSession typeSession;
     
     @ManyToOne
     private Campus campus;
@@ -261,14 +256,6 @@ public class SessionEpreuve implements ContextSupport {
 		this.anneeUniv = anneeUniv;
 	}
 
-	public TypeSessionEpreuve getType() {
-		return type;
-	}
-
-	public void setType(TypeSessionEpreuve type) {
-		this.type = type;
-	}
-
 	public Boolean getIsProcurationEnabled() {
 		return isProcurationEnabled;
 	}
@@ -316,4 +303,13 @@ public class SessionEpreuve implements ContextSupport {
 	public void setLoginArchivage(String loginArchivage) {
 		this.loginArchivage = loginArchivage;
 	}
+
+	public TypeSession getTypeSession() {
+		return typeSession;
+	}
+
+	public void setTypeSession(TypeSession typeSession) {
+		this.typeSession = typeSession;
+	}
+	
 }

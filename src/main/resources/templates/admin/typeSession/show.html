@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header"><h2>Type de session</h2></div>
+	 			<div class="card-body">
+					<dl class="row">
+			            <dt class="col-sm-2">Code</dt>
+			            <dd class="col-sm-10" th:text="${typeSession.key}"></dd>
+			            <dt class="col-sm-2">Libellé</dt>
+			            <dd class="col-sm-10" th:text="${typeSession.libelle}"></dd>			   
+			            <dt class="col-sm-2">Commentaire</dt>
+			            <dd class="col-sm-10" th:text="${typeSession.comment}"></dd>
+			            <dt class="col-sm-2">Date de modification</dt>
+			            <dd class="col-sm-10" th:text="${#dates.format(typeSession.dateModification, 'dd-MM-yyyy')}"></dd>
+			            <dt class="col-sm-2">Natif</dt>
+			            <dd class="col-sm-10"><i th:class="${typeSession.addByAdmin} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

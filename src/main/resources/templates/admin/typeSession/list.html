@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+         	<div class="card">
+  				<div class="card-body">
+		    		<div class="card-header">
+		    			<div class="row">
+				    		<div class="col-lg-2">
+						    	<h2>Type de session </h2>
+						    </div>
+						    <div class="col-lg-10">
+							    <div class="row mt-3 ml-2 float-right">
+							    	<a th:href="@{/{ctx}/admin/typeSession?form(ctx=${eContext})}" class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>
+							    </div>
+						    </div> 
+		    			</div>
+		    		</div>	
+		    		<div  class="alert alert-danger" th:if="${error}">Un type de session avec cette clé existe déjà</div>
+								<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkTypeSession)}" >Les types de session ne sont pas à jour, il manque : <span class="font-weight-bold" th:text="${checkTypeSession}"></span>
+									<a th:href="@{/{ctx}/admin/typeSession/updateTypes(ctx=${eContext})}" class="btn btn-warning ml-3">Mettre à jour</a>		
+								</div>
+								<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold" th:text="${nbUpdate + ' '}"></span>type de sessions ajoutée(s)</div>	
+					<table class="table table-hover table-striped table-bordered">
+						<thead class="sticky-top">
+							<tr>
+								<th scope="col">Code</th>
+								<th  scope="col">Libellé</th>
+								<th class ="center" scope="col"><a class="sorted" sd:pagination-sort="addByAdmin">Natif</a></th>
+								<th class ="center" scope="col">Date de modification</th>
+								<th scope="col">Commentaire</th>
+								<th class ="center" scope="col">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="type : ${typeSessionPage}" >
+								<td th:text="${type.key}"></td>
+								<td th:text="${type.libelle}"></td>
+								<td class ="center"><i th:class="${type.addByAdmin} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+								<td class ="center" th:text="${#dates.format(type.dateModification, 'dd-MM-yyyy')}"></td>
+								<td th:text="${type.comment}"></td>
+								<td class ="center"><a th:href="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<a class ="ml-2" th:href="@{/{ctx}/admin/typeSession/{id}?form(id=${type.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
+									<a class ="ml-2" th:if="${!type.addByAdmin}" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${type.id }"><i class="fa fa-trash text-danger"></i></a>
+									<div class="modal modal-warning fade in" th:id="modal-warning+${type.id}" >
+									    <div class="modal-dialog">
+									        <div class="modal-content">
+									        	<form id="command" th:action="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}" method="POST">
+										        	<input type="hidden" name="_method" value="delete" />
+										            <div class="modal-header">
+										                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												          <span aria-hidden="true">&times;</span>
+												        </button>
+										            </div>
+										            <div class="modal-body">
+										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce type : <br />
+										                	 <span th:text="${type.libelle}" class="font-weight-bold"></span> ?</div>
+										            </div>
+										            <div class="modal-footer">
+										                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+										            </div>
+									            </form>
+									        </div>
+									    </div>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

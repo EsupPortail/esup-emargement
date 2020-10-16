@@ -23,6 +23,7 @@ import org.esupportail.emargement.repositories.EventRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
+import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EventService;
@@ -77,6 +78,9 @@ public class SessionEpreuveController {
 	
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired	
+	TypeSessionRepository typeSessionRepository;
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
@@ -246,7 +250,7 @@ public class SessionEpreuveController {
     }
     
     void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv) {
-    	uiModel.addAttribute("types", sessionEpreuveService.getListTypeSessionEpreuve());
+    	uiModel.addAttribute("types", typeSessionRepository.findAll());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());

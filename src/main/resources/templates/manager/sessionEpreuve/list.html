@@ -35,7 +35,7 @@
 							<thead class ="center sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateExamen">Date</a></th>
-									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="type">Type</a></th>
+									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="isSessionEpreuveClosed">Cloturée</a></th>
 									<th scope="col" class="d-none d-xl-table-cell">Libre</th>
@@ -58,7 +58,7 @@
 							<tbody class ="center">
 								<tr th:each="sessionEpreuve : ${sessionEpreuvePage}" th:classappend="${sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${sessionEpreuve.id}">
 									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}">Date</td>
-									<td th:text="${sessionEpreuve.type}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
@@ -84,9 +84,9 @@
 									</td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" 
 										th:classappend="${!sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.nbDispatchTagCheck != sessionEpreuve.nbInscritsSession}? 'bg-warning' : ''">
-										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.type.name()  != 'FR'}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
+										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed and !sessionEpreuve.isSessionLibre}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
 										<i class="fa fa-exchange-alt text-primary mr-2"></i></a>
-										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.type.name()  == 'FR'}" class="fa fa-exchange-alt disabled  mr-2"></i>
+										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.isSessionLibre}" class="fa fa-exchange-alt disabled  mr-2"></i>
 										<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
 									</td>
 									<td class="d-none d-xl-table-cell">
