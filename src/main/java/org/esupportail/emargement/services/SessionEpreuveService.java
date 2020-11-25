@@ -616,6 +616,7 @@ public class SessionEpreuveService {
 	 
 	 public boolean sendParticipationLink(SessionLocation sl, String emargemenContext, String eppnTagChecker, String eppn) {
 		 boolean isSent = false;
+		 int i = 0;
 		 try {
 			//verifier si c'est une sesion mixte ou à distance
 			 SessionEpreuve se = sl.getSessionEpreuve();
@@ -643,13 +644,17 @@ public class SessionEpreuveService {
 						 body = body.replaceAll("@@session@@", session);
 						 body = body.replaceAll("@@link@@", link);
 						 emailService.sendSimpleMessage(from, user.getEmail(), subject, body, myStringArray);
+						 i++;
 					 }
 				 }
+			
+				 isSent = true;
+				 log.info("envoi du lien de téléchargement réussi");
+				 logService.log(ACTION.SEND_LINK, RETCODE.SUCCESS, " Nombre " + tcs.size(), eppnTagChecker, null, emargemenContext, null);
 			 }
-			 isSent = true;
-			 log.info("envoi du lien de téléchargement réussi");
 		} catch (Exception e) {
 			log.error("problème d'envoi du lien de participation", e);
+			logService.log(ACTION.SEND_LINK, RETCODE.FAILED, "Envoyés : " + i, eppnTagChecker, null, emargemenContext, null);
 		}
 		return isSent;
 	 }
