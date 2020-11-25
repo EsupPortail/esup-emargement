@@ -20,7 +20,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
@@ -82,16 +81,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	        .regexMatchers("/")
 	        .permitAll()
 	        .and()
-	        
 	        .httpBasic()
 	        .authenticationEntryPoint(authenticationEntryPoint)
 	        .and()
 	        .logout().logoutSuccessUrl("/logout")
 	        .and()
-	        .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class)
 	        .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
 	        .addFilterBefore(logoutFilter, LogoutFilter.class)
-	       
 	        .csrf().disable();
 
 	}

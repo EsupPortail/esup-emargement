@@ -26,7 +26,6 @@ import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
@@ -95,9 +94,6 @@ public class PresenceController {
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
 	
-	@Autowired
-	private TagCheckerRepository tagCheckerRepository;
-	
     @Resource
     UserLdapRepository userLdapRepository;
     
@@ -162,6 +158,7 @@ public class PresenceController {
 		Long totalNonRepartis = new Long(0) ;
 		Long totalNotExpected = new Long(0) ;
 		String currentLocation = null;
+		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
@@ -263,6 +260,7 @@ public class PresenceController {
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("isDateOver", isDateOver);
+		uiModel.addAttribute("isTodaySe", isTodaySe);
 		uiModel.addAttribute("eppn", eppn);
 		uiModel.addAttribute("selectAll", totalAll);
 		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
@@ -274,10 +272,6 @@ public class PresenceController {
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
-		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, SEE_OLD_SESSIONS);
 		List<SessionLocation> sessionLocationList = null;
 		sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
     	
@@ -341,8 +335,7 @@ public class PresenceController {
     }
     
     @PostMapping("/supervisor/saveProcuration")
-    public String saveProcuration(@PathVariable String emargementContext, @RequestParam("substituteId") Long substituteId, @RequestParam("tcId") Long id , 
-    		final RedirectAttributes redirectAttributes) {
+    public String saveProcuration(@PathVariable String emargementContext, @RequestParam("substituteId") Long substituteId, @RequestParam("tcId") Long id) {
     	
     	TagCheck tc = tagCheckRepository.findById(id).get();
     	Person p  = null;
@@ -394,5 +387,19 @@ public class PresenceController {
     			sl.getSessionEpreuve().getId(), slId);
     }
     		
-    		
+    @GetMapping(value = "/supervisor/sendEmailTc")
+	public String sendEmailTagCheck(@PathVariable String emargementContext, @RequestParam("location") Long slId, @RequestParam(value="eppn", required = false) String eppn, final RedirectAttributes redirectAttributes) {
+    	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppnTagChecker = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
+		//Verifier si surveillant et si session à distance et aujourd'hui
+    	SessionLocation sl = sessionLocationRepository.findById(slId).get();
+    	
+    	boolean isSent = sessionEpreuveService.sendParticipationLink(sl, emargementContext, eppnTagChecker, eppn);
+		
+    	redirectAttributes.addFlashAttribute("isSent", isSent);
+    	
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 	sl.getSessionEpreuve().getId(), slId);
+	}
 }

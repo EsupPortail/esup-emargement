@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
@@ -39,6 +39,7 @@
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="isSessionEpreuveClosed">Cloturée</a></th>
 									<th scope="col" class="d-none d-xl-table-cell">Libre</th>
+									<th scope="col" class="d-none d-xl-table-cell">A distance</th>
 									<th scope="col" class="hiddenBlock">Archivée</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >Inscrits</th>
@@ -62,6 +63,7 @@
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
+									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionADistance} ? 'fa fa-check text-success' :''"></i></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.dateArchivage != null} ? 'fa fa-check text-success' :''"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
@@ -88,7 +88,7 @@
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="isCheckedByCard">Badgeage</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>

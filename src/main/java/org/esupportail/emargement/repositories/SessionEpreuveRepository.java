@@ -58,6 +58,18 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve <= :now and fin_epreuve >= :now", nativeQuery = true)
 	Long getSessionEpreuveIdExpected(String eppn, Date date, LocalTime now);
 	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve >= :now and  heure_convocation <= :now", nativeQuery = true)
+	Long checkIsBeforeSession(String eppn, Date date, LocalTime now);
+	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+	+ "where tag_check.person_id = person.id "
+	+ "and session_epreuve.id = tag_check.session_epreuve_id "
+	+ "and person.eppn= :eppn and date_examen= :date and  heure_convocation > :now", nativeQuery = true)
+	Long checkIsBeforeConvocation(String eppn, Date date, LocalTime now);
+	
 	@Query(value = "select date_examen from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId order by date_examen limit 1;", nativeQuery = true)
 	Date findFirstDateExamen(String anneeUniv, Long ctxId);
 	

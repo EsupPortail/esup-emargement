@@ -59,6 +59,8 @@ public class TagCheck implements ContextSupport {
     
     private Boolean isCheckedByCard;
     
+    private Boolean isCheckedByLink = false;
+    
     private Boolean isUnknown = false;
     
     @ManyToOne
@@ -67,6 +69,8 @@ public class TagCheck implements ContextSupport {
     private String codeEtape;
     
     private Boolean checkLdap = true;
+    
+    private String sessionToken;
 
 	public Long getId() {
 		return id;
@@ -210,6 +214,22 @@ public class TagCheck implements ContextSupport {
 
 	public void setCheckLdap(Boolean checkLdap) {
 		this.checkLdap = checkLdap;
+	}
+
+	public String getSessionToken() {
+		return sessionToken;
+	}
+
+	public void setSessionToken(String sessionToken) {
+		this.sessionToken = sessionToken;
+	}
+
+	public Boolean getIsCheckedByLink() {
+		return isCheckedByLink;
+	}
+
+	public void setIsCheckedByLink(Boolean isCheckedByLink) {
+		this.isCheckedByLink = isCheckedByLink;
 	}
 	
 }

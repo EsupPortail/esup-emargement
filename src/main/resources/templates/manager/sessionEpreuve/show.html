@@ -17,6 +17,10 @@
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.typeSession.key}"></dd>
 			            <dt class="col-sm-2">Clôturée</dt>
 			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></dd>
+			            <dt class="col-sm-2">Session libre</dt>
+			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></dd>
+			            <dt class="col-sm-2">Session A distance</dt>
+			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isSessionADistance} ? 'fa fa-check text-success' :''"></i></dd>
 			            <dt class="col-sm-2 mt-2">Procuration activée</dt>
 			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.isProcurationEnabled} ? 'fa fa-check text-success' :''"></i></dd>   
 			            <dt class="col-sm-2">Lieux</dt>
@@ -55,7 +59,6 @@
 							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  mr-2"></i>
 							<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
 			            </dd>
-			            
 			            <dt class="col-sm-2">Présence</dt>
 			            <dd class="col-sm-10">
 							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center">

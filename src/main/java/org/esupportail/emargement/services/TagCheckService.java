@@ -533,7 +533,8 @@ public class TagCheckService {
 						null, emargementContext, null);
 				if(isSendToManager && ccArray.length>0){
 					bodyMsg = "Liste des eppn en erreur : " + StringUtils.join(errors, ",");
-					emailService.sendSimpleMessage(ccArray[0], "Erreurs d'envoi de convocations", bodyMsg, ccArray);
+					String from = appliConfigService.getNoReplyAdress();
+					emailService.sendSimpleMessage(from, ccArray[0], "Erreurs d'envoi de convocations", bodyMsg, ccArray);
 				}
 			}
 		}
@@ -823,7 +824,6 @@ public class TagCheckService {
 	        		String badged  = "--";
 	        		String tiersTemps  = "--";
 	        		String dateSessionEpreuve = "";
-	        		String nomSessionEpreuve = "";
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		PdfPCell dateCell = null;
 	        		if(tc.getTagDate() != null) {
@@ -938,11 +938,9 @@ public class TagCheckService {
 	        		String badged  = "--";
 	        		String attendu  = "--";
 	        		String tiersTemps  = "--";
-	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		if(tc.getTagDate() != null) {
 	        			presence = "Présent";
 	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
-	        			b = new BaseColor(19, 232, 148, 50);
 	        		}
 	        		if(tc.getSessionLocationExpected()!=null) {
 	        			attendu = tc.getSessionLocationExpected().getLocation().getNom();

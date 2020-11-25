@@ -280,6 +280,7 @@ public class PresenceService {
     	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
     	presentTagCheck.setContext(contextService.getcurrentContext());
     	presentTagCheck.setIsCheckedByCard((!isPresent)? null : false);
+    	presentTagCheck.setIsCheckedByLink((!isPresent)? null : false);
     	tagCheckRepository.save(presentTagCheck);
     	List<TagCheck> list = new ArrayList<TagCheck>();
     	list.add(presentTagCheck);

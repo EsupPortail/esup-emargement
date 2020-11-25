@@ -1708,4 +1708,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	$("#searchTagCheck").on( "change", function() {
 		$("#formSearchTc").submit();
 	});
+	
+    var dialogMsg = document.querySelector('#modalUser');
+    if (dialogMsg != null) {
+        $('#modalUser').modal('show');
+    }
 });

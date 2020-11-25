@@ -39,7 +39,7 @@ public class AppliConfigService {
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
-		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR, CONVOC_ENABLED
+		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR, CONVOC_ENABLED, EMAIL_LINK_EMARGER, NO_REPLY_ADRESS
 	}
 	
 	public List<String> getTypes() {
@@ -150,6 +150,16 @@ public class AppliConfigService {
 	public Boolean isConvocationEnabled() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_ENABLED);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public String getLinkEmailEmarger() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.EMAIL_LINK_EMARGER);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getNoReplyAdress() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.NO_REPLY_ADRESS);
+		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

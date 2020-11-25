@@ -7,8 +7,6 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -43,6 +41,8 @@ public class SessionEpreuve implements ContextSupport {
     public Boolean isProcurationEnabled = false;
     
     public Boolean isSessionLibre = false;
+    
+    public Boolean isSessionADistance = false;
     
     @ManyToOne
     private TypeSession typeSession;
@@ -310,6 +310,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setTypeSession(TypeSession typeSession) {
 		this.typeSession = typeSession;
+	}
+
+	public Boolean getIsSessionADistance() {
+		return isSessionADistance;
+	}
+
+	public void setIsSessionADistance(Boolean isSessionADistance) {
+		this.isSessionADistance = isSessionADistance;
 	}
 	
 }

@@ -7,16 +7,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Help;
 import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
-import org.esupportail.emargement.services.TypeSessionService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.TypeSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

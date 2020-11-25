@@ -176,6 +176,12 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long  countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(Long id);
 	
+	Long countTagCheckBysessionTokenEquals(String token);
+	
+	Long countTagCheckBysessionTokenEqualsAndPersonEppnEquals(String token, String eppn);
+	
+	TagCheck findTagCheckBysessionTokenEqualsAndPersonEppnEquals(String token, String eppn);
+	
 	@Query(value = "select count(*) from tag_check  where session_epreuve_id in (select id from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId ) and person_id= :personId", nativeQuery = true)
 	Long countAnonymousTagCheckBySAnneeUnivAndContextId(String anneeUniv, Long ctxId, Long personId);
 	

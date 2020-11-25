@@ -23,6 +23,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -31,6 +32,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -38,6 +40,7 @@ import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -58,6 +61,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired	
+	UserLdapRepository userLdapRepository;
 	
 	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
@@ -93,10 +99,19 @@ public class SessionEpreuveService {
 	StoredFileService storedFileService;
 	
 	@Resource
+	UserService userService;
+	
+	@Resource
 	LogService logService;
 	
 	@Resource
+	EmailService emailService;
+	
+	@Resource
 	AppliConfigService appliConfigService;
+	
+	@Value("${app.url}")
+	private String appUrl;
 	
 	@Autowired
 	ToolUtil toolUtil;
@@ -597,5 +612,45 @@ public class SessionEpreuveService {
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
 
         return newSe;
+	 }
+	 
+	 public boolean sendParticipationLink(SessionLocation sl, String emargemenContext, String eppnTagChecker, String eppn) {
+		 boolean isSent = false;
+		 try {
+			//verifier si c'est une sesion mixte ou à distance
+			 SessionEpreuve se = sl.getSessionEpreuve();
+			 List<TagCheck> tcs =  new ArrayList<TagCheck>();
+			 if(eppn!=null) {
+				 tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, null).getContent();
+			 }else {
+				 tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(se.getId());
+			 }
+			 TagChecker tcer = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, eppnTagChecker);
+			 String[] myStringArray = new String[0];
+			 String subject = "Participation à la session " + se.getNomSessionEpreuve();
+			 String token =  userService.generateSessionToken(tcer.getId().toString());
+			 String link = appUrl + "/" + emargemenContext + "/user?sessionToken=" + token;
+			 String body = appliConfigService.getLinkEmailEmarger();
+			 String from = appliConfigService.getNoReplyAdress();
+			 if(!tcs.isEmpty()) {
+				 for(TagCheck tc : tcs) {
+					 if(tc.getSessionLocationBadged()== null) {
+						 UserLdap user = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn()).get(0);
+						 tc.setSessionToken(token);
+						 tagCheckRepository.save(tc);
+						 body = body.replaceAll("@@nom@@", user.getPrenomNom());
+						 String session = se.getNomSessionEpreuve();
+						 body = body.replaceAll("@@session@@", session);
+						 body = body.replaceAll("@@link@@", link);
+						 emailService.sendSimpleMessage(from, user.getEmail(), subject, body, myStringArray);
+					 }
+				 }
+			 }
+			 isSent = true;
+			 log.info("envoi du lien de téléchargement réussi");
+		} catch (Exception e) {
+			log.error("problème d'envoi du lien de participation", e);
+		}
+		return isSent;
 	 }
 }
