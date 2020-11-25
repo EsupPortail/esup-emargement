@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserLdap;
-import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,9 +14,6 @@ public class PersonService {
 	
 	@Autowired
 	private UserLdapRepository userLdapRepository;
-	
-	@Autowired
-	private PersonRepository personRepository;
 	
 	public List<Person> setNomPrenom(List<Person> persons){
 		

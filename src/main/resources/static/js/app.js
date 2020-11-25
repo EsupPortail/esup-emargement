@@ -124,47 +124,48 @@ function changeSelectSessionEpreuve2(id, id2, url) {
     var selectToPopulate = document.getElementById(id2);
     var request = new XMLHttpRequest();
     var input = this.value;
-
-    request.open('GET', url + "?sessionEpreuve=" + selectOrigin.value, true);
-    request.onload = function() {
-        if (request.status >= 200 && request.status < 400) {
-            selectToPopulate.innerHTML = "";
-            var data = JSON.parse(this.response);
-            if (data.length == 0) {
-                $(".alertmsg").remove();
-                $("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associé à cette session</p>");
-                option = document.createElement('option');
-                option.value = "";
-                option.textContent = "";
-                selectToPopulate.appendChild(option);
-                $("#" + id2).prop("disabled", true);
-                $("#submitForm").prop("disabled", true);
-            } else {
-            	option = document.createElement('option');
-            	option.value = "";
-                option.textContent = ""; 
-                option.setAttribute("data-placeholder", "true");
-                selectToPopulate.appendChild(option);
-                data.forEach(function(value, key) {
-                    $(".alertmsg").remove();
-                    $("#" + id2).removeAttr("disabled");
-                    $("#submitForm").removeAttr("disabled");
-                    option = document.createElement('option');
-                    if (currentLocation !== undefined) {
-                        if (value.id == currentLocation) {
-                            option.selected = true;
-                        }
-                    }
-                    option.value = value.id;
-                    option.textContent = value.location.nom;
-                    selectToPopulate.appendChild(option);
-                });
-            }
-        } else {
-            console.log("erreur du serveur!");
-        }
-    };
-    request.send();
+	if(selectOrigin.value != ""){
+	    request.open('GET', url + "?sessionEpreuve=" + selectOrigin.value, true);
+	    request.onload = function() {
+	        if (request.status >= 200 && request.status < 400) {
+	            selectToPopulate.innerHTML = "";
+	            var data = JSON.parse(this.response);
+	            if (data.length == 0) {
+	                $(".alertmsg").remove();
+	                $("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associé à cette session</p>");
+	                option = document.createElement('option');
+	                option.value = "";
+	                option.textContent = "";
+	                selectToPopulate.appendChild(option);
+	                $("#" + id2).prop("disabled", true);
+	                $("#submitForm").prop("disabled", true);
+	            } else {
+	            	option = document.createElement('option');
+	            	option.value = "";
+	                option.textContent = ""; 
+	                option.setAttribute("data-placeholder", "true");
+	                selectToPopulate.appendChild(option);
+	                data.forEach(function(value, key) {
+	                    $(".alertmsg").remove();
+	                    $("#" + id2).removeAttr("disabled");
+	                    $("#submitForm").removeAttr("disabled");
+	                    option = document.createElement('option');
+	                    if (currentLocation !== undefined) {
+	                        if (value.id == currentLocation) {
+	                            option.selected = true;
+	                        }
+	                    }
+	                    option.value = value.id;
+	                    option.textContent = value.location.nom;
+	                    selectToPopulate.appendChild(option);
+	                });
+	            }
+	        } else {
+	            console.log("erreur du serveur!");
+	        }
+	    };
+	    request.send();
+	}
 }
 //Configs
 function displayFormconfig(val, valeur) {
