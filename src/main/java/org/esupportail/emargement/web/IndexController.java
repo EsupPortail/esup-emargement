@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -22,9 +23,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class IndexController {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	private final static String ITEM = "index";
 
     @Resource
     ContextService contextService;
+    
+	@ModelAttribute("active")
+	public String getActiveMenu() {
+		return  ITEM;
+	}
 	
     @GetMapping("/")
     public String index(@RequestParam(required = false) String emargementContext, Model model) {

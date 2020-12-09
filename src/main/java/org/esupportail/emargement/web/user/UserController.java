@@ -6,6 +6,8 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Resource;
+
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
@@ -14,7 +16,10 @@ import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.UserService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -43,6 +48,9 @@ public class UserController {
 	@Autowired
 	HelpService helpService;
 	
+	@Resource
+	LogService logService;
+	
 	@Autowired	
 	UserLdapRepository userLdapRepository;
 	
@@ -63,7 +71,7 @@ public class UserController {
 	}
 
 	@GetMapping(value = "/user")
-	public String list(Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
+	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
 			@RequestParam(value="sessionToken", required = false) String sessionToken) throws ParseException{
 		if(sessionToken!=null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -86,7 +94,9 @@ public class UserController {
 					isSessionExpired = false;
 				}else {
 					if(sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now) >0) {
-						isBeforeConvocation = true;
+						isBeforeConvocation = true;logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
+					}else {
+						logService.log(ACTION.REPORT_LINK_TOO_LATE, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
 					}
 				}
 			}

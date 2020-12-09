@@ -11,7 +11,8 @@
 				    	<div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
 					    	<h2>Emargement</h2>
 					    	<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" class="font-weight-bold h6 text-danger" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' ' + #dates.format(sessionEpreuve.heureEpreuve, 'HH:mm') + '-' + #dates.format(sessionEpreuve.finEpreuve, 'HH:mm') }" 
+								th:attr="title=${'Convocation : ' +  #dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}"></span><br/>
 							<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" class="font-weight-bold h6 text-danger" th:text="${sessionLocation.location.nom  + ', 
 								site : ' +  sessionEpreuve.campus.site}"></span><br/>
 							<small th:if="${!isSessionLibre and tagCheckPage!=null and !tagCheckPage.isEmpty()}"  class="font-weight-bold h6">Nombre de présents : 
@@ -75,8 +76,8 @@
 								<input type="hidden" id="sessionId" name="sessionLocationId" th:value="${sessionLocation.id}" />
 								<input type="hidden" id="sessionEpreuveId" name="sessionEpreuveId" th:value="${sessionEpreuve.id}" />
 								<input type="hidden" name="type" value="Liste"/>
-								<button type="submit" class="btn btn-primary exportInscrits mb-1" title="Liste d'émargement" ><i class="fas fa-file-signature"></i></button>
-														    	<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}" 
+								<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" type="submit" class="btn btn-primary exportInscrits mb-1" title="Liste d'émargement" ><i class="fas fa-file-signature"></i></button>
+								<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}" 
    								class="btn btn-danger mb-1" title="Exporter les émargements"><i class="fas fa-file-export"></i></a>
 							</form>		
 					    </div>
