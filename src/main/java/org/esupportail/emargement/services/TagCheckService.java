@@ -288,15 +288,20 @@ public class TagCheckService {
 										}
 									}else {
 										if(formPerson!=null) {
-											person = formPerson;
-											if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
-												person.setType("student");
-				    						}
-				    						else {
-				    							person.setType("staff");
+											List<Person> existingPersons = personRepository.findByEppn(formPerson.getEppn());
+											if(!existingPersons.isEmpty()) {
+												person = existingPersons.get(0);
+											}else {
+												person = formPerson;
+												if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
+													person.setType("student");
+					    						}
+					    						else {
+					    							person.setType("staff");
+												}
+												person.setContext(contexteService.getcurrentContext());
+												personRepository.save(person);
 											}
-											person.setContext(contexteService.getcurrentContext());
-											personRepository.save(person);
 										}
 									}
 			    				}
