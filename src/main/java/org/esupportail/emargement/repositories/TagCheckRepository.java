@@ -30,6 +30,10 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckByPersonEppn(String eppn, Pageable pageable);
 	
+	Long countTagCheckByPersonEppn(String eppn);
+	
+	Page<TagCheck> findTagCheckByGuestEmail(String email, Pageable pageable);
+	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(Long id, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonEppn(Long id, Pageable pageable);
@@ -68,6 +72,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNull(Long id);
 	
+	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationBadgedIsNullAndSessionEpreuveDateExamen(Long id, Date date);
+	
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNull(Long id);
 	
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(Long id);
@@ -96,9 +102,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckBySessionLocationExpectedIdOrderByTagDate(Long id, Pageable pageable);
 	
-	Page<TagCheck> findTagCheckBySessionLocationExpectedIdAndPersonEppnEqualsOrSessionLocationBadgedIdAndPersonEppnEquals(Long id, String eppn, Long id1, String eppn1, Pageable pageable);
-	
-	Page<TagCheck> findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(Long id, String eppn, Pageable pageable);
+	Page<TagCheck> findTagCheckBySessionLocationExpectedIdAndIdEquals(Long id, Long tcId, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionLocationExpectedIdOrSessionLocationBadgedIdAndPersonEppnEquals(Long id, Long otherId, String eppn, Pageable pageable);
 	
@@ -112,7 +116,13 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(Long id, String eppn);
 	
+	List<TagCheck> findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(Long id, String email);
+	
 	Long countTagCheckBySessionEpreuveIdAndPersonEppnEquals(Long id, String eppn);
+	
+	Long countTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(Long id, String email);
+	
+	Long countTagCheckBySessionEpreuveIdAndGuestEmailEquals(Long id, String email);
 	
 	Long countTagCheckBySessionEpreuveId(Long Id);
 	
@@ -164,10 +174,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(SessionLocation sl);
 	
-	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id);
-	
-	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(Long id);
-	
 	Long countTagCheckByGroupeId(Long id);
 	
 	List<TagCheck> findTagCheckByGroupeId(Long id);
@@ -181,6 +187,12 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckBysessionTokenEqualsAndPersonEppnEquals(String token, String eppn);
 	
 	TagCheck findTagCheckBysessionTokenEqualsAndPersonEppnEquals(String token, String eppn);
+	
+	@Query(value = "select count(*) from tag_check where session_epreuve_id = :id and type_emargement= :type and context_id = :ctxId", nativeQuery = true)
+	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id, String type, Long ctxId);
+	
+	@Query(value = "select count(*) from tag_check where session_epreuve_id = :id and type_emargement not like :type and context_id = :ctxId", nativeQuery = true)
+	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(Long id, String type, Long ctxId);
 	
 	@Query(value = "select count(*) from tag_check  where session_epreuve_id in (select id from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId ) and person_id= :personId", nativeQuery = true)
 	Long countAnonymousTagCheckBySAnneeUnivAndContextId(String anneeUniv, Long ctxId, Long personId);

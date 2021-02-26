@@ -41,9 +41,9 @@
 						</thead>
 						<tbody>
 					 		<tr th:each="tagCheck : ${tagChecks}">
-								<td th:text="${tagCheck.person.numIdentifiant}"></td>
-								<td th:text="${tagCheck.person.nom}"></td>
-								<td th:text="${tagCheck.person.prenom}"></td>
+								<td th:text="${(tagCheck.person!=null)? tagCheck.person.numIdentifiant : ''}"></td>
+								<td th:text="${(tagCheck.person!=null)? tagCheck.person.nom : tagCheck.guest.nom}"></td>
+								<td th:text="${(tagCheck.person!=null)? tagCheck.person.prenom : tagCheck.guest.prenom}"></td>
 								<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 							</tr>
 						</tbody>

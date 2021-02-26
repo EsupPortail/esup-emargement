@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -17,9 +18,9 @@ import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
-import org.esupportail.emargement.services.UserService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -135,8 +136,7 @@ public class UserController {
 								TagChecker tcer  = tagCheckerRepository.findById(Long.valueOf(splitToken[0])).get();
 								tc.setTagChecker(tcer);
 							}
-							tc.setIsCheckedByCard(false);
-							tc.setIsCheckedByLink(true);
+							tc.setTypeEmargement(TypeEmargement.LINK);
 							tc.setTagDate(new Date());
 							tc.setSessionLocationBadged(tc.getSessionLocationExpected());
 							tagCheckRepository.save(tc);

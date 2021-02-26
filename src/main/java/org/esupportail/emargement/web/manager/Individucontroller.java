@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SearchBean;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -76,11 +76,17 @@ public class Individucontroller {
 	}
 	
 	@GetMapping(value = "/manager/individu")
-	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String eppnTagCheck, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
-		if(!eppnTagCheck.isEmpty()) {
+	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
+		if(!identifiantTagCheck.isEmpty()) {
 			Pageable p1 = PageRequest.of(0, 10, Sort.by("sessionEpreuve"));
-			Page<TagCheck> pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(eppnTagCheck, p1);
-			tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent());
+			Page<TagCheck> pTagChecks = null;
+			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
+				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(identifiantTagCheck, p1);
+				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent());
+			}else {
+				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, p1);
+			}
+			
 			model.addAttribute("tagChecksPage", pTagChecks);
 			if(!pTagChecks.isEmpty()) {
 				model.addAttribute("individu", pTagChecks.getContent().get(0));	
@@ -103,34 +109,53 @@ public class Individucontroller {
 	
     @GetMapping("/manager/individu/search")
     @ResponseBody
-    public TreeSet<Person> searchLdap(@RequestParam("searchValue") String searchValue, @RequestParam("type") String type) {
+    public TreeSet<SearchBean> searchLdap(@RequestParam("searchValue") String searchValue, @RequestParam("type") String type) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<Person> persons = new ArrayList<Person>();
+    	List<SearchBean> searchBeans = new ArrayList<SearchBean>();
     	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchValue, null);
+    	List<TagCheck>  tagChecksList2 = tagCheckRepositoryCustom.findAll2(searchValue, null);
     	if("tagCheck".equals(type)) {
 	    	if(!tagChecksList.isEmpty()) {
 	    		tagCheckService.setNomPrenomTagChecks(tagChecksList);
 	    		for(TagCheck tc : tagChecksList) {
-	    			persons.add(tc.getPerson());
+	    			SearchBean searchBean = new SearchBean();
+	    			searchBean.setNom(tc.getPerson().getNom());
+	    			searchBean.setPrenom(tc.getPerson().getPrenom());
+	    			searchBean.setTypeObject("interne");
+	    			searchBean.setIdentifiant(tc.getPerson().getEppn());
+	    			searchBean.setId(tc.getId());
+	    			searchBeans.add(searchBean);
+	    		}
+	    		for(TagCheck tc : tagChecksList2) {
+	    			SearchBean searchBean = new SearchBean();
+	    			searchBean.setNom(tc.getGuest().getNom());
+	    			searchBean.setPrenom(tc.getGuest().getPrenom());
+	    			searchBean.setTypeObject("externe");
+	    			searchBean.setIdentifiant(tc.getGuest().getEmail());
+	    			searchBean.setId(tc.getId());
+	    			searchBeans.add(searchBean);	
 	    		}
 	    	}
+	    	tagChecksList.addAll(tagChecksList2);
     	}
     	if("tagChecker".equals(type)) {
     		List<TagChecker>  tagCheckersList = tagCheckerRepositoryCustom.findAll(searchValue, null);
 	    	if(!tagCheckersList.isEmpty()) {
 	    		tagCheckerService.setNomPrenom4TagCheckers(tagCheckersList);
 	    		for(TagChecker tc : tagCheckersList) {
-	    			Person p = new Person();
-	    			p.setNom(tc.getUserApp().getNom());
-	    			p.setPrenom(tc.getUserApp().getPrenom());
-	    			p.setEppn(tc.getUserApp().getEppn());
-	    			persons.add(p);
+	    			SearchBean searchBean = new SearchBean();
+	    			searchBean.setNom(tc.getUserApp().getNom());
+	    			searchBean.setPrenom(tc.getUserApp().getPrenom());
+	    			searchBean.setIdentifiant(tc.getUserApp().getEppn());
+	    			searchBean.setTypeObject("surveillant");
+	    			searchBean.setId(tc.getId());
+	    			searchBeans.add(searchBean);
 	    		}
 	    	}
     	}
-    	TreeSet<Person> listWithoutDuplicates = persons.stream()
-                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Person::getEppn))));
+    	TreeSet<SearchBean> listWithoutDuplicates = searchBeans.stream()
+                .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(SearchBean::getIdentifiant))));
         return listWithoutDuplicates;
     }
 }

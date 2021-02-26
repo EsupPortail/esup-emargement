@@ -22,8 +22,8 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -134,7 +134,7 @@ public class SessionEpreuveService {
 			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
 			session.setDureeEpreuve(getDureeEpreuve(session));
-			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId()));
+			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId(), TypeEmargement.CARD.name(), session.getContext().getId()));
 			session.setNbUnknown(unknown);
 		}
 	}
@@ -340,11 +340,20 @@ public class SessionEpreuveService {
 		Collections.sort(list,  new Comparator<TagCheck>() {	
 			@Override
             public int compare(TagCheck obj1, TagCheck obj2) {
-				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
-					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
-				}else {
-					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
+				String nom1 = ""; String nom2 = "";
+				if(obj1.getPerson() != null && obj1.getPerson().getNom() !=null) {
+					nom1 = obj1.getPerson().getNom();
 				}
+				if(obj2.getPerson() != null && obj2.getPerson().getNom() !=null) {
+						nom2 = obj2.getPerson().getNom();
+				}
+				if(obj1.getGuest() != null && obj1.getGuest().getNom() !=null) {
+					nom1 = obj1.getGuest().getNom();
+				}
+				if(obj2.getGuest() != null && obj2.getGuest().getNom() !=null) {
+						nom2 = obj2.getGuest().getNom();
+				}
+				return nom1.compareTo(nom2);
 			}
 		});
 		PdfPTable table = null;
@@ -368,7 +377,7 @@ public class SessionEpreuveService {
 	        //contenu du tableau.
 	        PdfPCell header1 = new PdfPCell(new Phrase("Nom")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header2 = new PdfPCell(new Phrase("Prénom")); header2.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header3 = new PdfPCell(new Phrase("Eppn")); header3.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header3 = new PdfPCell(new Phrase("Identifiant")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Numéro identifiant")); header4.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header5 = new PdfPCell(new Phrase("Tiers-temps")); header5.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header6 = new PdfPCell(new Phrase("Procuration")); header6.setBackgroundColor(BaseColor.GRAY);
@@ -386,10 +395,24 @@ public class SessionEpreuveService {
 	        
 	        if(!list.isEmpty()) {
 	        	for(TagCheck tc : list) {
-	        		PdfPCell cell1 = new PdfPCell(new Phrase(tc.getPerson().getNom())); cell1.setMinimumHeight(30); 
-	        		PdfPCell cell2 = new PdfPCell(new Phrase(tc.getPerson().getPrenom())); cell2.setMinimumHeight(30);
-	        		PdfPCell cell3 = new PdfPCell(new Phrase(tc.getPerson().getEppn())); cell3.setMinimumHeight(30);
-	        		PdfPCell cell4 = new PdfPCell(new Phrase(tc.getPerson().getNumIdentifiant())); cell4.setMinimumHeight(30);
+	        		String nom = "";
+	        		String prenom = "";
+	        		String identifiant = "";
+	        		String numIdentifiant = "";
+	        		if(tc.getPerson() !=null ) {
+	        			nom = tc.getPerson().getNom();
+	        			prenom = tc.getPerson().getPrenom();
+	        			identifiant = tc.getPerson().getEppn();
+	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        		}else if(tc.getGuest() !=null ) {
+	        			nom = tc.getGuest().getNom();
+	        			prenom = tc.getGuest().getPrenom();
+	        			identifiant = tc.getGuest().getEmail();
+	        		}
+	        		PdfPCell cell1 = new PdfPCell(new Phrase(nom)); cell1.setMinimumHeight(30); 
+	        		PdfPCell cell2 = new PdfPCell(new Phrase(prenom)); cell2.setMinimumHeight(30);
+	        		PdfPCell cell3 = new PdfPCell(new Phrase(identifiant)); cell3.setMinimumHeight(30);
+	        		PdfPCell cell4 = new PdfPCell(new Phrase(numIdentifiant)); cell4.setMinimumHeight(30);
 	        		PdfPCell cell5 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell5.setMinimumHeight(30);
 	        		PdfPCell cell6 = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell6.setMinimumHeight(30);
 	        		PdfPCell cell7 = new PdfPCell(new Phrase("")); cell7.setMinimumHeight(30);
@@ -603,6 +626,7 @@ public class SessionEpreuveService {
         		newTagCheck.setIsUnknown(t.getIsUnknown());
         		newTagCheck.setNumAnonymat(t.getNumAnonymat());
         		newTagCheck.setPerson(t.getPerson());
+        		newTagCheck.setGuest(t.getGuest());
         		newTagCheck.setSessionEpreuve(newSe);
         		tagCheckRepository.save(newTagCheck);
         	}
@@ -612,50 +636,5 @@ public class SessionEpreuveService {
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
 
         return newSe;
-	 }
-	 
-	 public boolean sendParticipationLink(SessionLocation sl, String emargemenContext, String eppnTagChecker, String eppn) {
-		 boolean isSent = false;
-		 int i = 0;
-		 try {
-			//verifier si c'est une sesion mixte ou à distance
-			 SessionEpreuve se = sl.getSessionEpreuve();
-			 List<TagCheck> tcs =  new ArrayList<TagCheck>();
-			 if(eppn!=null) {
-				 tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, null).getContent();
-			 }else {
-				 tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(se.getId());
-			 }
-			 TagChecker tcer = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, eppnTagChecker);
-			 String[] myStringArray = new String[0];
-			 String subject = "Participation à la session " + se.getNomSessionEpreuve();
-			 String token =  userService.generateSessionToken(tcer.getId().toString());
-			 String link = appUrl + "/" + emargemenContext + "/user?sessionToken=" + token;
-			 String body = appliConfigService.getLinkEmailEmarger();
-			 String from = appliConfigService.getNoReplyAdress();
-			 if(!tcs.isEmpty()) {
-				 for(TagCheck tc : tcs) {
-					 if(tc.getSessionLocationBadged()== null) {
-						 UserLdap user = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn()).get(0);
-						 tc.setSessionToken(token);
-						 tagCheckRepository.save(tc);
-						 body = body.replaceAll("@@nom@@", user.getPrenomNom());
-						 String session = se.getNomSessionEpreuve();
-						 body = body.replaceAll("@@session@@", session);
-						 body = body.replaceAll("@@link@@", link);
-						 emailService.sendSimpleMessage(from, user.getEmail(), subject, body, myStringArray);
-						 i++;
-					 }
-				 }
-			
-				 isSent = true;
-				 log.info("envoi du lien de téléchargement réussi");
-				 logService.log(ACTION.SEND_LINK, RETCODE.SUCCESS, " Nombre " + tcs.size(), eppnTagChecker, null, emargemenContext, null);
-			 }
-		} catch (Exception e) {
-			log.error("problème d'envoi du lien de participation", e);
-			logService.log(ACTION.SEND_LINK, RETCODE.FAILED, "Envoyés : " + i, eppnTagChecker, null, emargemenContext, null);
-		}
-		return isSent;
 	 }
 }

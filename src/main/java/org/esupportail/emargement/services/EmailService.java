@@ -1,11 +1,15 @@
 package org.esupportail.emargement.services;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -32,7 +36,8 @@ public class EmailService {
        
     }
     
-    public void sendMessageWithAttachment(String to, String subject, String text, String pathToAttachment, String fileName, String [] cc) throws MessagingException {
+    public void sendMessageWithAttachment(String from, String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
+    		InputStream inputStream) throws MessagingException, IOException {
          
         MimeMessage message = emailSender.createMimeMessage();
     
@@ -41,16 +46,19 @@ public class EmailService {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
+        helper.setFrom(from);
         if(cc.length>0) {
         	helper.setCc(cc);
         }
-             
-        FileSystemResource file 
-          = new FileSystemResource(new File(pathToAttachment));
-        helper.addAttachment(fileName, file);
+        FileSystemResource file = null;
+        if(inputStream != null) {
+	        helper.addAttachment(fileName,
+	        new ByteArrayResource(IOUtils.toByteArray(inputStream)));
+        }else {
+        	file = new FileSystemResource(new File(pathToAttachment));
+        	helper.addAttachment(fileName, file);
+        }
      
         emailSender.send(message);
     }
-   
-    
 }

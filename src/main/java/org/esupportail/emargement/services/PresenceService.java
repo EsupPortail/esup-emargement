@@ -16,6 +16,7 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserLdap;
@@ -33,6 +34,7 @@ import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -95,6 +97,9 @@ public class PresenceService {
 	@Resource
 	LogService logService;
 	
+	@Autowired
+    private MessageSource messageSource;
+	
 	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
 		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
 		int nbColumn = (countProxyPerson>0)? 9 : 8;
@@ -129,9 +134,9 @@ public class PresenceService {
         PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header5 = new PdfPCell(new Phrase("Présent")); header5.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header6 = new PdfPCell(new Phrase("Badgeage")); header6.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Carte")); header7.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header8 = new PdfPCell(new Phrase("Lieu badgé")); header8.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header8 = new PdfPCell(new Phrase("Lieu")); header8.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.GRAY);
         
         table.addCell(header1);
@@ -154,14 +159,30 @@ public class PresenceService {
 	        		PdfPCell dateCell = null;
 	        		String badged  = "--";
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
+	        		String nom = "";
+	        		String prenom = "";
+	        		String identifiant = "";
+	        		String numIdentifiant = "";
+	        		String typeemargement = "";
+	        		if(tc.getPerson() !=null ) {
+	        			nom = tc.getPerson().getNom();
+	        			prenom = tc.getPerson().getPrenom();
+	        			identifiant = tc.getPerson().getEppn();
+	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        		}else if(tc.getGuest() !=null ) {
+	        			nom = tc.getGuest().getNom();
+	        			prenom = tc.getGuest().getPrenom();
+	        			identifiant = tc.getGuest().getEmail();
+	        		}
 	        		if(tc.getTagDate() != null) {
 	        			presence = "Présent";
 	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
 	        			b = new BaseColor(19, 232, 148, 50);
 	        		}
-	        		String carte = "Oui";
-	        		if(tc.getIsCheckedByCard()!=null && !tc.getIsCheckedByCard()) {
-	        			carte = "Non";
+	        		String type = "";
+	        		if(tc.getTypeEmargement()!=null) {
+	        			type = tc.getTypeEmargement().name();
+	        			typeemargement = messageSource.getMessage("typeEmargement.".concat(type.toLowerCase()), null, null);
 	        		}
 	        		if(tc.getSessionLocationBadged()!=null && tc.getSessionLocationExpected() == null) {
 	        			b = new BaseColor(55, 0, 237, 50);
@@ -169,16 +190,16 @@ public class PresenceService {
 	        		if(tc.getSessionLocationBadged()!=null) {
 	        			badged = tc.getSessionLocationBadged().getLocation().getNom();
 	        		}
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
+	        		dateCell = new PdfPCell(new Paragraph(numIdentifiant));
 	        		dateCell.setBackgroundColor(b);
 	        		table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getEppn()));
+	        		dateCell = new PdfPCell(new Paragraph(identifiant));
 	        		dateCell.setBackgroundColor(b);
 	        		table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNom()));
+	        		dateCell = new PdfPCell(new Paragraph(nom));
 	        		dateCell.setBackgroundColor(b);
 	        		table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getPrenom()));
+	        		dateCell = new PdfPCell(new Paragraph(prenom));
 	        		dateCell.setBackgroundColor(b);
 	        		table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(presence));
@@ -187,7 +208,7 @@ public class PresenceService {
 	        		dateCell = new PdfPCell(new Paragraph(date));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(carte));
+	        		dateCell = new PdfPCell(new Paragraph(typeemargement));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(badged));
@@ -269,8 +290,23 @@ public class PresenceService {
     	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
     	Date date = (isPresent)? new Date() : null;
     	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
-    	TagCheck presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
-    	
+    	String email = (splitPresence.length >3)? splitPresence[3] : "";
+    	TagCheck presentTagCheck = null;
+    	if(!eppn.isEmpty()) {
+    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
+    	}else if(!email.isEmpty()) {
+    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
+    	}
+    	TypeEmargement typeEmargement = null;
+    	if(isPresent) {
+    		if(splitPresence.length >4) {
+	    		if("qrcode".equals(splitPresence[4].trim())){
+	    			typeEmargement = TypeEmargement.QRCODE;
+	    		}
+	    	}else {
+	    		typeEmargement = TypeEmargement.MANUAL;
+	    	}
+    	}
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		List<UserLdap> userLdaps = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
 		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdaps.get(0).getEppn(), null).getContent().get(0) : null;
@@ -279,8 +315,7 @@ public class PresenceService {
     	presentTagCheck.setTagDate(date);
     	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
     	presentTagCheck.setContext(contextService.getcurrentContext());
-    	presentTagCheck.setIsCheckedByCard((!isPresent)? null : false);
-    	presentTagCheck.setIsCheckedByLink((!isPresent)? null : false);
+    	presentTagCheck.setTypeEmargement(typeEmargement);
     	tagCheckRepository.save(presentTagCheck);
     	List<TagCheck> list = new ArrayList<TagCheck>();
     	list.add(presentTagCheck);
@@ -345,14 +380,14 @@ public class PresenceService {
 		    		p = new Person();
 		    		p.setEppn(eppn);
 		    		p.setContext(context);
-		    		String type = (user.getNumEtudiant() == null)? "staff" : "qtudent";
+		    		String type = (user.getNumEtudiant() == null)? "staff" : "student";
 		    		p.setType(type);
 		    		p.setNumIdentifiant(user.getNumEtudiant());
 		    		personRepository.save(p);
 		    	}
 		    	TagCheck tc = new TagCheck();
 		    	tc.setContext(context);
-		    	tc.setIsCheckedByCard(false);
+		    	tc.setTypeEmargement(TypeEmargement.MANUAL);
 		    	tc.setPerson(p);
 		    	tc.setSessionEpreuve(sl.getSessionEpreuve());
 		    	tc.setSessionLocationBadged(sl);

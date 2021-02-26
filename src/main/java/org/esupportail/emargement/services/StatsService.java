@@ -72,9 +72,6 @@ public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
     	for(String label2: labels2) {
     		ArrayList<Long> values = new ArrayList<Long>();
     		// initialize to 0
-    		for(String label1: labels1) {
-    			values.add(0L);
-    		}
     		for(Object[] r : queryResults) {
     	       	if(label2.equals(r[1].toString())) {
     	       		values.set(labels1.indexOf(r[0].toString()), Long.valueOf(r[2].toString()));

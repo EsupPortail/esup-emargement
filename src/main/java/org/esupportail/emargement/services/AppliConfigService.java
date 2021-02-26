@@ -39,7 +39,8 @@ public class AppliConfigService {
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
-		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR, CONVOC_ENABLED, EMAIL_LINK_EMARGER, NO_REPLY_ADRESS
+		PROCURATION_MAX, APP_DESKTOP_EXE, APP_DESKTOP_JAR, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, NO_REPLY_ADRESS, QRCODE_SUJET_MAIL,
+		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK
 	}
 	
 	public List<String> getTypes() {
@@ -157,9 +158,34 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
+	public String getLinkSujetEmailEmarger() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.EMAIL_SUJET_LINK_EMARGER);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
 	public String getNoReplyAdress() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.NO_REPLY_ADRESS);
 		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getQrCodeSujetMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.QRCODE_SUJET_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public String getQrCodebodyMail() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.QRCODE_BODY_MAIL);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public Boolean isQrCodeEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_QRCODE);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isSendLinkEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_EMARGER_LINK);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

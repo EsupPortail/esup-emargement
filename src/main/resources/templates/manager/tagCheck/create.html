@@ -12,103 +12,189 @@
 				</div>
 		    	<div class="card-header"><h2>Ajouter un inscrit</h2></div>
   				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
-                    	<div class="form-group row">
-                    		<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
-	                    	</div>
-	                    	<div class="col-lg-10">
-								<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
-									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-										th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
-								</select>
-							</div>
-						</div>
-						<div class="form-group row">              				
-	                    	<div class="col-lg-2">
-	                    		<label for="sessionLocationExpected" class="col-form-label">Lieu</label>
-	                    	</div>
-	                    	<div class="col-lg-10">	
-								<select name="sessionLocationExpected"  id="sessionLocationExpected">
-									<option value ="">-----Aucun----</option>
-									<option th:each="sl : ${allSessionLocations}"
-										th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
-								</select>
-							</div>
-						</div>	
-	                    <div class="form-group row">
-	                    	<div class="col-lg-2">
-	                        	<label for="eppn" class="col-form-label">Eppn</label>
-	                       	</div>
-		                    <div class="col-lg-10">
-		                        <input type="email" th:id="eppn" th:name="person.eppn" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-		                       </div>
-		                    </div>
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                    	<label for="numIdentifiant" class="col-form-label">N° identifiant</label>
-		                    </div>
-	                    	<div class="col-lg-10">
-								<input type ="number" th:id="numIdentifiant" th:name="person.numIdentifiant" class="form-control">
-							</div>
-						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-								<label for="numIdentifiant" class="col-form-label">Temps aménagé</label>
-							</div>						
-							<div class="col-lg-10">
-							    <div class="form-check">
-							      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
-							    </div>
-						  	</div>
-						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-								<label for="checkLdap" class="col-form-label">Vérification Ldap</label>
-							</div>
-							<div class="col-lg-10">
-							    <div class="form-check">
-							      <input class="form-check-input" type="checkbox" th:field="*{checkLdap}">
-							    </div>
-						  	</div>
-						</div>
-                    	<div class="form-group row">
-                    		<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Etape</label>
-	                    	</div>
-	                    	<div class="col-lg-10">
-								<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
-									<option value ="">-----Aucune----</option>
-									<option th:each="code : ${codeEtapes}"
-										th:value="${code}" th:text="${code}"></option>
-								</select>
-							</div>
-						</div>						
-              			<div class="form-group row">
-	                    	<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>
-	                    	</div>
-	                    	<div class="col-lg-10">	
-								<select name="groupe" id="groupe" class="form-control">
-									<option value ="">-----Aucun----</option>
-									<option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
-								</select>
-							</div> 
-						</div>						
-	                    <div class="form-group row">
-	                    	<div class="col-lg-2">
-	                        	<label for="comment" class="col-form-label">Commentaire</label>
-	                        </div>
-	                        <div class="col-lg-10">
-	                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
-	                        </div>
-	                    </div>	  
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>                  
-                    </form>
+					  <ul class="nav nav-tabs" role="tablist" >
+					    <li class="nav-item"><a th:classappend="${type == 'interne'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=interne(ctx=${eContext},id=${id})}">INTERNE</a></li>
+					    <li class="nav-item"><a th:classappend="${type == 'externe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=externe(ctx=${eContext},id=${id})}">EXTERNE</a></li>
+				  	</ul>	
+				  	
+				  	<fieldset class="scheduler-border">
+				  		<div class="bg-light p-3 " th:if="${type == 'interne'}">
+					  		<div class="card-header h3 pl-2 mb-2">Interne</div>
+		                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
+		                    	<div class="form-group row">
+		                    		<div class="col-lg-2">
+			                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
+											<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+												th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">              				
+			                    	<div class="col-lg-2">
+			                    		<label for="sessionLocationExpected" class="col-form-label">Lieu</label>
+			                    	</div>
+			                    	<div class="col-lg-10">	
+										<select name="sessionLocationExpected"  id="sessionLocationExpected">
+											<option value ="">-----Aucun----</option>
+											<option th:each="sl : ${allSessionLocations}"
+												th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
+										</select>
+									</div>
+								</div>	
+			                    <div class="form-group row">
+			                    	<div class="col-lg-2">
+			                        	<label for="eppn" class="col-form-label">Eppn</label>
+			                       	</div>
+				                    <div class="col-lg-10">
+				                        <input type="email" th:id="eppn" th:name="person.eppn" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+				                       </div>
+				                    </div>
+			                    <div class="form-group row">
+				                    <div class="col-lg-2">
+				                    	<label for="numIdentifiant" class="col-form-label">N° identifiant</label>
+				                    </div>
+			                    	<div class="col-lg-10">
+										<input type ="number" th:id="numIdentifiant" th:name="person.numIdentifiant" class="form-control">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-lg-2">
+										<label for="numIdentifiant" class="col-form-label">Temps aménagé</label>
+									</div>						
+									<div class="col-lg-10">
+									    <div class="form-check">
+									      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
+									    </div>
+								  	</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-lg-2">
+										<label for="checkLdap" class="col-form-label">Vérification Ldap</label>
+									</div>
+									<div class="col-lg-10">
+									    <div class="form-check">
+									      <input class="form-check-input" type="checkbox" th:field="*{checkLdap}">
+									    </div>
+								  	</div>
+								</div>
+		                    	<div class="form-group row">
+		                    		<div class="col-lg-2">
+			                    		<label for="sessionEpreuve" class="col-form-label">Etape</label>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
+											<option value ="">-----Aucune----</option>
+											<option th:each="code : ${codeEtapes}"
+												th:value="${code}" th:text="${code}"></option>
+										</select>
+									</div>
+								</div>						
+		              			<div class="form-group row">
+			                    	<div class="col-lg-2">
+			                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>
+			                    	</div>
+			                    	<div class="col-lg-10">	
+										<select name="groupe" id="groupe" class="form-control">
+											<option value ="">-----Aucun----</option>
+											<option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
+										</select>
+									</div> 
+								</div>						
+			                    <div class="form-group row">
+			                    	<div class="col-lg-2">
+			                        	<label for="comment" class="col-form-label">Commentaire</label>
+			                        </div>
+			                        <div class="col-lg-10">
+			                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+			                        </div>
+			                    </div>	  
+		                        <div class="row">
+		                            <div class="col-md-6 mt-5">
+		                                <input type="submit" class="btn btn-success" value="Valider">
+		                            </div>
+		                        </div>                  
+		                    </form>
+	                    </div>
+				  		<div class="bg-light p-3 " th:if="${type == 'externe'}">
+					  		<div class="card-header h3 pl-2 mb-2">Externe</div>
+		                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
+		                    	<div class="form-group row">
+		                    		<div class="col-lg-2">
+			                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
+											<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+												th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">              				
+			                    	<div class="col-lg-2">
+			                    		<label for="sessionLocationExpected2" class="col-form-label">Lieu</label>
+			                    	</div>
+			                    	<div class="col-lg-10">	
+										<select name="sessionLocationExpected"  id="sessionLocationExpected2">
+											<option value ="">-----Aucun----</option>
+											<option th:each="sl : ${allSessionLocations}"
+												th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
+										</select>
+									</div>
+								</div>	
+			                    <div class="form-group row">
+				                    <div class="col-lg-2">
+				                    	<label for="email" class="col-form-label">Email</label>
+				                    </div>
+			                    	<div class="col-lg-10">
+										<input type ="email" th:id="email" th:name="guest.email" class="form-control" required="required">
+									</div>
+								</div>
+								<div class="form-group row">
+				                    <div class="col-lg-2">
+				                    	<label for="nom" class="col-form-label">Nom</label>
+				                    </div>
+			                    	<div class="col-lg-10">
+										<input type ="text" th:id="nom" th:name="guest.nom" class="form-control" required="required">
+									</div>
+								</div>
+								<div class="form-group row">
+				                    <div class="col-lg-2">
+				                    	<label for="prenom" class="col-form-label">Prénom</label>
+				                    </div>
+			                    	<div class="col-lg-10">
+										<input type ="text" th:id="prenom" th:name="guest.prenom" class="form-control" required="required">
+									</div>
+								</div>						
+		              			<div class="form-group row">
+			                    	<div class="col-lg-2">
+			                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>
+			                    	</div>
+			                    	<div class="col-lg-10">	
+										<select name="groupe" id="groupe" class="form-control">
+											<option value ="">-----Aucun----</option>
+											<option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
+										</select>
+									</div> 
+								</div>						
+			                    <div class="form-group row">
+			                    	<div class="col-lg-2">
+			                        	<label for="comment" class="col-form-label">Commentaire</label>
+			                        </div>
+			                        <div class="col-lg-10">
+			                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+			                        </div>
+			                    </div>	  
+		                        <div class="row">
+		                            <div class="col-md-6 mt-5">
+		                                <input type="submit" class="btn btn-success" value="Valider">
+		                            </div>
+		                        </div>                  
+		                    </form>
+	                    </div>	                    
+                    </fieldset>
                 </div>
             </div>
 		</div>

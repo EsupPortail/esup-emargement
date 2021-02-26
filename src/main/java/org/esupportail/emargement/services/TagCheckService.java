@@ -21,15 +21,18 @@ import javax.transaction.Transactional;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
+import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -45,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -91,6 +95,9 @@ public class TagCheckService {
 	PersonRepository personRepository;
 	
 	@Autowired
+	GuestRepository guestRepository;
+	
+	@Autowired
 	private TagCheckerRepository tagCheckerRepository;
 
 	@Resource
@@ -126,6 +133,9 @@ public class TagCheckService {
 	@Resource
 	LogService logService;
 	
+	@Autowired
+    private MessageSource messageSource;
+	
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
 	
@@ -143,7 +153,7 @@ public class TagCheckService {
 				tc.setSessionLocationExpected(null);
 				tc.setSessionLocationBadged(null);
 				tc.setDateEnvoiConvocation(null);
-				tc.setIsCheckedByCard(null);
+				tc.setTypeEmargement(null);
 				tc.setTagChecker(null);
 				tc.setNumAnonymat(null);
 				tagCheckRepository.save(tc);
@@ -167,15 +177,11 @@ public class TagCheckService {
     	}
     }
     
-    public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable, String eppn, boolean withUnknown){
+    public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable,  Long presentId, boolean withUnknown){
     	
     	Page<TagCheck> allTagChecks =  null;
-    	if(eppn != null) {
-    		if(withUnknown) {
-    			allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEqualsOrSessionLocationBadgedIdAndPersonEppnEquals(id, eppn, id, eppn, pageable);
-    		}else {
-    			allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(id, eppn, pageable);
-    		}
+    	if(presentId != null) {
+    		allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndIdEquals(id, presentId, pageable);
     	}
     	else {
     		if(withUnknown) {
@@ -191,10 +197,12 @@ public class TagCheckService {
 				}else {
 					tc.setIsUnknown(false);
 				}
+				if(tc.getPerson() != null) {
 				List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn());
-				if(!userLdaps.isEmpty()) {
-					tc.getPerson().setNom(userLdaps.get(0).getUsername());
-					tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
+					if(!userLdaps.isEmpty()) {
+						tc.getPerson().setNom(userLdaps.get(0).getUsername());
+						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
+					}
 				}
 				if(tc.getTagChecker() != null) {
 					List<UserLdap>  userLdaps2 = userLdapRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
@@ -210,9 +218,10 @@ public class TagCheckService {
     }
     
     public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, 
-    		Long groupeId, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId) throws Exception {
+    		Long groupeId, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
+    	boolean isNoEppnAuthorized = false;
     	if(reader!=null) {
     		rows  = importExportService.readAll(reader);
     	}else if(finalList != null) {
@@ -236,10 +245,19 @@ public class TagCheckService {
 			    		if(se != null) {
 			    			TagCheck tc = new TagCheck();
 			    			Person person = null;
+			    			Guest guest = null;
 			    			String eppn  = null;
 			    			List<UserLdap>  userLdaps = null;
 			    			String line = row.get(0).trim();
-			    			Long tcTest = new Long(1);
+			    			Long tcTest = new Long(0);
+			    			//Pour Guest
+			    			String [] splitLine = null;
+			    			if(line.contains(",")) {
+			    				splitLine = line.split(",");
+			    			}else if(line.contains(";")) {
+			    				splitLine = line.split(";");
+			    			}
+			    			
 			    			try {
 			    				if(line.chars().allMatch(Character::isDigit)){
 			    					userLdaps = userLdapRepository.findByNumEtudiantEquals(line);
@@ -287,20 +305,47 @@ public class TagCheckService {
 				    						personRepository.save(person);
 										}
 									}else {
-										if(formPerson!=null) {
-											List<Person> existingPersons = personRepository.findByEppn(formPerson.getEppn());
-											if(!existingPersons.isEmpty()) {
-												person = existingPersons.get(0);
+										List<Guest> existingGuests = new ArrayList<Guest>();
+										if(splitLine != null && splitLine.length>1) {
+											existingGuests = guestRepository.findByEmail(splitLine[0]);
+											if(!existingGuests.isEmpty()) {
+												guest = existingGuests.get(0);
 											}else {
+												guest = new Guest();
+												guest.setEmail(splitLine[0]);
+												guest.setNom(splitLine[1]);
+												guest.setPrenom(splitLine[2]);
+												guest.setContext(contexteService.getcurrentContext());
+												guestRepository.save(guest);
+											}
+										}else {
+											if(formGuest!=null) {
+												if(!formGuest.getEmail().isEmpty()) {
+													existingGuests = guestRepository.findByEmail(formGuest.getEmail());
+													isNoEppnAuthorized = true;
+												}
+											}
+										}
+										if(!existingGuests.isEmpty()) {
+											guest = existingGuests.get(0);
+										}else {
+											if(formPerson != null) {
 												person = formPerson;
 												if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
 													person.setType("student");
+					    						}else if(!formPerson.getEppn().isEmpty()) {
+					    							person.setType("staff");
 					    						}
 					    						else {
-					    							person.setType("staff");
+					    							person.setType("ext");
 												}
 												person.setContext(contexteService.getcurrentContext());
 												personRepository.save(person);
+											}
+											if(formGuest != null) {
+												guest = formGuest;
+												guest.setContext(contexteService.getcurrentContext());
+												guestRepository.save(guest);
 											}
 										}
 									}
@@ -308,12 +353,15 @@ public class TagCheckService {
 				    			tc.setSessionEpreuve(se);
 				    			tc.setContext(contexteService.getcurrentContext());
 				    			tc.setPerson(person);
+				    			tc.setGuest(guest);
 				    			if(groupeId != null){
 				    				Groupe groupe = groupeRepository.findById(groupeId).get();
 				    				tc.setGroupe(groupe);
 				    			}
 				    			if(!userLdaps.isEmpty()) {
 				    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
+				    			}else {
+				    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
 				    			}
 				    			if(sessionLocationId != null) {
 				    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
@@ -325,11 +373,10 @@ public class TagCheckService {
 								tcTest = new Long(-1);
 								log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
 							}
-				    		if(!userLdaps.isEmpty() && tcTest == 0) {
+				    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0  || isNoEppnAuthorized  && tcTest == 0 ){
 			    				tcToSave.add(tc);
 			    				i++;
-				    			//tagCheckRepository.save(tc);
-			    			}else if(tcTest >0 && !userLdaps.isEmpty()){
+			    			}else if(tcTest >0){
 			    				tc.setComment("Personne déjà inscrite dans la session");
 			    				j++;
 			    			}else{
@@ -375,10 +422,14 @@ public class TagCheckService {
     public  List<List<String>> setAddList(TagCheck tc){
     	
         List<String> strings = new ArrayList<String>();
-        if(!tc.getPerson().getNumIdentifiant().isEmpty()){
-        	 strings.add(tc.getPerson().getNumIdentifiant());
-        }else {
-        	 strings.add(tc.getPerson().getEppn());
+        if(tc.getPerson() != null) {
+	        if(!tc.getPerson().getNumIdentifiant().isEmpty()){
+	        	 strings.add(tc.getPerson().getNumIdentifiant());
+	        }else if(!tc.getPerson().getEppn().isEmpty()){
+	        	 strings.add(tc.getPerson().getEppn());
+	        }
+        }else if(tc.getGuest() != null) {
+        	strings.add(tc.getGuest().getEmail().concat(";").concat(tc.getGuest().getNom()).concat(";").concat(tc.getGuest().getPrenom()));
         }
         List<List<String>> finalList = new ArrayList<List<String>>();
         finalList.add(strings);
@@ -410,9 +461,8 @@ public class TagCheckService {
 					if(!userLdaps.isEmpty()) {
 						tc.getPerson().setNom(userLdaps.get(0).getUsername());
 						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
-					}else {
-						count ++;
 					}
+					//count ++;
 				}
 			}
 		}
@@ -512,7 +562,7 @@ public class TagCheckService {
 							email = appliConfigService.getTestEmail();
 						}
 						if(appliConfigService.isSendEmails()){
-							emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray);
+							emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
 						}
 
 						tc.setDateEnvoiConvocation(new Date());
@@ -662,7 +712,7 @@ public class TagCheckService {
 			
 			if(presentTagCheck!=null) {
 		    	presentTagCheck.setTagDate(new Date());
-		    	presentTagCheck.setIsCheckedByCard(true);
+		    	presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
 		    	SessionLocation sl = sessionLocationRepository.findById(realSlId).get();
 				TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
 		    	presentTagCheck.setTagChecker(tagChecker);
@@ -727,7 +777,7 @@ public class TagCheckService {
 			unknownTc.setTagChecker(tagChecker);
 			unknownTc.setSessionLocationBadged(sessionLocationBadged);
 			unknownTc.setTagDate(new Date());
-			unknownTc.setIsCheckedByCard(true);
+			unknownTc.setTypeEmargement(TypeEmargement.CARD);
 		}
 		tagCheckRepository.save(unknownTc);	
 	}
@@ -737,8 +787,9 @@ public class TagCheckService {
         tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
         tc.setComment(tagCheck.getComment());
         tagCheckRepository.save(tc);
-        log.info("maj inscrit ok : " + tc.getPerson().getEppn());
-        logService.log(ACTION.UPDATE_INSCRIPTION, RETCODE.SUCCESS, "maj inscrit : " + tc.getPerson().getEppn(), null,
+        String identifiant = (tc.getPerson() != null ) ?  tc.getPerson().getEppn() : tc.getGuest().getEmail();
+        log.info("maj inscrit ok : " + identifiant);
+        logService.log(ACTION.UPDATE_INSCRIPTION, RETCODE.SUCCESS, "maj inscrit : " + identifiant, null,
 				null, emargementContext, null);
 	}
 	
@@ -800,8 +851,8 @@ public class TagCheckService {
 	        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header5 = new PdfPCell(new Phrase("Présent")); header5.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header6 = new PdfPCell(new Phrase("Badgeage")); header6.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header7 = new PdfPCell(new Phrase("Carte")); header7.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header8 = new PdfPCell(new Phrase("Lieu attendu")); header8.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header9 = new PdfPCell(new Phrase("Lieu badgé")); header9.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header10 = new PdfPCell(new Phrase("Temps aménagé")); header10.setBackgroundColor(BaseColor.GRAY);
@@ -829,6 +880,24 @@ public class TagCheckService {
 	        		String badged  = "--";
 	        		String tiersTemps  = "--";
 	        		String dateSessionEpreuve = "";
+	        		String nom = "";
+	        		String prenom = "";
+	        		String identifiant = "";
+	        		String numIdentifiant = "";
+	        		String typeEmargement = "";
+	        		if(tc.getPerson() !=null ) {
+	        			nom = tc.getPerson().getNom();
+	        			prenom = tc.getPerson().getPrenom();
+	        			identifiant = tc.getPerson().getEppn();
+	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        		}else if(tc.getGuest() !=null ) {
+	        			nom = tc.getGuest().getNom();
+	        			prenom = tc.getGuest().getPrenom();
+	        			identifiant = tc.getGuest().getEmail();
+	        		}
+	        		if(tc.getTypeEmargement()!=null) {
+	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
+	        		}
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		PdfPCell dateCell = null;
 	        		if(tc.getTagDate() != null) {
@@ -845,12 +914,6 @@ public class TagCheckService {
 	        		if(tc.getIsTiersTemps()) {
 	        			tiersTemps = "Oui";
 	        		}
-	        		String carte = "--";
-	        		if(tc.getIsCheckedByCard()!=null && !tc.getIsCheckedByCard()) {
-	        			carte = "Non";
-	        		}else if(tc.getIsCheckedByCard()!=null && tc.getIsCheckedByCard()){
-	        			carte = "Oui";
-	        		}
 	        		if(anneeUniv != null) {
 	        			if(tc.getSessionEpreuve() != null) {
 	    	                dateCell = new PdfPCell(new Paragraph(tc.getSessionEpreuve().getNomSessionEpreuve()));
@@ -862,16 +925,16 @@ public class TagCheckService {
 	    	                table.addCell(dateCell);
 	        			}
 	        		}
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNumIdentifiant()));
+	        		dateCell = new PdfPCell(new Paragraph(numIdentifiant));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getEppn()));
+	        		dateCell = new PdfPCell(new Paragraph(identifiant));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);	                
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getNom()));
+	        		dateCell = new PdfPCell(new Paragraph(nom));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tc.getPerson().getPrenom()));
+	        		dateCell = new PdfPCell(new Paragraph(prenom));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(presence));
@@ -880,7 +943,7 @@ public class TagCheckService {
 	        		dateCell = new PdfPCell(new Paragraph(date));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(carte));
+	        		dateCell = new PdfPCell(new Paragraph(new Paragraph(typeEmargement)));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(attendu));
@@ -933,7 +996,7 @@ public class TagCheckService {
 
 				//create a csv writer
 				CSVWriter writer = new CSVWriter(response.getWriter()); 
-				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Badgeage", "Carte", "Lieu attendu", "Lieu badgé", "Tiers-temps"};
+				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé", "Tiers-temps"};
 				writer.writeNext(headers);
 				for(TagCheck tc : list) {
 					List <String> line = new ArrayList<String>();
@@ -943,6 +1006,21 @@ public class TagCheckService {
 	        		String badged  = "--";
 	        		String attendu  = "--";
 	        		String tiersTemps  = "--";
+	        		String typeEmargement = "--";
+	        		String nom = "";
+	        		String prenom = "";
+	        		String identifiant = "";
+	        		String numIdentifiant = "";
+	        		if(tc.getPerson() !=null ) {
+	        			nom = tc.getPerson().getNom();
+	        			prenom = tc.getPerson().getPrenom();
+	        			identifiant = tc.getPerson().getEppn();
+	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        		}else if(tc.getGuest() !=null ) {
+	        			nom = tc.getGuest().getNom();
+	        			prenom = tc.getGuest().getPrenom();
+	        			identifiant = tc.getGuest().getEmail();
+	        		}
 	        		if(tc.getTagDate() != null) {
 	        			presence = "Présent";
 	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
@@ -956,21 +1034,18 @@ public class TagCheckService {
 	        		if(tc.getIsTiersTemps()) {
 	        			tiersTemps = "Oui";
 	        		}
-	        		String carte = "--";
-	        		if(tc.getIsCheckedByCard()!=null && !tc.getIsCheckedByCard()) {
-	        			carte = "Non";
-	        		}else if(tc.getIsCheckedByCard()!=null && tc.getIsCheckedByCard()){
-	        			carte = "Oui";
+	        		if(tc.getTypeEmargement()!=null) {
+	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
 	        		}
 					line.add(tc.getSessionEpreuve().getNomSessionEpreuve());
 					line.add(dateSession);
-					line.add(tc.getPerson().getNumIdentifiant());
-					line.add(tc.getPerson().getEppn());
-					line.add(tc.getPerson().getNom());
-					line.add(tc.getPerson().getPrenom());
+					line.add(numIdentifiant);
+					line.add(identifiant);
+					line.add(nom);
+					line.add(prenom);
 					line.add(presence);
 					line.add(date);
-					line.add(carte);
+					line.add(typeEmargement);
 					line.add(attendu);
 					line.add(badged);
 					line.add(tiersTemps);

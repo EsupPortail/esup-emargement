@@ -67,7 +67,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -132,6 +131,7 @@ public class PresenceController {
 	private final static String ITEM = "presence";
 	
 	private final static String SEE_OLD_SESSIONS = "seeOldSessions";
+	private final static String ENABLE_WEBCAM = "enableWebcam";
 	
 	@Autowired
 	ToolUtil toolUtil;
@@ -144,10 +144,10 @@ public class PresenceController {
 
     @GetMapping("/supervisor/presence")
     public String getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
-    		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) String eppn,
+    		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId, @RequestParam(value ="tc", required = false) Long tc,
     		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
-
+    	
         uiModel.asMap().clear();
         boolean isSessionLibre = false;
         boolean isCapaciteFull = false;
@@ -175,7 +175,7 @@ public class PresenceController {
     					size = totalAll.intValue();
     				}
     				
-		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, toolUtil.updatePageable(pageable, size), eppn, true);
+		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, toolUtil.updatePageable(pageable, size), presentId, true);
 		    		//The list is not modifiable, obviously your client method is creating an unmodifiable list (using e.g. Collections#unmodifiableList etc.). Simply create a modifiable list before sorting:
 		    		List<TagCheck> modifiableList = new ArrayList<TagCheck>(tagCheckPage.getContent());
 		    		Page <TagCheck> page = new PageImpl<TagCheck>(modifiableList, toolUtil.updatePageable(pageable, size), Long.valueOf(modifiableList.size()));
@@ -202,11 +202,20 @@ public class PresenceController {
     		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {
     			@Override
                 public int compare(TagCheck obj1, TagCheck obj2) {
-    				if(obj1.getPerson().getNom() !=null && obj2.getPerson().getNom() !=null) {
-    					return obj1.getPerson().getNom().compareTo(obj2.getPerson().getNom());
-    				}else {
-    					return obj1.getPerson().getEppn().compareTo(obj2.getPerson().getEppn());
+    				String nom1 = ""; String nom2 = "";
+    				if(obj1.getPerson() != null && obj1.getPerson().getNom() !=null) {
+    					nom1 = obj1.getPerson().getNom();
     				}
+    				if(obj2.getPerson() != null && obj2.getPerson().getNom() !=null) {
+    						nom2 = obj2.getPerson().getNom();
+    				}
+    				if(obj1.getGuest() != null && obj1.getGuest().getNom() !=null) {
+    					nom1 = obj1.getGuest().getNom();
+    				}
+    				if(obj2.getGuest() != null && obj2.getGuest().getNom() !=null) {
+    						nom2 = obj2.getGuest().getNom();
+    				}
+    				return nom1.compareTo(nom2);
     			}
     		});
     		uiModel.addAttribute("allTagChecks", allTagChecks);
@@ -214,8 +223,8 @@ public class PresenceController {
         if(tc !=null) {
         	uiModel.addAttribute("tagCheck", tagCheckRepository.findById(tc).get());
         }
-		if(eppn!=null) {
-			uiModel.addAttribute("eppn", eppn);
+		if(presentId != null) {
+			uiModel.addAttribute("eppn", presentId);
 			uiModel.addAttribute("collapse", "show");
 		}
 		if(sessionEpreuve!=null && currentLocation != null) {
@@ -246,7 +255,9 @@ public class PresenceController {
 			isSessionLibre = sessionEpreuve.getIsSessionLibre();
 		}
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
+		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
+		String enableWebCam = (!prefsWebCam.isEmpty())? prefsWebCam.get(0).getValue() : "false";
 		uiModel.addAttribute("isCapaciteFull", isCapaciteFull);
         uiModel.addAttribute("currentLocation", currentLocation);
     	uiModel.addAttribute("nbTagChecksExpected", totalExpected);
@@ -255,15 +266,16 @@ public class PresenceController {
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("isSessionLibre", isSessionLibre);
-        
+        uiModel.addAttribute("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("isDateOver", isDateOver);
 		uiModel.addAttribute("isTodaySe", isTodaySe);
-		uiModel.addAttribute("eppn", eppn);
+		uiModel.addAttribute("eppn", presentId);
 		uiModel.addAttribute("selectAll", totalAll);
 		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
+		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
         return "supervisor/index";
     }
     
@@ -303,20 +315,18 @@ public class PresenceController {
 		byte[] photo = null;
 		Boolean noPhoto = true;
 		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-
 		ResponseEntity<byte[]> httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
-
-		MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<String, Object>();
-
-		HttpEntity<Object> request = new HttpEntity<Object>(multipartMap, headers);
-		uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
-			noPhoto = false;
-			httpResponse = template.exchange(uri, HttpMethod.GET, request, byte[].class);
-			if(httpResponse.getBody() == null) noPhoto = true;
-
+		if(!"inconnu".equals(eppn)) {
+			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+			MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<String, Object>();
+			HttpEntity<Object> request = new HttpEntity<Object>(multipartMap, headers);
+			uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
+				noPhoto = false;
+				httpResponse = template.exchange(uri, HttpMethod.GET, request, byte[].class);
+				if(httpResponse.getBody() == null) noPhoto = true;
+		}
 		if (noPhoto) {
-			ClassPathResource noImg = new ClassPathResource("NoPhoto.jpg");
+			ClassPathResource noImg = new ClassPathResource("NoPhoto.png");
 			try {
 				photo = IOUtils.toByteArray(noImg.getInputStream());
 				httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
@@ -386,20 +396,5 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sl.getSessionEpreuve().getId(), slId);
     }
-    		
-    @GetMapping(value = "/supervisor/sendEmailTc")
-	public String sendEmailTagCheck(@PathVariable String emargementContext, @RequestParam("location") Long slId, @RequestParam(value="eppn", required = false) String eppn, final RedirectAttributes redirectAttributes) {
-    	
-    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-		String eppnTagChecker = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
-		//Verifier si surveillant et si session à distance et aujourd'hui
-    	SessionLocation sl = sessionLocationRepository.findById(slId).get();
-    	
-    	boolean isSent = sessionEpreuveService.sendParticipationLink(sl, emargementContext, eppnTagChecker, eppn);
-		
-    	redirectAttributes.addFlashAttribute("isSent", isSent);
-    	
-    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 	sl.getSessionEpreuve().getId(), slId);
-	}
+
 }

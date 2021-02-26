@@ -135,7 +135,7 @@ public class TagCheckerService {
 								email = appliConfigService.getTestEmail();
 							}
 							if(appliConfigService.isSendEmails()){
-								emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "consignes.pdf", new String[0]);
+								emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, filePath, "consignes.pdf", new String[0], null);
 							}else {
 								log.info("Envoi de mail désactivé :  ");
 							}

@@ -42,8 +42,6 @@ public class SessionEpreuve implements ContextSupport {
     
     public Boolean isSessionLibre = false;
     
-    public Boolean isSessionADistance = false;
-    
     @ManyToOne
     private TypeSession typeSession;
     
@@ -311,13 +309,4 @@ public class SessionEpreuve implements ContextSupport {
 	public void setTypeSession(TypeSession typeSession) {
 		this.typeSession = typeSession;
 	}
-
-	public Boolean getIsSessionADistance() {
-		return isSessionADistance;
-	}
-
-	public void setIsSessionADistance(Boolean isSessionADistance) {
-		this.isSessionADistance = isSessionADistance;
-	}
-	
 }

@@ -23,10 +23,11 @@
 						</div>		
 	                    <div class="form-group row">
                     		<div class="col-lg-2">
-	                    		<label for="person" class="col-form-label">Eppn</label>
+	                    		<label for="person" class="col-form-label">Identifiant</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
-	                    		<input type="text"  class="form-control" th:id="*{person}"  th:value="${tagCheck.person.eppn}" disabled="disabled">
+	                    		<input  th:if="${tagCheck.person != null}"  type="text"  class="form-control" th:id="*{person}"  th:value="${tagCheck.person.eppn}" disabled="disabled">
+	                    		<input  th:if="${tagCheck.guest!= null}"  type="text"  class="form-control" th:id="*{guest}"  th:value="${tagCheck.guest.email}" disabled="disabled">
 							</div>
 						</div>
 						<div class="form-group row">              				
@@ -65,18 +66,6 @@
 							    </div>
 						    </div>
 						</div>
-                    	<div class="form-group row">
-                    		<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Etape</label>
-	                    	</div>
-	                    	<div class="col-lg-10">
-								<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
-									<option value ="">-----Aucune----</option>
-									<option th:each="code : ${codeEtapes}"
-										th:value="${code}" th:text="${code}" th:selected="${tagCheck.codeEtape != null &&  (code == tagCheck.codeEtape)}"></option>
-								</select>
-							</div>
-						</div>							
 	                    <div class="form-group row">
 	                    	<div class="col-lg-2">
 	                        	<label for="comment" class="col-form-label">Commentaire</label>

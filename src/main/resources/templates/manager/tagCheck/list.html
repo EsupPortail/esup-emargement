@@ -31,7 +31,10 @@
 												class="btn btn-danger ml-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
 											<span class="btn-separator" th:if="${!isSessionEpreuveClosed}"></span>	
 											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
-											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}"></span>
+											<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" class="btn btn-secondary mr-2" title="Envoyer un qrCode de participation" data-toggle="modal"  data-target="#qrCodeModal"><i class="fas fa-qrcode"></i></button>
+											<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isLinkEmargerEnabled}" class="btn btn-info"  title="Envoyer un lien de particiaption à distance" data-toggle="modal"  data-target="#lienParticipationModal"><i class="fas fa-link"></i></button>
+											<span class="btn-separator" th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed}"></span>
+											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled and countRepartition == 0}"></span>
 											<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ml-2" type="button" data-toggle="collapse" data-target="#exportCollapse" 
 												title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
 					    				</div>
@@ -74,51 +77,67 @@
 							</form>
 						</div>
 		    		</div>
+		    		<div class="alert alert-success"  th:if="${#ctx.containsVariable('isSuccess')}"><span th:if="${(isSuccess)}">Mails envoyés avec succès</span></div>
+		    		<div class="alert alert-danger"  th:if="${#ctx.containsVariable('isSuccess')}"><span th:if="${(!isSuccess)}">Problème avec l'envoi des mails</span></div>
 						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
 							<thead class="sticky-top">
 								<tr>
 									<th th:if="${!isSessionEpreuveClosed and isConvocationEnabled}" scope="col"><input type="checkbox" id="selectall" /></th>
-									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>								
-									<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Eppn</a></th>
+									<th scope="col" class="hiddenBlock">Type</th>
+									<th scope="col">Identifiant</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col" class="d-none d-xl-table-cell">Groupe</th>					
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N°identifiant</th>									
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>							
 									<th scope="col" class="d-none d-xl-table-cell text-center" >Temps aménagé</th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Emargement</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="isCheckedByCard">Badgeage</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isSessionADistance}"><a class="sorted" sd:pagination-sort="isCheckedByLink">Lien</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown)? 'table-warning' : ''}" th:classappend="${(tagCheck.person.nom==null)? 'table-info' : ''}"> 
+								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown)? 'table-warning' : ''}"> 
 									<td th:if="${!isSessionEpreuveClosed and isConvocationEnabled}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
-									<td class="hiddenBlock" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
-									<td>
+									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
+									<td class="hiddenBlock" th:if="${tagCheck.guest != null}" th:text="Externe"></td>
+									<td  th:if="${tagCheck.person != null}">
 										<a href="#" class="mr-1 userModal" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 										<i class="fa fa-user" aria-hidden="true"></i></a>
 										<span th:text="${tagCheck.person.eppn}"></span>
 									</td>
-									<td th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:unless="${tagCheck.person != null}">
+										<a href="#" class="mr-1 userModal" 
+										th:attr="data-whatever=${tagCheck.guest.email + '//' + tagCheck.guest.nom + '//' + tagCheck.guest.prenom}">
+										<i class="fa fa-user" aria-hidden="true"></i></a>
+										<span th:text="${tagCheck.guest.email}"></span>
+									</td>
+									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}" class="d-none d-xl-table-cell"></td>
-									<td th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td class="text-center d-none  d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:unless="${tagCheck.person != null}"></td>
+									<td class="text-center d-none d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" 
 											th:text="${tagCheck.sessionLocationBadged != null} ? ${tagCheck.sessionLocationBadged.location.nom}"></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell text-center">
+									<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
+										<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+										<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+									 </span>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell text-center"><i th:if= "${tagCheck.isCheckedByCard!=null} " th:class="${tagCheck.isCheckedByCard} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell text-center"   th:if="${sessionEpreuve.isSessionADistance}"><i th:if= "${tagCheck.isCheckedByLink!=null} " th:class="${tagCheck.isCheckedByLink} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:if="${sessionEpreuve.isProcurationEnabled}"><span th:text="${(tagCheck.proxyPerson != null) ? tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom :''}"></span></td>
 									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
 									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
@@ -137,8 +156,9 @@
 													        </button>
 											            </div>
 											            <div class="modal-body">
-											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'étudiant : <br />
-											                	 <span th:text="${tagCheck.person.eppn}" class="font-weight-bold"></span> ?</div>
+											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'individu : <br />
+											                	 <span th:if="${tagCheck.person != null}" th:text="${tagCheck.person.eppn}" class="font-weight-bold"></span>
+											                	 <span th:if="${tagCheck.guest != null}" th:text="${tagCheck.guest.email}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
 											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
@@ -256,6 +276,86 @@
 		      </div>
 		    </div>
 		  </div>
-		</div>	
-	</body>
+		</div>
+	<div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title"></h5>
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="media">
+						<div class="media-body ml-2">
+							<div class="alert alert-danger text-center">
+								<strong>Envoyer un mail avec qrCode de participation pour les individus :</strong> <br />
+								<form id="command"
+									th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+									method="POST">
+									<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+									<input type="hidden" name="type" value="qrCode" />
+									<div class="alert alert-warning text-center mt-2">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" name="population"
+												id="sendQrCode1" value="all"> <label
+												class="form-check-label" for="inlineRadio1">Tous</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" name="population"
+												id="sendQrCode2" value="ext" checked="checked"> <label
+												class="form-check-label" for="inlineRadio2">
+												Externes</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" name="population"
+												id="sendQrCode3" value="nonext"> <label
+												class="form-check-label" for="inlineRadio2">
+												Internes
+											</label>
+										</div>
+									</div>
+									<button type="submit"
+										class="btn btn-outline pull-left btn-success">Valider</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal" id="lienParticipationModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title"></h5>
+					<button type="button" class="close" data-dismiss="modal"
+						aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="media">
+						<div class="media-body ml-2">
+							<div class="alert alert-danger text-center">
+								<strong>Envoyer un mail avec lien de participation (interne)</strong><br /><br />
+								<form id="command"
+									th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+									method="POST">
+									<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+									<input type="hidden" name="type" value="link" />
+									<button type="submit"
+										class="btn btn-outline pull-left btn-success">Valider</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>	
+</body>
 </html>

@@ -65,13 +65,21 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                         var labelNumEtu = "";
                         var valueNumEtu = "";
                         data.forEach(function(value, key) {
-                            if (id == "searchTagCheck" || id == "searchUserApp" || id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker") {
+                            if (id == "searchTagCheck" || id == "searchUserApp") {
                                 var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                 list.push({
                                     label: labelValue,
                                     value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
                                 });
-                            } else if (id == "searchLocation") {
+                            }else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker") {
+                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
+                                + "<strong class='ml-2'>Type : </strong>" + value.typeObject;
+                                list.push({
+                                    label: labelValue,
+                                    value: value.identifiant + "//" + value.nom + "//" + value.prenom + valueNumEtu
+                                });
+                            }
+                            else if (id == "searchLocation") {
                                 var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Site : </strong>" + value.campus.site + "<strong class='ml-2'>Adresse : </strong>" +
                                     value.adresse;
                                 list.push({
@@ -239,26 +247,37 @@ function updatePresence(url, numEtu) {
                 }
                 var date = new Date().toLocaleTimeString("fr-FR", options);
                 var person = data[0].person;;
-                var url = emargementContextUrl + "/supervisor/" + person.eppn + "/photo";
+                var guest = data[0].guest;;
+                var identifiant = "";
+                var varUrl = "";
+                if(person != null){
+                	identifiant = person.eppn ;
+                	varUrl = person.eppn ;
+                }else if (guest != null){
+                	identifiant = guest.email;
+                	varUrl = "inconnu";
+                }
+                var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
                 var modal = $('#photoModal2');
                 modal.find('.modal-title').text(date);
             	var nom ="";
             	var prenom = "";
             	var eppn = "";
-                if(person.nom != "null"){
+                if(person!=null && person.nom != "null"){
                 	nom = person.nom.toUpperCase();
                 	prenom = person.prenom;
-            	}else{
-            		eppn = person.eppn;
+            	}else if(guest!=null && guest.nom != "null"){
+            		nom = guest.nom.toUpperCase();
+                	prenom = guest.prenom;
             	}
                 modal.find('.modal-body #nomPresence').text(nom);
                 modal.find('.modal-body #prenomPresence').text(prenom);
-                modal.find('.modal-body #eppnPresence').text(eppn);
-                if (person.numIdentifiant != null) {
+                modal.find('.modal-body #eppnPresence').text(identifiant);
+                if (person != null && person.numIdentifiant != null) {
                     modal.find('.modal-body #numIdentifiantPresence').text('N° ' + person.numIdentifiant);
                 }
                 modal.find('.modal-body #photoPresent').prop("src", url);
-                modal.find('.modal-body #photoPresent').prop("alt", person.eppn);
+                modal.find('.modal-body #photoPresent').prop("alt", identifiant);
                 modal.modal('show');
                 setTimeout(function() {
                     window.location.href = redirect;
@@ -733,13 +752,11 @@ function getLocations(type){
 document.addEventListener('DOMContentLoaded', function() {
     //Autocomplete
     var userAppEppn = document.getElementById("eppn");
-    var userAppNom = document.getElementById("nom");
-    var userAppPrenom = document.getElementById("prenom");
     var numIdentifiant = document.getElementById("numIdentifiant");
     var superAdmin = document.getElementById("searchSuperAdmin");
     var searchSuEppn = document.getElementById("searchSuEppn");
 
-    if (userAppPrenom != null) {
+    if (userAppEppn != null) {
         if (superAdmin != null) {
             searchUsersAutocomplete("eppn", emargementContextUrl + "/superadmin/admins/searchUsersLdap", "", 100);
         } else {
@@ -748,8 +765,6 @@ document.addEventListener('DOMContentLoaded', function() {
         userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
             var splitEppn = this.value.split("//");
             userAppEppn.value = splitEppn[0].toString().trim();
-            userAppNom.value = splitEppn[1].toString().trim()
-            userAppPrenom.value = splitEppn[2].toString().trim()
         });
     }
     //input num Etu
@@ -1449,6 +1464,12 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: 'Rechercher Lieu'
         });
     }
+    if (document.getElementById('sessionLocationExpected2') != null) {
+        new SlimSelect({
+            select: '#sessionLocationExpected2',
+            placeholder: 'Rechercher Lieu'
+        });
+    }
     //Presence
     if (document.getElementById('presencePage') != null) {
         const uuid = ID();
@@ -1461,8 +1482,19 @@ document.addEventListener('DOMContentLoaded', function() {
             $("#" + tagCheck.id + " #tagDate").html(isPresent ? moment(tagCheck.tagDate).format('HH:mm:ss') : "");
             $("#" + tagCheck.id).prop("class", (isPresent) ? "table-success" : "table-danger");
             $("#" + tagCheck.id + " .presenceCheck").prop("checked", (isPresent) ? true : false);
-            var iscCheckedByCard = (tagCheck.isCheckedByCard) ? "<i class='fa fa-check text-success'></i>" : "<i class='fa fa-times text-danger'></i>";
-            $("#" + tagCheck.id + " .checkedByCard").html(isPresent ? iscCheckedByCard : "");
+            var typeEmargement = '';
+            if(tagCheck.typeEmargement != null){
+            	if(tagCheck.typeEmargement == 'MANUAL'){
+            		typeEmargement = "<i class='fas fa-check-square text-success' ></i>";
+            	}else if(tagCheck.typeEmargement == 'CARD'){
+            		typeEmargement = "<i class='fas fa-id-card text-primary h4' ></i>";
+            	}else if(tagCheck.typeEmargement == 'LINK'){
+            		typeEmargement = "<i class='fas fa-link text-info' ></i>";
+            	}else if(tagCheck.typeEmargement == 'QRCODE'){
+            		typeEmargement = "<i class='fas fa-qrcode text-secondary' ></i>";
+            	}
+            }
+            $("#" + tagCheck.id + " .checkedByCard").html(isPresent ? typeEmargement : "");
             var sessionLocationBadged = (tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : '';
             $("#" + tagCheck.id + " .sessionLocationBadged").html(isPresent ? sessionLocationBadged : "");
             var tagChecker = (tagCheck.tagChecker != null) ? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : '';
@@ -1606,7 +1638,6 @@ document.addEventListener('DOMContentLoaded', function() {
     $('.userModal').on("click", function(event) {
     	var splitField = this.getAttribute("data-whatever").split("//");
     	$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
-    	$("#photoPresent").prop("alt", "Photo" + splitField[0]);
     	var nom ="";
     	var prenom = "";
     	var eppn = "";
@@ -1616,6 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() {
     	}else{
     		eppn = splitField[0];
     	}
+    	$("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
     	$("#eppnPresence").text(eppn);
     	$("#nomPresence").text(nom);
     	$("#prenomPresence").text(prenom);
@@ -1710,8 +1742,73 @@ document.addEventListener('DOMContentLoaded', function() {
 		$("#formSearchTc").submit();
 	});
 	
-    var dialogMsg = document.querySelector('#modalUser');
-    if (dialogMsg != null) {
-        $('#modalUser').modal('show');
-    }
-});
+	 var dialogMsg = document.querySelector('#modalUser');
+     if (dialogMsg != null) {
+         $('#modalUser').modal('show');
+     }
+	
+	//Activation webcam
+	$(document).on('change', '#webCamCheck', function() {
+		var value = (this.checked) ? "true" : "false";
+		var redirect = window.location.origin + window.location.pathname;
+        var request = new XMLHttpRequest();
+        request.open('GET', emargementContextUrl + "/supervisor/updatePrefs?pref=enableWebcam&value=" + value, true);
+        request.onload = function() {
+            if (request.status >= 200 && request.status < 400) {
+            	window.location.href = redirect;
+            }
+        }
+        request.send();
+	});
+	
+	var qrCodeCam = document.getElementById("qrCodeCam");
+	if(qrCodeCam != null){
+	    var video = document.createElement("video");
+	    var canvasElement = document.getElementById("canvas");
+	    var canvas = canvasElement.getContext("2d");
+	    var loadingMessage = document.getElementById("loadingMessage");
+	
+	    function drawLine(begin, end, color) {
+	      canvas.beginPath();
+	      canvas.moveTo(begin.x, begin.y);
+	      canvas.lineTo(end.x, end.y);
+	      canvas.lineWidth = 4;
+	      canvas.strokeStyle = color;
+	      canvas.stroke();
+	    }
+	
+	    // Use facingMode: environment to attemt to get the front camera on phones
+	    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+	      video.srcObject = stream;
+	      video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+	      video.play();
+	      requestAnimationFrame(tick);
+	    });
+	
+	    function tick() {
+	      loadingMessage.innerText = "⌛ Loading video..."
+	      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+	        loadingMessage.hidden = true;
+	        canvasElement.hidden = false;
+	
+	        canvasElement.height = video.videoHeight;
+	        canvasElement.width = video.videoWidth;
+	        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+	        var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+	        var code = jsQR(imageData.data, imageData.width, imageData.height, {
+	          inversionAttempts: "dontInvert",
+	        });
+	        if (code) {
+	          console.log("Found QR code", code.data);
+	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data);
+	          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+	          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+	          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+	          drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+	        }
+	      }
+	      requestAnimationFrame(tick);
+	    }
+	}
+   });
+    

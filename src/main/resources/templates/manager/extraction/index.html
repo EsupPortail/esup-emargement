@@ -6,7 +6,7 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid" id="extractionPage">
            	<div class="card">
-		    	<div class="card-header" id="toto"><h2>Import/export des inscrits</h2></div>
+		    	<div class="card-header" id="toto"><h2>Import/export</h2></div>
   				<div class="card-body">
   				    <ul class="nav nav-tabs" role="tablist" >
 					    <li class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>

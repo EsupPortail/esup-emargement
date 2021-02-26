@@ -4,6 +4,8 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,6 +33,9 @@ public class TagCheck implements ContextSupport {
 
     @ManyToOne
     private Person person;
+    
+    @ManyToOne
+    private Guest guest;
 
     private Boolean isTiersTemps = false;
     
@@ -55,11 +60,15 @@ public class TagCheck implements ContextSupport {
     @ManyToOne(cascade = CascadeType.PERSIST)
     private Groupe groupe;
     
+    public static enum TypeEmargement {
+        CARD, LINK, MANUAL, QRCODE
+    };
+    
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TypeEmargement typeEmargement;
+    
     private String numAnonymat;
-    
-    private Boolean isCheckedByCard;
-    
-    private Boolean isCheckedByLink = false;
     
     private Boolean isUnknown = false;
     
@@ -168,14 +177,6 @@ public class TagCheck implements ContextSupport {
 		this.context = context;
 	}
 
-	public Boolean getIsCheckedByCard() {
-		return isCheckedByCard;
-	}
-
-	public void setIsCheckedByCard(Boolean isCheckedByCard) {
-		this.isCheckedByCard = isCheckedByCard;
-	}
-
 	public Boolean getIsUnknown() {
 		return isUnknown;
 	}
@@ -224,12 +225,20 @@ public class TagCheck implements ContextSupport {
 		this.sessionToken = sessionToken;
 	}
 
-	public Boolean getIsCheckedByLink() {
-		return isCheckedByLink;
+	public TypeEmargement getTypeEmargement() {
+		return typeEmargement;
 	}
 
-	public void setIsCheckedByLink(Boolean isCheckedByLink) {
-		this.isCheckedByLink = isCheckedByLink;
+	public void setTypeEmargement(TypeEmargement typeEmargement) {
+		this.typeEmargement = typeEmargement;
+	}
+
+	public Guest getGuest() {
+		return guest;
+	}
+
+	public void setGuest(Guest guest) {
+		this.guest = guest;
 	}
 	
 }
