@@ -82,7 +82,7 @@ public class UserAppService {
 			}
 			userApps.removeAll(userAppsUsed);
 		}
-		setNomPrenom(userApps);
+		setNomPrenom(userApps, true);
 		return userApps;
 
 	}
@@ -99,18 +99,22 @@ public class UserAppService {
 		 }
     }
     
-	public List<UserApp> setNomPrenom(List<UserApp>allUserApps){
-		
+	public List<UserApp> setNomPrenom(List<UserApp>allUserApps, boolean isIncluded){
+		List<UserApp> newList = new ArrayList<UserApp>();
 		if(!allUserApps.isEmpty()) {
 			for(UserApp userApp : allUserApps) {
 				List<UserLdap> userLdap = userLdapRepository.findByEppnEquals(userApp.getEppn());
 				if(!userLdap.isEmpty()) {
 					userApp.setNom(userLdap.get(0).getUsername());
 					userApp.setPrenom(userLdap.get(0).getPrenom());
+					newList.add(userApp);
+				}
+				if(!userLdap.isEmpty() && isIncluded) {
+					newList.add(userApp);
 				}
 			}
 		}
-		return allUserApps;
+		return newList;
 	}
 	
 	public List<String> getUserContexts() {
@@ -163,7 +167,7 @@ public class UserAppService {
 	
 	public List<UserApp> allUserApps(){
 		List<UserApp>  list = userAppRepository.findAll();
-		list = setNomPrenom(list);
+		list = setNomPrenom(list, true);
 		Set<String> set = new HashSet<>(list.size());
 		list.removeIf(p -> !set.add(p.getEppn()));
 		list.removeIf(obj -> obj.getEppn().equals(getUserAppEppn()));

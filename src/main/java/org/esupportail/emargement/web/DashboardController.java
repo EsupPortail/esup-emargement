@@ -82,7 +82,7 @@ public class DashboardController {
 				List<TagChecker> tcsNext = tagCheckerRepository.findTagCheckerBySessionLocationIn(slsNext, null).getContent();
 				List<UserApp> userApps = tcsNext.stream().map(tc -> tc.getUserApp()).collect(Collectors.toList());
 				if(!userApps.isEmpty()) {
-					userAppService.setNomPrenom(userApps);
+					userAppService.setNomPrenom(userApps, true);
 					model.addAttribute("userApps", userApps);
 				}
 				model.addAttribute("seNext", seNextList.get(0));
@@ -97,7 +97,7 @@ public class DashboardController {
 				List<TagChecker> tcsToday = tagCheckerRepository.findTagCheckerBySessionLocationIn(slsToday, null).getContent();
 				List<UserApp> userAppsToday = tcsToday.stream().map(tc -> tc.getUserApp()).collect(Collectors.toList());
 				if(!userAppsToday.isEmpty()) {
-					userAppService.setNomPrenom(userAppsToday);
+					userAppService.setNomPrenom(userAppsToday, true);
 					model.addAttribute("userAppsToday", userAppsToday);
 				}				
 			}
@@ -110,7 +110,7 @@ public class DashboardController {
 				List<TagChecker> tcsPrevious = tagCheckerRepository.findTagCheckerBySessionLocationIn(slsPrevious, null).getContent();
 				List<UserApp> userAppsPrevious = tcsPrevious.stream().map(tc -> tc.getUserApp()).collect(Collectors.toList());
 				if(!userAppsPrevious.isEmpty()) {
-					userAppService.setNomPrenom(userAppsPrevious);
+					userAppService.setNomPrenom(userAppsPrevious, true);
 					model.addAttribute("userAppsPrevious", userAppsPrevious);
 				}				
 			}

@@ -93,7 +93,7 @@ public class SuperAdminController {
 	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 50, direction = Direction.ASC, sort = "eppn")  Pageable pageable) {
 
 		Page<UserApp> userAppPage = userAppRepository.findAllByUserRole(Role.ADMIN,pageable);
-		userAppService.setNomPrenom(userAppPage.getContent());
+		userAppService.setNomPrenom(userAppPage.getContent(), true);
         model.addAttribute("userAppPage", userAppPage);
 		model.addAttribute("url", "/superadmin/admins");
 		model.addAttribute("paramUrl", "0");
@@ -109,7 +109,7 @@ public class SuperAdminController {
 		List<UserApp> users = new ArrayList<UserApp>();
 		users.add(userAppRepository.findById(id).get());
 		
-        uiModel.addAttribute("userApp", userAppService.setNomPrenom(users).get(0));
+        uiModel.addAttribute("userApp", userAppService.setNomPrenom(users, true).get(0));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "superadmin/admins/show";
     }

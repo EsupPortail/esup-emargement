@@ -113,7 +113,7 @@ public class UserAppController {
 			userAppPage = userAppRepository.findByEppnAndContext(eppn, context, pageable);
 		}
 		if(!userAppPage.isEmpty()) {
-			userAppService.setNomPrenom(userAppPage.getContent());
+			userAppService.setNomPrenom(userAppPage.getContent(), true);
 		}
 		if(eppn!=null) {
 			model.addAttribute("eppn", eppn);
@@ -133,7 +133,7 @@ public class UserAppController {
 		List<UserApp> users = new ArrayList<UserApp>();
 		users.add(userAppRepository.findById(id).get());
 		
-        uiModel.addAttribute("userApp", userAppService.setNomPrenom(users).get(0));
+        uiModel.addAttribute("userApp", userAppService.setNomPrenom(users, true).get(0));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/userApp/show";
     }
@@ -236,7 +236,7 @@ public class UserAppController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		List<UserApp> userApps= userAppRepositoryCustom.findAll(searchString);
-		userAppService.setNomPrenom(userApps);
+		userAppService.setNomPrenom(userApps, true);
         return userApps;
     }
 }

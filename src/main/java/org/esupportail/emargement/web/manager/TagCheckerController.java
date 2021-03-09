@@ -139,8 +139,8 @@ public class TagCheckerController {
     			usedUsers.add(tc.getUserApp());
     		}
     		uiModel.addAttribute("allSessionLocations", allSl);
-    		userAppService.setNomPrenom(allUserApps);
-    		userAppService.setNomPrenom(usedUsers);
+    		allUserApps = userAppService.setNomPrenom(allUserApps, false);
+    		usedUsers = userAppService.setNomPrenom(usedUsers, false);
     		allUserApps.sort(Comparator.comparing(UserApp::getNom));
     		uiModel.addAttribute("allUserApps", allUserApps);
     		uiModel.addAttribute("usedUsers", usedUsers);
