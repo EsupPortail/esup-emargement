@@ -35,12 +35,14 @@
 			            </dd>
 			            <dt class="col-sm-2">Site</dt>
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.campus.site}"></dd>
-			            <dt class="col-sm-2">Plan</dt>
+			            <dt class="col-sm-2">Pièces jointes</dt>
 			            <dd class="col-sm-10">
-							<span th:if="${sessionEpreuve.planSessionEpreuve != null}">
-								<a th:href="@{/{ctx}/manager/file/{id}(id=${sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
-								<i class="fa fa-file"></i></a></span>
-							<span class="text-danger font-weight-bold" th:if="${sessionEpreuve.planSessionEpreuve == null}">Aucun fichier actuellement</span>
+				            <span th:if="${attachments!=null and !attachments.empty}" >
+					            <span th:each="att : ${attachments}">
+				            		<p><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${att.id},ctx=${eContext})}" 
+				            		th:text="${att.filename}" target="_blank"></a></p>
+					            </span>
+				            </span>
 			            </dd>    			            
 			            <dt class="col-sm-2">Convocation</dt>
 			            <dd class="col-sm-10" th:text="${#dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}"></dd>   

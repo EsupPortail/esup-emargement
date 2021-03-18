@@ -96,13 +96,10 @@
 	                    </div>
 	                    <div class="form-group row">
 		                    <div class="col-lg-2">
-		                    	<label for="file" class="col-form-label">Plan</label>
+		                    	<label for="file" class="col-form-label">Pièces jointes</label>
 		                    </div>
-		                    <div class="col-lg-10">
-			 					<input type="file" class="form-control-file" id="file" name="file">
-			 					<span th:if="${sessionEpreuve.planSessionEpreuve != null}" >
-							<a  th:href="@{/{ctx}/manager/file/{id}(id=${sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
-						Voir fichier actuel  </a> (sera conservé si aucun fichier n'est sélectionné))</span>
+		                    <div class="col-lg-10 file-loading">
+			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
 			 				</div>
 						</div>
 	                    <div class="form-group row">

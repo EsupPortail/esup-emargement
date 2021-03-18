@@ -1692,24 +1692,79 @@ document.addEventListener('DOMContentLoaded', function() {
     	
     });
     
-    var fileInput = document.querySelector('#file');
+    var fileInput = document.querySelector('#files');
+    
 	if(fileInput != null){
-	    fileInput.addEventListener('change', function() {
-	        var reader = new FileReader();
-	        reader.addEventListener('load', function() {
-	        	var size = fileInput.files[0].size;
-	        	var name = fileInput.files[0].name;
-	        	var sizeOctets = size /1048576;
-	        	var sizeMax = 1;
-	        	if(sizeOctets>1){
-	        		alert('Le fichier ' + name  + " est trop volumineux : " + sizeOctets.toFixed(2) + " Mo \n\n Taille maximum : 1 Mo") ;
-	        	}
-	            fileInput.value = "";
-	        });
-	        reader.readAsText(fileInput.files[0]);
-	    });
+		if(seId == ""){
+     	    $("#files").fileinput({
+     	    	theme: "fas",
+    	    	language: "fr",
+    	    	maxFileSize: 1000,
+    	        maxFileCount: 10,
+    	        mainClass: "input-group-lg",
+    	    });
+		}else{
+			const config = {
+					type: "",
+					filetype : "",
+					caption: "",
+					downloadUrl: false,
+					size: "",
+					width: "120px",
+					key: 0
+			};
+		    var urls = [];
+		    var configsArray = [];
+		    var rootUrl = emargementContextUrl + "/manager/sessionEpreuve/";
+		    var deleteUrl = emargementContextUrl + "/manager/sessionEpreuve/storedFiles/delete";
+		    var request = new XMLHttpRequest();
+		    request.open('GET', emargementContextUrl + "/manager/sessionEpreuve/storedFiles/" + seId, true);
+		    request.onload = function() {
+		        if (request.status >= 200 && request.status < 400) {
+		        	 var data = JSON.parse(this.response);
+		        	 var seId = "";
+		        	 data.forEach(function(value, key) {
+		        		 urls.push(rootUrl + value.id + "/photo");
+		        		 const me = Object.create(config);
+		        		 if (value.contentType.indexOf("pdf") !== -1){
+		        			 me.type="pdf";
+		        		 }else{
+		        			 me.type= "image";
+		        		 }
+		        		 me.filetype = value.contentType;
+		        		 me.caption= value.filename,
+		        		 me.downloadUrl= rootUrl + value.id + "/photo",
+		        		 me.size= value.fileSize,
+		        		// me.width= "120px",
+		        		 me.key= value.id
+		        		 configsArray.push(me);
+		        		 seId = value.sessionEpreuve.id;
+		        	 });
+		     	    $("#files").fileinput({
+		     	    	theme: "fas",
+		    	    	initialPreview: urls,
+		    	    	initialPreviewAsData: true,
+		    	        initialPreviewConfig: configsArray,
+		    	        deleteUrl: deleteUrl,
+		    	        overwriteInitial: false,
+		    	    	language: "fr",
+		    	    	maxFileSize: 1000,
+		    	        maxFileCount: 10,
+		    	        mainClass: "input-group-lg",
+		    	        allowedPreviewTypes :  ['image', 'html', 'text', 'video', 'audio', 'flash', 'object', 'pdf']
+		    	    });
+		        }
+		    }
+		    request.send();
+		}
 	}
-	
+	 $("#files").on("filepredelete", function(jqXHR) {
+	        var abort = true;
+	        if (confirm("Are you sure you want to delete this image?")) {
+	            abort = false;
+	        }
+	    });
+	    
 	//Select all !!
 	$("#selectAll").click(function(){
 		$('.notUsed').find("input[type=checkbox]").prop('checked', $(this).prop('checked'));

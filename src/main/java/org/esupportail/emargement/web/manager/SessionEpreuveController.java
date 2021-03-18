@@ -1,6 +1,8 @@
 package org.esupportail.emargement.web.manager;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,14 +16,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.EventRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
@@ -60,6 +65,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import flexjson.JSONSerializer;
 import net.fortuna.ical4j.data.ParserException;
 
 @Controller
@@ -69,6 +75,9 @@ public class SessionEpreuveController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired	
+	StoredFileRepository storedFileRepository;
 	
 	@Autowired
 	SessionEpreuveRepositoryCustom sessionEpreuveRepositoryCustom;
@@ -154,8 +163,8 @@ public class SessionEpreuveController {
 		List<SessionEpreuve> list = new ArrayList<SessionEpreuve>();
 		list.add(se);
 		sessionEpreuveService.computeCounters(list);
-	//	se.setDureeEpreuve(sessionEpreuveService.getDureeEpreuve(se));
         uiModel.addAttribute("sessionEpreuve", list.get(0));
+        uiModel.addAttribute("attachments", storedFileRepository.findBySessionEpreuve(list.get(0)));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/sessionEpreuve/show";
     }
@@ -246,6 +255,7 @@ public class SessionEpreuveController {
     		isSessionLibreDisabled = false;
     	}
     	uiModel.addAttribute("isSessionLibreDisabled", isSessionLibreDisabled);
+    	uiModel.addAttribute("seId", id);
         return "manager/sessionEpreuve/update";
     }
     
@@ -395,4 +405,47 @@ public class SessionEpreuveController {
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     	
     }
+    
+    
+    @GetMapping("/manager/sessionEpreuve/storedFiles/{id}")
+    @ResponseBody
+    public List<StoredFile> getStoredfiles(@PathVariable String emargementContext, @PathVariable("id") Long id){
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+		List<StoredFile> storedFiles = storedFileRepository.findBySessionEpreuve(se);
+    	
+        return storedFiles;
+    }
+    
+    @Transactional
+    @PostMapping("/manager/sessionEpreuve/storedFiles/delete")
+    @ResponseBody
+    public String  deleteStoredfile(@PathVariable String emargementContext, @RequestParam("key") Long key){
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		StoredFile storedFile = storedFileRepository.findById(key).get();
+		storedFileRepository.delete(storedFile);
+		JSONSerializer serializer = new JSONSerializer();
+		String flexJsonString = serializer.deepSerialize("zezez");
+		return flexJsonString;
+    }
+    
+	
+	@Transactional
+	@RequestMapping(value = "/manager/sessionEpreuve/{id}/photo")
+	public void getPhoto(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
+		StoredFile sf = storedFileRepository.findById(id).get();
+		if(sf != null) {
+			Long size = sf.getFileSize();
+			String contentType = sf.getContentType();
+			response.setContentType(contentType);
+			response.setContentLength(size.intValue());
+			InputStream targetStream = new ByteArrayInputStream(sf.getBigFile().getBinaryFile());
+			IOUtils.copy(targetStream, response.getOutputStream());
+			///regarder les droits
+		}
+	}
+	
+	
 }

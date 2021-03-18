@@ -17,13 +17,6 @@
 			            <dd class="col-sm-10" th:text="${(location.campus!= null)? location.campus.site : ''}"></dd>   
 			            <dt class="col-sm-2">Adresse</dt>
 			            <dd class="col-sm-10" th:text="${location.adresse}"></dd>
-			            <dt class="col-sm-2">Plan</dt>
-			            <dd class="col-sm-10">
-						<span th:if="${location.plan != null}">
-							<a th:href="@{/{ctx}/manager/file/{id}(id=${location.plan.id},ctx=${eContext})}" target="_blank" class="font-weight-bold">
-							<i class="fa fa-file"></i></a></span>
-						<span class="text-danger font-weight-bold" th:if="${location.plan == null}">Aucun fichier actuellement</span>
-			            </dd>                    
 					</dl>
 				</div>
 			</div>

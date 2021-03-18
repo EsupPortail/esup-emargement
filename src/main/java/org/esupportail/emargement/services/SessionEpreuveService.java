@@ -7,14 +7,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
-import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
@@ -46,6 +44,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -135,6 +135,7 @@ public class SessionEpreuveService {
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
 			session.setDureeEpreuve(getDureeEpreuve(session));
 			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId(), TypeEmargement.CARD.name(), session.getContext().getId()));
+			session.setNbStoredFiles(storedFileRepository.countBySessionEpreuve(session));
 			session.setNbUnknown(unknown);
 		}
 	}
@@ -302,32 +303,20 @@ public class SessionEpreuveService {
     	return capaciteTotal;
     }
 	
+    @Transactional
 	public void save(SessionEpreuve sessionEpreuve, String emargementContext) throws IOException {
 		
-		StoredFile sf = null;
-		StoredFile oldSf =  null;
-		boolean deleteOldPlan =false;
-		if(sessionEpreuve.getId()!=null){
-			Optional<SessionEpreuve> se = sessionEpreuveRepository.findById(sessionEpreuve.getId());
-			oldSf = se.get().getPlanSessionEpreuve();
-		}
-		if(sessionEpreuve.getFile() != null && sessionEpreuve.getFile().getSize()>0) {
-			  sf = storedFileService.setStoredFile(new StoredFile(), sessionEpreuve.getFile(), emargementContext);
-			  deleteOldPlan = true;
-		}else {
-			sf = oldSf;
-		}
-		
-		sessionEpreuve.setPlanSessionEpreuve(sf);
 		sessionEpreuveRepository.save(sessionEpreuve);
-		if(deleteOldPlan) {
-			if(oldSf!=null) {
-				storedFileRepository.delete(oldSf);
+		if(sessionEpreuve.getFiles() != null && !sessionEpreuve.getFiles().isEmpty()) {
+			for(MultipartFile file : sessionEpreuve.getFiles()) {
+				if(file.getSize()>0) {
+					StoredFile sf = new StoredFile();
+					storedFileService.setStoredFile(sf, file, emargementContext, sessionEpreuve);
+					storedFileRepository.save(sf);
+				}
 			}
 		}
 	}
-	
-	
 	
 	public void exportEmargement(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String type, String emargementContext) {
 		
@@ -558,7 +547,6 @@ public class SessionEpreuveService {
         newSe.setCampus(originalSe.getCampus());
         newSe.setContext(context);
         newSe.setDateExamen(new Date());
-        newSe.setFile(originalSe.getFile());
         newSe.setFinEpreuve(originalSe.getFinEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
         newSe.setIsSessionEpreuveClosed(false);
@@ -576,24 +564,6 @@ public class SessionEpreuveService {
         newSe.setTypeSession(originalSe.getTypeSession());
         newSe.setHeureEpreuve(originalSe.getHeureEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
-        
-        if(originalSe.getPlanSessionEpreuve()!=null) {
-        	BigFile bigFile = new BigFile();
-	        bigFile.setBinaryFile(originalSe.getPlanSessionEpreuve().getBigFile().getBinaryFile());
-	        bigFile.setContext(context);
-	        bigFileRepository.save(bigFile);
-	        StoredFile storedFile = new StoredFile();
-	        storedFile.setBigFile(bigFile);
-	        StoredFile plan = originalSe.getPlanSessionEpreuve();
-	        storedFile.setContentType(plan.getContentType());
-	        storedFile.setContext(context);
-	        storedFile.setFilename(plan.getFilename());
-	        storedFile.setFileSize(plan.getFileSize());
-	        storedFile.setImageData(plan.getImageData());
-	        storedFile.setSendTime(new Date());
-	        storedFileRepository.save(storedFile);
-	        newSe.setPlanSessionEpreuve(storedFile);
-        }
         sessionEpreuveRepository.save(newSe);
         List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(originalSe);
         
@@ -631,6 +601,26 @@ public class SessionEpreuveService {
         		tagCheckRepository.save(newTagCheck);
         	}
         }
+        
+        /*
+        List<StoredFile> listSf = storedFileRepository.findBySessionEpreuve(originalSe);
+        
+        if(! listSf.isEmpty()) {
+        	for(StoredFile sf : listSf) {
+        		StoredFile storedFile = new StoredFile();
+     	        storedFile.setBigFile(sf.getBigFile());
+     	        storedFile.setContentType(sf.getContentType());
+     	        storedFile.setContext(context);
+     	        storedFile.setFilename(sf.getFilename());
+     	        storedFile.setFileSize(sf.getFileSize());
+     	        storedFile.setImageData(sf.getImageData());
+     	        storedFile.setSendTime(new Date());
+     	        storedFile.setSessionEpreuve(newSe);
+     	        storedFileRepository.save(storedFile);
+        	}
+        }*/
+        
+        
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);

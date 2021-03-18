@@ -22,7 +22,6 @@ import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -207,7 +206,6 @@ public class TagCheckController {
 		model.addAttribute("countForButtonLinkOrQrCode", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationBadgedIsNullAndSessionEpreuveDateExamen(id, now));
 		model.addAttribute("countRepartition", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNull(id) - unknown);
 		model.addAttribute("countConvocations", tagCheckRepository.countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(id) - unknown);
-		model.addAttribute("countCheckedBycard",tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardFalse(id, TypeEmargement.CARD.name(), ctx.getId()) - unknown);
 		model.addAttribute("countUnknown", unknown);
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);

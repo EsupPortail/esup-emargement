@@ -46,7 +46,6 @@
 								<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger mr-2" th:text="${'A répartir : ' + countRepartition}"></span>
 								<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger mr-2" th:text="${'Intrus : ' + countUnknown}"></span>
 								<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
-								<span th:if="${countCheckedBycard > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Emargé(s) manuellement : ' + countCheckedBycard}"></span>
 								<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
 							</div>
 						</div>

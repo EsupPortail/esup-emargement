@@ -165,7 +165,7 @@ public class LocationController {
         	return String.format("redirect:/%s/admin/location?form", emargementContext);
         }else {
         	location.setContext(contexteService.getcurrentContext());
-        	locationService.save(location, emargementContext);
+        	locationRepository.save(location);
         	log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
         	logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
             return String.format("redirect:/%s/admin/location", emargementContext);
@@ -188,7 +188,7 @@ public class LocationController {
         }else {
         	location.setCampus(location.getCampus());
         	location.setContext(contexteService.getcurrentContext());
-        	locationService.save(location, emargementContext);
+        	locationRepository.save(location);
         	log.info("maj lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
         	logService.log(ACTION.UPDATE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
             return String.format("redirect:/%s/admin/location", emargementContext);

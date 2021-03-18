@@ -3,15 +3,14 @@ package org.esupportail.emargement.domain;
 
 
 import java.util.Date;
+import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
@@ -47,9 +46,6 @@ public class SessionEpreuve implements ContextSupport {
     
     @ManyToOne
     private Campus campus;
-    
-    @OneToOne(cascade=CascadeType.ALL)
-    private StoredFile planSessionEpreuve;
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateExamen;
@@ -100,8 +96,11 @@ public class SessionEpreuve implements ContextSupport {
     private @Transient
     Long nbUnknown = Long.valueOf("0");
     
+    private @Transient
+    Long nbStoredFiles = Long.valueOf("0");
+    
     @Transient
-    private MultipartFile file;
+    private List<MultipartFile> files;
     
 	public Long getNbLieuxSession() {
 		return nbLieuxSession;
@@ -166,10 +165,6 @@ public class SessionEpreuve implements ContextSupport {
 	public void setCampus(Campus campus) {
 		this.campus = campus;
 	}
-
-	public StoredFile getPlanSessionEpreuve() {
-		return planSessionEpreuve;
-	}
 	
 	public Date getDateExamen() {
 		return dateExamen;
@@ -177,10 +172,6 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setDateExamen(Date dateExamen) {
 		this.dateExamen = dateExamen;
-	}
-
-	public void setPlanSessionEpreuve(StoredFile planSessionEpreuve) {
-		this.planSessionEpreuve = planSessionEpreuve;
 	}
 
 	public Date getHeureConvocation() {
@@ -207,13 +198,14 @@ public class SessionEpreuve implements ContextSupport {
 		this.dureeEpreuve = dureeEpreuve;
 	}
 
-	public MultipartFile getFile() {
-		return file;
+	public List<MultipartFile> getFiles() {
+		return files;
 	}
 
-	public void setFile(MultipartFile file) {
-		this.file = file;
+	public void setFiles(List<MultipartFile> files) {
+		this.files = files;
 	}
+
 	public Context getContext() {
 		return context;
 	}
@@ -309,4 +301,14 @@ public class SessionEpreuve implements ContextSupport {
 	public void setTypeSession(TypeSession typeSession) {
 		this.typeSession = typeSession;
 	}
+
+	public Long getNbStoredFiles() {
+		return nbStoredFiles;
+	}
+
+	public void setNbStoredFiles(Long nbStoredFiles) {
+		this.nbStoredFiles = nbStoredFiles;
+	}
+
+	
 }

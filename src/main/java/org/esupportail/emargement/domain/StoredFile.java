@@ -32,6 +32,9 @@ public class StoredFile {
 	
 	@ManyToOne
 	private Context context;
+	
+    @ManyToOne
+    private SessionEpreuve sessionEpreuve;
 
     private String filename;
     
@@ -135,5 +138,14 @@ public class StoredFile {
 	public void setContext(Context context) {
 		this.context = context;
 	}
+
+	public SessionEpreuve getSessionEpreuve() {
+		return sessionEpreuve;
+	}
+
+	public void setSessionEpreuve(SessionEpreuve sessionEpreuve) {
+		this.sessionEpreuve = sessionEpreuve;
+	}
+	
 }
 

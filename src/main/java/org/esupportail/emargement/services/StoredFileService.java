@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class StoredFileService {
 	@Autowired
 	ContextRepository contextRepository;
 	
-	public StoredFile setStoredFile(StoredFile storedFile, MultipartFile file, String emargementContext) throws IOException {
+	public StoredFile setStoredFile(StoredFile storedFile, MultipartFile file, String emargementContext, SessionEpreuve sessionEpreuve) throws IOException {
 		
 		storedFile.setSendTime(new Date());
 		storedFile.setFile(file);
@@ -26,9 +27,10 @@ public class StoredFileService {
 		Context context = contextRepository.findByKey(emargementContext);
 		storedFile.getBigFile().setContext(context);
 		storedFile.setContentType(file.getContentType());
-		storedFile.setFilename(file.getName());
+		storedFile.setFilename(file.getOriginalFilename());
 		storedFile.setFileSize(file.getSize());
 		storedFile.setContext(context);
+		storedFile.setSessionEpreuve(sessionEpreuve);
 		return storedFile;
 	}
 }

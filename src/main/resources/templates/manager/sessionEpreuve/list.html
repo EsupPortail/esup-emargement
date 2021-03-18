@@ -44,7 +44,7 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >Inscrits</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Surveillants</th>
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="campus">Site</a></th>
-									<th scope="col" class="hiddenBlock" >Plan</th>
+									<th scope="col" class="hiddenBlock" >PJ</th>
 									<th scope="col" class="hiddenBlock">Convocation</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
@@ -71,8 +71,7 @@
 									</td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a></td>
 									<td th:text="${sessionEpreuve.campus.site}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td class ="text-center hiddenBlock"><a target="_blank" th:href="@{/{ctx}/manager/file/{id}(id=${sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" 
-										th:if="${sessionEpreuve.planSessionEpreuve != null}"><i class="fa fa-file"></i></a></td>		
+									<td class ="text-center hiddenBlock" th:text="${sessionEpreuve.nbStoredFiles}"></td>		
 									<td th:text="${#dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
