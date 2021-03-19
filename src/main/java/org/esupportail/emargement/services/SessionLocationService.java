@@ -160,4 +160,16 @@ public class SessionLocationService {
     	
     	return locations;
     }
+    
+    public void deleteAllTLocationsBySessionEpreuveId(Long id) {
+    	
+    	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuveId(id);
+    	
+    	if(!sls.isEmpty()) {
+    		for(SessionLocation sl : sls) {
+    			sessionLocationRepository.delete(sl);;
+    		}
+    	}
+    	
+    }
 }

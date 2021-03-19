@@ -90,10 +90,16 @@ public class SessionEpreuveService {
 	SessionEpreuveService sessionEpreuveService;
 	
 	@Resource
+	SessionLocationService sessionLocationService;
+	
+	@Resource
 	LdapService ldapService;
 		
 	@Resource
 	TagCheckService tagCheckService;
+	
+	@Resource
+	TagCheckerService tagCheckerService;
 	
 	@Resource
 	StoredFileService storedFileService;
@@ -626,5 +632,15 @@ public class SessionEpreuveService {
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
 
         return newSe;
+	 }
+	 
+	 @Transactional
+	 public void delete(SessionEpreuve se) {
+		 
+		 tagCheckService.deleteAllTagChecksBySessionEpreuveId(se.getId());
+		 tagCheckerService.deleteAllTagCheckersBySessionEpreuveId(se.getId());
+		 sessionLocationService.deleteAllTLocationsBySessionEpreuveId(se.getId());
+		 sessionEpreuveRepository.delete(se);
+		 storedFileService.deleteAllStoredFiles(se);
 	 }
 }

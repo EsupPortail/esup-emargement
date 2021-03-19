@@ -345,7 +345,7 @@ public class SessionEpreuveController {
     	String nom = sessionEpreuve.getNomSessionEpreuve();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
-			sessionEpreuveRepository.delete(sessionEpreuve);
+			sessionEpreuveService.delete(sessionEpreuve);
 			log.info("Suppression d'une session : " + nom);
 			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + nom, ldapService.getEppn(auth.getName()), null, emargementContext, null);
 		} catch (Exception e) {

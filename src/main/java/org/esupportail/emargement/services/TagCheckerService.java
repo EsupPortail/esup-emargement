@@ -148,5 +148,15 @@ public class TagCheckerService {
 			}
 		}
 	}
+	
+	public void deleteAllTagCheckersBySessionEpreuveId(Long id) {
+		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(id);
+		
+		if(!tcs.isEmpty()) {
+			for(TagChecker tc : tcs) {
+				tagCheckerRepository.delete(tc);
+			}
+		}
+	}
 
 }

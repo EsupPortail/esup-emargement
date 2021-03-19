@@ -655,7 +655,7 @@ public class TagCheckService {
 					Long seId = null;
 					if(sessionLocationId != null) {
 						sl = sessionLocationRepository.findById(sessionLocationId).get();
-						comment = "Inconnu dans cette salla, Salle atttendue : " +  sl.getLocation().getNom();
+						comment = "Inconnu dans cette salle, Salle attendue : " +  sl.getLocation().getNom();
 					}
 					else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
 						LocalTime now = LocalTime.now();
