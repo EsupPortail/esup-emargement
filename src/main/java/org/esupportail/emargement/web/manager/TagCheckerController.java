@@ -127,26 +127,30 @@ public class TagCheckerController {
 	
     @GetMapping(value = "/manager/tagChecker", params = "form", produces = "text/html")
     public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
+    	
     	TagChecker tagChecker = new TagChecker();
     	if(id !=null) {
     		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
-    		List<TagChecker> allTcUsed = tagCheckerRepository.findTagCheckerBySessionLocationIn(allSl, null).getContent();
     		List<UserApp> allUserApps = userAppRepository.findByContext(se.getContext());
-    		List <UserApp> usedUsers  = new ArrayList<UserApp>();
-    		for (TagChecker tc :allTcUsed) {
-    			allUserApps.remove(tc.getUserApp());
-    			usedUsers.add(tc.getUserApp());
-    		}
     		uiModel.addAttribute("allSessionLocations", allSl);
     		allUserApps = userAppService.setNomPrenom(allUserApps, false);
-    		usedUsers = userAppService.setNomPrenom(usedUsers, false);
     		allUserApps.sort(Comparator.comparing(UserApp::getNom));
     		uiModel.addAttribute("allUserApps", allUserApps);
-    		uiModel.addAttribute("usedUsers", usedUsers);
     	}
     	populateEditForm(uiModel, tagChecker, id);
         return "manager/tagChecker/create";
+    }
+    
+    @GetMapping("/manager/tagChecker/usedTagCheckers")
+    @ResponseBody
+    public List<TagChecker> search(@RequestParam("location") Long idLocation) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		SessionLocation sl = sessionLocationRepository.findById(idLocation).get();
+		List<TagChecker> allTcUsed = tagCheckerRepository.findBySessionLocation(sl);
+    	
+        return allTcUsed;
     }
     
     void populateEditForm(Model uiModel, TagChecker TagChecker, Long id) {
@@ -159,27 +163,31 @@ public class TagCheckerController {
     }
     
     @PostMapping("/manager/tagChecker/create")
-    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam("users") List<Long> users,  BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam(value="users", required = false) List<Long> users,  BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
             return "manager/tagChecker/create";
         }
         uiModel.asMap().clear();
-        if(!users.isEmpty()){
+        if(users != null && !users.isEmpty()){
         	for(Long id : users) {
         		UserApp userApp = userAppRepository.findById(id).get();
         		if(userApp!=null) {
-        			TagChecker tc = new TagChecker();
-        			tc.setUserApp(userApp);
-        			tc.setContext(contexteService.getcurrentContext());
-        			tc.setSessionLocation(tagChecker.getSessionLocation());
-        			tagCheckerRepository.save(tc);
-        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
-        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
+        			Long count = tagCheckerRepository.countBySessionLocationAndUserApp(tagChecker.getSessionLocation(), userApp);
+        			if(count == 0) {
+	        			TagChecker tc = new TagChecker();
+	        			tc.setUserApp(userApp);
+	        			tc.setContext(contexteService.getcurrentContext());
+	        			tc.setSessionLocation(tagChecker.getSessionLocation());
+	        			tagCheckerRepository.save(tc);
+	        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
+	        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
+        			}else {
+        				logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.FAILED, userApp.getEppn(), userApp.getEppn(), null, emargementContext, null);
+        			}
         		}
         	}
         }
-       
         
         return String.format("redirect:/%s/manager/tagChecker/sessionEpreuve/" + tagChecker.getSessionEpreuve().getId().toString(), emargementContext);
     }

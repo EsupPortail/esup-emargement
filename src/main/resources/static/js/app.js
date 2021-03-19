@@ -1865,5 +1865,32 @@ document.addEventListener('DOMContentLoaded', function() {
 	      requestAnimationFrame(tick);
 	    }
 	}
+	
+	//liste surveillants session
+	var locationTagChecker = document.getElementById("locationTagChecker");
+	
+	function disabledTagCheckers(slId){
+		var request = new XMLHttpRequest();
+		request.open('GET', emargementContextUrl + "/manager/tagChecker/usedTagCheckers?location=" + slId, true);
+		request.onload = function() {
+			if (request.status >= 200 && request.status < 400) {
+				var data = JSON.parse(this.response);
+				 data.forEach(function(value, key) {
+					 $("#box" + value.userApp.id).prop("disabled", "disabled");
+				 });
+			}
+		}
+		request.send();
+	}
+	
+	if(locationTagChecker != null){
+		var slId = locationTagChecker.value;
+		disabledTagCheckers(slId)
+		addEventListener("change", function() {
+			slId = locationTagChecker.value;
+			$(".form-check-input").prop("disabled", false);
+			disabledTagCheckers(slId)
+		});
+	}
    });
     

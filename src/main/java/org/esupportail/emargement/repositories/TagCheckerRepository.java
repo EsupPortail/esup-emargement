@@ -5,6 +5,7 @@ import java.util.List;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserApp;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,9 +17,13 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	Long countBySessionLocationId(Long id);
 	
+	Long countBySessionLocationAndUserApp(SessionLocation sl, UserApp userApp);
+	
 	List<TagChecker> findBySessionLocation(SessionLocation sl);
 
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveId(Long id);
+	
+	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(Long id, String eppn);
 
 	Page<TagChecker> findTagCheckerBySessionLocationIn(List<SessionLocation> sessionLocations, Pageable pageable);
 	

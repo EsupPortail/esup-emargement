@@ -18,6 +18,7 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
@@ -26,6 +27,7 @@ import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
+import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
@@ -92,6 +94,9 @@ public class PresenceController {
 	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	private TagCheckerRepository tagCheckerRepository;
 	
     @Resource
     UserLdapRepository userLdapRepository;
@@ -282,10 +287,20 @@ public class PresenceController {
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
     @ResponseBody
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<SessionLocation> sessionLocationList = null;
-		sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
+		List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
+		//sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
+		List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(sessionEpreuve.getId(), eppnAuth);
+		
+		if(!tcs.isEmpty()) {
+			for(TagChecker tc : tcs) {
+				sessionLocationList.add(tc.getSessionLocation());
+			}
+		}
     	
         return sessionLocationList;
     }
