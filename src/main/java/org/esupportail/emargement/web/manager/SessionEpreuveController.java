@@ -260,7 +260,7 @@ public class SessionEpreuveController {
     }
     
     void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv) {
-    	uiModel.addAttribute("types", typeSessionRepository.findAll());
+    	uiModel.addAttribute("types", typeSessionRepository.findAllByOrderByLibelle());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());

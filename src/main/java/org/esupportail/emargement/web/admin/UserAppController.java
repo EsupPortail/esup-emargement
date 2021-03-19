@@ -148,7 +148,9 @@ public class UserAppController {
     @GetMapping(value = "/admin/userApp/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	UserApp userApp = userAppRepository.findById(id).get();
-    	populateEditForm(uiModel, userApp, emargementContext);
+    	List<UserApp> userApps = new ArrayList<UserApp>();
+    	userApps.add(userApp);
+    	populateEditForm(uiModel, userAppService.setNomPrenom(userApps, true).get(0), emargementContext);
         return "admin/userApp/update";
     }
     

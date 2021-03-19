@@ -58,7 +58,6 @@
 									<th scope="col" class="d-none d-xl-table-cell">Site</th>
 									<th scope="col" class="d-none d-xl-table-cell">Lieu</th>
 									<th scope="col" class="d-none d-xl-table-cell">Emargement</th>
-									<th scope="col" class=" hiddenBlock" >Plan</th>
 									<th scope="col" class="d-none d-xl-table-cell">Convocation</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
@@ -79,8 +78,6 @@
 										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 								</span></td>
-									<td class ="text-center hiddenBlock"><a target="_blank" th:href="@{/{ctx}/manager/file/{id}(id=${tc.sessionEpreuve.planSessionEpreuve.id},ctx=${eContext})}" 
-										th:if="${tc.sessionEpreuve.planSessionEpreuve != null}"><i class="fa fa-file"></i></a></td>		
 									<td th:text="${#dates.format(tc.sessionEpreuve.heureConvocation, 'HH:mm')}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>

@@ -112,6 +112,11 @@ public class UserAppService {
 				if(!userLdap.isEmpty() && isIncluded) {
 					newList.add(userApp);
 				}
+				if(userLdap.isEmpty() && isIncluded) {
+					userApp.setNom("--");
+					userApp.setPrenom("--");
+					newList.add(userApp);
+				}
 			}
 		}
 		return newList;
