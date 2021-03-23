@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.3</version>
+		<version>2.4.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
@@ -88,7 +88,7 @@
 		<dependency>
 		    <groupId>com.opencsv</groupId>
 		    <artifactId>opencsv</artifactId>
-		    <version>5.3</version>
+		    <version>5.4</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
