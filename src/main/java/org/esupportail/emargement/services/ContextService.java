@@ -9,28 +9,36 @@ import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Event;
+import org.esupportail.emargement.domain.Groupe;
+import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EventRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.security.ContextUserDetails;
@@ -87,8 +95,20 @@ public class ContextService {
 	@Autowired
 	StoredFileRepository storedFileRepository;
 	
+	@Autowired
+	GroupeRepository groupeRepository;
+	
 	@Autowired	
 	EventRepository eventRepository;
+	
+	@Autowired
+	PrefsRepository prefsRepository;
+	
+	@Autowired
+	GuestRepository guestRepository;
+	
+	@Autowired
+	TypeSessionRepository typeSessionRepository;
 	
 	public String getDefaultContext() {
 		String defaultContext = null;
@@ -140,22 +160,30 @@ public class ContextService {
 		tagCheckerRepository.deleteAll(tagCheckers);
 		List<TagCheck> tagChecks = tagCheckRepository.findTagCheckByContext(context);
 		tagCheckRepository.deleteAll(tagChecks);
+		List<Groupe> groupes = groupeRepository.findByContext(context);
+		groupeRepository.deleteAll(groupes);
 		List<SessionEpreuve> sessionEpreuves =  sessionEpreuveRepository.findSessionEpreuveByContext(context);
 		sessionEpreuveRepository.deleteAll(sessionEpreuves);
 		List<Campus> campuses = campusRepository.findByContext(context);
 		campusRepository.deleteAll(campuses);
 		List<Location> locations = locationRepository.findLocationByContext(context);
 		locationRepository.deleteAll(locations);
+		List<Prefs> prefs = prefsRepository.findByContext(context);
+		prefsRepository.deleteAll(prefs);;
 		List<UserApp> userApps =  userAppRepository.findByContext(context);
 		userAppRepository.deleteAll(userApps);
 		List<Person> persons =  personRepository.findByContext(context);
 		personRepository.deleteAll(persons);
+		List<Guest> guests = guestRepository.findByContext(context);
+		guestRepository.deleteAll(guests);
 		List<BigFile> bigFiles =  bigFileRepository.findByContext(context);
 		bigFileRepository.deleteAll(bigFiles);
 		List<StoredFile> storedFiles = storedFileRepository.findByContext(context);
 		storedFileRepository.deleteAll(storedFiles);
 		List<Event> events = eventRepository.findByContext(context);
 		eventRepository.deleteAll(events);
+		List<TypeSession> typeSessions = typeSessionRepository.findByContext(context);
+		typeSessionRepository.deleteAll(typeSessions);
 		contextRepository.delete(context);
 	
 	}
