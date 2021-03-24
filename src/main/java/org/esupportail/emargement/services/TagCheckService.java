@@ -700,8 +700,6 @@ public class TagCheckService {
 				realSlId = sessionLocationId;
 				presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, eppn);
 			}else {
-				log.info("Eppn : " + eppn + " Date " + date + " --> Badgeage dans le mauvais lieu");
-				
 				Long slId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], date, splitLocationNom[0]);
 				realSlId = slId;
 				if(slId!=null) {

@@ -1715,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			};
 		    var urls = [];
 		    var configsArray = [];
-		    var rootUrl = emargementContextUrl + "/manager/sessionEpreuve/";
+		    var rootUrlSe = emargementContextUrl + "/manager/sessionEpreuve/";
 		    var deleteUrl = emargementContextUrl + "/manager/sessionEpreuve/storedFiles/delete";
 		    var request = new XMLHttpRequest();
 		    request.open('GET', emargementContextUrl + "/manager/sessionEpreuve/storedFiles/" + seId, true);
@@ -1724,7 +1724,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		        	 var data = JSON.parse(this.response);
 		        	 var seId = "";
 		        	 data.forEach(function(value, key) {
-		        		 urls.push(rootUrl + value.id + "/photo");
+		        		 urls.push(rootUrlSe + value.id + "/photo");
 		        		 const me = Object.create(config);
 		        		 if (value.contentType.indexOf("pdf") !== -1){
 		        			 me.type="pdf";
@@ -1733,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		        		 }
 		        		 me.filetype = value.contentType;
 		        		 me.caption= value.filename,
-		        		 me.downloadUrl= rootUrl + value.id + "/photo",
+		        		 me.downloadUrl= rootUrlSe + value.id + "/photo",
 		        		 me.size= value.fileSize,
 		        		// me.width= "120px",
 		        		 me.key= value.id

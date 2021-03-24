@@ -262,7 +262,7 @@
 				    <h5 class="mt-0 text-primary font-weight-bold" id="nomPrenom"></h5>
 						<div class="alert alert-info col-lg-12 pt-3 pb-3 pl-2 pr-2 custom-alert" >
 							<p class="h2 text-center"><span id="prenomPresence" th:text="${(tagCheck.person != null)? tagCheck.person.prenom : tagCheck.guest.prenom}"></span><br/>
-							<span id="nomPresence" class="font-weight-bold" th:text="${#strings.toUpperCase(tagCheck.person != null)? tagCheck.person.nom : tagCheck.guest.nom)}"></span></p>
+							<span id="nomPresence" class="font-weight-bold" th:text="${(tagCheck.person != null)? #strings.toUpperCase(tagCheck.person.nom) : #strings.toUpperCase(tagCheck.guest.nom)}"></span></p>
 							<p class="h2 text-center" th:if="${tagCheck.person!= null && tagCheck.person.numIdentifiant != null}" th:text="${'N° ' + tagCheck.person.numIdentifiant}"></p>
 						</div>
 					</div>
@@ -299,9 +299,4 @@
 		  </div>
 		</div>
 	</body>
-	<script>
-	/*<![CDATA[*/
-    var currentLocation = '[[${currentLocation}]]';
-	/*]]>*/
-	</script>
 </html>
