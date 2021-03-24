@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
@@ -179,6 +180,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<TagCheck> findTagCheckByGroupeId(Long id);
 	
 	Long  countTagCheckByPerson(Person person);
+	
+	Long  countTagCheckByGuest(Guest guest);
 	
 	Long  countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(Long id);
 	

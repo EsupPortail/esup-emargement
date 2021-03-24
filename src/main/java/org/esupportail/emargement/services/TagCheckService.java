@@ -440,12 +440,21 @@ public class TagCheckService {
 		List<TagCheck> tagChecks =  tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
 		if(!tagChecks.isEmpty()) {
 			for(TagCheck tc : tagChecks){
-				Person person = tc.getPerson();
 				tagCheckRepository.deleteById(tc.getId());
-				Long count = tagCheckRepository.countTagCheckByPerson(person);
-				if(count==0) {
-	    			personRepository.delete(person);
-	    		}
+				Long count = null;
+				Person person = tc.getPerson();
+				Guest guest = tc.getGuest();
+				if(person != null) {
+					count = tagCheckRepository.countTagCheckByPerson(person);
+					if(count==0) {
+		    			personRepository.delete(person);
+		    		}
+				}else if(guest != null) {
+					count = tagCheckRepository.countTagCheckByGuest(guest);
+					if(count==0) {
+		    			guestRepository.delete(guest);
+		    		}
+				}
 			}
 		}
     }
