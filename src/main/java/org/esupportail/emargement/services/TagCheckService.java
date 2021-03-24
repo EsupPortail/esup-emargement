@@ -249,6 +249,7 @@ public class TagCheckService {
 			    			String eppn  = null;
 			    			List<UserLdap>  userLdaps = null;
 			    			String line = row.get(0).trim();
+			    			line = line.replace("\"","");
 			    			Long tcTest = new Long(0);
 			    			//Pour Guest
 			    			String [] splitLine = null;
@@ -257,137 +258,138 @@ public class TagCheckService {
 			    			}else if(line.contains(";")) {
 			    				splitLine = line.split(";");
 			    			}
-			    			
-			    			try {
-			    				if(line.chars().allMatch(Character::isDigit)){
-			    					userLdaps = userLdapRepository.findByNumEtudiantEquals(line);
-									if(!userLdaps.isEmpty()) {
-										eppn = userLdaps.get(0).getEppn();
-										List<Person> existingPersons = personRepository.findByEppn(eppn);
-										if(!existingPersons.isEmpty()) {
-											person = existingPersons.get(0);
-										}else {
-											person = new Person();
-											person.setNumIdentifiant(line);
-											person.setType("student");
-											person.setContext(contexteService.getcurrentContext());
-											person.setEppn(eppn);
-											person.setType("student");
-											personRepository.save(person);
-										}
-									}else {
-										if(formPerson!=null) {
-											person = formPerson;
-											person.setType("student");
-											person.setContext(contexteService.getcurrentContext());
-											personRepository.save(person);
-										}
-									}
-									tc.setCodeEtape(origine);
-			    				}else {
-			    					userLdaps = userLdapRepository.findByEppnEquals(line);
-			    					if(!userLdaps.isEmpty()) {
-			    						eppn = userLdaps.get(0).getEppn();
-			    						List<Person> existingPersons = personRepository.findByEppn(eppn);
-			    						if(!existingPersons.isEmpty()) {
-											person = existingPersons.get(0);
-										}else {
-											person = new Person();
-				    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
-												person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
-												person.setType("student");
-				    						}
-				    						else {
-				    							person.setType("staff");
-											}
-				    						person.setContext(contexteService.getcurrentContext());
-				    						person.setEppn(eppn);
-				    						personRepository.save(person);
-										}
-									}else {
-										List<Guest> existingGuests = new ArrayList<Guest>();
-										if(splitLine != null && splitLine.length>1) {
-											existingGuests = guestRepository.findByEmail(splitLine[0]);
-											if(!existingGuests.isEmpty()) {
-												guest = existingGuests.get(0);
+			    			if(!line.startsWith("#")) {
+				    			try {
+				    				if(line.chars().allMatch(Character::isDigit)){
+				    					userLdaps = userLdapRepository.findByNumEtudiantEquals(line);
+										if(!userLdaps.isEmpty()) {
+											eppn = userLdaps.get(0).getEppn();
+											List<Person> existingPersons = personRepository.findByEppn(eppn);
+											if(!existingPersons.isEmpty()) {
+												person = existingPersons.get(0);
 											}else {
-												guest = new Guest();
-												guest.setEmail(splitLine[0]);
-												guest.setNom(splitLine[1]);
-												guest.setPrenom(splitLine[2]);
-												guest.setContext(contexteService.getcurrentContext());
-												guestRepository.save(guest);
+												person = new Person();
+												person.setNumIdentifiant(line);
+												person.setType("student");
+												person.setContext(contexteService.getcurrentContext());
+												person.setEppn(eppn);
+												person.setType("student");
+												personRepository.save(person);
 											}
 										}else {
-											if(formGuest!=null) {
-												if(!formGuest.getEmail().isEmpty()) {
-													existingGuests = guestRepository.findByEmail(formGuest.getEmail());
-													isNoEppnAuthorized = true;
-												}
-											}
-										}
-										if(!existingGuests.isEmpty()) {
-											guest = existingGuests.get(0);
-										}else {
-											if(formPerson != null) {
+											if(formPerson!=null) {
 												person = formPerson;
-												if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
-													person.setType("student");
-					    						}else if(!formPerson.getEppn().isEmpty()) {
-					    							person.setType("staff");
-					    						}
-					    						else {
-					    							person.setType("ext");
-												}
+												person.setType("student");
 												person.setContext(contexteService.getcurrentContext());
 												personRepository.save(person);
 											}
-											if(formGuest != null) {
-												guest = formGuest;
-												guest.setContext(contexteService.getcurrentContext());
-												guestRepository.save(guest);
+										}
+										tc.setCodeEtape(origine);
+				    				}else {
+				    					userLdaps = userLdapRepository.findByEppnEquals(line);
+				    					if(!userLdaps.isEmpty()) {
+				    						eppn = userLdaps.get(0).getEppn();
+				    						List<Person> existingPersons = personRepository.findByEppn(eppn);
+				    						if(!existingPersons.isEmpty()) {
+												person = existingPersons.get(0);
+											}else {
+												person = new Person();
+					    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
+													person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
+													person.setType("student");
+					    						}
+					    						else {
+					    							person.setType("staff");
+												}
+					    						person.setContext(contexteService.getcurrentContext());
+					    						person.setEppn(eppn);
+					    						personRepository.save(person);
+											}
+										}else {
+											List<Guest> existingGuests = new ArrayList<Guest>();
+											if(splitLine != null && splitLine.length>1) {
+												existingGuests = guestRepository.findByEmail(splitLine[0]);
+												if(!existingGuests.isEmpty()) {
+													guest = existingGuests.get(0);
+												}else {
+													guest = new Guest();
+													guest.setEmail(splitLine[0]);
+													guest.setNom(splitLine[1]);
+													guest.setPrenom(splitLine[2]);
+													guest.setContext(contexteService.getcurrentContext());
+													guestRepository.save(guest);
+												}
+											}else {
+												if(formGuest!=null) {
+													if(!formGuest.getEmail().isEmpty()) {
+														existingGuests = guestRepository.findByEmail(formGuest.getEmail());
+														isNoEppnAuthorized = true;
+													}
+												}
+											}
+											if(!existingGuests.isEmpty()) {
+												guest = existingGuests.get(0);
+											}else {
+												if(formPerson != null) {
+													person = formPerson;
+													if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
+														person.setType("student");
+						    						}else if(!formPerson.getEppn().isEmpty()) {
+						    							person.setType("staff");
+						    						}
+						    						else {
+						    							person.setType("ext");
+													}
+													person.setContext(contexteService.getcurrentContext());
+													personRepository.save(person);
+												}
+												if(formGuest != null) {
+													guest = formGuest;
+													guest.setContext(contexteService.getcurrentContext());
+													guestRepository.save(guest);
+												}
 											}
 										}
-									}
-			    				}
-				    			tc.setSessionEpreuve(se);
-				    			tc.setContext(contexteService.getcurrentContext());
-				    			tc.setPerson(person);
-				    			tc.setGuest(guest);
-				    			if(groupeId != null){
-				    				Groupe groupe = groupeRepository.findById(groupeId).get();
-				    				tc.setGroupe(groupe);
-				    			}
-				    			if(!userLdaps.isEmpty()) {
-				    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
-				    			}else {
-				    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
-				    			}
-				    			if(sessionLocationId != null) {
-				    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
-				    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
-				    					tc.setSessionLocationExpected(sl);
 				    				}
+					    			tc.setSessionEpreuve(se);
+					    			tc.setContext(contexteService.getcurrentContext());
+					    			tc.setPerson(person);
+					    			tc.setGuest(guest);
+					    			if(groupeId != null){
+					    				Groupe groupe = groupeRepository.findById(groupeId).get();
+					    				tc.setGroupe(groupe);
+					    			}
+					    			if(!userLdaps.isEmpty()) {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
+					    			}else {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
+					    			}
+					    			if(sessionLocationId != null) {
+					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
+					    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+					    					tc.setSessionLocationExpected(sl);
+					    				}
+					    			}
+								} catch (Exception e) {
+									tcTest = new Long(-1);
+									log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
+								}
+					    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0  || isNoEppnAuthorized  && tcTest == 0 ){
+				    				tcToSave.add(tc);
+				    				i++;
+				    			}else if(tcTest >0){
+				    				tc.setComment("Personne déjà inscrite dans la session");
+				    				j++;
+				    			}else{
+				    				tc.setComment("Personne inconnue dans le ldap");
+				    				unknowns.add(line);
+				    				if(!checkLdap) {
+				    					tcToSave.add(tc);
+				    				}
+				    				k++;
 				    			}
-							} catch (Exception e) {
-								tcTest = new Long(-1);
-								log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
-							}
-				    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0  || isNoEppnAuthorized  && tcTest == 0 ){
-			    				tcToSave.add(tc);
-			    				i++;
-			    			}else if(tcTest >0){
-			    				tc.setComment("Personne déjà inscrite dans la session");
-			    				j++;
-			    			}else{
-			    				tc.setComment("Personne inconnue dans le ldap");
-			    				unknowns.add(line);
-			    				if(!checkLdap) {
-			    					tcToSave.add(tc);
-			    				}
-			    				k++;
 			    			}
-		    			}
+			    		}
 		    		}
 		    		tagCheckRepository.saveAll(tcToSave);
 		    		String inconnus = "";

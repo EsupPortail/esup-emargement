@@ -3,7 +3,9 @@ package org.esupportail.emargement.web.manager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -319,9 +321,13 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, MultipartFile file,  @RequestParam("sessionEpreuveCsv") Long id, @RequestParam(value= "sessionLocationCsv", required = false) Long slId,
+    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files,  @RequestParam("sessionEpreuveCsv") Long id, @RequestParam(value= "sessionLocationCsv", required = false) Long slId,
     		Model uiModel, final RedirectAttributes redirectAttributes) throws Exception {
-    	InputStream is = file.getInputStream();
+    	List<InputStream> streams = new ArrayList<InputStream>();
+    	for(MultipartFile file : files) {
+    		streams.add(file.getInputStream());
+    	}
+    	SequenceInputStream is = new SequenceInputStream(Collections.enumeration(streams));
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
