@@ -170,7 +170,6 @@ public class TagCheckController {
 		
 		Long count = tagCheckService.countTagchecks(tempsAmenage, eppn, id, repartitionId);
 		Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(id);
-		Context ctx = contextRepository.findByKey(emargementContext);
 		count = count -unknown;
 		int size = pageable.getPageSize();
 		if( size == 1 && count>0) {

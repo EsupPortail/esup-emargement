@@ -39,8 +39,8 @@
 			            <dd class="col-sm-10">
 				            <span th:if="${attachments!=null and !attachments.empty}" >
 					            <span th:each="att : ${attachments}">
-				            		<p><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${att.id},ctx=${eContext})}" 
-				            		th:text="${att.filename}" target="_blank"></a></p>
+				            		<span><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${att.id},ctx=${eContext})}" 
+				            		th:text="${att.filename}" target="_blank"></a></span><br />
 					            </span>
 				            </span>
 			            </dd>    			            
