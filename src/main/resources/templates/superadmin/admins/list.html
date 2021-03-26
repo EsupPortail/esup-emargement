@@ -10,6 +10,9 @@
            	<div class="card">
   				<div class="card-body">
 		    		<div class="card-header"><h2>Agents <a th:href="@{/{ctx}/superadmin/admins?form(ctx=${eContext})}" class="btn btn-primary float-right" th:if="${isAdminContext}" title="Ajouter un administrateur"><i class="fa fa-plus fa-lg"></i></a></h2></div>
+  				    <ul class="nav nav-tabs" role="tablist" >
+  				    	<li class="nav-item" th:each="context : ${contexts}"><a th:classappend="${currentKey == context} ? 'active' : ''" class="nav-link" th:text="${context}" th:href="@{/{ctx}/superadmin/admins?key={key}(ctx=${eContext},key=${context})}"></a></li>
+				  	</ul>	
 		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
 						<table class="table table-hover table-striped table-bordered">
 							<thead class="sticky-top">

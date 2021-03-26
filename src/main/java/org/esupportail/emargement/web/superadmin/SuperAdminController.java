@@ -3,6 +3,7 @@ package org.esupportail.emargement.web.superadmin;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -90,10 +91,21 @@ public class SuperAdminController {
 	}
 
 	@GetMapping(value = "/superadmin/admins")
-	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 50, direction = Direction.ASC, sort = "eppn")  Pageable pageable) {
-
-		Page<UserApp> userAppPage = userAppRepository.findAllByUserRole(Role.ADMIN,pageable);
+	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 50, direction = Direction.ASC, sort = "eppn")  Pageable pageable, 
+			@RequestParam(value="key", required = false) String key) {
+		
+		Page<UserApp> userAppPage = null;
+		List<String> contexts = contextRepository.findDistinctKey();
+		if(key !=null) {
+			userAppPage = userAppRepository.findByUserRoleAndContextKey(Role.ADMIN, key, pageable);
+		}else if(!contexts.isEmpty()) {
+			key = contexts.get(0);
+			userAppPage = userAppRepository.findByUserRoleAndContextKey(Role.ADMIN, key, pageable);
+		}
+		
 		userAppService.setNomPrenom(userAppPage.getContent(), true);
+		model.addAttribute("currentKey", key);
+		model.addAttribute("contexts", contexts);
         model.addAttribute("userAppPage", userAppPage);
 		model.addAttribute("url", "/superadmin/admins");
 		model.addAttribute("paramUrl", "0");
@@ -159,7 +171,7 @@ public class SuperAdminController {
             log.info("ajout agent : " + userApp.getEppn());
             logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", userApp.getEppn(), null, emargementContext, null);
             redirectAttributes.addFlashAttribute("createOk", userApp);
-            return String.format("redirect:/%s/superadmin/admins", emargementContext);
+            return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
         }
     }
     
@@ -192,7 +204,7 @@ public class SuperAdminController {
             userAppRepository.save(userApp);
             log.info("Maj agent : " + userApp.getEppn());
             logService.log(ACTION.UPDATE_AGENT, RETCODE.SUCCESS, userApp.getUserRole().name().concat(" --> ").concat(userApp.getUserRole().name()), userApp.getEppn(), null, emargementContext, null);
-            return String.format("redirect:/%s/superadmin/admins", emargementContext);
+            return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, contextKey) ;
         }
     }
     
@@ -209,8 +221,7 @@ public class SuperAdminController {
 			redirectAttributes.addFlashAttribute("item", userApp.getEppn());
 			redirectAttributes.addFlashAttribute("error", "constrainttError");
 		}
-
-        return String.format("redirect:/%s/superadmin/admins", emargementContext);
+    	return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
     }
     
     @GetMapping("/superadmin/admins/searchUsersLdap")

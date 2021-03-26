@@ -20,5 +20,8 @@ public interface ContextRepository extends JpaRepository<Context, Long>{
 	@Query(value = "select context_priority, key from context, user_app where context.id = user_app.context_id and eppn =:eppn ", nativeQuery = true)
 	List<Object[]>  findByEppn(String eppn);
 	
+	@Query(value = "select distinct key from context order by key", nativeQuery = true)
+	List<String> findDistinctKey();
+	
 	Context findByKey(String key);
 }
