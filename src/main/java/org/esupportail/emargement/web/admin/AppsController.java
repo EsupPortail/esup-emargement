@@ -2,8 +2,8 @@ package org.esupportail.emargement.web.admin;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.HelpService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +19,13 @@ public class AppsController {
 	@Resource
 	HelpService helpService;
 	
-	@Resource
-	AppliConfigService appliConfigService;
-	
 	private final static String ITEM = "apps";
+	
+	@Value("${emargement.esupnfctag.link.jar}")
+	private String nfcTagJar;
+	
+	@Value("${emargement.esupnfctag.link.exe}")
+	private String nfcTagExe;
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -32,8 +35,8 @@ public class AppsController {
 	@GetMapping(value = "/admin/apps")
 	public String list(Model model){
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
-		model.addAttribute("appExe", appliConfigService.getAppDeskTopExe());
-		model.addAttribute("appJar", appliConfigService.getAppDeskTopJar());
+		model.addAttribute("appExe", nfcTagExe);
+		model.addAttribute("appJar", nfcTagJar);
 		return "admin/apps";
 	}
 
