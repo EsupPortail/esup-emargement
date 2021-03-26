@@ -23,64 +23,7 @@
 				    </div>
 					<div id="statsSuperAdminCharts" class="mt-3">
 						<div class="row">
-							<div class="col-lg-3 col-md-6">
-								<div class="box box-primary">
-									<div class="box-header with-border">
-										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + sessionEpreuvesByContext}__')}"></h3>
-										<div class="box-tools float-right">
-											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse1">
-												<i class="fa fa-minus"></i>
-											</button>
-										</div>
-									</div>
-									<div class="box-body collapse show" id="collapse1">
-										<div class="chart">
-											<canvas id="sessionEpreuvesByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-lg-3 col-md-6">
-								<div class="box box-primary">
-									<div class="box-header with-border">
-										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countTagChecksByContext}__')}"></h3>
-										<div class="box-tools float-right">
-											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse2">
-												<i class="fa fa-minus"></i>
-											</button>
-										</div>
-									</div>
-									<div class="box-body collapse show" id="collapse2">
-										<div class="chart">
-											<canvas id="countTagChecksByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-lg-3 col-md-6">
-								<div class="box box-primary">
-									<div class="box-header with-border">
-										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countLocationsByContext}__')}"></h3>
-										<div class="box-tools float-right">
-											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse4">
-												<i class="fa fa-minus"></i>
-											</button>
-										</div>
-									</div>
-									<div class="box-body collapse show" id="collapse4">
-										<div class="chart">
-											<canvas id="countLocationsByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
-										</div>
-									</div>
-								</div>
-							</div>			
-							<div class="col-lg-3 col-md-6">
+							<div class="col-lg-4 col-md-6">
 								<div class="box box-primary">
 									<div class="box-header with-border">
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countUserAppsByContext}__')}"></h3>
@@ -94,12 +37,11 @@
 									<div class="box-body collapse show" id="collapse5">
 										<div class="chart">
 											<canvas id="countUserAppsByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="col-lg-3 col-md-6">
+							<div class="col-lg-4 col-md-6">
 								<div class="box box-primary">
 									<div class="box-header with-border">
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countCampusesByContext}__')}"></h3>
@@ -113,12 +55,65 @@
 									<div class="box-body collapse show" id="collapse6">
 										<div class="chart">
 											<canvas id="countCampusesByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="col-lg-3 col-md-6">
+							<div class="col-lg-4 col-md-6">
+								<div class="box box-primary">
+									<div class="box-header with-border">
+										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countLocationsByContext}__')}"></h3>
+										<div class="box-tools float-right">
+											<button type="button" class="btn btn-box-tool"
+												data-toggle="collapse"  data-target="#collapse4">
+												<i class="fa fa-minus"></i>
+											</button>
+										</div>
+									</div>
+									<div class="box-body collapse show" id="collapse4">
+										<div class="chart">
+											<canvas id="countLocationsByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-md-6">
+								<div class="box box-primary">
+									<div class="box-header with-border">
+										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + sessionEpreuvesByContext}__')}"></h3>
+										<div class="box-tools float-right">
+											<button type="button" class="btn btn-box-tool"
+												data-toggle="collapse"  data-target="#collapse1">
+												<i class="fa fa-minus"></i>
+											</button>
+										</div>
+									</div>
+									<div class="box-body collapse show" id="collapse1">
+										<div class="chart">
+											<canvas id="sessionEpreuvesByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-md-6">
+								<div class="box box-primary">
+									<div class="box-header with-border">
+										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countTagChecksByContext}__')}"></h3>
+										<div class="box-tools float-right">
+											<button type="button" class="btn btn-box-tool"
+												data-toggle="collapse"  data-target="#collapse2">
+												<i class="fa fa-minus"></i>
+											</button>
+										</div>
+									</div>
+									<div class="box-body collapse show" id="collapse2">
+										<div class="chart">
+											<canvas id="countTagChecksByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-md-6">
 								<div class="box box-primary">
 									<div class="box-header with-border">
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.superadmin.' + countSessionEpreuveByTypeByContext}__')}"></h3>
@@ -132,7 +127,6 @@
 									<div class="box-body collapse show" id="collapse6">
 										<div class="chart">
 											<canvas id="countSessionEpreuveByTypeByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
-											<div  class="no-data">Aucune donnée disponible</div>
 										</div>
 									</div>
 								</div>

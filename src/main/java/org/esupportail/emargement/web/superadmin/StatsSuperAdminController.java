@@ -57,7 +57,7 @@ public class StatsSuperAdminController {
 	@RequestMapping(value="superadmin/stats/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
 	public String getStats(@PathVariable String emargementContext, @RequestParam(value="type") String type, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
-		String flexJsonString = "Aucune statistique à récupérer";
+		String flexJsonString = "";
 		try {
 			JSONSerializer serializer = new JSONSerializer();
 			flexJsonString = serializer.deepSerialize(statsService.getStatsSuperAdmin(type, anneeUniv));

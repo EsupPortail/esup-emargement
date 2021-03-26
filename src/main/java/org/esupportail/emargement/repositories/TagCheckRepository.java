@@ -280,9 +280,9 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and  type_emargement='CARD' GROUP BY timeTag order by timeTag", nativeQuery = true)
 	List<Object[]> countTagChecksByTimeBadgeage(Long seId);
 	
-	@Query(value = "select CASE WHEN  type_emargement='CARD' THEN 'Par carte' ELSE 'Manuellement' END AS type, count(*) as count from tag_check, context, session_epreuve  where "
+	@Query(value = "select type_emargement , count(*) as count from tag_check, context, session_epreuve  where "
 			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "AND tag_check.context_id=:context and  type_emargement is not null and  is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by is_checked_by_card", nativeQuery = true)
+			+ "AND tag_check.context_id=:context and  type_emargement is not null and  is_session_epreuve_closed = 't' and annee_univ like :anneeUniv group by type_emargement", nativeQuery = true)
 	List<Object[]> countTagChecksByTypeBadgeage(Long context, String anneeUniv);
 	
 	@Query(value = "select event_count, count(*) as users_count  from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "

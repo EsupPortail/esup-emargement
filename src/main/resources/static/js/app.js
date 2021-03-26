@@ -386,19 +386,23 @@ const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'Déc'], [1, 'Jan
 	];
 let moisMap = new Map(moisArray);
 
+function chartNoData(ctx, chart){
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = "22px Arial";
+    ctx.fillStyle = "gray";
+    ctx.fillText('Aucune donnée disponible', chart.chart.width / 2, chart.chart.height / 2);
+    ctx.restore();
+}
+
 //affiche stats
 function getStats(year, param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
 	Chart.plugins.register({
 		  afterDraw: chart => {
-		    if (chart.data.datasets[0].data.length === 0) {
+		    if (chart.data.datasets.length === 0 || (chart.data.datasets.length != 0 && chart.data.datasets[0].data.length === 0)) {
 		      var ctx = chart.chart.ctx;
-		      ctx.save();
-		      ctx.textAlign = 'center';
-		      ctx.textBaseline = 'middle';
-		      ctx.font = "22px Arial";
-		      ctx.fillStyle = "gray";
-		      ctx.fillText('Aucune donnée disponible', chart.chart.width / 2, chart.chart.height / 2);
-		      ctx.restore();
+		      chartNoData(ctx, chart);
 		    }
 		  }
 		});
@@ -408,23 +412,34 @@ function getStats(year, param, url, id, chartType, option, transTooltip, formatD
     request.open('GET', emargementContextUrl + "/" + url + "/stats/json?&anneeUniv=" + year + "&type=" + id + paramUrl, true);
     request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
-            var data = JSON.parse(this.response);
-            if ((Object.keys(data[id]).length) > 0) {
-                if (chartType == "multiBar") {
-                	multiChartStackBar(data[id], id, 3, transTooltip, formatDate, 'linear');
-                } else if (chartType == "chartBar") {
-                	chartBar(data[id], label1, id, transTooltip, formatDate, data[data2], label2);
-                } else if (chartType == "pie") {
-                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-                } else if (chartType == "doughnut") {
-                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-                } else if (chartType == "lineChart") {
-                    lineChart(data[id], id, fill, arrayDates, formatDate);
-                }
-            } else {
-                $("#" + id).next().show();
-                $("#" + id).hide();
-            }
+	        if(this.response != ""){
+	            var data = JSON.parse(this.response);
+		            if ((Object.keys(data[id]).length) > 0) {
+		                if (chartType == "multiBar") {
+		                	multiChartStackBar(data[id], id, 3, transTooltip, formatDate, 'linear');
+		                } else if (chartType == "chartBar") {
+		                	chartBar(data[id], label1, id, transTooltip, formatDate, data[data2], label2);
+		                } else if (chartType == "pie") {
+		                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
+		                } else if (chartType == "doughnut") {
+		                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
+		                } else if (chartType == "lineChart") {
+		                    lineChart(data[id], id, fill, arrayDates, formatDate);
+		                }
+		            } else {
+		                $("#" + id).next().show();
+		                $("#" + id).hide();
+		            }
+	        }else{
+	        	var ctx = document.getElementById(id).getContext("2d");
+	        	Chart.plugins.register({
+	        		afterDraw: chart => {
+	        			if (chart.data.datasets.length === 0) {
+	        				chartNoData(ctx, chart);
+	        			}
+	        		}
+	        	});
+	        }
         }
     }
     request.send();
