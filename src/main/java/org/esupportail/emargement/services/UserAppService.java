@@ -2,12 +2,15 @@ package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
+import javax.naming.InvalidNameException;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TagChecker;
@@ -22,6 +25,7 @@ import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.web.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -197,5 +201,38 @@ public class UserAppService {
 	
 	public boolean isUser() {
 		return WebUtils.isUser();
+	}
+	
+	public List<UserApp> getSuperAdmins(Pageable pageable) throws InvalidNameException{
+		
+		List<Map<String, List<String>>> allMembers = ldapService.getAllmembers("", true);
+		List<UserApp> users = new ArrayList<UserApp>();
+		for(Map<String, List<String>> map : allMembers) {
+			UserApp userApp = new UserApp();
+			Context context = new Context();
+			context.setKey("ALL");
+			userApp.setContext(context);
+			userApp.setUserRole(Role.SUPERADMIN);
+			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+				if("eduPersonPrincipalName".equals((entry.getKey()))){
+					userApp.setEppn(entry.getValue().get(0));
+				}else if("sn".equals((entry.getKey()))){
+					userApp.setNom(entry.getValue().get(0));
+				}else if("givenName".equals((entry.getKey()))){
+					userApp.setPrenom(entry.getValue().get(0));
+				}
+			}
+			users.add(userApp);
+			String order = "eppn: ASC";
+			if(pageable.getSort()!=null){
+		        order= pageable.getSort().toString();
+			}
+			if("eppn: ASC".equals(order)) {
+				users.sort(Comparator.comparing(UserApp::getNom));
+			}else {
+				users.sort(Comparator.comparing(UserApp::getNom).reversed());
+			}
+		}
+		return users;
 	}
 }

@@ -11,6 +11,8 @@
   				<div class="card-body">
 		    		<div class="card-header"><h2>Agents <a th:href="@{/{ctx}/superadmin/admins?form(ctx=${eContext})}" class="btn btn-primary float-right" th:if="${isAdminContext}" title="Ajouter un administrateur"><i class="fa fa-plus fa-lg"></i></a></h2></div>
   				    <ul class="nav nav-tabs" role="tablist" >
+  				    	<li class="nav-item"><a th:classappend="${currentKey == 'all'} ? 'active' : ''" class="nav-link"
+  				    	th:href="@{/{ctx}/superadmin/admins?key=all(ctx=${eContext})}">ALL</a></li>
   				    	<li class="nav-item" th:each="context : ${contexts}"><a th:classappend="${currentKey == context} ? 'active' : ''" class="nav-link" th:text="${context}" th:href="@{/{ctx}/superadmin/admins?key={key}(ctx=${eContext},key=${context})}"></a></li>
 				  	</ul>	
 		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
@@ -22,9 +24,9 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
-									<th class ="center" scope="col">Actions</th>
+									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
+									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
+									<th th:if="${currentKey != 'all'}"  class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -34,9 +36,9 @@
 									<td th:text="${userApp.prenom}">Prénom</td>
 									<td th:text="${userApp.userRole}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Rôle</td>
 									<th th:text="${userApp.context.key}">Contexte</th>
-									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</td>
-									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
-									<td class ="center"><a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</td>
+									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
+									<td th:if="${currentKey != 'all'}"  class ="center"><a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${isAdminContext}" th:href="@{/{ctx}/superadmin/admins/{id}?form(id=${userApp.id},ctx=${eContext})}">
 											<i class="fa fa-pen text-warning ml-2"></i>
 										</a>

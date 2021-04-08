@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.naming.InvalidNameException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -24,10 +25,12 @@ import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.UserAppService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -90,18 +93,27 @@ public class SuperAdminController {
 	}
 
 	@GetMapping(value = "/superadmin/admins")
-	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 50, direction = Direction.ASC, sort = "eppn")  Pageable pageable, 
-			@RequestParam(value="key", required = false) String key) {
+	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 20, direction = Direction.ASC, sort = "eppn")  Pageable pageable, 
+			@RequestParam(value="key", required = false) String key) throws InvalidNameException {
 		
 		Page<UserApp> userAppPage = null;
 		List<String> contexts = contextRepository.findDistinctKey();
-		if(key !=null) {
-			userAppPage = userAppRepository.findByUserRoleAndContextKey(Role.ADMIN, key, pageable);
-		}else if(!contexts.isEmpty()) {
-			key = contexts.get(0);
+		if(key == null || key.equals("all")){
+			key = "all";
+			List<UserApp> articlesList = userAppService.getSuperAdmins(pageable);
+			if (pageable.getOffset() >= articlesList.size()) {
+				userAppPage = Page.empty();
+			}else {
+				int startIndex = (int)pageable.getOffset();
+				int endIndex = (int) ((pageable.getOffset() + pageable.getPageSize()) > articlesList.size() ?
+				articlesList.size() :
+				pageable.getOffset() + pageable.getPageSize());
+				List<UserApp> subList = articlesList.subList(startIndex, endIndex);
+				userAppPage = new PageImpl<UserApp>(subList, pageable, articlesList.size());
+			}
+		}else {
 			userAppPage = userAppRepository.findByUserRoleAndContextKey(Role.ADMIN, key, pageable);
 		}
-		
 		userAppService.setNomPrenom(userAppPage.getContent(), true);
 		model.addAttribute("currentKey", key);
 		model.addAttribute("contexts", contexts);

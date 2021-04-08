@@ -42,7 +42,7 @@ public class UserApp {
     private int contextPriority = 0;
     
 	public static enum Role {
-		ADMIN, MANAGER, SUPERVISOR
+		SUPERADMIN,ADMIN, MANAGER, SUPERVISOR
 	}
     
 	@Enumerated(EnumType.STRING)
