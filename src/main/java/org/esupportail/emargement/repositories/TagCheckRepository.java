@@ -31,6 +31,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckByPersonEppn(String eppn, Pageable pageable);
 	
+	Page<TagCheck> findTagCheckByPersonIn(List<Person> persons, Pageable pageable);
+	
 	Long countTagCheckByPersonEppn(String eppn);
 	
 	Page<TagCheck> findTagCheckByGuestEmail(String email, Pageable pageable);
@@ -174,10 +176,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckBySessionLocationExpected(SessionLocation sl);
 	
 	Long countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(SessionLocation sl);
-	
-	Long countTagCheckByGroupeId(Long id);
-	
-	List<TagCheck> findTagCheckByGroupeId(Long id);
 	
 	Long  countTagCheckByPerson(Person person);
 	

@@ -1,5 +1,6 @@
 package org.esupportail.emargement.web.manager;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -7,10 +8,14 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.domain.AppUser;
 import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
+import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
@@ -18,10 +23,12 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -37,6 +44,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -50,8 +58,17 @@ public class GroupeController {
 	@Autowired
 	TagCheckRepository tagCheckRepository;
 	
+	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	private UserLdapRepository userLdapRepository;
+	
 	@Resource
 	ContextService contexteService;
+	
+	@Resource
+	SessionEpreuveService sessionEpreuveService;
 	
 	@Resource
 	LogService logService;
@@ -86,6 +103,10 @@ public class GroupeController {
 
 	@GetMapping(value = "/manager/groupe/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
+		Groupe groupe =  groupeRepository.findById(id).get();
+		List <Groupe> grs = new ArrayList<Groupe>();
+		grs.add(groupe);
+		groupeService.computeCounters(grs);
         uiModel.addAttribute("groupe",  groupeRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/groupe/show";
@@ -171,11 +192,7 @@ public class GroupeController {
 		Groupe groupe  = groupeRepository.findById(id).get();
 		String nom = groupe.getNom();
     	try {
-    		List<TagCheck> tcs = tagCheckRepository.findTagCheckByGroupeId(id);
-    		for(TagCheck tc : tcs) {
-    			tc.setGroupe(null);
-    		}
-    		groupeRepository.delete(groupe);
+    		groupeService.delete(groupe);
 	        log.info("suppression groupe : " + nom);
 	        logService.log(ACTION.DELETE_GROUPE, RETCODE.SUCCESS, null, ldapService.getEppn(auth.getName()), null, emargementContext, null);
 		} catch (Exception e) {
@@ -184,4 +201,102 @@ public class GroupeController {
 		}
         return String.format("redirect:/%s/manager/groupe", emargementContext);
     }
+    
+    @GetMapping(value = {"/manager/groupe/addMembers", "/manager/groupe/addMembers/{tab}"})
+    public String addToGroupe(@PathVariable String emargementContext, Model uiModel, @PathVariable(value="tab", required = false) String tab) {
+    	
+    	String type = "";
+    	if(tab == null) {
+    		type= "user";
+    	}else if("user".equals(tab)) {
+    		type= "user";
+    	}else if("session".equals(tab)) {
+    		type= "session";
+        	List<SessionEpreuve> allSessionEpreuves = sessionEpreuveRepository.findAll();
+        	sessionEpreuveService.addNbInscrits(allSessionEpreuves);
+        	uiModel.addAttribute("allSessionEpreuves",  allSessionEpreuves);
+    	}else if("groupe".equals(tab)) {
+    		type= "groupe";
+    	}
+    	uiModel.addAttribute("type",  type);
+    	List<Groupe> groupes = groupeRepository.findAllByOrderByNom();
+    	groupeService.computeCounters(groupes);
+    	
+    	uiModel.addAttribute("groupes", groupes) ;
+    	
+    	return "manager/groupe/addMembers";
+    }
+    
+    @PostMapping(value = "/manager/groupe/addMember")
+    public String addOneMember(@PathVariable String emargementContext, @RequestParam(value="eppnTagCheck", required = true) String eppnTagCheck,  
+    		@RequestParam(value="groupes") List<Long> groupeIds){
+    	
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppn = userLdap.get(0).getEppn();
+    	groupeService.addMember(eppnTagCheck, groupeIds);
+    	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "UtILISATEUR -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
+
+    	return String.format("redirect:/%s/manager/groupe", emargementContext);
+    }
+    
+    @PostMapping(value = "/manager/groupe/addMembersFromSession")
+    public String addMemberFromSession(@PathVariable String emargementContext, @RequestParam(value="seIds", required = true)  List<Long> seIds,  
+    		@RequestParam(value="groupeIds") List<Long> groupeIds){
+    	
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppn = userLdap.get(0).getEppn();
+    	groupeService.addMembersFromSessionEpreuve(seIds, groupeIds);
+    	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "SESSION -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
+
+    	return String.format("redirect:/%s/manager/groupe", emargementContext);
+    }
+    
+    
+    @GetMapping(value = "/manager/groupe/seeMembers/{id}")
+    public String seeMembers(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, 
+    		@PageableDefault(size = 20, direction = Direction.DESC, sort = "person") Pageable pageable) {
+
+    	Page<AppUser> page = new PageImpl<>(groupeService.getMembers(id));
+    	uiModel.addAttribute("tagCheckPage" , page);
+    	uiModel.addAttribute("count" , page.getSize());
+    	uiModel.addAttribute("groupe" , groupeRepository.findById(id).get());
+    	return "manager/groupe/seeMembers";
+    }
+    
+    @PostMapping(value = "/manager/groupe/addMembersFromGroupe")
+    public String addMemberFromGroupe(@PathVariable String emargementContext, @RequestParam(value="groupeIds", required = true)  List<Long> gr1Ids,  
+    		@RequestParam(value="groupeIds2") List<Long> gr2Ids){
+    	
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		String eppn = userLdap.get(0).getEppn();
+    	
+    	groupeService.addMembersFromGroupe(gr1Ids, gr2Ids);
+    	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "GROUPE -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(gr1Ids)), eppn, null, emargementContext, null);
+
+    	return String.format("redirect:/%s/manager/groupe", emargementContext);
+    }
+    
+    @PostMapping(value = "/manager/groupe/removeTagChecks/{id}")
+    public String deleteMemberFromGroupe(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    		@RequestParam(value="case", required = false) List<String> keys, final RedirectAttributes redirectAttributes) {
+    	if(keys != null) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+			String eppn = userLdap.get(0).getEppn();
+	    	
+	    	Groupe groupe = groupeRepository.findById(id).get();
+	    	
+	    	groupeService.deleteMembers(keys, groupe);
+	    	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "Suppression membres -> Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
+	    	return String.format("redirect:/%s/manager/groupe", emargementContext);
+    	}else {
+    		redirectAttributes.addFlashAttribute("error", "noSelection");
+    		return String.format("redirect:/%s/manager/groupe/seeMembers/" + id, emargementContext);
+    	}
+    	
+    }
+
 }

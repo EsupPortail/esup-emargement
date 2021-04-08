@@ -597,7 +597,6 @@ public class SessionEpreuveService {
         	for(TagCheck t : listTc) {
         		TagCheck newTagCheck = new TagCheck();
         		newTagCheck.setContext(context);
-        		newTagCheck.setGroupe(t.getGroupe());
         		newTagCheck.setIsTiersTemps(t.getIsTiersTemps());
         		newTagCheck.setIsUnknown(t.getIsUnknown());
         		newTagCheck.setNumAnonymat(t.getNumAnonymat());
@@ -642,5 +641,11 @@ public class SessionEpreuveService {
 		 sessionLocationService.deleteAllTLocationsBySessionEpreuveId(se.getId());
 		 sessionEpreuveRepository.delete(se);
 		 storedFileService.deleteAllStoredFiles(se);
+	 }
+	 
+	 public void addNbInscrits(List<SessionEpreuve> sessionEpreuveList) {
+			for(SessionEpreuve session : sessionEpreuveList) {
+				session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId()));
+			}
 	 }
 }

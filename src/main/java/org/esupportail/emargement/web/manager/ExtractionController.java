@@ -15,8 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.ApogeeBean;
+import org.esupportail.emargement.domain.Groupe;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionLocation;
-import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -191,9 +192,9 @@ public class ExtractionController {
 	}
 	
 	@PostMapping(value = "/manager/extraction/csvFromGroupe")
-	public void csvFromGroup(@PathVariable String emargementContext,Model model, @RequestParam(value = "groupe") Long idGroupe, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public void csvFromGroup(@PathVariable String emargementContext,Model model, @RequestParam(value = "groupe") List<Long> ids, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
 		try {
-			if(idGroupe != null) {
+			if(!ids.isEmpty()) {
 				String filename = "users.csv";
 	
 				response.setContentType("text/csv");
@@ -202,16 +203,22 @@ public class ExtractionController {
 	
 				//create a csv writer
 				CSVWriter writer = new CSVWriter(response.getWriter()); 
-				List<TagCheck> tcs = tagCheckRepository.findTagCheckByGroupeId(idGroupe);
-				for(TagCheck inscrit : tcs) {
+				
+				List<Person> allPersons =new ArrayList<Person>();
+				for(Long id : ids) {
+					Groupe groupe = groupeRepository.findById(id).get();
+					allPersons.addAll(groupe.getPersons());
+				}
+				
+				for(Person person : allPersons) {
 					List <String> line = new ArrayList<String>();
-					line.add(inscrit.getPerson().getNumIdentifiant());
+					line.add(person.getNumIdentifiant());
 					writer.writeNext(line.toArray(new String[1]));
 				}
 		        // closing writer connection 
 		        writer.close(); 
-				log.info("Extraction csv (groupe) :  " + tcs.size() + "résultats" );
-				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv (groupe) :" +  tcs.size() + " résultats" , null,
+				log.info("Extraction csv (groupe) :  " + allPersons.size() + "résultats" );
+				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv (groupe) :" +  allPersons.size() + " résultats" , null,
 								null, emargementContext, null);
 			}
 		} catch (Exception e) {
@@ -328,7 +335,7 @@ public class ExtractionController {
     		streams.add(file.getInputStream());
     	}
     	SequenceInputStream is = new SequenceInputStream(Collections.enumeration(streams));
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, null, true, null, slId, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction/tabs/csv", emargementContext);
@@ -342,7 +349,7 @@ public class ExtractionController {
         List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(apogeebean);
         List<ApogeeBean> list = apogeeService.getElementsPedagogiques(apogeebean);
         String etape = (!list.isEmpty())? list.get(0).getCodEtp() + " - "  + list.get(0).getLibEtp() : "";
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, null , etape, true, null, slId, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, etape, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction/tabs/apogee", emargementContext);
@@ -353,7 +360,7 @@ public class ExtractionController {
     public String importFromLdap(@PathVariable String emargementContext, @RequestParam("sessionEpreuveLdap") Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
     		@RequestParam(value="sessionLocationLdap", required = false) Long slId, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, null, true, null, slId, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction/tabs/ldap", emargementContext);
@@ -361,11 +368,11 @@ public class ExtractionController {
     
     @PostMapping("/manager/extraction/importFromGroupe")
     @Transactional
-    public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuveGroupe") Long id, @RequestParam("groupe") Long idGroupe,
+    public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuveGroupe") Long id, @RequestParam("groupe") List<Long> idGroupe,
     		@RequestParam(value="sessionLocationGroupe", required = false) Long slId, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
-    	List<String> usersGroupe = tagCheckService.getUsersForImport(idGroupe);
+    	List<String> usersGroupe = groupeService.getUsersForImport(idGroupe);
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupe);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, idGroupe, null, true, null, slId, null);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction/tabs/groupes", emargementContext);

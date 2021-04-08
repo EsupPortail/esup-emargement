@@ -1,11 +1,17 @@
 package org.esupportail.emargement.domain;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
@@ -13,6 +19,8 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.springframework.format.annotation.DateTimeFormat;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
@@ -25,6 +33,21 @@ public class Groupe implements ContextSupport {
     
 	@ManyToOne
 	private Context context;
+	
+
+	@ManyToMany(cascade = { CascadeType.ALL })
+    @JoinTable(name = "groupe_person",
+            joinColumns =  @JoinColumn(name = "groupe_id") ,
+            inverseJoinColumns =  @JoinColumn(name = "person_id") )
+	@JsonIgnoreProperties("groupes")
+    private Set<Person> persons = new HashSet<>();
+	
+	@ManyToMany(cascade = { CascadeType.ALL })
+    @JoinTable(name = "groupe_guest",
+            joinColumns =  @JoinColumn(name = "groupe_id") ,
+            inverseJoinColumns =  @JoinColumn(name = "guest_id") )
+	@JsonIgnoreProperties("groupes")
+    private Set<Guest> guests = new HashSet<>();
 
 	public Context getContext() {
 		return context;
@@ -39,7 +62,7 @@ public class Groupe implements ContextSupport {
 	public String nom;
 	
 	@Transient
-	public long nbTagCheck; 
+	public long nbTagCheck=0; 
 	
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	public Date dateCreation;
@@ -48,6 +71,14 @@ public class Groupe implements ContextSupport {
 	public Date dateModification;
 	
 	public String modificateur;
+	
+	public Set<Guest> getGuests() {
+		return guests;
+	}
+
+	public Set<Person> getPersons() {
+		return persons;
+	}
 
 	public Long getId() {
 		return id;

@@ -45,7 +45,9 @@
 							<tbody>
 								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}">
 									<td th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></td>
-									<td th:text="${(tagCheck.groupe != null )? tagCheck.groupe.nom : ''}"></td>
+									<td>
+										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+									</td>
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 																			<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">

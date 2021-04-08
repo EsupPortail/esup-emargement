@@ -7,31 +7,37 @@
 		<div class="container-fluid">
          	<div class="card">
   				<div class="card-body">
-		    		<div class="card-header"><h2>Groupes <a th:href="@{/{ctx}/manager/groupe?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un lieu"><i class="fa fa-plus fa-lg"></i></a></h2></div>
+		    		<div class="card-header">
+		    			<h2>Groupes 
+		    				<a th:href="@{/{ctx}/manager/groupe?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un groupe"><i class="fa fa-plus fa-lg"></i></a>
+		    				<a th:href="@{/{ctx}/manager/groupe/addMembers(ctx=${eContext})}" class="btn btn-info float-right mr-2" title="Ajouter des membres"><i class="fas fa-user-plus"></i></a>
+		    			</h2></div>
 						<table class="table table-hover table-striped table-bordered">
 							<thead class="sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nom">Nom</a></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Description</th>
+									<th scope="col">Membres</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de modification</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Modificateur</th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Description</th>
-									<th scope="col">Membres</th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr th:each="groupe : ${groupePage}">
 									<td th:text="${groupe.nom}"></td>
+									<td th:text="${groupe.description}" class="d-none d-md-table-cell  d-lg-table-cell d-xl-table-cell">></td>
+									<td th:text="${groupe.nbTagCheck}"></td>				
 									<td th:text="${#dates.format(groupe.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
 									<td th:text="${#dates.format(groupe.dateModification, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
 									<td th:text="${groupe.modificateur}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
-									<td th:text="${groupe.description}" class="d-none d-md-table-cell  d-lg-table-cell d-xl-table-cell">></td>
-									<td th:text="${groupe.nbTagCheck}"></td>
+
 									<td class ="center">
 										<a th:href="@{/{ctx}/manager/groupe/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/manager/groupe/{id}?form(id=${groupe.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
 										<a class ="ml-2" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+ ${groupe.id }"><i class="fa fa-trash text-danger"></i></a>
+										<a class ="ml-2"  th:href="@{/{ctx}/manager/groupe/seeMembers/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-users text-info"></i></a>
 										<div class="modal modal-warning fade in" th:id="modal-warning + ${groupe.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">

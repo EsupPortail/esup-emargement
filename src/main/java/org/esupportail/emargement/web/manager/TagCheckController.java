@@ -16,8 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -38,6 +36,7 @@ import org.esupportail.emargement.services.ApogeeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
+import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -124,6 +123,9 @@ public class TagCheckController {
 	@Resource
 	PersonService personService;
 	
+	@Resource
+	GroupeService groupeService;
+	
 	@Autowired
 	PdfGenaratorUtil pdfGenaratorUtil;
 	
@@ -163,7 +165,7 @@ public class TagCheckController {
 	private String appUrl;
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
-    public String listTagChecknBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
+    public String listTagCheckBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
     		@PageableDefault(size = 1, direction = Direction.ASC, sort = "person")  Pageable pageable, 
     			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
@@ -275,8 +277,7 @@ public class TagCheckController {
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
-        Long groupeId = (tagCheck.getGroupe() != null )? tagCheck.getGroupe().getId() : null;
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, groupeId, tagCheck.getCodeEtape(), 
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, tagCheck.getCodeEtape(), 
     			tagCheck.getCheckLdap(), tagCheck.getPerson(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null, tagCheck.getGuest());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
@@ -305,7 +306,6 @@ public class TagCheckController {
     		tc.setContext(contexteService.getcurrentContext());
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
     		tc.setComment(tagCheck.getComment());
-    		tc.setGroupe(tagCheck.getGroupe());
     		tc.setSessionLocationExpected(tagCheck.getSessionLocationExpected());
     		tagCheckService.save(tc, emargementContext);
     	}
@@ -403,25 +403,6 @@ public class TagCheckController {
     		}
     	}
         return persons;
-    }
-    
-    @PostMapping("/manager/tagCheck/addGroup")
-    public String addGroup(@PathVariable String emargementContext, @RequestParam("seId") Long seId,  @RequestParam("gpId") Long gpId) {
-    	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
-    	Groupe groupe = groupeRepository.findById(gpId).get();
-    	if(!tcs.isEmpty()) {
-    		for(TagCheck tc : tcs) {
-    			tc.setGroupe(groupe);
-    			tagCheckRepository.save(tc);
-    		}
-    	}
-    	log.info("ajout des inscrits de la session  "  + seId + " au groupe " + groupe.getNom());
-    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-        logService.log(ACTION.IMPORT_GROUPE, RETCODE.SUCCESS, 
-				"import " + tcs.size() + " inscrits dans le groupe " + groupe.getNom() , userLdap.get(0).getEppn(),
-				null, emargementContext, null);
-    	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + seId.toString(), emargementContext);
     }
     
     @GetMapping("/manager/tagCheck/searchUsersLdap")

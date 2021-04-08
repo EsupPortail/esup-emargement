@@ -1,7 +1,6 @@
 package org.esupportail.emargement.domain;
 import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -56,9 +55,6 @@ public class TagCheck implements ContextSupport {
 
     @ManyToOne
     private SessionLocation sessionLocationExpected;
-    
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    private Groupe groupe;
     
     public static enum TypeEmargement {
         CARD, LINK, MANUAL, QRCODE
@@ -183,14 +179,6 @@ public class TagCheck implements ContextSupport {
 
 	public void setIsUnknown(Boolean isUnknown) {
 		this.isUnknown = isUnknown;
-	}
-
-	public Groupe getGroupe() {
-		return groupe;
-	}
-
-	public void setGroupe(Groupe groupe) {
-		this.groupe = groupe;
 	}
 
 	public Person getProxyPerson() {

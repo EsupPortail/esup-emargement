@@ -20,7 +20,6 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
@@ -90,6 +89,9 @@ public class TagCheckService {
 	
 	@Resource
 	ImportExportService importExportService;
+	
+	@Resource
+	GroupeService groupeService;
 	
 	@Autowired
 	PersonRepository personRepository;
@@ -217,8 +219,7 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, 
-    		Long groupeId, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
+    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
     	boolean isNoEppnAuthorized = false;
@@ -253,6 +254,8 @@ public class TagCheckService {
 			    			Long tcTest = new Long(0);
 			    			//Pour Guest
 			    			String [] splitLine = null;
+			    			String groupGuest = null;
+			    			String tempGuest = null;
 			    			if(line.contains(",")) {
 			    				splitLine = line.split(",");
 			    			}else if(line.contains(";")) {
@@ -307,8 +310,12 @@ public class TagCheckService {
 											}
 										}else {
 											List<Guest> existingGuests = new ArrayList<Guest>();
-											if(splitLine != null && splitLine.length>1) {
-												existingGuests = guestRepository.findByEmail(splitLine[0]);
+											if(!row.isEmpty()) {
+												groupGuest = row.get(0);
+											}
+											if(splitLine != null && splitLine.length>1 || groupGuest != null) {
+												tempGuest = (groupGuest != null)? groupGuest : splitLine[0];
+												existingGuests = guestRepository.findByEmail(tempGuest);
 												if(!existingGuests.isEmpty()) {
 													guest = existingGuests.get(0);
 												}else {
@@ -355,14 +362,10 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
-					    			if(groupeId != null){
-					    				Groupe groupe = groupeRepository.findById(groupeId).get();
-					    				tc.setGroupe(groupe);
-					    			}
 					    			if(!userLdaps.isEmpty()) {
 					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
 					    			}else {
-					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, tempGuest);
 					    			}
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
@@ -444,16 +447,23 @@ public class TagCheckService {
 			for(TagCheck tc : tagChecks){
 				tagCheckRepository.deleteById(tc.getId());
 				Long count = null;
+				Long countGroupe = null;
 				Person person = tc.getPerson();
 				Guest guest = tc.getGuest();
 				if(person != null) {
 					count = tagCheckRepository.countTagCheckByPerson(person);
-					if(count==0) {
+					List<Person> persons = new ArrayList<Person>();
+					persons.add(person);
+					countGroupe = groupeRepository.countByPersonsIn(persons);
+					if(count==0 && countGroupe==0) {
 		    			personRepository.delete(person);
 		    		}
 				}else if(guest != null) {
 					count = tagCheckRepository.countTagCheckByGuest(guest);
-					if(count==0) {
+					List<Guest> guests = new ArrayList<Guest>();
+					guests.add(guest);
+					countGroupe = groupeRepository.countByGuestsIn(guests);
+					if(count==0 && countGroupe==0){
 		    			guestRepository.delete(guest);
 		    		}
 				}
@@ -1210,15 +1220,6 @@ public class TagCheckService {
     		}
     	}
 		return tagCheckPage;
-	}
-	
-	public List<String> getUsersForImport(Long id) {
-		List<TagCheck> tcs = tagCheckRepository.findTagCheckByGroupeId(id);
-		List<String> listEppn = new ArrayList<String>();
-		for(TagCheck tc : tcs) {
-			listEppn.add(tc.getPerson().getEppn());
-		}
-		return listEppn;
 	}
 	
 	public List<String> findDistinctCodeEtapeSessionEpreuve(Long id) {

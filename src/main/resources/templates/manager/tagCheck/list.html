@@ -24,7 +24,6 @@
 											<span class="btn-separator" th:if="${countTagChecks>0}"></span>	
 											<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
 							    				class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>
-							    			<a th:if="${!isSessionEpreuveClosed}" title="Ajouter inscrits dans un groupe" data-toggle="modal"  data-target="#groupeModal" class="btn btn-primary ml-2"><i class="fa fa-users fa-lg"></i></a>
 											<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and !isSessionLibre}"
 												class="btn btn-warning ml-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
 											<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
@@ -121,7 +120,9 @@
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:text="${(tagCheck.groupe != null)? tagCheck.groupe.nom : ''}" class="d-none d-xl-table-cell"></td>
+									<td class="d-none d-xl-table-cell">
+										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+									</td>
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}"></td>
 									<td class="text-center d-none d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
@@ -220,31 +221,6 @@
 		            </div>
 		            <div class="modal-footer">
 		                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Fermer</button>
-		            </div>
-		        </div>
-		    </div>
-		</div>
-		<div class="modal modal-warning fade in" id="groupeModal">
-		    <div class="modal-dialog">
-		        <div class="modal-content">
-		            <div class="modal-header">
-		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
-		            </div>
-		            <div class="modal-body">
-		                <div th:if="${not #lists.isEmpty(groupes)}" class="alert alert-info text-center font-weight-bold mb-2">Vous pouvez ajouter les inscrits de cette session à un des groupes existants :  <br />
-							<form th:action="@{/{ctx}/manager/tagCheck/addGroup(ctx=${eContext})}" method="POST">
-								<input type="hidden" th:value="${sessionEpreuve.id}" name="seId">
-								<select id="gpId" name="gpId" class="mt-2">
-								    <option th:each="groupe: ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"/>
-								</select>
-								<input type="submit" value="Ajouter" class="btn btn-success mt-2">
-							</form>
-						</div>	
-						<div th:unless="${not #lists.isEmpty(groupes)}" class="alert alert-info text-center font-weight-bold">
-							<p>Aucun groupe existant</p>
-						</div>
 		            </div>
 		        </div>
 		    </div>

@@ -1,14 +1,20 @@
 package org.esupportail.emargement.domain;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
@@ -36,6 +42,14 @@ public class Person implements ContextSupport {
 
     @Transient
     private String prenom;
+    
+    @ManyToMany(mappedBy = "persons")
+    @JsonIgnoreProperties("persons")
+    private Set<Groupe> groupes = new HashSet<>();
+    
+    public Set<Groupe> getGroupes() {
+		return groupes;
+	}
 
 	public String getNom() {
 		return nom;
@@ -99,4 +113,5 @@ public class Person implements ContextSupport {
 	public void setCivilite(String civilite) {
 		this.civilite = civilite;
 	}
+
 }

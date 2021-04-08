@@ -71,7 +71,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                     label: labelValue,
                                     value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
                                 });
-                            }else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker") {
+                            }else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
                                 var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
                                 + "<strong class='ml-2'>Type : </strong>" + value.typeObject;
                                 list.push({
@@ -1187,7 +1187,15 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null) {
         submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
         submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
-    }else if (document.getElementById("searchSuEppn") != null) {
+    }else if (document.getElementById("searchIndividu") != null) {
+    	searchUsersAutocomplete("searchIndividu", emargementContextUrl + "/manager/individu/search", "&type=tagCheck", 100);
+    	searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {console.log(this);
+             var splitResult = this.value.split("//");
+             searchIndividu.value = splitResult[0].toString().trim();
+             $("#tcIdentity").html(splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
+         });
+    }    
+    else if (document.getElementById("searchSuEppn") != null) {
         submitSearchForm("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "");
     }
     if (document.getElementById("searchLdap") != null) {
@@ -1485,6 +1493,23 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholder: 'Rechercher Lieu'
         });
     }
+    
+    
+    //Groupes
+    if(document.getElementById('addMembersGroupe') != null){
+    	var slimArray2 = ['sessionEpreuveGroupes', 'groupes', 'groupes2'];
+
+    	slimArray2.forEach(function(item, index, array) {
+    		var select2 = '#' + item;
+    		if(document.getElementById(item) != null){
+    			new SlimSelect({
+    				select: select2,
+    				placeholder: '--Choisir--'
+    			});
+    		}
+    	});
+	}
+    
     //Presence
     if (document.getElementById('presencePage') != null) {
         const uuid = ID();
