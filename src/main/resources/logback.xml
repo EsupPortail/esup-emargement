@@ -1,25 +1,41 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <configuration>
 
-	<!-- default configuration from springboot -->
-	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+  <property name="LOG_PATH" value="/opt/tomcat-esup-emargement/logs"/>
 
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-	    <file>/opt/tomcat-emargement-java/logs/emargement.log</file>
-	    <append>true</append>
-	    <immediateFlush>true</immediateFlush>
-	    <encoder>
-	      <pattern>[%-5level] %date{dd/MM/yyyy HH:mm:ss} %logger{35} - %msg%n</pattern>
-	    </encoder>
-	</appender>
-
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>
+        %d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger{36}.%M - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+  
+	<appender name="SAVE-TO-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	  
+	  <file>${LOG_PATH}/emargement.log</file>
+	  
+	  <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+	    <Pattern>
+	      %d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36}.%M - %msg%n
+	    </Pattern>
+	  </encoder>
 	
-	<appender name="EMAIL" class="ch.qos.logback.classic.net.SMTPAppender">
-		<smtpHost>smtp</smtpHost>
+	  <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+	    <fileNamePattern>
+	      ${LOG_PATH}/archived/log_%d{dd-MM-yyyy}.log
+	    </fileNamePattern>
+	    <maxHistory>10</maxHistory>
+	    <totalSizeCap>100MB</totalSizeCap>
+	  </rollingPolicy>
+	
+	</appender>  
+
+	<appender name="EMAIL"
+		class="ch.qos.logback.classic.net.SMTPAppender">
+		<smtpHost>smtp.univ-ville.fr</smtpHost>
 		<smtpPort>25</smtpPort>
-		<to></to>
-		<from>emargement@no-reply.fr</from>
+		<to>toto@univ-ville.fr</to>
+		<from>esup-emargement@no-reply.univ-ville.fr</from>
 		<subject>%-5level - emargement %date{dd/MM/yyyy HH:mm:ss}
 		</subject>
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -30,24 +46,11 @@
 			<level>ERROR</level>
 		</filter>
 	</appender>
-	
-    
-    <logger name="org.esupportail.emargement" level="info" additivity="false">
-        <appender-ref ref="FILE"/>
-    </logger>
-    
-    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="info" additivity="false">
-   	 	<appender-ref ref="FILE"/>
-	</logger>
-	
-	<logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="warn" additivity="false">
-   	 	<appender-ref ref="FILE"/>
-	</logger>
-    
 
-    <root level="info">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </root>
-
+  <root level="info">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="SAVE-TO-FILE"/>
+    <!-- appender-ref ref="EMAIL"/-->
+  </root>
+ 
 </configuration>
