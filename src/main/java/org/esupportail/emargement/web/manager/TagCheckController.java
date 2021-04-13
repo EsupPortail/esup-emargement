@@ -166,7 +166,7 @@ public class TagCheckController {
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
     public String listTagCheckBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
-    		@PageableDefault(size = 1, direction = Direction.ASC, sort = "person")  Pageable pageable, 
+    		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person")  Pageable pageable, 
     			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
 		
@@ -210,7 +210,6 @@ public class TagCheckController {
 		model.addAttribute("countUnknown", unknown);
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);
-		model.addAttribute("groupes", groupeRepository.findAll(Sort.by(Sort.Direction.ASC, "nom")));
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
         return "manager/tagCheck/list";
     }

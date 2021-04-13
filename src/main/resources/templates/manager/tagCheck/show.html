@@ -25,13 +25,13 @@
 			            <dd class="col-sm-10" th:if="${tagCheck.guest != null}" th:text="${tagCheck.guest.prenom}"></dd>
 			            <dt class="col-sm-2">Groupe</dt>
 			            <dd class="col-sm-10" th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></dd>
+			            <dd class="col-sm-10" th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></dd>
 			            <dt class="col-sm-2">N° identifiant</dt>
-			            <dd class="col-sm-10" th:if="${tagCheck.person != null}" th:text="${(tagCheck.person.numIdentifiant != null) ? tagCheck.person.numIdentifiant : '---'}"></dd>
-			            <dd class="col-sm-10" th:if="${tagCheck.guest != null}">---</dd>
+			            <dd class="col-sm-10" th:text="${(tagCheck.person != null and tagCheck.person.numIdentifiant != null) ? tagCheck.person.numIdentifiant : ''}"></dd>
 			            <dt class="col-sm-2">Temps aménagé</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.isTiersTemps}"></dd>
 			            <dt class="col-sm-2">Envoi convocation</dt>
-			            <dd class="col-sm-10" th:text="${(tagCheck.dateEnvoiConvocation != null) ? #dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm') : '---'}"></dd>
+			            <dd class="col-sm-10" th:text="${(tagCheck.dateEnvoiConvocation != null) ? #dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm') : ''}"></dd>
 			            <dt class="col-sm-2">Emargement</dt>
 			            <dd class="col-sm-10">
 							<span th:if="${tagCheck.typeEmargement!=null} "
@@ -43,13 +43,13 @@
 							</span>
 						</dd>
 			            <dt class="col-sm-2">Date</dt>
-						<dd class="col-sm-10"  th:text="${(tagCheck.tagDate != null) ? #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm') : '---'}"></dd>
+						<dd class="col-sm-10"  th:text="${(tagCheck.tagDate != null) ? #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm') : ''}"></dd>
 			            <dt class="col-sm-2">Surveillant</dt>
-			            <dd class="col-sm-10" th:text="${(tagCheck.tagChecker!= null) ? tagCheck.tagChecker.userApp.eppn : '---'}"></dd>			            
+			            <dd class="col-sm-10" th:text="${(tagCheck.tagChecker!= null) ? tagCheck.tagChecker.userApp.eppn : ''}"></dd>     
 			            <dt class="col-sm-2">Répartition</dt>
-			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.location.nom : '---'}"></dd>
+			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.location.nom : ''}"></dd>
 			            <dt class="col-sm-2">Lieu badgé</dt>
-			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : '---'}"></dd>
+			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : ''}"></dd>
 			            <dt class="col-sm-2">Commentaire</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.comment}"></dd>
 					</dl>

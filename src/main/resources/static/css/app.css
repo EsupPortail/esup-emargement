@@ -257,3 +257,6 @@ legend.scheduler-border {
     font-weight: bold !important;
     text-align: left !important;
 }
+dl dd:after {
+  content: "\200b";
+}
