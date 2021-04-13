@@ -122,6 +122,7 @@
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="d-none d-xl-table-cell">
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+										<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 									</td>
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}"></td>

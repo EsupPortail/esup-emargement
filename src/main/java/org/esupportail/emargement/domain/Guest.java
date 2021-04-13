@@ -37,6 +37,10 @@ public class Guest implements ContextSupport {
     @ManyToMany(mappedBy = "guests")
     @JsonIgnoreProperties("guests")
     private Set<Groupe> groupes = new HashSet<>();
+    
+	public Set<Groupe> getGroupes() {
+		return groupes;
+	}
 
 	public Long getId() {
 		return id;
