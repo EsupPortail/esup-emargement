@@ -222,7 +222,6 @@ public class TagCheckService {
     public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
-    	boolean isNoEppnAuthorized = false;
     	if(reader!=null) {
     		rows  = importExportService.readAll(reader);
     	}else if(finalList != null) {
@@ -231,6 +230,7 @@ public class TagCheckService {
     	if(rows != null) {	    	
 	    	List<TagCheck> tcToSave = new ArrayList<TagCheck>();
 	    	List<String> unknowns = new ArrayList<String>();
+	    	List<String> missingData = new ArrayList<String>();
 	    	//De la forme [NumEtu,CodeGestion]
     		boolean isRepartitionLocationOk = true;
     		if(sessionLocationId != null) {
@@ -240,7 +240,7 @@ public class TagCheckService {
     		}
     		if(isRepartitionLocationOk) {
 		    	if(rows.size()>0) {
-		    		int i = 0; int j = 0; int k = 0;
+		    		int i = 0; int j = 0; int k = 0; int l=0;
 		    		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
 		    		for(List<String> row : rows) {
 			    		if(se != null) {
@@ -249,13 +249,12 @@ public class TagCheckService {
 			    			Guest guest = null;
 			    			String eppn  = null;
 			    			List<UserLdap>  userLdaps = null;
+			    			boolean isFromDomain = false;
 			    			String line = row.get(0).trim();
 			    			line = line.replace("\"","");
 			    			Long tcTest = new Long(0);
 			    			//Pour Guest
 			    			String [] splitLine = null;
-			    			String groupGuest = null;
-			    			String tempGuest = null;
 			    			if(line.contains(",")) {
 			    				splitLine = line.split(",");
 			    			}else if(line.contains(";")) {
@@ -279,43 +278,40 @@ public class TagCheckService {
 												person.setType("student");
 												personRepository.save(person);
 											}
-										}else {
-											if(formPerson!=null) {
-												person = formPerson;
-												person.setType("student");
-												person.setContext(contexteService.getcurrentContext());
-												personRepository.save(person);
-											}
 										}
 										tc.setCodeEtape(origine);
 				    				}else {
 				    					userLdaps = userLdapRepository.findByEppnEquals(line);
-				    					if(!userLdaps.isEmpty()) {
-				    						eppn = userLdaps.get(0).getEppn();
+				    					if(!userLdaps.isEmpty() || !checkLdap) {
+				    						eppn =(!userLdaps.isEmpty())? userLdaps.get(0).getEppn() : line;
 				    						List<Person> existingPersons = personRepository.findByEppn(eppn);
 				    						if(!existingPersons.isEmpty()) {
 												person = existingPersons.get(0);
 											}else {
 												person = new Person();
-					    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
-													person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
-													person.setType("student");
-					    						}
-					    						else {
-					    							person.setType("staff");
+												if(checkLdap) {
+						    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
+														person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
+														person.setType("student");
+						    						}
+						    						else {
+						    							person.setType("staff");
+													}
+												}else {
+													person.setType("unknown");
 												}
+		
 					    						person.setContext(contexteService.getcurrentContext());
 					    						person.setEppn(eppn);
 					    						personRepository.save(person);
 											}
-										}else {
+										}else if(line.contains("@".concat(nomDomaine))){
+											isFromDomain = true;
+										}
+										else {
 											List<Guest> existingGuests = new ArrayList<Guest>();
-											if(!row.isEmpty()) {
-												groupGuest = row.get(0);
-											}
-											if(splitLine != null && splitLine.length>1 || groupGuest != null) {
-												tempGuest = (groupGuest != null)? groupGuest : splitLine[0];
-												existingGuests = guestRepository.findByEmail(tempGuest);
+											if(splitLine != null && splitLine.length>1) {
+												existingGuests = guestRepository.findByEmail(splitLine[0]);
 												if(!existingGuests.isEmpty()) {
 													guest = existingGuests.get(0);
 												}else {
@@ -326,35 +322,6 @@ public class TagCheckService {
 													guest.setContext(contexteService.getcurrentContext());
 													guestRepository.save(guest);
 												}
-											}else {
-												if(formGuest!=null) {
-													if(!formGuest.getEmail().isEmpty()) {
-														existingGuests = guestRepository.findByEmail(formGuest.getEmail());
-														isNoEppnAuthorized = true;
-													}
-												}
-											}
-											if(!existingGuests.isEmpty()) {
-												guest = existingGuests.get(0);
-											}else {
-												if(formPerson != null) {
-													person = formPerson;
-													if(formPerson.getNumIdentifiant()!=null && !formPerson.getNumIdentifiant().isEmpty()) {
-														person.setType("student");
-						    						}else if(!formPerson.getEppn().isEmpty()) {
-						    							person.setType("staff");
-						    						}
-						    						else {
-						    							person.setType("ext");
-													}
-													person.setContext(contexteService.getcurrentContext());
-													personRepository.save(person);
-												}
-												if(formGuest != null) {
-													guest = formGuest;
-													guest.setContext(contexteService.getcurrentContext());
-													guestRepository.save(guest);
-												}
 											}
 										}
 				    				}
@@ -362,10 +329,10 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
-					    			if(!userLdaps.isEmpty()) {
-					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, userLdaps.get(0).getEppn());
-					    			}else {
-					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, tempGuest);
+					    			if(!userLdaps.isEmpty() || !checkLdap && eppn!=null) {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, eppn);
+					    			}else if(!isFromDomain && splitLine!=null) {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
 					    			}
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
@@ -377,35 +344,42 @@ public class TagCheckService {
 									tcTest = new Long(-1);
 									log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
 								}
-					    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0  || isNoEppnAuthorized  && tcTest == 0 ){
+					    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0 && guest!=null || !checkLdap && tcTest == 0 && eppn!=null ){
 				    				tcToSave.add(tc);
 				    				i++;
 				    			}else if(tcTest >0){
 				    				tc.setComment("Personne déjà inscrite dans la session");
 				    				j++;
-				    			}else{
-				    				tc.setComment("Personne inconnue dans le ldap");
+				    			}else if(isFromDomain) {
+				    				tc.setComment("Personne inconnue dans l'annuaire Ldap");
 				    				unknowns.add(line);
-				    				if(!checkLdap) {
-				    					tcToSave.add(tc);
-				    				}
 				    				k++;
+				    			}	
+				    			else{
+				    				tc.setComment("Données manquantes");
+				    				missingData.add(line);
+				    				l++;
 				    			}
 			    			}
 			    		}
 		    		}
 		    		tagCheckRepository.saveAll(tcToSave);
 		    		String inconnus = "";
+		    		String incomplet = "";
 		    		if(!unknowns.isEmpty()) {
 		    			inconnus = " (Identifiants : "  + StringUtils.join(unknowns, ",") + ")";
 		    		}
-		            log.info("import inscriptions : Succès : " + i + " - Déjà inscrits : " + j + " Inconnus dans le ldap : " +  k + inconnus);
+		    		if(!missingData.isEmpty()) {
+		    			incomplet = " (Identifiants : "  + StringUtils.join(missingData, ",") + ")";
+		    		}
+		            log.info("import inscriptions : Succès : " + i + " - Déjà inscrits : " + j + " Inconnus : " +  k + inconnus + " Données manquantes : " +  l + incomplet);
 		            logService.log(ACTION.IMPORT_INSCRIPTION, RETCODE.SUCCESS, 
-		            				"import inscriptions " + se.getNomSessionEpreuve() + " : Succès : " + i + " - Déjà inscrits : " + j + " - Inconnus dans le ldap : " +  k + inconnus , null,
+		            				"import inscriptions " + se.getNomSessionEpreuve() + " : Succès : " + i + " - Déjà inscrits : " + j + " - Inconnus : " +  k + inconnus + " Données manquantes : " +  l + incomplet, null,
 		            				null, emargementContext, null);
 		            bilanCsv.add(i);
 		            bilanCsv.add(j);
 		            bilanCsv.add(k);
+		            bilanCsv.add(l);
 		    	}
     		}
     	}
