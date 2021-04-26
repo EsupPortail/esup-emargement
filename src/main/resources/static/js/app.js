@@ -27,6 +27,41 @@ function rgb2hex(rgb){
 	  ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
 }
 
+//affinage repartition
+function displayAffinage(classes, isTiers){
+    var total = 0; 
+    classes.forEach(function(item) {
+    	var number =  parseInt(item.value) 
+    	total = total + number;
+    });
+    var affinageId = null;
+    var tempCapacite = null;
+    var currentCapacite = null;
+    if(isTiers){
+    	affinageId = $("#affinageTiersTemps");
+    	tempCapacite =  $("#tempCapaciteTiers");
+    	currentCapacite = $("#currentCapaciteTiers");
+    }else{
+    	affinageId = $("#affinageNotTiersTemps");
+    	tempCapacite = $("#tempCapaciteNotTiers");
+    	currentCapacite = $("#currentCapaciteNotTiers"); 
+    }
+    affinageId.removeClass("bg-light");
+	affinageId.removeClass("bg-success");
+	affinageId.removeClass("bg-danger");
+	affinageId.removeClass("text-white");
+	affinageId.removeClass("text-dark");
+    if(total == currentCapacite[0].textContent){
+    	affinageId.addClass("bg-success text-white");
+    	$("#affinerButton").removeAttr( "disabled");
+    }else{
+    	affinageId.addClass("bg-danger text-white");
+    	$("#affinerButton").prop("disabled", "disabled");
+    }
+    
+    tempCapacite.text(total);
+}
+
 function getCalendar(calendarEl, urlEvents, editable) {
     var calendar = new FullCalendar.Calendar(calendarEl, {
         headerToolbar: {
@@ -1221,89 +1256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    //Affiner repartition
-    function affinerRepartition(realId, operation) {
-        msgWarning.textContent = "";
-        var candidat = document.getElementById('candidats_' + realId);
-        var percentage = document.getElementById('txRemplissage_' + realId);
-        var capacite = document.getElementById('capacite_' + realId);
-        var txRemplissage = percentage.textContent.substring(0, percentage.textContent.length - 1);
-        var diviseur = parseInt(capacite.textContent, 10);
-        var tempsAmenage = document.getElementById('tempsAmenage_' + realId);
-        var tempsAmenageBool = (tempsAmenage.title == "Non") ? false : true;
-        var inputCandidat = document.getElementById('form_' + realId);
-        var sum = 0;
-        var sum2 = 0;
-        var tempTotal = 0;
-        if (!tempsAmenageBool) {
-            total = parseInt(totalCandidatsNotTempsAmenage, 10);
-        } else {
-            total = parseInt(totalCandidatsTempsAmenage, 10);
-        }
-        candidats.forEach(function(item) {
-            var splitTempId = item.id.split("_");
-            var test = (document.getElementById('tempsAmenage_' + splitTempId[1]).title == "Non") ? false : true;
-            if ((test && tempsAmenageBool) || (!test && !tempsAmenageBool)) {
-                sum = sum + parseInt(item.text, 10);
-            } else {
-                sum2 = sum2 + parseInt(item.text, 10);
-            }
-        });;
-        tempTotal = sum + sum2;
-        var nbCandidat = parseInt(candidat.text, 10);
-        if ((nbCandidat > 0 && sum > 0 && operation == "minus") ||  (nbCandidat < diviseur && sum < total && operation == "plus")) {
-            var newCandidats = (operation == "minus") ? nbCandidat - 1 : nbCandidat + 1;
-            candidat.text = newCandidats;
-            inputCandidat.value = newCandidats;
-            var newTxRemplissage = Math.round((newCandidats / diviseur) * 100);
-            if (tempsAmenageBool) {
-                newTotalTiers.textContent = (operation == "minus") ? sum - 1 : sum + 1;
-            } else {
-                newTotal.textContent = (operation == "minus") ? sum - 1 : sum + 1;
-            }
-            percentage.textContent = newTxRemplissage + '%';
-            var realTotal = (operation == "minus") ? tempTotal - 1 : tempTotal + 1;
-            if (realTotal < bigTotal) {
-                submitAffinage.disabled = true;
-            } else {
-                submitAffinage.disabled = false;
-            }
-        } else {
-            msgWarning.textContent = (operation == "minus") ? "Vous ne pouvez plus retirer de personnes" : "Vous ne pouvez plus ajouter de personnes";
-        }
-    }
 
-    var submitAffinage = document.getElementById("affinerButton");
-    if (submitAffinage != null) {
-        var minus = document.querySelectorAll('[id^="minusRepartition_"]');
-
-        var candidats = document.querySelectorAll('[id^="candidats_"]');
-        var newTotal = document.getElementById('newTotal');
-        var newTotalTiers = document.getElementById('newTotalTiers');
-        var msgWarning = document.getElementById('msgWarning');
-        var bigTotal = parseInt(totalCandidatsNotTempsAmenage, 10) + parseInt(totalCandidatsTempsAmenage, 10);
-
-        submitAffinage.addEventListener('click', function(e) {
-            var formAffinage = document.getElementById("formAffinage");
-            formAffinage.submit();
-        });
-        minus.forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                var splitId = this.id.split("_");
-                var realId = splitId[1];
-                affinerRepartition(realId, "minus");
-            });
-        });
-        var plus = document.querySelectorAll('[id^="plusRepartition_"]');
-        plus.forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                msgWarning.textContent = "";
-                var splitId = this.id.split("_");
-                var realId = splitId[1];
-                affinerRepartition(realId, "plus");
-            });
-        });
-    }
 
     var helpForm = document.getElementById('helpForm');
     if (helpForm != null) {
@@ -1932,5 +1885,43 @@ document.addEventListener('DOMContentLoaded', function() {
 			disabledTagCheckers(slId)
 		});
 	}
+
+	//Affinage reparttion
+    $(".affinage").inputSpinner();
+    
+    $(".affinage").on("input", function (event) {
+        var max = parseInt($(this).prop("max"));
+        var current = parseInt($(this).val());
+        var newPercent = $(this)[0].closest( "span" ).nextElementSibling;
+        var percentVal = (current*100)/max;
+        newPercent.textContent =  Math.round(percentVal) + ' %';
+    	$(this).removeClass('is-valid');
+    	$(this).removeClass('is-invalid');
+        if(current <= max){
+        	$(this).addClass('is-valid');
+        }else{
+        	$(this).addClass('is-invalid');
+        }
+        
+    	//Not tiers
+        var notTiers = document.querySelectorAll('[id^="spinner_false"]');
+        if(notTiers.length>0){
+        	displayAffinage(notTiers, false);
+        }
+        
+        //Tiers
+        var isTiers = document.querySelectorAll('[id^="spinner_true"]');
+        if(isTiers.length>0){
+        	displayAffinage(isTiers, true);
+        }
+       
+       var submitAffinage = document.getElementById("affinerButton");
+       if (submitAffinage != null) {
+           submitAffinage.addEventListener('click', function(e) {
+               var formAffinage = document.getElementById("formAffinage");
+               formAffinage.submit();
+           });
+       }
+    })
    });
     

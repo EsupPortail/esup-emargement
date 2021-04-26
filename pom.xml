@@ -152,6 +152,11 @@
 		    <version>5.1.0</version>
 		</dependency>
 		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>bootstrap-input-spinner</artifactId>
+		    <version>1.16.5</version>
+		</dependency>
+		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
 		</dependency>	
