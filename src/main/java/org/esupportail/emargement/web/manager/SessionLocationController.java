@@ -85,7 +85,7 @@ public class SessionLocationController {
 	
 	@GetMapping(value = "/manager/sessionLocation/sessionEpreuve/{id}", produces = "text/html")
     public String listSesionLocationBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
-    		@PageableDefault(size = 20, direction = Direction.ASC, sort = "sessionEpreuve")  Pageable pageable) {
+    		@PageableDefault(size = 20, direction = Direction.ASC, sort = {"isTiersTempsOnly", "priorite"})  Pageable pageable) {
 
         Page<SessionLocation> sessionLocationPage = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve, pageable);
         model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);

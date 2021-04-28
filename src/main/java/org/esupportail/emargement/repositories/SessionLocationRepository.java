@@ -16,6 +16,8 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
  
 	Long countBySessionEpreuveId(Long id);
 	
+	List<SessionLocation> findByLocationIdAndCapaciteGreaterThan(Long id, int cpacite);
+	
 	Page<SessionLocation> findSessionLocationBySessionEpreuve(SessionEpreuve sessionEpreuve, Pageable pageable);
 	
 	List<SessionLocation> findSessionLocationBySessionEpreuve(SessionEpreuve sessionEpreuve);

@@ -8,6 +8,12 @@
            	<div class="card">
 		    	<div class="card-header"><h2>Modifier un lieu</h2></div>
 		    	<div  class="alert alert-danger" th:if="${error}">Le lieu avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+		    	<div  class="alert alert-danger" th:if="${sls}">
+		    	<span th:text="${capacite + ' '}" class="font-weight-bold"></span> comme capacité maximale n'est pas possible, des capacités supérieures pour ce lieu ont été attribuées dans les sessions suivantes :    
+		    	<span th:each="sl : ${sls}">
+		    		<span th:text="${sl.sessionEpreuve.nomSessionEpreuve + ' : ' + sl.capacite}"></span>
+		    	</span>
+		    	</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/admin/location/update/{id}(ctx=${eContext}, id=${location.id})}" th:object="${location}" method="post" enctype="multipart/form-data">
 	                    <div class="form-group row">

@@ -54,11 +54,8 @@ public class CalendarService {
 	    }
 	    if(!listSe.isEmpty()) {
 	    	for(SessionEpreuve se : listSe) {
-	    		boolean isFromContext = false;
-	    		if(isAll) {
-	    			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, se.getContext());
-	    			isFromContext = (userApp != null)? true : false;
-	    		}
+    			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, se.getContext());
+    			boolean isFromContext = (userApp != null)? true : false;
 	    		CalendarDTO c = new CalendarDTO();
 	    		c.setId(se.getId());
 	    		String title = (!isAll)? se.getNomSessionEpreuve() : se.getContext().getKey().toUpperCase().concat(" : ").concat(se.getNomSessionEpreuve());

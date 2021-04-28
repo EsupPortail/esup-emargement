@@ -10,8 +10,10 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
+import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
+import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
 import org.esupportail.emargement.services.ContextService;
@@ -56,6 +58,9 @@ public class LocationController {
 	
 	@Autowired
 	LocationRepository locationRepository;
+	
+	@Autowired
+	SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
 	LocationRepositoryCustom locationRepositoryCustom;
@@ -180,10 +185,17 @@ public class LocationController {
         }
         uiModel.asMap().clear();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        List<SessionLocation> sls = sessionLocationRepository.findByLocationIdAndCapaciteGreaterThan(location.getId(), location.getCapacite());
         if(locationRepository.countByNom(location.getNom())>0 && !location.getNom().equalsIgnoreCase(locationRepository.findById(location.getId()).get().getNom())) {
         	redirectAttributes.addFlashAttribute("nom", location.getNom());
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la maj, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+        	return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
+        }else if(!sls.isEmpty()){
+        	redirectAttributes.addFlashAttribute("capacite", location.getCapacite());
+        	redirectAttributes.addFlashAttribute("sls", sls);
+        	log.info("Erreur lors de la maj, la capacité de " + location.getCapacite() + " est insuffisante car plus élevée dans un lieu de session utilisé !!! ");
         	return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
         }else {
         	location.setCampus(location.getCampus());
