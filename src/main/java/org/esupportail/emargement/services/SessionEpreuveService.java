@@ -558,6 +558,7 @@ public class SessionEpreuveService {
         newSe.setIsSessionEpreuveClosed(false);
         newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
         newSe.setComment(originalSe.getComment());
+        newSe.setTypeBadgeage(originalSe.getTypeBadgeage());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);
