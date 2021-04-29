@@ -257,25 +257,39 @@ public class PresenceService {
 		if (person != null) {
 			String locationNom = esupNfcTagLog.getLocation();
 			String[] splitLocationNom = locationNom.split(" // ");
+			String nomSessionEpreuve = splitLocationNom[0];
+			String nomLocation = splitLocationNom[1];
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			Date date = dateFormat.parse(dateFormat.format(new Date()));
 			TagCheck presentTagCheck = null;
 			Long realSlId = null;
-			Long sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], esupNfcTagLog.getEppn(), date, splitLocationNom[0]);
+			Long sessionLocationId = tagCheckRepository.getSessionLocationId(nomLocation, esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
+			SessionEpreuve se = sessionEpreuveRepository.findByNomSessionEpreuve(nomSessionEpreuve, null).getContent().get(0);
+			Long sessionEpreuveId = se.getId();
+			String urlPresent = "";
 			if(sessionLocationId!=null) {
 				realSlId = sessionLocationId;
 				presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, esupNfcTagLog.getEppn());
+				urlPresent = "&tc=" + presentTagCheck.getId();
 			}else {
-				//on regarde si la personne est dans une autre salle de la session
-				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date, splitLocationNom[0]);
+				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
 				SessionLocation sl = sessionLocationRepository.findById(slId).get();
-				realSlId = sl.getId();
-				presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());
+				Long count = tagCheckerRepository.countBySessionLocationIdAndUserAppEppn(sl.getId(), esupNfcTagLog.getEppnInit());
+				//on regrde si le surveillant à accès à la salle pour la vue...
+				if(count == 0) {
+					List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveNomSessionEpreuveAndUserAppEppn(nomLocation, nomSessionEpreuve, esupNfcTagLog.getEppnInit());
+					if(!tcs.isEmpty()) {
+						realSlId = tcs.get(0).getSessionLocation().getId();
+					}
+				}else {
+					//on regarde si la personne est dans une autre salle de la session
+					realSlId = sl.getId();
+					presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());
+					urlPresent = "&tc=" + presentTagCheck.getId();
+				}
 			}
-			Long sessionEpreuveId = presentTagCheck.getSessionEpreuve().getId();
-			
 			if(realSlId != null && sessionEpreuveId != null) {
-				url =  keyContext + "/supervisor/presence?sessionEpreuve=" + sessionEpreuveId +  "&location=" + realSlId + "&tc=" + presentTagCheck.getId();
+				url =  keyContext + "/supervisor/presence?sessionEpreuve=" + sessionEpreuveId +  "&location=" + realSlId + urlPresent;
 			}
 		}
 		

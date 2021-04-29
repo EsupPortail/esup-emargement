@@ -24,6 +24,7 @@ import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -649,13 +650,17 @@ public class TagCheckService {
 					SessionLocation sl = null;
 					Long seId = null;
 					if(sessionLocationId != null) {
-						sl = sessionLocationRepository.findById(sessionLocationId).get();
-						comment = "Inconnu dans cette salle, Salle attendue : " +  sl.getLocation().getNom();
+						if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
+							sl = sessionLocationRepository.findById(sessionLocationId).get();
+							comment = "Inconnu dans cette salle, Salle attendue : " +  sl.getLocation().getNom();
+						}else {
+							isOk = true;
+						}
 					}
 					else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
 						LocalTime now = LocalTime.now();
 						seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
-						String lieu = " Autre session ans la journée";
+						String lieu = " Autre session dans la journée";
 						if(seId != null) {
 							SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
 							lieu = " --> Session : "+ otherSe.getNomSessionEpreuve();

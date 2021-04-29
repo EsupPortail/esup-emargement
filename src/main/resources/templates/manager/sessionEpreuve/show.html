@@ -17,8 +17,12 @@
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.typeSession.key}"></dd>
 			            <dt class="col-sm-2">Clôturée</dt>
 			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-check text-success"></i></dd>
+			            <dt class="col-sm-2">Archivée</dt>
+			            <dd class="col-sm-10"><i th:class="${sessionEpreuve.dateArchivage != null} ? 'fa fa-check text-success' :''"></i></dd>
+			            <dt class="col-sm-2">Badgeage</dt>
+			            <dd class="col-sm-10" th:text="${sessionEpreuve.typeBadgeage}"></dd>
 			            <dt class="col-sm-2">Session libre</dt>
-			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>
+			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>       
 			            <dt class="col-sm-2">Procuration activée</dt>
 			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isProcurationEnabled}" class="fa fa-check text-success"></i></dd>   
 			            <dt class="col-sm-2">Lieux</dt>
@@ -72,29 +76,35 @@
 			            <dd class="col-sm-10">
 							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
 							<a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2"><i class="fa fa-trash text-danger"></i></a>
-								<div class="modal modal-warning fade in" th:id="modal-warning+${sessionEpreuve.id}" >
-								    <div class="modal-dialog">
-								        <div class="modal-content">
-								        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
-									        	<input type="hidden" name="_method" value="delete" />
-									            <div class="modal-header">
-									                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-											          <span aria-hidden="true">&times;</span>
-											        </button>
-									            </div>
-									            <div class="modal-body">
-									                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
-									                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
-									            </div>
-									            <div class="modal-footer">
-									                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
-									                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
-									            </div>
-								            </form>
-								        </div>
-								    </div>
-								</div>
-			            </dd> 			            
+							<div class="modal modal-warning fade in" th:id="modal-warning+${sessionEpreuve.id}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+								        	<input type="hidden" name="_method" value="delete" />
+								            <div class="modal-header">
+								                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+										          <span aria-hidden="true">&times;</span>
+										        </button>
+								            </div>
+								            <div class="modal-body">
+								                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+								                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+								            </div>
+								            <div class="modal-footer">
+								                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+								                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+								            </div>
+							            </form>
+							        </div>
+							    </div>
+							</div>
+							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+								onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
+							<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+								onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
+							<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+								onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>								
+			            </dd>
 					</dl>
                 </div>
            	</div>

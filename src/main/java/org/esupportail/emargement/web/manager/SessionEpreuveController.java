@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.CampusRepository;
@@ -238,6 +239,7 @@ public class SessionEpreuveController {
     @GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
     public String createForm(@PathVariable String emargementContext, Model uiModel, @RequestParam(value = "anneeUniv", required = false) String anneeUniv) throws IOException, ParserException, ParseException {
     	SessionEpreuve SessionEpreuve = new SessionEpreuve();
+    	SessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
     	populateEditForm(uiModel, SessionEpreuve, anneeUniv);
     	List<Event> icsList = eventRepository.findByIsEnabledTrue();
     	eventService.setNbEvent(icsList);

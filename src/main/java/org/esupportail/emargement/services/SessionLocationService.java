@@ -123,7 +123,7 @@ public class SessionLocationService {
 	
     public List<SessionLocation> getRepartition(Long sessionEpreuveid){
     	
-    	List<SessionLocation> repartitions = sessionLocationRepository.findSessionLocationBySessionEpreuveIdOrderByPrioriteAscCapaciteDesc(sessionEpreuveid);
+    	List<SessionLocation> repartitions = sessionLocationRepository.findSessionLocationBySessionEpreuveIdOrderByIsTiersTempsOnlyAscPrioriteAscCapaciteDesc(sessionEpreuveid);
     	
     	if(!repartitions.isEmpty()) {
     		for(SessionLocation sl : repartitions) {

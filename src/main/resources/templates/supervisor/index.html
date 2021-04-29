@@ -130,7 +130,7 @@
                             </form>
 						</div>
 					</div>
-					<ul class="alert alert-warning pb-1 pt-1 ml-2 mr-2 mb-0 list-group list-group-horizontal-sm" th:if="${#ctx.containsVariable('sls') and nbTagChecksExpected>0}">
+					<ul class="alert alert-warning pb-1 pt-1 ml-2 mr-2 mb-0 list-group list-group-horizontal-sm" th:if="${#ctx.containsVariable('sls') and nbTagChecksExpected>0 and #strings.toString(sessionEpreuve.typeBadgeage.name()) == 'SALLE'}">
 				      <li  th:each="sl : ${sls}" class="list-group-item mr-2 pt-1 pb-1"><span class="font-weight-bold" th:text="${sl.location.nom + ' : '}"></span><span  th:text="${sl.nbPresentsSessionLocation}" th:id="${'sl' + sl.id}">0</span> / 
 				      <span th:text="${sl.nbInscritsSessionLocation}"></span></li>
 					</ul>
