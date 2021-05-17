@@ -105,7 +105,6 @@ public class TagCheckerController {
     		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable) {
 
 		Page<TagChecker> tagCheckerPage = tagCheckerService.getListTagCheckerBySessionEpreuve(sessionEpreuve, pageable);
-		tagCheckerService.setNomPrenom4TagCheckers(tagCheckerPage.getContent());
 		model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);
         model.addAttribute("tagCheckerPage", tagCheckerPage);
 		model.addAttribute("paramUrl", sessionEpreuve.getId());

@@ -15,7 +15,18 @@
 	                    		 <label for="eppn" class="col-form-label">Eppn</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
-								<input type="email" th:field="*{eppn}" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" required="required">
+								<input type="email" th:field="*{eppn}" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" >
+							</div>
+						</div>
+						<div class="form-group row" th:if="${#ctx.containsVariable('userLdap')}">
+							<div class="col-lg-2">
+								<label for="userRole" class="col-form-label">Mon identifiant</label>
+							</div>
+							<div class="col-lg-10">
+								<div class="form-check">
+								      <input class="form-check-input" type="checkbox"  name="myEppn" th:value="${userLdap.eppn}" />
+								      <label class="form-check-label"  th:text="${userLdap.eppn}"></label>
+								</div>
 							</div>
 						</div>
 						<div class="form-group row">

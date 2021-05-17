@@ -136,6 +136,9 @@ public class TagCheckService {
 	@Resource
 	LogService logService;
 	
+	@Resource
+	UserAppService userAppService;
+	
 	@Autowired
     private MessageSource messageSource;
 	
@@ -213,7 +216,12 @@ public class TagCheckService {
 						tc.getTagChecker().getUserApp().setNom(userLdaps2.get(0).getUsername());
 						tc.getTagChecker().getUserApp().setPrenom(userLdaps2.get(0).getPrenom());
 					}
+					if(userLdaps2.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(userAppService.getGenericUser())) {
+						tc.getTagChecker().getUserApp().setNom(tc.getTagChecker().getUserApp().getContext().getKey());
+						tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(userAppService.getGenericUser()));
+					}
 				}
+				
 			}
 		}
     	

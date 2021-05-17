@@ -16,8 +16,8 @@ import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,9 +47,6 @@ public class DashboardController {
 	UserAppService userAppService;
 	
 	@Autowired
-	private UserLdapRepository userLdapRepository;
-	
-	@Autowired
 	TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
@@ -57,6 +54,9 @@ public class DashboardController {
 	
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
+	
+	@Resource
+	LdapService ldapService;
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -66,7 +66,10 @@ public class DashboardController {
 	@GetMapping(value = "/dashboard")
 	public String list(Model model, @PageableDefault(size = 10, direction = Direction.ASC, sort = "userApp.eppn")  Pageable pageable) throws ParseException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();		
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		//List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
+		
 		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdap.get(0).getEppn(), pageable);
 		model.addAttribute("userLdap", userLdap.get(0));
 		model.addAttribute("tagCheckerPage", tagCheckerPage);

@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
@@ -53,8 +54,17 @@ public class UserAppService {
 	ContextRepository contextRepository;
 	
 	@Resource
+	UserAppService userAppService;
+	
+	@Resource
 	LdapService ldapService;
 	
+	private final String GENERIC_USER = "emargement";
+	
+	public String getGenericUser() {
+		return GENERIC_USER;
+	}
+
 	public List<Role> getAllRoles(String key,  UserApp userApp){
 		if("all".equals(key)) {
 			return  Arrays.asList(Role.ADMIN);
@@ -68,7 +78,7 @@ public class UserAppService {
 			}
 			List<Role> newRoles = new ArrayList<Role>() ;
 			
-			if(Role.ADMIN.equals(roleAuth)) {
+			if(Role.ADMIN.equals(roleAuth) || eppn.startsWith(GENERIC_USER)) {
 				newRoles = Arrays.asList(new Role[] {Role.ADMIN, Role.MANAGER, Role.SUPERVISOR});
 			}
 			return newRoles;
@@ -119,6 +129,11 @@ public class UserAppService {
 				if(userLdap.isEmpty() && isIncluded) {
 					userApp.setNom("--");
 					userApp.setPrenom("--");
+					newList.add(userApp);
+				}
+				if(userLdap.isEmpty() && userApp.getEppn().startsWith(userAppService.getGenericUser())) {
+					userApp.setNom(userApp.getContext().getKey());
+					userApp.setPrenom(StringUtils.capitalize(GENERIC_USER));
 					newList.add(userApp);
 				}
 			}
@@ -235,4 +250,16 @@ public class UserAppService {
 		}
 		return users;
 	}
+	
+	public UserApp setGenericUserApp(UserApp userApp, String eppn, Context context) {
+		userApp = new UserApp();
+		userApp.setEppn(eppn);
+		userApp.setContext(context);
+		userApp.setUserRole(UserApp.Role.ADMIN);
+		userApp.setNom(context.getKey());
+		userApp.setPrenom(StringUtils.capitalize(GENERIC_USER));
+		
+		return userApp;
+	}
+
 }

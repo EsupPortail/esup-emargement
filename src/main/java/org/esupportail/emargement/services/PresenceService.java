@@ -97,6 +97,9 @@ public class PresenceService {
 	@Resource
 	LogService logService;
 	
+	@Resource
+	LdapService ldapService;
+	
 	@Autowired
     private MessageSource messageSource;
 	
@@ -322,7 +325,7 @@ public class PresenceService {
 	    	}
     	}
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdaps = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdaps =  ldapService.getUserLdaps(null, auth.getName());
 		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdaps.get(0).getEppn(), null).getContent().get(0) : null;
 		
     	presentTagCheck.setTagChecker(tagChecker);

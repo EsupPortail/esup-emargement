@@ -10,8 +10,8 @@ import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.security.ContextHelper;
+import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -29,11 +29,11 @@ public class WebInterceptor extends HandlerInterceptorAdapter {
 	@Autowired
 	ContextRepository contextRepository;
 	
-	@Autowired
-	private UserLdapRepository userLdapRepository;
-	
 	@Resource
 	UserAppService userAppService;
+	
+	@Resource
+	LdapService ldapService;
 
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
@@ -43,8 +43,8 @@ public class WebInterceptor extends HandlerInterceptorAdapter {
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-		String name = (userLdap != null)?  userLdap.get(0).getPrenomNom()  : "";
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
+		String name = (!userLdap.isEmpty())?  userLdap.get(0).getPrenomNom()  : "";
 		super.postHandle(request, response, handler, modelAndView);
 
 		if(modelAndView != null) {

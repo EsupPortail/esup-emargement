@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -17,6 +18,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +51,13 @@ public class LdapService {
 	@Value("${emargement.ruleSuperAdmin.uid}")
 	private String ruleSuperAdminUid;
 	
-	 public void setLdapTemplate(LdapTemplate ldapTemplate) {
+	@Value("${app.nomDomaine}")
+	private String nomDomaine;
+	
+	@Resource
+	UserAppService userAppService;
+	
+	public void setLdapTemplate(LdapTemplate ldapTemplate) {
 	      this.ldapTemplate = ldapTemplate;
 	   }
 
@@ -66,8 +74,10 @@ public class LdapService {
 	
 	public String getEppn(String uid) {
 		String eppn = "";
-		if( userLdapRepository.findByUid(uid) != null) {
+		if( userLdapRepository.findByUid(uid) != null && !userLdapRepository.findByUid(uid).isEmpty()) {
 			eppn = userLdapRepository.findByUid(uid).get(0).getEppn();
+		}else if(uid.startsWith(userAppService.getGenericUser())) {
+			eppn= uid + "@" + nomDomaine;
 		}
 		return eppn;
 	}
@@ -156,5 +166,30 @@ public class LdapService {
   	  TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
   	  return sortMap;
   }
+	
+	public List<UserLdap> getUserLdaps(String eppn, String uid) {
+		
+		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
+		String identifiant = (eppn != null)? eppn : uid;
+		
+		if(identifiant.startsWith(userAppService.getGenericUser())) {
+			String splitIdentifiant [] = identifiant.split("_");
+			String prenom = StringUtils.capitalize(userAppService.getGenericUser());
+			String ctx = splitIdentifiant[1];
+			UserLdap generic = new UserLdap();
+			generic.setUid(identifiant);
+			generic.setEppn(identifiant + "@" + nomDomaine);
+			generic.setPrenomNom(StringUtils.capitalize(prenom) + " " + StringUtils.capitalize(ctx));
+			userLdaps.add(generic);
+		}else {
+			if(uid !=null) {
+				userLdaps = userLdapRepository.findByUid(uid);
+			}else if(eppn != null) {
+				userLdaps = userLdapRepository.findByEppnEquals(eppn);
+			}
+		}
+		
+		return userLdaps;
+	}
           
 }

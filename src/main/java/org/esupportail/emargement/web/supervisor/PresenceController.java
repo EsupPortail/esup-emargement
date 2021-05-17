@@ -37,6 +37,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
+import org.esupportail.emargement.services.UserAppService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,6 +134,9 @@ public class PresenceController {
 	@Resource
 	HelpService helpService;
 	
+	@Resource
+	UserAppService userAppService;
+	
 	private final static String ITEM = "presence";
 	
 	private final static String SEE_OLD_SESSIONS = "seeOldSessions";
@@ -166,7 +170,7 @@ public class PresenceController {
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap =ldapService.getUserLdaps(null, auth.getName());;
 		String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
         if(sessionLocationId != null) {
     		if(sessionEpreuve.isSessionEpreuveClosed) {
@@ -288,12 +292,11 @@ public class PresenceController {
     @ResponseBody
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+    	List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
+    	List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
-		//sessionLocationList = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
 		List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(sessionEpreuve.getId(), eppnAuth);
 		
 		if(!tcs.isEmpty()) {
@@ -301,7 +304,6 @@ public class PresenceController {
 				sessionLocationList.add(tc.getSessionLocation());
 			}
 		}
-    	
         return sessionLocationList;
     }
     
@@ -353,7 +355,7 @@ public class PresenceController {
 	}
 	
     @PostMapping("/supervisor/emargementPdf")
-    public void exportEamrgement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
+    public void exportEmargement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
     			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
     	
     	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
@@ -385,7 +387,7 @@ public class PresenceController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
         presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
     }

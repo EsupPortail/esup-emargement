@@ -15,7 +15,6 @@ import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
@@ -60,9 +59,6 @@ public class GroupeController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
-	
-	@Autowired
-	private UserLdapRepository userLdapRepository;
 	
 	@Resource
 	ContextService contexteService;
@@ -232,7 +228,7 @@ public class GroupeController {
     		@RequestParam(value="groupes") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppn = userLdap.get(0).getEppn();
     	groupeService.addMember(eppnTagCheck, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "UtILISATEUR -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
@@ -245,7 +241,7 @@ public class GroupeController {
     		@RequestParam(value="groupeIds") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppn = userLdap.get(0).getEppn();
     	groupeService.addMembersFromSessionEpreuve(seIds, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "SESSION -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
@@ -270,7 +266,7 @@ public class GroupeController {
     		@RequestParam(value="groupeIds2") List<Long> gr2Ids){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap =  ldapService.getUserLdaps(null, auth.getName());
 		String eppn = userLdap.get(0).getEppn();
     	
     	groupeService.addMembersFromGroupe(gr1Ids, gr2Ids);
@@ -284,7 +280,7 @@ public class GroupeController {
     		@RequestParam(value="case", required = false) List<String> keys, final RedirectAttributes redirectAttributes) {
     	if(keys != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+			List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 			String eppn = userLdap.get(0).getEppn();
 	    	
 	    	Groupe groupe = groupeRepository.findById(id).get();

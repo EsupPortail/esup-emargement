@@ -42,6 +42,9 @@ public class TagCheckerService {
 	@Resource	
 	AppliConfigService appliConfigService;
 	
+	@Resource
+	UserAppService userAppService;
+	
 	@Resource	
 	SessionEpreuveService sessionEpreuveService;
 	
@@ -54,9 +57,13 @@ public class TagCheckerService {
 		
 		for(TagChecker tagChecker: tagCheckers.getContent()) {
 			List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-			if(userLdaps.isEmpty()) {
+			if(!userLdaps.isEmpty()) {
 				tagChecker.getUserApp().setNom(userLdaps.get(0).getUsername());
 				tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
+			}
+			if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(userAppService.getGenericUser())) {
+				tagChecker.getUserApp().setNom(tagChecker.getUserApp().getContext().getKey());
+				tagChecker.getUserApp().setPrenom(StringUtils.capitalize(userAppService.getGenericUser()));
 			}
 		}
 		return tagCheckers;
@@ -66,9 +73,14 @@ public class TagCheckerService {
 		if(!allTagCheckers.isEmpty()) {
 			for(TagChecker tagChecker: allTagCheckers) {
 				List<UserLdap> userLdaps= userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-				if(userLdaps!=null) {
+				if(!userLdaps.isEmpty()) {
 					tagChecker.getUserApp().setNom(userLdaps.get(0).getUsername());
 					tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
+				}
+				if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(userAppService.getGenericUser())) {
+					tagChecker.getUserApp().setNom(tagChecker.getContext().getKey());
+					tagChecker.getUserApp().setPrenom(StringUtils.capitalize(userAppService.getGenericUser()));
+
 				}
 			}
 		}

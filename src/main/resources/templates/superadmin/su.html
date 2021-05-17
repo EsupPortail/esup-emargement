@@ -9,7 +9,7 @@
   				<div class="card-body">
   					<h2>Su</h2>
   					<div class="row">
-	  					<div class="col-lg-12">
+	  					<div class="col-lg-6">
 		  					<form th:action="@{/all/superadmin/impersonate}" id="formSearch" method="post">
 		  						<div class="form-group">
 			                    	<div class="col-lg-2">
@@ -19,6 +19,22 @@
 				                        <input type="email" th:id="searchSuEppn" name="username" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
 				                       </div>
 								</div>		    
+							</form>
+	  					</div>
+	  					<div class="col-lg-6">
+		  					<form th:action="@{/all/superadmin/impersonate}" id="formSearchUniversal" method="post" class="f">
+								<div class="form-row">
+									<div class="form-group col-md-12">
+										<label for="userRole" class="col-form-label">Contexte</label>
+										<select id="suContexte"
+											name="username" class="form-control" required="required">
+											<option value="">---Choisir--</option>
+											<option th:each="contexte : ${contexts}"
+												th:value="${generic + '_' + contexte}" th:text="${contexte}"></option>
+										</select>
+									</div>
+									<button type="submit" class="btn btn-success">Se connecter</button>
+								</div>
 							</form>
 	  					</div>
   					</div>

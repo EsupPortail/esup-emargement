@@ -27,6 +27,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.UserAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,12 +65,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Resource
 	LogService logService;
 	
+	@Resource
+	UserAppService userAppService;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Override
-	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
 		
-		List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(eppn);
+		List<UserLdap> userLdaps = ldapService.getUserLdaps(null, uid);
 		
 		if(!userLdaps.isEmpty()) {
 			UserLdap userLdap = userLdaps.get(0);
@@ -96,7 +100,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		} catch (InvalidNameException e) {
 			log.error("Pb lors du test superdamin UserDetailsServiceImpl en mode su", e);
 		}
-		List<Context> allcontexts = contextRepository.findAll();
+		List<Context> allcontexts = new ArrayList<Context>();
+		if(targetUser.getEppn().startsWith(userAppService.getGenericUser())) {
+			String ctxSplit [] = targetUser.getUid().split("_");
+			Context ctx =contextRepository.findByContextKey(ctxSplit[1]);
+			allcontexts.add(ctx);
+		}else {
+			 allcontexts = contextRepository.findAll();
+		}
+		
 		for(Context context: allcontexts) {
 			String contextKey = context.getKey();
 			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
@@ -149,7 +161,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 		Set<GrantedAuthority> extraRoles = new HashSet<GrantedAuthority>();
 		
-		UserApp userApp = userAppRepository.findByEppnAndContext(eppn, context);
+		UserApp userApp = null;
+		
+		if(eppn.startsWith(userAppService.getGenericUser())) {
+			userApp = userAppService.setGenericUserApp(userApp, eppn, context);
+		}else {
+			userApp = userAppRepository.findByEppnAndContext(eppn, context);
+		}
 		
 		if(userApp!=null) {
 			extraRoles.add(new SimpleGrantedAuthority("ROLE_".concat(userApp.getUserRole().name())));

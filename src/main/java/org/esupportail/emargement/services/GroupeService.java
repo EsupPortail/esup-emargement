@@ -21,7 +21,6 @@ import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
@@ -34,9 +33,6 @@ public class GroupeService {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
-	
-	@Autowired
-	private UserLdapRepository userLdapRepository;
 	
 	@Autowired
 	GroupeRepository groupeRepository;
@@ -52,6 +48,9 @@ public class GroupeService {
 	
 	@Resource
 	PersonService personService;
+	
+	@Resource
+	LdapService ldapService;
 	
 	public void computeCounters(List<Groupe> groupes) {
 		for(Groupe groupe : groupes) {
@@ -103,7 +102,7 @@ public class GroupeService {
 		List<Guest> allGuests =new ArrayList<Guest>();
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppn = userLdap.get(0).getEppn();
 		
 		for(Long id : ids) {
@@ -134,7 +133,7 @@ public class GroupeService {
 		List<Person> allPersons =new ArrayList<Person>();
 		List<Guest> allGuests =new ArrayList<Guest>();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String eppn = userLdap.get(0).getEppn();
 		
 		for(Long id : gr1Ids) {
@@ -189,6 +188,7 @@ public class GroupeService {
 	@Transactional
 	public void delete(Groupe groupe) {
 		groupe.getPersons().removeAll(groupe.getPersons());
+		groupe.getGuests().removeAll(groupe.getGuests());
 		groupeRepository.delete(groupe);
 	}
 	

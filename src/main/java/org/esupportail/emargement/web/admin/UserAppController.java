@@ -34,6 +34,8 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -155,6 +157,15 @@ public class UserAppController {
     }
     
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
+    	if(!userLdap.isEmpty() && userLdap.get(0).getEppn().startsWith(userAppService.getGenericUser())) {
+    		Context ctx = contextRepository.findByContextKey(context);
+    		UserApp test =userAppRepository.findByEppnAndContext(userLdap.get(0).getEppn(), ctx);
+    		if(test == null) {
+    			uiModel.addAttribute("userLdap", userLdap.get(0));
+    		}
+    	}
     	uiModel.addAttribute("contexts", userAppService.getUserContexts());
     	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context, userApp));
         uiModel.addAttribute("userApp", userApp);
@@ -162,8 +173,9 @@ public class UserAppController {
     }
     
     @PostMapping("/admin/userApp/create")
-    public String create(@PathVariable String emargementContext, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
+    public String create(@PathVariable String emargementContext, @RequestParam(value="myEppn", required = false) String myEppn, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, 
+    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors() || userApp.getEppn().isEmpty()&& myEppn == null) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "admin/userApp/create";
         }
@@ -180,6 +192,9 @@ public class UserAppController {
         	log.info("Erreur lors de la création, agent déjà existant : " + userApp.getEppn());
         	return String.format("redirect:/%s/admin/userApp?form", emargementContext);
         }else {
+        	if(myEppn != null) {
+        		userApp.setEppn(myEppn);
+        	}
         	userApp.setContext(context);
             userAppRepository.save(userApp);
             log.info("ajout agent : " + userApp.getEppn());

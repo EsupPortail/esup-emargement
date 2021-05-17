@@ -6,9 +6,11 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -34,6 +36,9 @@ public class SuController {
 	@Resource
 	LdapService ldapService;
 	
+	@Autowired
+	ContextRepository contextRepository;
+	
 	private final static String ITEM = "su";
 	
 	@ModelAttribute("active")
@@ -43,8 +48,12 @@ public class SuController {
 
 	@GetMapping(value = "/superadmin/su")
 	public String list(@PathVariable String emargementContext, Model model) {
+		
+		List<String> contexts = contextRepository.findDistinctKey();
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("users", userAppService.allUserApps());
+		model.addAttribute("contexts", contexts);
+		model.addAttribute("generic", userAppService.getGenericUser());
 		return "superadmin/su";
 	}
 	
