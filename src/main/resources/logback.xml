@@ -35,7 +35,7 @@
 		<smtpHost>smtp.univ-ville.fr</smtpHost>
 		<smtpPort>25</smtpPort>
 		<to>toto@univ-ville.fr</to>
-		<from>esup-emargement@no-reply.univ-ville.fr</from>
+		<from>esup-emargement-logs@univ-ville.fr</from>
 		<subject>%-5level - emargement %date{dd/MM/yyyy HH:mm:ss}
 		</subject>
 		<layout class="ch.qos.logback.classic.PatternLayout">
@@ -46,6 +46,10 @@
 			<level>ERROR</level>
 		</filter>
 	</appender>
+	
+	<logger name="org.springframework.boot.web.servlet.support.ErrorPageFilter">
+    	<level value="OFF" />
+  	</logger>
 
   <root level="info">
     <appender-ref ref="STDOUT"/>
