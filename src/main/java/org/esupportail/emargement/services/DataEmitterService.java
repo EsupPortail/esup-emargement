@@ -18,13 +18,14 @@ public class DataEmitterService {
 	}
 
 	//@Scheduled(initialDelay = 2000, fixedRate = 5_000)
-	public void sendData(TagCheck tc, float percent, Long totalPresent, int refresh, SessionLocation sl) {
+	public void sendData(TagCheck tc, float percent, Long totalPresent, int refresh, SessionLocation sl, String customMsg) {
 		this.eventPublisher.publishEvent(SseEvent.of("tc", tc));
 		this.eventPublisher.publishEvent(SseEvent.of("sl", sl));
 		String suffixe = (tc.getSessionLocationExpected()!=null )? tc.getSessionLocationExpected().getId().toString().concat("@@") : "";
 		this.eventPublisher.publishEvent(SseEvent.ofData(suffixe.concat(String.valueOf(percent))));
 		this.eventPublisher.publishEvent(SseEvent.of("total", suffixe.concat(String.valueOf(totalPresent))));
 		this.eventPublisher.publishEvent(SseEvent.of("refresh", refresh));
+		this.eventPublisher.publishEvent(SseEvent.of("customMsg", customMsg));
 	}
 
 }

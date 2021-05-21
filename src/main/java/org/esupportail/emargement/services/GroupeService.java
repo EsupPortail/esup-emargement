@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -248,5 +249,21 @@ public class GroupeService {
 		}
 		
 		return noms;
+	}
+	
+	public boolean isBlackListed(Groupe gpe, String eppn) {
+		boolean isBlackListed = false;
+		if(gpe != null) {
+			List<Person> persons = personRepository.findByEppn(eppn);
+			if(!persons.isEmpty()) {
+				Set<Person> gpePers = gpe.getPersons();
+				if(!gpePers.isEmpty()) {
+					if(gpePers.contains(persons.get(0))) {
+						isBlackListed = true;
+					}
+				}
+			}
+		}
+		return isBlackListed;
 	}
 }

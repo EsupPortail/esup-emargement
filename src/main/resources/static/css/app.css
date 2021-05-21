@@ -144,7 +144,7 @@ border-top-color:
     display:none;
   }
 }
-.ss-main .ss-single-selected{
+.ss-main .ss-single-selected, .ss-main .ss-multi-selected{
 	height: calc(1.5em + .75rem + 2px)!important;
 }
 .ss-main {

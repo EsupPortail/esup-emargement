@@ -120,7 +120,7 @@
 	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 						<div class="form-group alert alert-dark pt-1 pb-1 mt-2">
                            <form th:if="${tagCheckPage!=null}" action="#" th:action="@{|/${eContext}/supervisor/presence|}" id="formSearchTc" >
-                                    <input th:if="${sessionEpreuve.id !=null}" type="hidden" name="sessionEpreuve" th:value="${sessionEpreuve.id}" />
+                                    <input th:if="${sessionEpreuve.id != ''}" type="hidden" name="sessionEpreuve" th:value="${sessionEpreuve.id}" />
                                     <input th:if="${sessionLocation !=null}" type="hidden" name="location" th:value="${sessionLocation.id}" />
 		                            <select id="searchTagCheck"  name="present" >
 		                            	 <option>--Choisir--</option>
@@ -136,6 +136,12 @@
 					</ul>
 			    </div>
 	            </div>
+	            <div class="alert alert-danger  alert-dismissible fade show" th:if="${msgError != null}">
+	            	<span class="font-weight-bold"  th:text="${msgError}"></span> appartient au groupe des personnes non autorisées.
+	            	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    					<span aria-hidden="true">&times;</span>
+ 					</button>
+ 				</div>
 	            <div th:if="${isSessionLibre and isCapaciteFull}" class="alert alert-dark font-weight-bold">La capacité maximale du lieu a été atteinte!! Les nouvelles personnes qui badgeront seront rejetées.
 						</div>		    	
 	  				<div class="card-body mt-n1">

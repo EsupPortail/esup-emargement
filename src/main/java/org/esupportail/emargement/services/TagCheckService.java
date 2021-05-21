@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
@@ -636,9 +638,16 @@ public class TagCheckService {
 								isOk = false;
 							}
 						}else {
-							saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
-							isOk = true;
-							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation());
+							Groupe gpe = sessionEpreuve.getBlackListGroupe();
+							boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);
+							String msgError = "";
+							if(!isBlackListed) {
+								saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
+							}else {
+								msgError = eppn;
+							}
+							isOk = false;
+							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), msgError);
 						}
 					} catch (Exception e) {
 						log.error("Session libre, problème de carte pour l'eppn : "  + eppn, e);
@@ -691,7 +700,7 @@ public class TagCheckService {
 					log.info("On enregistre l'inconnu dans la session : " +  eppn);
 					if(sl != null || seId != null || isUnknown) {
 						saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, null);
-						dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation());
+						dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), "");
 					}
 				} catch (Exception e) {
 					log.error("Problème de carte pour l'eppn : "  + eppn, e);
@@ -738,7 +747,7 @@ public class TagCheckService {
 		    	if(totalExpected!=0) {
 		    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
 		    	}
-		    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sl);
+		    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sl, "");
 			}
 		}
 		return isOk;

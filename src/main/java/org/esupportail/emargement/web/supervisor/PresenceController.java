@@ -155,6 +155,7 @@ public class PresenceController {
     public String getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId, @RequestParam(value ="tc", required = false) Long tc,
+    		@RequestParam(value ="msgError", required = false) String msgError,
     		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
     	
         uiModel.asMap().clear();
@@ -285,6 +286,8 @@ public class PresenceController {
 		uiModel.addAttribute("selectAll", totalAll);
 		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
 		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
+		uiModel.addAttribute("msgError", msgError);
+		
         return "supervisor/index";
     }
     
@@ -407,10 +410,10 @@ public class PresenceController {
     public String addFreeUser(@PathVariable String emargementContext, @RequestParam("slId") Long slId, @RequestParam("eppn") String eppn) {
     	
     	SessionLocation sl = sessionLocationRepository.findById(slId).get();
-    	
-    	presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
+    	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
+    	String msgError = (isBlackListed) ? "&msgError=" + eppn : "";
 
-    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" + msgError , emargementContext, 
     			sl.getSessionEpreuve().getId(), slId);
     }
 

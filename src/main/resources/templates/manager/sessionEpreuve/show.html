@@ -22,7 +22,9 @@
 			            <dt class="col-sm-2">Badgeage</dt>
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.typeBadgeage}"></dd>
 			            <dt class="col-sm-2">Session libre</dt>
-			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>       
+			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>
+			            <dt class="col-sm-2">Groupe à exclure (session libre)</dt>
+			            <dd class="col-sm-10"><span th:if="${sessionEpreuve.blackListGroupe != null}" th:text="${sessionEpreuve.blackListGroupe.nom}"></span></dd>
 			            <dt class="col-sm-2">Procuration activée</dt>
 			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isProcurationEnabled}" class="fa fa-check text-success"></i></dd>   
 			            <dt class="col-sm-2">Lieux</dt>

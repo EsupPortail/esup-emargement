@@ -28,8 +28,7 @@
 								</div>
 								<div class="col-lg-8">
 									<label for="groupes">Importer dans groupe(s)</label> 
-									<select class="form-control"
-										th:id="groupes" th:name="groupes" multiple="multiple">
+									<select th:id="groupes" th:name="groupes" multiple="multiple">
 										<option value="" data-placeholder="true"></option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
 											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
@@ -44,8 +43,7 @@
 							<div class="row">
 								<div class="col-lg-4">
 									<label for="searchIndividu">Session</label>
-									<select class="form-control"
-										th:id="sessionEpreuveGroupes" th:name="seIds" multiple="multiple">
+									<select	th:id="sessionEpreuveGroupes" th:name="seIds" multiple="multiple">
 										<option value="" data-placeholder="true"></option>
 										<option th:each="sessionEpreuve : ${allSessionEpreuves}"
 											th:value="${sessionEpreuve.id}"
@@ -55,8 +53,7 @@
 								</div>
 								<div class="col-lg-8">
 									<label for="groupes">Importer dans groupe(s)</label> 
-									<select class="form-control"
-										th:id="groupes" th:name="groupeIds" multiple="multiple">
+									<select th:id="groupes" th:name="groupeIds" multiple="multiple">
 										<option value="" data-placeholder="true"></option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
 											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
@@ -71,7 +68,7 @@
 							<div class="row">
 								<div class="col-lg-4">
 									<label for="groupes">Groupe</label> 
-									<select class="form-control step1Groupe"
+									<select class="step1Groupe"
 										th:id="groupes" th:name="groupeIds" multiple="multiple">
 										<option value="" data-placeholder="true"></option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
@@ -80,7 +77,7 @@
 								</div>					
 								<div class="col-lg-8">
 									<label for="groupes2">Importer dans groupe(s)</label> 
-									<select class="form-control step1Groupe"
+									<select class="step1Groupe"
 										th:id="groupes2" th:name="groupeIds2" multiple="multiple">
 										<option value="" data-placeholder="true"></option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"

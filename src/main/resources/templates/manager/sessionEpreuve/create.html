@@ -164,6 +164,18 @@
 						    </div>
 						</div>
 						<div class="form-group row">
+	                   		<div class="col-lg-2">
+	                    		<label for="blackListGroupe" class="col-form-label">Groupe à exclure (session libre)</label>
+	                    	</div>
+	                    	<div class="col-lg-10">
+								<select id="blackListGroupe" name="blackListGroupe">
+									<option value="">----Choisir----</option>
+									<option th:each="groupe : ${allGroupes}"
+										th:value="${groupe.id}" th:text="${groupe.nom}"></option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group row">
 							<div class="col-lg-2">
 								<label class="form-check-label"  th:for="${isProcurationEnabled}">
 							        Procuration activée

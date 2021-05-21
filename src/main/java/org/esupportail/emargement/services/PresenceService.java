@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -99,6 +100,9 @@ public class PresenceService {
 	
 	@Resource
 	LdapService ldapService;
+	
+	@Resource
+	GroupeService groupeService;
 	
 	@Autowired
     private MessageSource messageSource;
@@ -353,7 +357,7 @@ public class PresenceService {
     	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
     	if(sessionLocationBadged != null) {
     		sessionLocationBadged.setNbPresentsSessionLocation(countPresent);
-    		dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged);
+    		dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged, "");
     	}
     	
     	return list;
@@ -377,43 +381,50 @@ public class PresenceService {
 		prefsRepository.save(pref);
 	}
 	
-	public void saveTagCheckSessionLibre(Long slId, String eppn, String emargementContext, SessionLocation sl) {
+	public boolean saveTagCheckSessionLibre(Long slId, String eppn, String emargementContext, SessionLocation sl) {
 		
-    	List<TagCheck> existingTc = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(slId, eppn);
+		Groupe gpe = sl.getSessionEpreuve().getBlackListGroupe();
+		boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);
+		
+		if(!isBlackListed) {
+			List<TagCheck> existingTc = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(slId, eppn);
     	
-    	if(existingTc.isEmpty()) {
-    		Long nbTc =  tagCheckRepository.countBySessionLocationExpectedId(slId);
-    		if(nbTc < sl.getCapacite()){
-		    	List<Person> list = personRepository.findByEppn(eppn);
-		    	Context context = contextRepository.findByContextKey(emargementContext);
-		    	Person p = null;
-		    	UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
-		    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		    	UserLdap authUser = userLdapRepository.findByUid(auth.getName()).get(0);
-		    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
-		    	if(!list.isEmpty()) {
-		    		p = list.get(0);
-		    	}else {
-		    		p = new Person();
-		    		p.setEppn(eppn);
-		    		p.setContext(context);
-		    		String type = (user.getNumEtudiant() == null)? "staff" : "student";
-		    		p.setType(type);
-		    		p.setNumIdentifiant(user.getNumEtudiant());
-		    		personRepository.save(p);
-		    	}
-		    	TagCheck tc = new TagCheck();
-		    	tc.setContext(context);
-		    	tc.setTypeEmargement(TypeEmargement.MANUAL);
-		    	tc.setPerson(p);
-		    	tc.setSessionEpreuve(sl.getSessionEpreuve());
-		    	tc.setSessionLocationBadged(sl);
-		    	tc.setSessionLocationExpected(sl);
-		    	tc.setTagChecker(tagChecker);
-		    	tc.setTagDate(new Date());
-		    	tc.setIsTiersTemps(sl.getIsTiersTempsOnly());
-		    	tagCheckRepository.save(tc);
-    		}
+	    	if(existingTc.isEmpty()) {
+	    		Long nbTc =  tagCheckRepository.countBySessionLocationExpectedId(slId);
+	    		if(nbTc < sl.getCapacite()){
+			    	List<Person> list = personRepository.findByEppn(eppn);
+			    	Context context = contextRepository.findByContextKey(emargementContext);
+			    	Person p = null;
+			    	UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+			    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			    	UserLdap authUser = userLdapRepository.findByUid(auth.getName()).get(0);
+			    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
+			    	if(!list.isEmpty()) {
+			    		p = list.get(0);
+			    	}else {
+			    		p = new Person();
+			    		p.setEppn(eppn);
+			    		p.setContext(context);
+			    		String type = (user.getNumEtudiant() == null)? "staff" : "student";
+			    		p.setType(type);
+			    		p.setNumIdentifiant(user.getNumEtudiant());
+			    		personRepository.save(p);
+			    	}
+			    	TagCheck tc = new TagCheck();
+			    	tc.setContext(context);
+			    	tc.setTypeEmargement(TypeEmargement.MANUAL);
+			    	tc.setPerson(p);
+			    	tc.setSessionEpreuve(sl.getSessionEpreuve());
+			    	tc.setSessionLocationBadged(sl);
+			    	tc.setSessionLocationExpected(sl);
+			    	tc.setTagChecker(tagChecker);
+			    	tc.setTagDate(new Date());
+			    	tc.setIsTiersTemps(sl.getIsTiersTempsOnly());
+			    	tagCheckRepository.save(tc);
+	    		}
+	    	}
     	}
+		
+		return isBlackListed;
 	}
 }

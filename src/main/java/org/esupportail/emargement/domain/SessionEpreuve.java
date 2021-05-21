@@ -112,6 +112,17 @@ public class SessionEpreuve implements ContextSupport {
     @Transient
     private List<MultipartFile> files;
     
+    @ManyToOne
+    public Groupe blackListGroupe;
+    
+	public Groupe getBlackListGroupe() {
+		return blackListGroupe;
+	}
+
+	public void setBlackListGroupe(Groupe blackListGroupe) {
+		this.blackListGroupe = blackListGroupe;
+	}
+
 	public Long getNbLieuxSession() {
 		return nbLieuxSession;
 	}

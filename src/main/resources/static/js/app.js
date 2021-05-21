@@ -1447,6 +1447,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    if (document.getElementById('blackListGroupe') != null) {
+        new SlimSelect({
+            select: '#blackListGroupe',
+            placeholder: 'Rechercher Groupe'
+        });
+    }
     
     //Groupes
     if(document.getElementById('addMembersGroupe') != null){
@@ -1510,13 +1516,21 @@ document.addEventListener('DOMContentLoaded', function() {
             var splitData1 = total.split("@@");
             $("#totalPresent" + splitData1[0]).text(splitData1[1]);
         }, false);
+        
         eventSource.addEventListener('refresh', response => {
             var refresh = response.data;
             if (refresh > 0) {
                 var redirect = deleteParam(window.location.href, "tc");
-                setTimeout(function() {
-                    window.location.href = redirect;
-                }, 1750);
+                redirect = deleteParam(window.location.href, "msgError");
+                eventSource.addEventListener('customMsg', response => {
+                	var customMsg = response.data;;
+                	if(customMsg != ""){
+                		redirect = redirect + "&msgError=" + customMsg;
+                	}
+                    setTimeout(function() {
+                    	window.location.href = redirect;
+                    }, 1750);
+                }, false);
             }
         }, false);
         

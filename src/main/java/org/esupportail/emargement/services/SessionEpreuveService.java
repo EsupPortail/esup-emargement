@@ -559,6 +559,8 @@ public class SessionEpreuveService {
         newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
         newSe.setComment(originalSe.getComment());
         newSe.setTypeBadgeage(originalSe.getTypeBadgeage());
+        newSe.setIsSessionLibre(originalSe.isSessionLibre);
+        newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);
@@ -592,20 +594,21 @@ public class SessionEpreuveService {
         		tagCheckerRepository.save(newTc);
         	}
         }
-        
+        if(!originalSe.getIsSessionLibre()) {
         List<TagCheck> listTc  = tagCheckRepository.findTagCheckBySessionEpreuveId(originalSe.getId());
-        if(!listTc.isEmpty()) {
-        	for(TagCheck t : listTc) {
-        		TagCheck newTagCheck = new TagCheck();
-        		newTagCheck.setContext(context);
-        		newTagCheck.setIsTiersTemps(t.getIsTiersTemps());
-        		newTagCheck.setIsUnknown(t.getIsUnknown());
-        		newTagCheck.setNumAnonymat(t.getNumAnonymat());
-        		newTagCheck.setPerson(t.getPerson());
-        		newTagCheck.setGuest(t.getGuest());
-        		newTagCheck.setSessionEpreuve(newSe);
-        		tagCheckRepository.save(newTagCheck);
-        	}
+	        if(!listTc.isEmpty()) {
+	        	for(TagCheck t : listTc) {
+	        		TagCheck newTagCheck = new TagCheck();
+	        		newTagCheck.setContext(context);
+	        		newTagCheck.setIsTiersTemps(t.getIsTiersTemps());
+	        		newTagCheck.setIsUnknown(t.getIsUnknown());
+	        		newTagCheck.setNumAnonymat(t.getNumAnonymat());
+	        		newTagCheck.setPerson(t.getPerson());
+	        		newTagCheck.setGuest(t.getGuest());
+	        		newTagCheck.setSessionEpreuve(newSe);
+	        		tagCheckRepository.save(newTagCheck);
+	        	}
+	        }
         }
         
         /*

@@ -25,6 +25,7 @@ import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.EventRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
@@ -91,6 +92,9 @@ public class SessionEpreuveController {
 	
 	@Autowired	
 	TypeSessionRepository typeSessionRepository;
+	
+	@Autowired
+	GroupeRepository groupeRepository;
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
@@ -264,6 +268,7 @@ public class SessionEpreuveController {
     void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv) {
     	uiModel.addAttribute("types", typeSessionRepository.findAllByOrderByLibelle());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
+    	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("years", sessionEpreuveService.getYears());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
