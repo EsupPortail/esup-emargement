@@ -71,9 +71,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Override
-	public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
 		
-		List<UserLdap> userLdaps = ldapService.getUserLdaps(null, uid);
+		List<UserLdap> userLdaps = ldapService.getUserLdaps(eppn, null);
 		
 		if(!userLdaps.isEmpty()) {
 			UserLdap userLdap = userLdaps.get(0);

@@ -646,7 +646,7 @@ public class TagCheckService {
 							}else {
 								msgError = eppn;
 							}
-							isOk = false;
+							isOk = true;
 							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), msgError);
 						}
 					} catch (Exception e) {
