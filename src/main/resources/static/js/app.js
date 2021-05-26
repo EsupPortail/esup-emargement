@@ -31,8 +31,8 @@ function rgb2hex(rgb){
 function displayAffinage(classes, isTiers){
     var total = 0; 
     classes.forEach(function(item) {
-    	var number =  parseInt(item.value) 
-    	total = total + number;
+    	var number =  parseInt(item.value);
+    	total = (total + number);
     });
     var affinageId = null;
     var tempCapacite = null;
@@ -51,7 +51,8 @@ function displayAffinage(classes, isTiers){
 	affinageId.removeClass("bg-danger");
 	affinageId.removeClass("text-white");
 	affinageId.removeClass("text-dark");
-    if(total == currentCapacite[0].textContent){
+	var realTotal = total/2;
+    if(realTotal == currentCapacite[0].textContent){
     	affinageId.addClass("bg-success text-white");
     	$("#affinerButton").removeAttr( "disabled");
     }else{
@@ -59,7 +60,7 @@ function displayAffinage(classes, isTiers){
     	$("#affinerButton").prop("disabled", "disabled");
     }
     
-    tempCapacite.text(total);
+    tempCapacite.text(realTotal);
 }
 
 function getCalendar(calendarEl, urlEvents, editable) {
