@@ -61,7 +61,7 @@
 									<td th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>
-									<td th:text="${sessionEpreuve.typeBadgeage}"></td>
+									<td class ="text-center hiddenBlock" th:text="${sessionEpreuve.typeBadgeage}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
