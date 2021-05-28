@@ -339,17 +339,36 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
-					    			if(!userLdaps.isEmpty() || !checkLdap && eppn!=null) {
-					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, eppn);
-					    			}else if(!isFromDomain && splitLine!=null) {
-					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
-					    			}
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
 					    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
 					    					tc.setSessionLocationExpected(sl);
 					    				}
 					    			}
+					    			if(se.getIsSessionLibre()) {
+					    				SessionLocation slLibre = null;
+			    						if(tc.getSessionLocationExpected()!=null) {
+			    							slLibre = tc.getSessionLocationExpected();
+			    						}else {
+			    							List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuveId(se.getId());
+			    							if(!sls.isEmpty()) {
+			    								slLibre = sls.get(0);
+			    							}
+			    						}
+		    							Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		    							TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapService.getEppn(auth.getName()), null).getContent().get(0); 
+		    							tc.setTypeEmargement(TypeEmargement.MANUAL);
+		    							tc.setTagDate(new Date());
+		    							tc.setTagChecker(tagChecker);
+	    								tc.setSessionLocationBadged(slLibre);
+	    								tc.setSessionLocationExpected(slLibre);
+					    			}
+					    			if(!userLdaps.isEmpty() || !checkLdap && eppn!=null) {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, eppn);
+					    			}else if(!isFromDomain && splitLine!=null) {
+					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
+					    			}
+
 								} catch (Exception e) {
 									tcTest = new Long(-1);
 									log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);

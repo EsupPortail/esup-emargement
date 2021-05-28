@@ -70,9 +70,7 @@ public class ImportExportService {
 		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve();
 		if(!se.isEmpty()) {
 			for (SessionEpreuve item : se) {
-				if(!item.getIsSessionLibre()) {
-					newSe.add(item);
-				}
+				newSe.add(item);
 			}
 		}
 		return newSe;
