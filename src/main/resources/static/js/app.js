@@ -1330,7 +1330,8 @@ document.addEventListener('DOMContentLoaded', function() {
         format: 'DD/MM/YYYY',
         locale: 'fr',
         daysOfWeekDisabled: [0],
-        useCurrent: false
+        useCurrent: false,
+        date: moment($("#dateSessionEpreuve").val(), 'DD/MM/YYYY')
 
     });
     $('#stringDate').datetimepicker({
@@ -1339,18 +1340,21 @@ document.addEventListener('DOMContentLoaded', function() {
         useCurrent: false
 
     });
-
+    
     $('#heureConvocation').datetimepicker({
         format: 'LT',
-        locale: 'fr'
+        locale: 'fr' ,
+        date: moment($("#heureConvocation").val(), 'HH:mm')
     });
     $('#heureEpreuve').datetimepicker({
         format: 'LT',
-        locale: 'fr'
+        locale: 'fr' ,
+        date: moment($("#heureEpreuve").val(), 'HH:mm')
     });
     $('#finEpreuve').datetimepicker({
         format: 'LT',
-        locale: 'fr'
+        locale: 'fr' ,
+        date: moment($("#finEpreuve").val(), 'HH:mm')
     });
 
     //Pagination --->rajout tous
