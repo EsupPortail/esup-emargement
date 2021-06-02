@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +23,7 @@ import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -130,8 +132,10 @@ public class SessionEpreuveService {
 			session.setNbLieuxSession(sessionLocationRepository.countBySessionEpreuveId(session.getId()));
 			List<SessionLocation> locations = sessionLocationRepository.findSessionLocationBySessionEpreuve(session);
 			Long nbTagCheckerSession = Long.valueOf("0");
-			for(SessionLocation location : locations) {
-				 nbTagCheckerSession += tagCheckerRepository.countBySessionLocationId(location.getId());
+			List<TagChecker> tcs =tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(session.getId());
+			if(!tcs.isEmpty()) {
+				List<UserApp>  userApps = tcs.stream() .map(l -> l.getUserApp()).distinct().collect(Collectors.toList());
+				nbTagCheckerSession = new Long(userApps.size());
 			}
 			Long countDispatch = tagCheckService.countNbTagCheckRepartitionNotNull(session.getId(), true) + tagCheckService.countNbTagCheckRepartitionNotNull(session.getId(), false);
 			session.setNbDispatchTagCheck(countDispatch);
