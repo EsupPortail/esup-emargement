@@ -7,6 +7,7 @@ import org.springframework.security.cas.authentication.CasAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+@SuppressWarnings("serial")
 public class ContextCasAuthenticationToken extends CasAuthenticationToken {
 
 	public ContextCasAuthenticationToken(String key, Object principal, Object credentials,
@@ -15,6 +16,7 @@ public class ContextCasAuthenticationToken extends CasAuthenticationToken {
 	}
 	
 
+	@SuppressWarnings("unchecked")
 	public Collection<GrantedAuthority> getAuthorities() {
 		return (Collection<GrantedAuthority>)this.getUserDetails().getAuthorities();
 	}
