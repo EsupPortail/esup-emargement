@@ -36,7 +36,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse1">
 										<div class="chart">
-											<canvas id="sessionEpreuvesByCampus" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="sessionEpreuvesByCampus" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -54,7 +54,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse2">
 										<div class="chart">
-											<canvas id="sessionLocationByLocation" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="sessionLocationByLocation" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -72,7 +72,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse3">
 										<div class="chart">
-											<canvas id="tagCheckersByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="tagCheckersByContext" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -90,7 +90,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse4">
 										<div class="chart">
-											<canvas id="presenceByContext" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="presenceByContext" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -108,7 +108,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse5">
 										<div class="chart">
-											<canvas id="sessionEpreuveByYearMonth" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="sessionEpreuveByYearMonth" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  ></canvas>
 										</div>
 									</div>
 								</div>
@@ -126,7 +126,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse6">
 										<div class="chart">
-											<canvas id="countTagCheckByYearMonth" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="countTagCheckByYearMonth" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;" ></canvas>
 										</div>
 									</div>
 								</div>
@@ -144,7 +144,7 @@
 									</div>
 									<div class="box-body collapse show" id="collapse7">
 										<div class="chart">
-											<canvas id="countTagChecksByTypeBadgeage" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="countTagChecksByTypeBadgeage" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -155,14 +155,14 @@
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countTagCheckBySessionLocationBadgedAndPerson}__')}"></h3>
 										<div class="box-tools float-right">
 											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse1">
+												data-toggle="collapse"  data-target="#collapse8">
 												<i class="fa fa-minus"></i>
 											</button>
 										</div>
 									</div>
-									<div class="box-body collapse show" id="collapse1">
+									<div class="box-body collapse show" id="collapse8">
 										<div class="chart">
-											<canvas id="countTagCheckBySessionLocationBadgedAndPerson" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="countTagCheckBySessionLocationBadgedAndPerson" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
@@ -173,14 +173,14 @@
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countSessionEpreuveByType}__')}"></h3>
 										<div class="box-tools float-right">
 											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse1">
+												data-toggle="collapse"  data-target="#collapse9">
 												<i class="fa fa-minus"></i>
 											</button>
 										</div>
 									</div>
-									<div class="box-body collapse show" id="collapse1">
+									<div class="box-body collapse show" id="collapse9">
 										<div class="chart">
-											<canvas id="countSessionEpreuveByType" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+											<canvas id="countSessionEpreuveByType" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
 										</div>
 									</div>
 								</div>
