@@ -207,7 +207,7 @@ InitializingBean, MessageSourceAware {
 		return this.authenticationUserDetailsService.loadUserDetails(token);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	/**
 	 * Sets the UserDetailsService to use. This is a convenience method to invoke
 	 */

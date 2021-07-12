@@ -49,6 +49,7 @@ public class StatsService {
 	@Autowired
 	ContextRepository contextRepository;
 	
+	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
 	public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
     	
     	List data = new ArrayList<>();
@@ -113,7 +114,8 @@ public class StatsService {
         return data;
     }
 
-    public List mapFieldWith1Labels(List<Object[]> queryResults) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public List mapFieldWith1Labels(List<Object[]> queryResults) {
     	
     	List data = new ArrayList<>();
     	

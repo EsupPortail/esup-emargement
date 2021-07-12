@@ -16,12 +16,12 @@ import org.esupportail.emargement.services.UserAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
-public class WebInterceptor extends HandlerInterceptorAdapter {
+public class WebInterceptor implements HandlerInterceptor {
 	
 	@Resource
 	EmargementConfig config;
@@ -45,7 +45,6 @@ public class WebInterceptor extends HandlerInterceptorAdapter {
 		
 		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
 		String name = (!userLdap.isEmpty())?  userLdap.get(0).getPrenomNom()  : "";
-		super.postHandle(request, response, handler, modelAndView);
 
 		if(modelAndView != null) {
 			boolean isViewObject = modelAndView.getView() == null;

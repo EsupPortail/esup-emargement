@@ -144,6 +144,7 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		return extraRoles;
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<String> getAttrValuesAsList(Object attrValues) {
 		if(attrValues == null) {
 			return new ArrayList<String>(); 

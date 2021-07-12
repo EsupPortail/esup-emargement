@@ -34,7 +34,7 @@ public class ToolUtil {
 	    return PageRequest.of(source.getPageNumber(), size, source.getSort());
 	}
 	
-	public static InputStream generateQRCodeImage(String text, int width, int height)
+	public InputStream generateQRCodeImage(String text, int width, int height)
 			throws WriterException, IOException {
 		QRCodeWriter qrCodeWriter = new QRCodeWriter();
 		BitMatrix bitMatrix = qrCodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height);

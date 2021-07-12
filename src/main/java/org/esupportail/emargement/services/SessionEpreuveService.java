@@ -130,7 +130,6 @@ public class SessionEpreuveService {
 
 		for(SessionEpreuve session : sessionEpreuveList) {
 			session.setNbLieuxSession(sessionLocationRepository.countBySessionEpreuveId(session.getId()));
-			List<SessionLocation> locations = sessionLocationRepository.findSessionLocationBySessionEpreuve(session);
 			Long nbTagCheckerSession = Long.valueOf("0");
 			List<TagChecker> tcs =tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(session.getId());
 			if(!tcs.isEmpty()) {

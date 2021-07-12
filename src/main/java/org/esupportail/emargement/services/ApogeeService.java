@@ -119,7 +119,7 @@ public class ApogeeService {
 
 		try {
 			count =apogeeJdbcTemplate.queryForObject(
-					query, new Object[] { apogeeBean.getCodElp(), apogeeBean.getCodSes(), apogeeBean.getCodAnu()}, Integer.class);
+					query, Integer.class, apogeeBean.getCodElp(), apogeeBean.getCodSes(), apogeeBean.getCodAnu());
 		} catch (DataAccessException e) {
 			log.error("Erreur lors du comptage du nombre d'étudiants Apogée", e);
 		}
@@ -203,7 +203,7 @@ public class ApogeeService {
 
 		try {
 			count =apogeeJdbcTemplate.queryForObject(
-					query, new Object[] {apogeeBean.getCodAnu(), apogeeBean.getCodExtGpe()}, Integer.class);
+					query, Integer.class, apogeeBean.getCodAnu(), apogeeBean.getCodExtGpe());
 		} catch (DataAccessException e) {
 			log.error("Erreur lors du comptage du nombre d'étudiants d'un groupe Apogée", e);
 		}

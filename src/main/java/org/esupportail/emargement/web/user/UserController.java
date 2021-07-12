@@ -132,7 +132,7 @@ public class UserController {
 							redirectAttributes.addFlashAttribute("alReadyPresent", "alReadyPresent");
 						}else {
 							String [] splitToken = sessionToken.split("token");
-							if(!"".equals(splitToken)) {
+							if(splitToken.length > 0) {
 								TagChecker tcer  = tagCheckerRepository.findById(Long.valueOf(splitToken[0])).get();
 								tc.setTagChecker(tcer);
 							}
