@@ -7,62 +7,68 @@
 		<nav th:replace="fragments/modalMsg :: modalMsg"></nav>
 		<div class="container-fluid">
            	<div class="card">
-  				<div class="card-body">
-		    		<div class="card-header">
-		    			<div class="row">
-			    			<div class="col-lg-4">
-				    			<h2>Inscrits <span class="badge badge-secondary badge-size" th:text="${countTagChecks}"></span></h2>
-						    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span><br />
-								<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>
-							</div>
-			    			<div class="col-lg-8">
-			    				<div class="row">
-									<div class="col-lg-12">	
-										<div class="row mt-3 ml-2 float-right">
-											<button th:if="${countTagChecks>0}" class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
-											<span class="btn-separator" th:if="${countTagChecks>0}"></span>	
-											<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-							    				class="btn btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>
-											<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and !isSessionLibre}"
-												class="btn btn-warning ml-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
-											<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
-												class="btn btn-danger ml-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
-											<span class="btn-separator" th:if="${!isSessionEpreuveClosed}"></span>	
-											<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}" title="Convocations" type="button" data-toggle="modal" class="btn btn-secondary" data-target="#convocModal"><i class="fa fa-envelope"></i></button>
-											<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" class="btn btn-secondary mr-2" title="Envoyer un qrCode de participation" data-toggle="modal"  data-target="#qrCodeModal"><i class="fas fa-qrcode"></i></button>
-											<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isLinkEmargerEnabled}" class="btn btn-info"  title="Envoyer un lien de particiaption à distance" data-toggle="modal"  data-target="#lienParticipationModal"><i class="fas fa-link"></i></button>
-											<span class="btn-separator" th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed}"></span>
-											<span class="btn-separator" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled and countRepartition == 0}"></span>
-											<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ml-2" type="button" data-toggle="collapse" data-target="#exportCollapse" 
-												title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
-					    				</div>
-									</div>
-								</div>
-							</div>
-							<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
-										or countCheckedBycard > 0 or notInLdap > 0}">
-								<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger mr-2" th:text="${'A répartir : ' + countRepartition}"></span>
-								<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger mr-2" th:text="${'Intrus : ' + countUnknown}"></span>
-								<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
-								<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
+	    		<div class="card-header">
+	    			<div class="row">
+		    			<div class="col">
+			    			<h2>Inscrits <span class="badge badge-secondary badge-size" th:text="${countTagChecks}"></span></h2>
+					    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span><br />
+							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>
+						</div>
+		    			<div class="col">
+		    				<div class="row float-end">
+								<div class="col-auto">
+									<button th:if="${countTagChecks>0}" class="btn btn-info" type="button" data-bs-toggle="collapse" 
+										data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
+									<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" 
+									th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+					    				class="btn btn-primary ms-2"><i class="fa fa-plus fa-lg"></i></a>
+									<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and !isSessionLibre}"
+										class="btn btn-warning ms-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
+									<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
+										class="btn btn-danger ms-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
+									<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}" title="Convocations" type="button" data-bs-toggle="modal" class="btn btn-secondary" data-bs-target="#convocModal"><i class="fa fa-envelope"></i></button>
+									<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" class="btn btn-secondary ms-2" title="Envoyer un qrCode de participation" data-bs-toggle="modal"  data-bs-target="#qrCodeModal"><i class="fas fa-qrcode"></i></button>
+									<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isLinkEmargerEnabled}" class="btn btn-info"  title="Envoyer un lien de particiaption à distance" data-bs-toggle="modal"  data-bs-target="#lienParticipationModal"><i class="fas fa-link"></i></button>
+									<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#exportCollapse" 
+										title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
+			    				</div>
 							</div>
 						</div>
-		    		</div>
+						<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
+									or countCheckedBycard > 0 or notInLdap > 0}">
+							<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger me-2" th:text="${'A répartir : ' + countRepartition}"></span>
+							<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger me-2" th:text="${'Intrus : ' + countUnknown}"></span>
+							<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
+							<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
+						</div>
+					</div>
+	    		</div>           	
+  				<div class="card-body">
 		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-						<form action="#" th:action="@{|/${eContext}/manager/tagCheck/sessionEpreuve/${sid}|}" id="formSearch" class="form-inline alert alert-dark pl-2 pr-0">
-							<input type="text" name="eppn" th:value="${eppn}" class="form-control mr-1" placeholder="Recherche" id="searchTagCheck">
-			    			<select name="tempsAmenage" id="tempsAmenage" class="form-control mr-1"> 
-							    <option value="" th:selected="${tempsAmenage==''}">---Temps aménagé---</option>
-							    <option value="tiers" th:selected="${tempsAmenage=='tiers'}">Tiers-temps</option>
-							    <option value="notTiers" th:selected="${tempsAmenage=='notTiers'}">Non tiers-temps</option>
-							</select>								
-			    			<select  name="repartition" id="repartition" class="form-control"  th:if="${not #lists.isEmpty(listeRepartition)}"> 
-							    <option value="">---Répartition ---</option>
-								<option th:each="rep : ${listeRepartition}"
-										th:value="${rep.id}" th:text="${rep.nom}" th:selected="${rep.id==repartitionId}"></option>
-							</select>
-							<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+						<form action="#" th:action="@{|/${eContext}/manager/tagCheck/sessionEpreuve/${sid}|}" id="formSearch" class=" alert alert-dark pl-2 pr-0">
+							<div class="row">
+			    				<div class="col">
+									<input type="text" name="eppn" th:value="${eppn}" class="form-control me-1" placeholder="Recherche" id="searchTagCheck">
+								</div>
+								<div class="col">
+					    			<select name="tempsAmenage" id="tempsAmenage" class="form-select  me-1"> 
+									    <option value="" th:selected="${tempsAmenage==''}">---Temps aménagé---</option>
+									    <option value="tiers" th:selected="${tempsAmenage=='tiers'}">Tiers-temps</option>
+									    <option value="notTiers" th:selected="${tempsAmenage=='notTiers'}">Non tiers-temps</option>
+									</select>
+								</div>
+								<div class="col">
+					    			<select  name="repartition" id="repartition" class="form-select"  th:if="${not #lists.isEmpty(listeRepartition)}"> 
+									    <option value="">---Répartition ---</option>
+										<option th:each="rep : ${listeRepartition}"
+												th:value="${rep.id}" th:text="${rep.nom}" th:selected="${rep.id==repartitionId}"></option>
+									</select>
+								</div>
+								<div class="col">
+									<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
+								</div>
+							</div>	
 						</form>
 		    		</div>
 		    		<div class="collapse" id="exportCollapse">
@@ -105,13 +111,13 @@
 									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 									<td class="hiddenBlock" th:if="${tagCheck.guest != null}" th:text="Externe"></td>
 									<td  th:if="${tagCheck.person != null}">
-										<a href="#" class="mr-1 userModal" 
+										<a href="#" class="me-1 userModal" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 										<i class="fa fa-user" aria-hidden="true"></i></a>
 										<span th:text="${tagCheck.person.eppn}"></span>
 									</td>
 									<td th:unless="${tagCheck.person != null}">
-										<a href="#" class="mr-1 userModal" 
+										<a href="#" class="me-1 userModal" 
 										th:attr="data-whatever=${tagCheck.guest.email + '//' + tagCheck.guest.nom + '//' + tagCheck.guest.prenom}">
 										<i class="fa fa-user" aria-hidden="true"></i></a>
 										<span th:text="${tagCheck.guest.email}"></span>
@@ -143,18 +149,16 @@
 									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
 									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/tagCheck/{id}?form(id=${tagCheck.id},ctx=${eContext})}">
-										<i class="fa fa-pen text-warning ml-2"></i></a>
-										<a th:if="${!tagCheck.sessionEpreuve.isSessionEpreuveClosed} "data-toggle="modal" data-target="#modal-warning" 
-											th:attr="data-target='#modal-warning'+${tagCheck.id }"><i class="fa fa-trash text-danger ml-2"></i></a>
+										<i class="fa fa-pen text-warning ms-2"></i></a>
+										<a th:if="${!tagCheck.sessionEpreuve.isSessionEpreuveClosed} "data-bs-toggle="modal" data-bs-target="#modal-warning" 
+											th:attr="data-bs-target='#modal-warning'+${tagCheck.id }"><i class="fa fa-trash text-danger ms-2"></i></a>
 										<div class="modal modal-warning fade in" th:id="modal-warning+${tagCheck.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">
 										        	<form id="command" th:action="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" method="POST">
 											        	<input type="hidden" name="_method" value="delete" />
 											            <div class="modal-header">
-											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													          <span aria-hidden="true">&times;</span>
-													        </button>
+											                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'individu : <br />
@@ -162,7 +166,7 @@
 											                	 <span th:if="${tagCheck.guest != null}" th:text="${tagCheck.guest.email}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 											            </div>
 										            </form>
@@ -182,9 +186,7 @@
 		    <div class="modal-dialog">
 		        <div class="modal-content">
 		            <div class="modal-header">
-		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
+		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		            </div>
 		            <div class="modal-body">
 		                <div class="alert alert-danger text-center font-weight-bold mb-2">Vous allez accéder au formulaire d'envoi de convocation, elle sera envoyée aux personnes sélectionnées précédemment ou à l'ensemble des inscrits répartis :  <br />
@@ -197,7 +199,7 @@
 						</div>	 
 		            </div>
 		            <div class="modal-footer">
-		                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Fermer</button>
+		                <button type="button" class="btn btn-secondary pull-left" data-bs-dismiss="modal">Fermer</button>
 		            </div>
 		        </div>
 		    </div>
@@ -206,9 +208,7 @@
 		    <div class="modal-dialog">
 		        <div class="modal-content">
 		            <div class="modal-header">
-		                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
+		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		            </div>
 		            <div class="modal-body">
 		                <div class="alert alert-danger text-center font-weight-bold mb-2">Vous allez accéder au formulaire d'envoi de convocation, elle sera envoyée aux personnes sélectionnées précédemment ou à l'ensemble des inscrits répartis :  <br />
@@ -221,7 +221,7 @@
 						</div>	 
 		            </div>
 		            <div class="modal-footer">
-		                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Fermer</button>
+		                <button type="button" class="btn btn-secondary pull-left" data-bs-dismiss="modal">Fermer</button>
 		            </div>
 		        </div>
 		    </div>
@@ -231,14 +231,12 @@
 		    <div class="modal-content">
 		      <div class="modal-header">
 		        <h5 class="modal-title"></h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		          <span aria-hidden="true">&times;</span>
-		        </button>
+		        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		      </div>
 		      <div class="modal-body">
-				<div class="media">
+				<div class="d-flex">
 				  <img id="photoPresent"  src=""  alt="" width="160" height="200" />
-				  <div class="media-body ml-2">
+				  <div class="flex-grow-1 ms-2">
 				    <h5 class="mt-0 text-primary font-weight-bold" id="nomPrenom"></h5>
 						<div class="alert alert-info col-lg-12 pt-3 pb-3 pl-1 pr-1 custom-alert">
 							<p class="h2 text-center"><span id="prenomPresence"></span><br/>
@@ -257,15 +255,12 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title"></h5>
-					<button type="button" class="close" data-dismiss="modal"
-						aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
+					<h5 class="modal-title">QR Code</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
-					<div class="media">
-						<div class="media-body ml-2">
+					<div class="d-flex">
+						<div class="media-body ms-2">
 							<div class="alert alert-danger text-center">
 								<strong>Envoyer un mail avec qrCode de participation pour les individus :</strong> <br />
 								<form id="command"
@@ -307,15 +302,12 @@
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title"></h5>
-					<button type="button" class="close" data-dismiss="modal"
-						aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
+					<h5 class="modal-title">Lien de participation</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
 					<div class="media">
-						<div class="media-body ml-2">
+						<div class="media-body ms-2">
 							<div class="alert alert-danger text-center">
 								<strong>Envoyer un mail avec lien de participation (interne)</strong><br /><br />
 								<form id="command"

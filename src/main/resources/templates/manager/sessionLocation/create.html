@@ -16,10 +16,8 @@
 		    	<div class="alert alert-danger" th:if="${#ctx.containsVariable('error')}">La capacité maximale pour ce lieu est de  <span class="font-weight-bold" th:text="${error}"></span>  !!!</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/sessionLocation/create(ctx=${eContext})}" th:object="${sessionLocation}" method="post">
-						<div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
 	                    	<div class="col-lg-10">
 								<select th:field="*{sessionEpreuve}" class="form-control" required="required">
 									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -27,10 +25,8 @@
 								</select>
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="location" class="col-form-label">Lieu</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="location" class="col-lg-2 form-label">Lieu</label>
 	                    	<div class="col-lg-10">
 								<select class="form-control" th:field="*{location}"  required="required">
 									<option th:each="location : ${allLocations}"
@@ -39,30 +35,24 @@
 								<div th:if="${#lists.isEmpty(allLocations)}"><span class='text-danger font-weight-bold alertmsg'>Aucun lieu disponible ou tous les lieux du site sont déjà affectés</span><br/></div>
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="priorite" class="col-form-label">Priorité</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="priorite" class="col-lg-2 form-label">Priorité</label>
 	                    	<div class="col-lg-10">
 								<input type="number" min="1" th:field="*{priorite}" class="form-control" required="required">
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="capacite" class="col-form-label">Capacité</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="capacite" class="col-lg-2 form-label">Capacité</label>
 	                    	<div class="col-lg-10">
 								<input type="number"  min="1" th:field="*{capacite}" class="form-control" required="required">
 							</div>
 						</div>	
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label class="form-check-label" th:for="${isTiersTempsOnly}">
-						        Temps aménagé
-						      </label>
-	                    	</div>
-	                    	<div class="col-lg-10">
-								<input class="form-check-input ml-1" type="checkbox" th:field="*{isTiersTempsOnly}">
+						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label" th:for="${isTiersTempsOnly}">
+								Temps aménagé </label>
+							<div class="col-lg-10">
+								<input class="form-check-input " type="checkbox"
+									th:field="*{isTiersTempsOnly}">
 							</div>
 						</div>	
                         <div class="row">

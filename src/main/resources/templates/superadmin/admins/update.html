@@ -10,18 +10,14 @@
 		    	<div  class="alert alert-danger" th:if="${error}">L'agent avec l'eppn <strong><span th:text="${eppn}"></span></strong> existe déjà!!</div>
   				<div class="card-body">
 	            	<form action="#" th:action="@{/{ctx}/superadmin/admins/update/{id}(ctx=${eContext}, id=${userApp.id})}" th:object="${userApp}" method="post">
-	                     <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="eppn" class="col-form-label">Eppn</label>
-		                    </div>
+	                     <div class="row mb-3">
+		                    <label for="eppn" class="col-lg-2 form-label">Eppn</label>
 		                    <div class="col-lg-10">
 		                       <input type="email" th:field="*{eppn}" class="form-control" readonly="readonly">
 		                    </div>
 	                    </div>
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="userRole" class="col-form-label">Rôle</label>
-		                    </div>
+	                    <div class="row mb-3">
+		                    <label for="userRole" class="col-lg-2 form-label">Rôle</label>
 		                    <div class="col-lg-10">
 		                       <select th:field="*{userRole}" class="form-control" disabled="disabled">
 									<option th:each="role : ${allRoles}"
@@ -29,10 +25,8 @@
 								</select>
 		                    </div>
 	                    </div>
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="context.key" class="col-form-label">Contexte</label>
-		                    </div>
+	                    <div class="row mb-3">
+		                    <label for="context.key" class="col-lg-2 form-label">Contexte</label>
 		                    <div class="col-lg-10">
 		                    	<select th:field="*{context.key}" class="form-control" required="required">
 									<option th:each="context : ${contexts}"

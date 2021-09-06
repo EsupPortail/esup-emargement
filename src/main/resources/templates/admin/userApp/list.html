@@ -6,24 +6,32 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
            	<div class="card">
+	    		<div class="card-header">
+		    		<div class="row">
+			    		<div class="col">
+					    	<h2>Agents</h2>
+					    </div>
+					    <div class="col">
+						    <div class="row float-end">
+						    	<div class="col-auto">
+							    	<button class="btn btn-info ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
+							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ms-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
+						    	</div>
+						    </div>
+					    </div>
+	    			</div>
+	    		 </div>           	
   				<div class="card-body">
-		    		<div class="card-header">
-			    		<div class="row">
-				    		<div class="col-lg-2">
-						    	<h2>Agents</h2>
-						    </div>
-						    <div class="col-lg-10">
-							    <div class="row mt-3 ml-2 float-right">
-							    	<button class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
-							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ml-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
-							    </div>
-						    </div>
-		    			</div>
-		    		 </div>
 		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
-							<input type="text" name="eppn" th:value="${eppn}" class="form-control mr-1" placeholder="Recherche" id="searchUserApp">
-							<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
+					   		<div class="row">
+			    				<div class="col">
+									<input type="text" name="eppn" th:value="${eppn}" class="form-control me-1" placeholder="Recherche" id="searchUserApp">
+								</div>
+								<div class="col">
+									<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
+								</div>
+							</div>
 						</form>
 		    		</div>
 		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
@@ -52,30 +60,27 @@
 									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
 									<td class="center"><a th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-										<a class="ml-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
+										<a class="ms-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
 											<i class="fa fa-pen text-warning"></i>
 										</a>
-										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-pen disabled ml-2"></i>
-										<a class="ml-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${userApp.id }">
-											<i class="fa fa-trash text-danger"></i>
-										</a>
-										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-trash disabled ml-2"></i>
+										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-pen disabled ms-2"></i>
+										<a class="ms-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${userApp.id }">
+											<i class="fa fa-trash text-danger"></i></a>
+											<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-trash disabled ms-2"></i>
 										<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">
 										        	<form id="command" th:action="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
 											        	<input type="hidden" name="_method" value="delete" />
 											            <div class="modal-header">
-											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													          <span aria-hidden="true">&times;</span>
-													        </button>
+											                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
 											                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 											            </div>
 										            </form>

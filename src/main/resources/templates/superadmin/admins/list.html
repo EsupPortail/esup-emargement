@@ -8,8 +8,21 @@
 		<div  class="alert alert-danger" th:if="${createOk}"> Création de <strong><span th:text="${createOk.eppn}"></span></strong> dans le contexte <strong><span th:text="${createOk.context.key}"></span></strong>.
 			Le nouvel agent doit se déconnecter puis se reconnecter afin d'être visible dans l'application.</div>
            	<div class="card">
+	    		<div class="card-header">
+		    		<div class="row">
+			    		<div class="col">
+					    	<h2>Agents</h2>
+					    </div>
+					    <div class="col">
+						    <div class="row float-end">
+						    	<div class="col-auto">
+							    	<a th:href="@{/{ctx}/superadmin/admins?form(ctx=${eContext})}" class="btn btn-primary float-right" th:if="${isAdminContext}" title="Ajouter un administrateur"><i class="fa fa-plus fa-lg"></i></a>
+						    	</div>
+						    </div>
+					    </div>
+	    			</div>
+	    		 </div>            	
   				<div class="card-body">
-		    		<div class="card-header"><h2>Agents <a th:href="@{/{ctx}/superadmin/admins?form(ctx=${eContext})}" class="btn btn-primary float-right" th:if="${isAdminContext}" title="Ajouter un administrateur"><i class="fa fa-plus fa-lg"></i></a></h2></div>
   				    <ul class="nav nav-tabs" role="tablist" >
   				    	<li class="nav-item"><a th:classappend="${currentKey == 'all'} ? 'active' : ''" class="nav-link"
   				    	th:href="@{/{ctx}/superadmin/admins?key=all(ctx=${eContext})}">ALL</a></li>
@@ -40,10 +53,10 @@
 									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
 									<td th:if="${currentKey != 'all'}"  class ="center"><a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${isAdminContext}" th:href="@{/{ctx}/superadmin/admins/{id}?form(id=${userApp.id},ctx=${eContext})}">
-											<i class="fa fa-pen text-warning ml-2"></i>
+											<i class="fa fa-pen text-warning ms-2"></i>
 										</a>
-										<a th:if="${isAdminContext}" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${userApp.id }">
-											<i class="fa fa-trash text-danger ml-2"></i>
+										<a th:if="${isAdminContext}" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${userApp.id }">
+											<i class="fa fa-trash text-danger ms-2"></i>
 										</a>
 										<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
 										    <div class="modal-dialog">
@@ -51,16 +64,14 @@
 										        	<form id="command" th:action="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
 											        	<input type="hidden" name="_method" value="delete" />
 											            <div class="modal-header">
-											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													          <span aria-hidden="true">&times;</span>
-													        </button>
+											                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
 											                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 											            </div>
 										            </form>

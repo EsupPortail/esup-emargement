@@ -18,22 +18,18 @@
 	  					<div class = "col-lg-12" th:if="${type == 'apogee'}">
 	  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
 			                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
-				                    <div class="form-group row">
-				                   		<div class="col-lg-4">
-				                    		<label for="codSes" class="col-form-label">Année universitaire</label>
-				                    	</div>
-				                    	<div class="col-lg-8">
+				                    <div class="row mb-3">
+				                    	<label for="codSes" class="col-lg-2 form-label">Année universitaire</label>
+				                    	<div class="col-lg-10">
 											<select id="codAnu" name="codAnu" required="required" class="step1"> 
 												<option th:each="year : ${years}"
 													th:value="${year}" th:text="${year}"></option>
 											</select>
 										</div>
 									</div>
-									<div class="form-group row">
-										<div class="col-lg-4">
-									    	<label for="codSes"  class="col-form-label">Code session APOGEE</label>
-									    </div>
-									    <div class="col-lg-8">
+									<div class="row mb-3">
+									    <label for="codSes"  class="col-lg-2 form-label">Code session APOGEE</label>
+									    <div class="col-lg-10">
 										    <select id="codSes" name="codSes" class="step2">
 										      <option>0</option>
 										      <option selected="selected">1</option>
@@ -41,12 +37,12 @@
 										    </select>
 										 </div>
 									</div>
-			                    	<div class="form-group row">
-			                    		<div class="col-lg-4">
-				                    		<label for="composante" class="col-form-label">Composantes</label>
+			                    	<div class="row mb-3">
+			                    		<div class="col-lg-2">
+				                    		<label for="composante" class="form-label">Composantes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
 				                    	</div>
-				                    	<div class="col-lg-8">
+				                    	<div class="col-lg-10">
 											<select  th:id="codCmp" th:name="codCmp" required="required" class="step3">
 												<option value ="">-----choisir----</option>
 												<option th:each="composante : ${allComposantes}"
@@ -54,42 +50,42 @@
 											</select>
 										</div>
 									</div>
-			                    	<div class="form-group row">
-			                    		<div class="col-lg-4">
-				                    		<label for="codEtp" class="col-form-label" id="labelCodEtp">Diplômes</label>
+			                    	<div class="row mb-3">
+			                    		<div class="col-lg-2">
+				                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodEtp'>[0]</span>
 				                    	</div>
-				                    	<div class="col-lg-8">
+				                    	<div class="col-lg-10">
 											<select th:id="codEtp" th:name="codEtp" required="required" class="step4">
 											</select>
 										</div>
 									</div>	
-			                    	<div class="form-group row">
-			                    		<div class="col-lg-4">
-				                    		<label for="codElp" id="labelCodElp"  class="col-form-label">Matières</label>
+			                    	<div class="row mb-3">
+			                    		<div class="col-lg-2">
+				                    		<label for="codElp" id="labelCodElp"  class="form-label">Matières</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodElp'>[0]</span>
 				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsMatiere">[0]</span>
 				                    	</div>
-				                    	<div class="col-lg-8">
+				                    	<div class="col-lg-10">
 											<select th:id="codElp" th:name="codElp" required="required" class="step5"></select>
 										</div>
 									</div>	
-			                    	<div class="form-group row">
-			                    		<div class="col-lg-4">
-				                    		<label for="codExtGpe" id="labelCodExtGpe"  class="col-form-label">Groupes</label>
+			                    	<div class="row mb-3">
+			                    		<div class="col-lg-2">
+				                    		<label for="codExtGpe" id="labelCodExtGpe"  class="form-label">Groupes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodExtGpe'>[0]</span>
 				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsGroupe">[0]</span>
 				                    	</div>
-				                    	<div class="col-lg-8">
+				                    	<div class="col-lg-10">
 											<select th:id="codExtGpe" th:name="codExtGpe" class="step6"></select>
 										</div>
 									</div>
 									<div id="formImportCascading">
-					                    <div class="form-group row">
-					                    	<div class="col-lg-4">
-					                    		<label for="sessionEpreuve" class="col-form-label">Session « d’émargement »</label>
+					                    <div class="row mb-3">
+					                    	<div class="col-lg-2">
+					                    		<label for="sessionEpreuve" class="form-label">Session « d’émargement »</label>
 					                    	</div>
-					                    	<div class="col-lg-8">
+					                    	<div class="col-lg-10">
 												<select name="sessionEpreuve"  id="sessionEpreuve" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -97,11 +93,11 @@
 												</select>
 											</div>
 										</div>
-										<div class="form-group row">              				
-					                    	<div class="col-lg-4">
-					                    		<label for="lieuImport" class="col-form-label">Lieu</label>
+										<div class="row mb-3">              				
+					                    	<div class="col-lg-2">
+					                    		<label for="lieuImport" class="form-label">Lieu</label>
 					                    	</div>
-					                    	<div class="col-lg-8">	
+					                    	<div class="col-lg-10">	
 												<select name="sessionLocation"  id="sessionLocation" class="step2Import">
 													<option value ="">-----Aucun----</option>
 												</select>
@@ -123,20 +119,17 @@
 	                     	<div class="bg-light p-3 ">
 	                     		<div class="card-header h3 pl-2 mb-2">Ldap </div>
 			                    <form id="searchLdapGroupForm" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
-			                   		<div class="form-group row">
-			                   			<div class="col-lg-4">
-				                    		<label for="codSes" class="col-form-label">Groupes Ldap</label>
-				                    	</div>
-				                    	<div class="col-lg-8">
+			                   		<div class="row mb-3">
+				                    	<label for="codSes" class="col-lg-2 form-label">Groupes Ldap</label>
+				                    	<div class="col-lg-10">
 											<input type="text" th:value="${group}" name="searchGroup" id="searchGroup" class="form-control" placeholder="Recherchez ici ..."/>
 										</div>
 									</div>
 								</form>
 								<form id="importUsersLdapform" name="importUsersLdapform" th:action="@{/{ctx}/manager/extraction/csvFromLdap(ctx=${eContext})}" method="post">
-									<div class="form-group row">
-							   			<div class="col-lg-4">
-							   				<label for="usersGroupLdap">Liste des membres du groupe <span class="font-weight-bold text-primary" th:text="${group}"></span></label>
-							    		
+									<div class="row mb-3">
+							   			<div class="col-lg-2">
+							   				<label for="usersGroupLdap">Liste des membres du groupe <span class="form-label" th:text="${group}"></span></label>
 								    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
 										    	<span id="selectedUsers">0</span> / 
 										    	<span th:text="${#maps.size(ldapMembers)}" id="ldapMembersSize"></span>
@@ -145,7 +138,7 @@
 										    	</span>					    	
 									    	</div>
 									    </div>
-									    <div class="col-lg-8">
+									    <div class="col-lg-10">
 										    <select multiple class="form-control" id="usersGroupLdap" name="usersGroupLdap" required="required">
 												<option th:each="member : ${ldapMembers}"
 														th:value="${member.key}" th:text="${member.value}"></option>
@@ -153,11 +146,9 @@
 									    </div>
 								  	</div>
 								  	<div id="formImportCascadingLdap">
-					                    <div class="form-group row">
-					                    	<div class="col-lg-4">
-					                    		<label for="sessionEpreuve" class="col-form-label">Session « d’émargement »</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+					                    <div class="row mb-3">
+					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session « d’émargement »</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionEpreuveLdap"  id="sessionEpreuveLdap" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -165,11 +156,9 @@
 												</select>
 											</div>
 										</div>
-										<div class="form-group row">              				
-					                    	<div class="col-lg-4">
-					                    		<label for="lieuImportCsv" class="col-form-label">Lieu</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionLocationLdap"  id="sessionLocationLdap" class="step2Import">
 													<option value ="">-----Aucun----</option>
 												</select>
@@ -192,20 +181,16 @@
 								<div class="card-header h3 pl-2 mb-2">Import CSV</div>
 								<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
 									enctype="multipart/form-data" method="post">
-									<div class="form-group row">
-				                    	<div class="col-lg-4">
-				                    		<label for="sessionEpreuve" class="col-form-label">Fichier</label>
-				                    	</div>
-				                    	<div class="col-lg-8">	
+									<div class="row mb-3">
+				                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Fichier</label>
+				                    	<div class="col-lg-10">	
 											<input  type="file"  id="filename" name="files" class="file" data-browse-on-zone-click="true" multiple="multiple">
 										</div>
 									</div>
 									<div id="formImportCascadingCsv">
-										<div class="form-group row">    				
-					                    	<div class="col-lg-4">
-					                    		<label for="sessionEpreuveCsv" class="col-form-label">Session « d’émargement »</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+										<div class="row mb-3">    				
+					                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session « d’émargement »</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionEpreuveCsv"  id="sessionEpreuveCsv" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -213,11 +198,9 @@
 												</select>
 											</div>
 										</div>
-										<div class="form-group row">              				
-					                    	<div class="col-lg-4">
-					                    		<label for="lieuImportCsv" class="col-form-label">Lieu</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionLocationCsv"  id="sessionLocationCsv" class="step2Import">
 													<option value ="">-----Aucun----</option>
 												</select>
@@ -238,11 +221,9 @@
 	                    	<div class="bg-light p-3 ">
 		                    	<div class="card-header h3 pl-2 mb-2">Groupes locaux</div>
 		                    	<form id="importUsersGroupeForm" name="importUsersGroupeForm" th:action="@{/{ctx}/manager/extraction/csvFromGroupe(ctx=${eContext})}" method="post">
-	                				<div class="form-group row">
-				                    	<div class="col-lg-4">
-				                    		<label for="sessionEpreuve" class="col-form-label">Groupes</label>
-				                    	</div>
-				                    	<div class="col-lg-8">	
+	                				<div class="row mb-3">
+				                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Groupes</label>
+				                    	<div class="col-lg-10">	
 											<select name="groupe" id="groupe" multiple="multiple">
 												<option value ="">-----choisir----</option>
 												 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
@@ -250,11 +231,9 @@
 										</div> 
 									</div>
 									<div id="formImportCascadingGroupe">
-										<div class="form-group row">              				
-					                    	<div class="col-lg-4">
-					                    		<label for="sessionEpreuve" class="col-form-label">Session « d’émargement »</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+										<div class="row mb-3">              				
+					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session « d’émargement »</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionEpreuveGroupe"  id="sessionEpreuveGroupe"  class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -262,11 +241,9 @@
 												</select>
 											</div>
 										</div>
-										<div class="form-group row">              				
-					                    	<div class="col-lg-4">
-					                    		<label for="lieuImportGroupe" class="col-form-label">Lieu</label>
-					                    	</div>
-					                    	<div class="col-lg-8">	
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportGroupe" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
 												<select name="sessionLocationGroupe"  id="sessionLocationGroupe" class="step2Import">
 													<option value ="">-----Aucun----</option>
 												</select>
@@ -295,7 +272,7 @@
 		    <div class="modal-content">
 		      <div class="modal-header">
 		        <h5 class="modal-title" id="exampleModalLabel">Bilan</h5>
-		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
 		          <span aria-hidden="true">&times;</span>
 		        </button>
 		      </div>

@@ -6,11 +6,17 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 			<div class="card">
+	    		<div class="card-header">
+					<div class="row">
+	    				<div class="col">
+	    					<h2>Archives</h2>
+	    				</div>
+					</div>
+				</div>    			
   				<div class="card-body">
-  					<h2>Archives</h2>
   					<div class="row">
 	  					<div class="col-lg-12">
-							<table class="table table-hover table-striped table-bordered">
+							<table class="table  table-bordered">
 								<thead class="sticky-top">
 									<tr>
 										<th scope="col">Année</th>
@@ -37,18 +43,16 @@
 												<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
 								    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
 												<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
+												<a th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks != archive.nbTagChecks}" data-bs-toggle="modal" class="btn btn-primary btn-sm ms-1" 
+													data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${archive.anneeUniv}">Archiver</a>												
 											</form>
-											<a th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks != archive.nbTagChecks}" data-toggle="modal" class="btn btn-primary btn-sm ml-1" 
-												data-target="#modal-warning" th:attr="data-target='#modal-warning'+${archive.anneeUniv}">Archiver</a>
 											<div class="modal modal-warning fade in" th:id="modal-warning+${archive.anneeUniv}" >
 											    <div class="modal-dialog">
 											        <div class="modal-content">
 											        	<form id="command" th:action="@{/{ctx}/admin/archives/anonymize(ctx=${eContext})}" method="POST">
 												        	<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
 												            <div class="modal-header">
-												                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-														          <span aria-hidden="true">&times;</span>
-														        </button>
+												                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 												            </div>
 												            <div class="modal-body">
 												                <div class="alert alert-danger text-center">
@@ -66,7 +70,7 @@
 															</div>              	 
 												            </div>
 												            <div class="modal-footer">
-												                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+												                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 												                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
 												            </div>
 											            </form>

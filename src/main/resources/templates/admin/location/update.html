@@ -16,34 +16,26 @@
 		    	</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/admin/location/update/{id}(ctx=${eContext}, id=${location.id})}" th:object="${location}" method="post" enctype="multipart/form-data">
-	                    <div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="nom" class="col-form-label">Nom</label>
-	                    	</div>
+	                    <div class="row mb-3">
+	                    	<label for="nom" class="col-lg-2 form-label">Nom</label>
 	                    	<div class="col-lg-10">
 								<input type="text" th:field="*{nom}" class="form-control" required="required">
 							</div>
 						</div>
-	                    <div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="adresse" class="col-form-label">Adresse</label>
-	                    	</div>
+	                    <div class="row mb-3">
+	                    	<label for="adresse" class="col-lg-2 form-label">Adresse</label>
 	                    	<div class="col-lg-10">
 								<textarea  th:field="*{adresse}" class="form-control"></textarea>
 							</div>
 						</div>
-	                    <div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="capacite" class="col-form-label">Capacité maximale</label>
-	                    	</div>
+	                    <div class="row mb-3">
+	                    	<label for="capacite" class="col-lg-2 form-label">Capacité maximale</label>
 	                    	<div class="col-lg-10">
 								 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
 							</div>
 						</div>
-						<div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="campus" class="col-form-label">Site</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="campus" class="col-lg-2 form-label">Site</label>
 	                    	<div class="col-lg-10">
 								<select th:field="*{campus}" class="form-control" required="required">
 									<option th:each="campus : ${allCampuses}"

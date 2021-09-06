@@ -13,7 +13,7 @@
 					    <li class="nav-item"><a th:classappend="${type == 'session'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/session(ctx=${eContext})}">SESSION</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'groupe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/groupe(ctx=${eContext})}">GROUPE</a></li>
 				  	</ul>
-					<div th:if="${type == 'user'}" class="alert alert-primary">
+					<div th:if="${type == 'user'}" >
 						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMember|}"	id="formSearch" method="post">
 							<div class="row">
 								<div class="col-lg-4">
@@ -38,7 +38,7 @@
 							</div>
 						</form>
 					</div>
-					<div th:if="${type == 'session'}" class="alert alert-primary">
+					<div th:if="${type == 'session'}">
 						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromSession|}"	id="formSearch" method="post">
 							<div class="row">
 								<div class="col-lg-4">
@@ -63,7 +63,7 @@
 							</div>
 						</form>
 					</div>
-					<div th:if="${type == 'groupe'}" class="alert alert-primary" id="addMembersGroupes">
+					<div th:if="${type == 'groupe'}" id="addMembersGroupes">
 						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromGroupe|}"	id="formSearch" method="post">
 							<div class="row">
 								<div class="col-lg-4">

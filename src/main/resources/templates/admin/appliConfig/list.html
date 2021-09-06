@@ -6,12 +6,17 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
          	<div class="card">
-  				<div class="card-body">
-		    		<div class="card-header"><h2>Configurations 
-		    			<!-- >a th:href="@{/{ctx}/admin/appliConfig?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Rechercher une configuration"><i class="fa fa-plus fa-lg"></i></a--></h2></div>
+		    		<div class="card-header">
+						<div class="row">
+		    				<div class="col">
+		    					<h2>Configurations</h2>
+		    				</div>
+						</div>
+					</div>
+  					<div class="card-body">
 						<div class="alert alert-danger" th:if="${error}">Une configuration avec cette clé existe déjà</div>
 						<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkConfig)}" >Vos configurations ne sont pas à jour, il manque : <span class="font-weight-bold" th:text="${checkConfig}"></span>
-							<a th:href="@{/{ctx}/admin/appliConfig/updateConfigs(ctx=${eContext})}" class="btn btn-warning ml-3">Mettre à jour</a>
+							<a th:href="@{/{ctx}/admin/appliConfig/updateConfigs(ctx=${eContext})}" class="btn btn-warning ms-3">Mettre à jour</a>
 						</div>
 						<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold" th:text="${nbUpdate + ' '}"></span>configuration(s) ajoutée(s)</div>
 						<table class="table table-hover table-striped table-bordered">
@@ -31,15 +36,15 @@
 									<td th:text="${appliConfig.description}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">></td>						
 									<td th:utext="${appliConfig.value}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class ="center"><a th:href="@{/{ctx}/admin/appliConfig/{id}(id=${appliConfig.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-										<a th:href="@{/{ctx}/admin/appliConfig/{id}?form(id=${appliConfig.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ml-2"></i></a>
-										<!-- >a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${appliConfig.id }"><i class="fa fa-trash text-danger ml-2"></i></a-->
+										<a th:href="@{/{ctx}/admin/appliConfig/{id}?form(id=${appliConfig.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ms-2"></i></a>
+										<!-- >a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${appliConfig.id }"><i class="fa fa-trash text-danger ms-2"></i></a-->
 											<div class="modal modal-warning fade in" th:id="modal-warning+${appliConfig.id}" >
 											    <div class="modal-dialog">
 											        <div class="modal-content">
 											        	<form id="command" th:action="@{/{ctx}/admin/appliConfig/{id}(id=${appliConfig.id},ctx=${eContext})}" method="POST">
 												        	<input type="hidden" name="_method" value="delete" />
 												            <div class="modal-header">
-												                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
 														          <span aria-hidden="true">&times;</span>
 														        </button>
 												            </div>
@@ -48,7 +53,7 @@
 												                	 <span th:text="${appliConfig.key}" class="font-weight-bold"></span> ?</div>
 												            </div>
 												            <div class="modal-footer">
-												                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+												                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 												                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 												            </div>
 											            </form>

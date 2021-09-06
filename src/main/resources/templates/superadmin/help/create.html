@@ -11,18 +11,18 @@
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/superadmin/help/create(ctx=${eContext})}" th:object="${help}" method="post" id="helpForm">
 	                    <div class="form-group">
-	                        <label for="key" class="col-form-label">Categorie</label>
+	                        <label for="key" class="form-label">Categorie</label>
 							<select th:field="*{key}" class="form-control" required="required">
 								<option th:each="cat : ${categories}"
 									th:value="${cat}" th:text="${cat}"></option>
 							</select>  
 	                    </div>
 	                    <div class="form-group">
-	                        <label for="value" class="col-form-label" id="areaEditor">Valeur</label>
+	                        <label for="value" class="form-label" id="areaEditor">Valeur</label>
 	                        <textarea class='form-control'  th:field="*{value}"></textarea>
 	                    </div>
 	                    <div class="form-group">
-	                        <label for="description" class="col-form-label">Description</label>
+	                        <label for="description" class="form-label">Description</label>
 	                        <textarea  th:field="*{description}" class="form-control" ></textarea>
 	                    </div>
                         <div class="row">

@@ -6,30 +6,30 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
         	<div class="card">
- 				<div class="card-body">
-	    			<div class="card-header">
-	    				<div class="row">
-			    			<div class="col-lg-4">
-	    						<h2>Liste d'émargement</h2> 
-					    		<small class="text-muted h5" th:text="${sessionLocation.sessionEpreuve.nomSessionEpreuve + ' le ' +  
-								#dates.format(sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionLocation.sessionEpreuve.campus.site + ' ---- ' + sessionLocation.location.nom}"></small>
-							</div>
-			    			<div class="col-lg-8">
-			    				<div class="row">
-			    					<div class="col-lg-12">							
-				 						<div class="row mt-3 ml-2 float-right" th:if="${!tagChecks.isEmpty()}">
-											<form th:action="@{/{ctx}/manager/sessionEpreuve/emargement(ctx=${eContext})}" method="post" id="modalFormChoixExport" class="float-right ml-2">
-												<input type="hidden" id="sessionId" name="sessionLocationId" th:value="${sessionLocation.id}" />
-												<input type="hidden" id="sessionEpreuveId" name="sessionEpreuveId" th:value="${sessionLocation.sessionEpreuve.id}" />
-												<input type="submit" class="btn btn-danger exportInscrits" name='type' value="Liste" />
-												<!-- input type="submit" class="btn btn-success exportInscrits" name='type' value="Etiquettes" / -->
-											</form>	
-										</div>
+    			<div class="card-header">
+    				<div class="row">
+		    			<div class="col-lg-4">
+    						<h2>Liste d'émargement</h2> 
+				    		<small class="text-muted h5" th:text="${sessionLocation.sessionEpreuve.nomSessionEpreuve + ' le ' +  
+							#dates.format(sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionLocation.sessionEpreuve.campus.site + ' ---- ' + sessionLocation.location.nom}"></small>
+						</div>
+		    			<div class="col-lg-8">
+		    				<div class="row">
+		    					<div class="col-lg-12">							
+			 						<div class="row mt-3 ms-2 float-end" th:if="${!tagChecks.isEmpty()}">
+										<form th:action="@{/{ctx}/manager/sessionEpreuve/emargement(ctx=${eContext})}" method="post" id="modalFormChoixExport" class="float-end ms-2">
+											<input type="hidden" id="sessionId" name="sessionLocationId" th:value="${sessionLocation.id}" />
+											<input type="hidden" id="sessionEpreuveId" name="sessionEpreuveId" th:value="${sessionLocation.sessionEpreuve.id}" />
+											<input type="submit" class="btn btn-danger exportInscrits" name='type' value="Liste" />
+											<!-- input type="submit" class="btn btn-success exportInscrits" name='type' value="Etiquettes" / -->
+										</form>	
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+				</div>
+				<div class="card-body">
 					<table class="table table-hover table-striped table-bordered">
 						<thead class="sticky-top">
 							<tr>

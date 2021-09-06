@@ -207,7 +207,6 @@ info-box-text {
 table thead.sticky-top {
 	top: 128px;
 	z-index: 1000;
-	background-color: white;
 }
 .ss-main .ss-single-selected .placeholder .ss-disabled {
     color: red!important;
@@ -259,4 +258,11 @@ legend.scheduler-border {
 }
 dl dd:after {
   content: "\200b";
+}
+.card-header{
+	margin-top: 10px;
+}
+.placeholder {
+    background-color: transparent;
+    opacity : .8 !important;
 }

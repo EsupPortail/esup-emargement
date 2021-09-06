@@ -6,12 +6,22 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
          	<div class="card">
+	    		<div class="card-header">
+	    			<div class="row">
+			    		<div class="col">
+	    					<h2>Groupes</h2>
+	    				</div>
+	    				<div class="col">
+	    					<div class="row float-end">
+								<div class="col-auto">
+				    				<a th:href="@{/{ctx}/manager/groupe?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un groupe"><i class="fa fa-plus fa-lg"></i></a>
+				    				<a th:href="@{/{ctx}/manager/groupe/addMembers(ctx=${eContext})}" class="btn btn-info float-right me-2" title="Ajouter des membres"><i class="fas fa-user-plus"></i></a>
+		    					</div>
+		    				</div>
+		    			</div>
+	    			</div>
+	    		</div>
   				<div class="card-body">
-		    		<div class="card-header">
-		    			<h2>Groupes 
-		    				<a th:href="@{/{ctx}/manager/groupe?form(ctx=${eContext})}" class="btn btn-primary float-right" title="Ajouter un groupe"><i class="fa fa-plus fa-lg"></i></a>
-		    				<a th:href="@{/{ctx}/manager/groupe/addMembers(ctx=${eContext})}" class="btn btn-info float-right mr-2" title="Ajouter des membres"><i class="fas fa-user-plus"></i></a>
-		    			</h2></div>
 						<table class="table table-hover table-striped table-bordered">
 							<thead class="sticky-top">
 								<tr>
@@ -35,25 +45,23 @@
 
 									<td class ="center">
 										<a th:href="@{/{ctx}/manager/groupe/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-										<a th:href="@{/{ctx}/manager/groupe/{id}?form(id=${groupe.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
-										<a class ="ml-2" data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+ ${groupe.id }"><i class="fa fa-trash text-danger"></i></a>
-										<a class ="ml-2"  th:href="@{/{ctx}/manager/groupe/seeMembers/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-users text-info"></i></a>
+										<a th:href="@{/{ctx}/manager/groupe/{id}?form(id=${groupe.id},ctx=${eContext})}" class="center ms-2"><i class="fa fa-pen text-warning"></i></a>
+										<a class ="ms-2" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+ ${groupe.id }"><i class="fa fa-trash text-danger"></i></a>
+										<a class ="ms-2"  th:href="@{/{ctx}/manager/groupe/seeMembers/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-users text-info"></i></a>
 										<div class="modal modal-warning fade in" th:id="modal-warning + ${groupe.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">
 										        	<form id="command" th:action="@{/{ctx}/manager/groupe/{id}(id=${groupe.id},ctx=${eContext})}" method="POST">
 											        	<input type="hidden" name="_method" value="delete" />
 											            <div class="modal-header">
-											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													          <span aria-hidden="true">&times;</span>
-													        </button>
+											                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce groupe : <br />
 											                	 <span th:text="${groupe.nom}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 											            </div>
 										            </form>

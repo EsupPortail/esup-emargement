@@ -5,62 +5,64 @@
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
-			<div class="alert alert-danger" th:if="${form.list.isEmpty()}">Aucun lieu de session n'existe pour la répartition des inscrits!!</div>
+			<div class="alert alert-danger mt-2" th:if="${form.list.isEmpty()}">Aucun lieu de session n'existe pour la répartition des inscrits!!</div>
          	<div class="card">
-  				<div class="card-body">
-		    		<div class="card-header">
-		    			<div class="row">
-			    			<div class="col-lg-2">
-		    					<h2>Répartition</h2>
-								<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
-							</div>
-		    				<div class="col-lg-10">
-			    				<div class="row">
-			    					<div class="col-lg-12">	
-										<div class="p-2" th:if="${not #lists.isEmpty(form.list)}">
-											<div class="row mb-2">	
-												<div class="col-lg-7 alert alert-info row">
-													<div class="col-lg-6 text-center bg-light text-dark">
-														<p><b>Temps non aménagé</b> <br />
-															<span th:text="${'A répartir: ' +  countTagChecksNotTiersTemps}"></span>
-															<span th:text="${'Utilisé : ' + countTagChecksRepartisNotTiersTemps + ' / ' + capaciteTotaleNotTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-6 text-center  bg-light text-dark">
-														<p><b>Temps aménagé</b><br />
-															<span  th:text="${'A répartir: ' +  countTagChecksTiersTemps}"></span>
-															<span th:text="${'Utilisé : ' + countTagChecksRepartisTiersTemps + ' / ' + capaciteTotaleTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-12  bg-light text-center pb-2">
-														<a th:href="@{/{ctx}/manager/sessionEpreuve/executeRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning">Répartir</a>
-														<a th:href="@{/{ctx}/manager/sessionEpreuve/deleteRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-primary ml-2">Réinitialiser</a>
-													</div>
+	    		<div class="card-header">
+	    			<div class="row">
+		    			<div class="col-lg-2">
+	    					<h2>Répartition</h2>
+							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
+						</div>
+	    				<div class="col-lg-10">
+		    				<div class="row">
+		    					<div class="col-lg-12">	
+									<div th:if="${not #lists.isEmpty(form.list)}">
+										<div class="row mb-2">	
+											<div class="col-lg-7 alert alert-info row">
+												<div class="col-lg-6 text-center bg-light text-dark">
+													<p><b>Temps non aménagé</b> <br />
+														<span th:text="${'A répartir: ' +  countTagChecksNotTiersTemps}"></span>
+														<span th:text="${'Utilisé : ' + countTagChecksRepartisNotTiersTemps + ' / ' + capaciteTotaleNotTiersTemps}"></span>
+													</p>
 												</div>
-												<div class="col-lg-5 alert alert-info row">
-													<div class="col-lg-6 text-center bg-light text-dark" id="affinageNotTiersTemps">
-														<p><b>Temps non aménagé</b> <br />
-															<span id="tempCapaciteNotTiers">0</span> / <span id="currentCapaciteNotTiers" th:text="${countTagChecksRepartisNotTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-6 text-center  bg-light text-dark" id="affinageTiersTemps">
-														<p><b>Temps aménagé</b> <br />
-															<span id="tempCapaciteTiers">0</span> / <span id="currentCapaciteTiers" th:text="${countTagChecksRepartisTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-12  bg-light text-center pb-2 pt-2">
-														<button class="btn btn-success" id="affinerButton" disabled="disabled">Modifier répartition</button>
-													</div>
-												</div>	
+												<div class="col-lg-6 text-center  bg-light text-dark">
+													<p><b>Temps aménagé</b><br />
+														<span  th:text="${'A répartir: ' +  countTagChecksTiersTemps}"></span>
+														<span th:text="${'Utilisé : ' + countTagChecksRepartisTiersTemps + ' / ' + capaciteTotaleTiersTemps}"></span>
+													</p>
+												</div>
+												<div class="col-lg-12  bg-light text-center pb-2">
+													<a th:href="@{/{ctx}/manager/sessionEpreuve/executeRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning">Répartir</a>
+													<a th:href="@{/{ctx}/manager/sessionEpreuve/deleteRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-primary ms-2">Réinitialiser</a>
+												</div>
 											</div>
+											<div class="col-lg-5 alert alert-info row">
+												<div class="col-lg-6 text-center bg-light text-dark" id="affinageNotTiersTemps">
+													<p><b>Temps non aménagé</b> <br />
+														<span id="tempCapaciteNotTiers">0</span> / <span id="currentCapaciteNotTiers" th:text="${countTagChecksRepartisNotTiersTemps}"></span>
+													</p>
+												</div>
+												<div class="col-lg-6 text-center  bg-light text-dark" id="affinageTiersTemps">
+													<p><b>Temps aménagé</b> <br />
+														<span id="tempCapaciteTiers">0</span> / <span id="currentCapaciteTiers" th:text="${countTagChecksRepartisTiersTemps}"></span>
+													</p>
+												</div>
+												<div class="col-lg-12  bg-light text-center pb-2 pt-2">
+													<button class="btn btn-success" id="affinerButton" disabled="disabled">Modifier répartition</button>
+												</div>
+											</div>	
 										</div>
-									</div>								</div>
+									</div>
+								</div>								
 							</div>
-					<p class="font-weight-bold text-danger" th:text="${isOver} ? 'Le nombre d\'étudiants inscrits est supérieur à la capacité d\'accueil globale.' : ''"></p>
-		    		</div>
+						</div>
+						<p class="font-weight-bold text-danger" th:text="${isOver} ? 'Le nombre d\'étudiants inscrits est supérieur à la capacité d\'accueil globale.' : ''"></p>
+	    			</div>
+	    		</div>
+		    	<div class="card-body">
 	    			<form id="formAffinage" th:action="@{/{ctx}/manager/sessionEpreuve/affinerRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:object="${form}" method="post">
-						<table class="table table-hover table-striped table-bordered">
+						<table class="table table-hover table-striped table-bordered table-sm align-middle">
 							<thead class="sticky-top">
 								<tr>
 									<th scope="col">Lieu</th>
@@ -70,7 +72,6 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"> Candidats</th>
 									<th scope="col">Taux de remplissage</th>
 									<th scope="col" class="center">Modification</th>
-									<td>
 								</tr>
 							</thead>
 							<tbody>
@@ -101,7 +102,6 @@
 							</tbody>
 						</table>
 					</form>	
-					</div>
 				</div>
 			</div>
 		</div>

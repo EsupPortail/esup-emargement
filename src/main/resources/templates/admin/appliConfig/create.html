@@ -12,7 +12,7 @@
                     <form action="#" th:action="@{/{ctx}/admin/appliConfig/create(ctx=${eContext})}" th:object="${appliConfig}" method="post" id="configForm">
 	                    <div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="key" class="col-form-label">Clé</label>
+	                    		<label for="key" class="form-label">Clé</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<input type="text" th:field="*{key}" class="form-control" required="required">
@@ -20,7 +20,7 @@
 						</div>	
 	                    <div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="type" class="col-form-label">Type</label>
+	                    		<label for="type" class="form-label">Type</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<label class="radio-inline">
@@ -36,12 +36,12 @@
 						</div>
 						<div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="value" class="col-form-label" id="suneditor">Valeur</label>
+	                    		<label for="value" class="form-label" id="suneditor">Valeur</label>
 	                    	</div>
 						</div>
 						<div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="description" class="col-form-label">Description</label>
+	                    		<label for="description" class="form-label">Description</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<textarea  th:field="*{description}" class="form-control" ></textarea>

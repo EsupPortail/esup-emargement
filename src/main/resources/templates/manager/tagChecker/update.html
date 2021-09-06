@@ -12,14 +12,14 @@
                     	<input type="hidden" name="_method" value="put" />
                     	<input type="hidden" th:field="*{id}">                       
 	                    <div class="form-group">
-	                    	<label for="sessionLocation" class="col-form-label">Lieu de Session</label>
+	                    	<label for="sessionLocation" class="form-label">Lieu de Session</label>
 							<select th:field="*{sessionLocation}" class="form-control">
 								<option th:each="sessionLocation : ${allSessionLocations}"
 									th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom}"></option>
 							</select>
 						</div>	 	                    
 						<div class="form-group">
-	                    	<label for="userApp" class="col-form-label">Nom - Prénomn</label>
+	                    	<label for="userApp" class="form-label">Nom - Prénomn</label>
 							<select th:field="*{userApp}" class="form-control">
 								<option th:each="userApp : ${allUserApps}"
 									th:value="${userApp.id}" th:text="${userApp.nom + ' ' + userApp.prenom}"></option>

@@ -38,7 +38,7 @@
 								<p class="mb-0"><strong>Pour :</strong> <span th:text="${tagCheckers}"></span></p>
 								<form th:action="@{/{ctx}/manager/tagChecker/sendConsignes(ctx=${eContext})}" method="post" id="sendConsignes">
 				                    <div class="form-group row">
-				                       <label for="subject" class="col-form-label col-lg-2">Sujet : </label>
+				                       <label for="subject" class="form-label col-lg-2">Sujet : </label>
 				                       <div class="col-lg-10">
 				                       	<input type="text" th:id="subject" th:name="subject" class="form-control" required="required" th:value="${sujetMailConsignes}">
 				                       </div>

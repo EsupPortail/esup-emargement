@@ -58,7 +58,8 @@ public class IndexController {
     		return "index";
     }
 
-    @GetMapping("/{emargementContext}")
+    @SuppressWarnings("unchecked")
+	@GetMapping("/{emargementContext}")
 	public String emargementContext(@PathVariable String emargementContext, Model model) {
 	       if(emargementContext == null || emargementContext.isEmpty()) {
 	           return "redirect:/";

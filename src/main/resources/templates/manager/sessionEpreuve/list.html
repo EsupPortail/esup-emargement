@@ -6,31 +6,52 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
          	<div class="card">
-  				<div class="card-body">
-		    		<div class="card-header">
-		    		<div  class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
-		    			<div class="row">
-				    		<div class="col-lg-2">
-						    	<h2>Sessions</h2>
-						    </div>
-						    <div class="col-lg-10">
-							    <div class="form-row float-right">
-							    	<select id="anneeUnivSelect" name="anneeUniv" class="form-control pr-5 mt-1 mb-1 col-6"> 
-										<option th:each="year, iStat : ${years}"
-											th:value="${#strings.substringBefore(year,'/')}" th:text="${year}"  th:selected="${#strings.substringBefore(year,'/')==currentAnneeUniv}"></option>
-									</select>
-							    	<button class="btn btn-info ml-1 float-right" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher une session"><i class="fas fa-search"></i></button>
-							    	<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${currentAnneeUniv},ctx=${eContext})}" class="btn btn-primary ml-1 float-right" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+	    		<div class="card-header">
+	    			<div  class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
+	    			<div class="row">
+			    		<div class="col">
+					    	<h2>Sessions</h2>
+					    </div>
+					    <div class="col">
+						    <div class="row float-end">
+							    <div class="col-auto ">
+									<div class="row ">
+										<select id="anneeUnivSelect" name="anneeUniv"
+											class="form-select pr-5 mt-1 mb-1 col-auto">
+											<option th:each="year, iStat : ${years}"
+												th:value="${#strings.substringBefore(year,'/')}"
+												th:text="${year}"
+												th:selected="${#strings.substringBefore(year,'/')==currentAnneeUniv}"></option>
+										</select>
+									</div>
+								</div>
+								<div class="col-auto">
+							    	<button class="btn btn-info ms-1 float-end " type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher une session"><i class="fas fa-search"></i></button>
+							    	<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${currentAnneeUniv},ctx=${eContext})}" class="btn btn-primary float-end" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
 							    </div>
-						    </div> 
-		    			</div>
-					</div>
-	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-				    	<form action="#" th:action="@{|/${eContext}/manager/sessionEpreuve|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
-							<input type="text" name="seNom" th:value="${seNom}" class="form-control mr-1" placeholder="Recherche" id="searchSessionEpreuve">
-							<a title="Annuler recherche" th:href="@{|/${eContext}/manager/sessionEpreuve|}" class="btn btn-danger btn-sm ml-1"><i class="fas fa-undo"></i></a>
-						</form>
+						    </div>
+					    </div> 
 	    			</div>
+				</div>         	
+  				<div class="card-body">
+	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+							<form action="#"
+								th:action="@{|/${eContext}/manager/sessionEpreuve|}"
+								id="formSearch" class=" alert alert-dark">
+								<div class="row">
+									<div class="col-auto ">
+										<input type="text" name="seNom" th:value="${seNom}"
+											class="form-control" placeholder="Recherche"
+											id="searchSessionEpreuve">
+									</div>
+									<div class="col-auto ">
+										<a title="Annuler recherche"
+											th:href="@{|/${eContext}/manager/sessionEpreuve|}"
+											class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
+									</div>
+								</div>
+							</form>
+						</div>
 						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
 							<thead class ="center sticky-top">
 								<tr>
@@ -76,7 +97,7 @@
 									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.dureeEpreuve}" class="hiddenBlock"></td>
-									<td class ="text-center hiddenBlock"><a href="#" th:if="${sessionEpreuve.nbCheckedByCardTagCheck > 0}" data-toggle="modal" data-target="#modal-chart" th:attr="data-whatever=${sessionEpreuve.nomSessionEpreuve}" 
+									<td class ="text-center hiddenBlock"><a href="#" th:if="${sessionEpreuve.nbCheckedByCardTagCheck > 0}" data-bs-toggle="modal" data-bs-target="#modal-chart" th:attr="data-whatever=${sessionEpreuve.nomSessionEpreuve}" 
 										th:id="modalChartSeBtn-+${sessionEpreuve.id}" 
 										class="center modalChartSeBtn"><i class="fas fa-chart-bar text-success"></i></a>
 										<i th:if="${sessionEpreuve.nbCheckedByCardTagCheck == 0}" class="fas fa-chart-bar disabled"></i>
@@ -84,50 +105,48 @@
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" 
 										th:classappend="${!sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.nbDispatchTagCheck != sessionEpreuve.nbInscritsSession}? 'bg-warning' : ''">
 										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed and !sessionEpreuve.isSessionLibre}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
-										<i class="fa fa-exchange-alt text-primary mr-2"></i></a>
-										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.isSessionLibre}" class="fa fa-exchange-alt disabled  mr-2"></i>
+										<i class="fa fa-exchange-alt text-primary me-2"></i></a>
+										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.isSessionLibre}" class="fa fa-exchange-alt disabled  me-2"></i>
 										<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
 									</td>
 									<td class="d-none d-xl-table-cell">
 										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center">
-										<i class="fa fa-id-badge text-success  mr-2"></i></a>
-										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
+										<i class="fa fa-id-badge text-success  me-2"></i></a>
+										<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled me-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 											' / ' + sessionEpreuve.nbInscritsSession}"></span>
-											<span class="badge badge-pill badge-warning" th:if="${sessionEpreuve.nbUnknown >0}" th:text="${sessionEpreuve.nbUnknown}"></span>
+											<span class="badge rounded-pill bg-warning" th:if="${sessionEpreuve.nbUnknown >0}" th:text="${sessionEpreuve.nbUnknown}"></span>
 									</td>
 									<td>
 										<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" 
-											class="center ml-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
-										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.dateArchivage != null}" class="fa fa-pen disabled ml-2"></i>
-										<a data-toggle="modal" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+											class="center ms-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>
+										<i th:if="${sessionEpreuve.isSessionEpreuveClosed or sessionEpreuve.dateArchivage != null}" class="fa fa-pen disabled ms-2"></i>
+										<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }"  class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
 										<div class="modal fade in" th:id="modal-warning+${sessionEpreuve.id}" >
 										    <div class="modal-dialog">
 										        <div class="modal-content">
 										        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
 											        	<input type="hidden" name="_method" value="delete" />
 											            <div class="modal-header">
-											                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-													          <span aria-hidden="true">&times;</span>
-													        </button>
+ 															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
 											                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 											            </div>
 										            </form>
 										        </div>
 										    </div>
 										</div>
-										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 											onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
-										<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+										<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 											onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
-										<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+										<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 											onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
 									</td>
 								</tr>
@@ -138,9 +157,7 @@
 						        <div class="modal-content">
 										<div class="modal-header">
 										 <h5 class="modal-title"></h5>
-							                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-									          <span aria-hidden="true">&times;</span>
-									        </button>
+							                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 							            </div>
 							            <div class="modal-body">
 											<div class="box box-primary">

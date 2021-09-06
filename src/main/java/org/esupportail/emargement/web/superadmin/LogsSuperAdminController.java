@@ -1,6 +1,8 @@
 package org.esupportail.emargement.web.superadmin;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -48,7 +50,7 @@ public class LogsSuperAdminController {
 	@GetMapping(value = "/superadmin/logs")
 	public String list(Model model, @PageableDefault(size = 30, direction = Direction.DESC, sort = "logDate")  Pageable pageable) {
 		Page<Log> logsPage = logsRepository.findLogByContextIsNull(pageable);
-		addAttribute(model, new Log(), logsPage, "");
+		addAttribute(model, new Log(), logsPage, null);
 		return "superadmin/logs/list";
 	}
 
@@ -56,12 +58,16 @@ public class LogsSuperAdminController {
     public String search(@PathVariable String emargementContext,@Valid Log logObject, Model model,  @PageableDefault(size = 10, direction = Direction.DESC, sort = "logDate")  Pageable pageable,
     					@RequestParam(value="stringDate") String stringDate)throws ParseException {
     	Page<Log> logsPage= logsRepositoryCustom.findAll(logObject, stringDate, pageable);
-		addAttribute(model, logObject, logsPage, stringDate);
+    	Date date = null;
+    	if(!stringDate.isEmpty()) {
+    		date = new SimpleDateFormat("yyyy-MM-dd").parse(stringDate);
+    	}
+    	addAttribute(model, logObject, logsPage, date);
 		model.addAttribute("collapse", "show");
     	return "superadmin/logs/list";
     }
     
-    void addAttribute(Model model, Log logObject, Page<Log> logsPage, String stringDate) {
+    void addAttribute(Model model, Log logObject, Page<Log> logsPage, Date stringDate) {
         model.addAttribute("eppns", logsRepositoryCustom.findDistinctEppn());
         model.addAttribute("actions", logsRepositoryCustom.findDistinctAction());
         model.addAttribute("cibleLogins", logsRepositoryCustom.findDistinctCibleLogin());

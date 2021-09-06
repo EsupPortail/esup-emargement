@@ -9,10 +9,8 @@
 		    	<div class="card-header"><h2>Ajouter un surveillant</h2></div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/tagChecker/create(ctx=${eContext})}" th:object="${tagChecker}" method="post">
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="sessionEpreuve" class="col-form-label">Session</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
 	                    	<div class="col-lg-10">
 								<select name="sessionEpreuve" class="form-control" id="sessionEpreuve" required="required">
 									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
@@ -20,21 +18,17 @@
 								</select>
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="sessionLocation" class="col-form-label">Lieu de Session</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="sessionLocation" class="col-lg-2 form-label">Lieu de Session</label>
 	                    	<div class="col-lg-10">
-								<select class="form-control" th:id="locationTagChecker" th:name="sessionLocation" required="required">
+								<select class="form-select" th:id="locationTagChecker" th:name="sessionLocation" required="required">
 									<option th:each="sessionLocation : ${allSessionLocations}"
 										th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
 								</select>
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-	                    		<label for="userApp" class="col-form-label">Agent</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="userApp" class="col-lg-2 form-label">Agent</label>
 	                    	<div class="col-lg-10">
 								<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
 								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 . notUsed">

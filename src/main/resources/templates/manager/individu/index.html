@@ -6,10 +6,10 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 			<div class="card">
+				<div class="card-header"><h2>Individus</h2></div>
   				<div class="card-body">
-  					<h2>Individus</h2>
   					<form action="#" th:action="@{|/${eContext}/manager/individu|}" id="formSearch">
-						<div class="form-row">
+						<div class="row">
 							<div class="col">
 								<input type="text" placeholder="Recherche Inscrit" name="eppnTagCheck" value="" 
 									class="form-control form-control-underlined border-primary" id="searchIndividuTagCheck" >
@@ -39,7 +39,7 @@
 									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Repartition</a></th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
-									<th scope="col">Voir</th>
+									<th scope="col" class="center">Voir</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -62,7 +62,7 @@
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
-									<td><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" class="center"><i class="fa fa-eye text-primary"></i></a></td>
+									<td class="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
 								</tr>
 							</tbody>
 						</table>
@@ -80,7 +80,7 @@
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu</a></th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.campus">Site</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
-									<th scope="col">Voir</th>
+									<th scope="col" class="center">Voir</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -89,7 +89,7 @@
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"  th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>
-									<td><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}" class="center"><i class="fa fa-eye text-primary"></i></a></td>	
+									<td class="center"><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>	
 								</tr>
 							</tbody>
 						</table>

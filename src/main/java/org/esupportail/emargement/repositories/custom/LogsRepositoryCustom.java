@@ -38,12 +38,10 @@ public class LogsRepositoryCustom{
         List<Predicate> orPredicates = new ArrayList<Predicate>();
         if(log!=null) {
         	if(!stringDate.isEmpty()) {
-            	String[] splitDate = stringDate.split("/");
-            	String finalDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
         		Expression<String> dateStringExpr = criteriaBuilder.function("to_char", String.class,
             	        c.get("logDate"), criteriaBuilder.literal("yyyy-MM-dd"));
         		
-        		orPredicates.add(criteriaBuilder.equal(dateStringExpr,finalDate));
+        		orPredicates.add(criteriaBuilder.equal(dateStringExpr,stringDate));
         	}
         	if(log.getAction()!=null && !log.getAction().isEmpty()) {
         		orPredicates.add(criteriaBuilder.equal(c.get("action"), log.getAction()));

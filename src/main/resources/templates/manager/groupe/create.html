@@ -9,18 +9,14 @@
 		    	<div class="card-header"><h2>Créer un groupe</h2></div>
 	 			<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/groupe/create/{id}(ctx=${eContext}, id=${groupe.id})}" th:object="${groupe}" method="post">
-                    	<div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="nom" class="col-form-label">Nom</label>
-		                    </div>
+                    	<div class="row mb-3">
+		                    <label for="nom" class="col-lg-2 form-label">Nom</label>
 		                    <div class="col-lg-10">
 		                        <input type="text" th:field="*{nom}" class="form-control" required="required">
 		                    </div>
 	                    </div>
-                    	<div class="form-group row">
-		                    <div class="col-lg-2">
-		                         <label for="description" class="col-form-label">Description</label>
-		                    </div>
+                    	<div class="row mb-3">
+		                    <label for="description" class="col-lg-2 form-label">Description</label>
 		                    <div class="col-lg-10">
 		                        <input type="text" th:field="*{description}" class="form-control" required="required">
 		                    </div>

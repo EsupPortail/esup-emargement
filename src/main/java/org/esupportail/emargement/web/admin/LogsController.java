@@ -1,6 +1,8 @@
 package org.esupportail.emargement.web.admin;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -52,7 +54,7 @@ public class LogsController {
 	@GetMapping(value = "/admin/logs")
 	public String list(Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "logDate")  Pageable pageable) {
 		Page<Log> logsPage = logsRepository.findAll(pageable);
-		addAttribute(model, new Log(), logsPage, "");
+		addAttribute(model, new Log(), logsPage, null);
 		return "admin/logs/list";
 	}
 
@@ -60,19 +62,23 @@ public class LogsController {
     public String search(@PathVariable String emargementContext,@Valid Log logObject, Model model,  @PageableDefault(size = 10, direction = Direction.DESC, sort = "logDate")  Pageable pageable,
     					@RequestParam(value="stringDate") String stringDate)throws ParseException {
     	Page<Log> logsPage= logsRepositoryCustom.findAll(logObject, stringDate, pageable);
-		addAttribute(model, logObject, logsPage, stringDate);
+    	Date date = null;
+    	if(!stringDate.isEmpty()) {
+    		date = new SimpleDateFormat("yyyy-MM-dd").parse(stringDate);
+    	}
+    	addAttribute(model, logObject, logsPage, date);
 		model.addAttribute("collapse", "show");
     	return "admin/logs/list";
     }
     
-    void addAttribute(Model model, Log logObject, Page<Log> logsPage, String stringDate) {
+    void addAttribute(Model model, Log logObject, Page<Log> logsPage, Date date) {
         model.addAttribute("eppns", logsRepositoryCustom.findDistinctEppn());
         model.addAttribute("actions", logsRepositoryCustom.findDistinctAction());
         model.addAttribute("cibleLogins", logsRepositoryCustom.findDistinctCibleLogin());
         model.addAttribute("logsPage", logsPage);
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
         model.addAttribute("logObject",logObject );
-        model.addAttribute("stringDate",stringDate );
+        model.addAttribute("stringDate",date );
     }
     
 	@GetMapping(value = "/admin/logs/{id}", produces = "text/html")

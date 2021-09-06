@@ -1,123 +1,125 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
-<head>
-</head>
-<body>
-	<nav th:fragment="menu(activeMenu)" class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
-		<a class="navbar-brand"th:href="@{/{ctx}/(ctx=${eContext})}" ><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br /><span class = "titleNav" th:text="${title != null ? title : 'Emargement'}"></span></a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse"
-			data-target="#navbarNav" aria-controls="navbarNav"
-			aria-expanded="false" aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon"></span>
-		</button>
+	<head>
+	</head>
+	<body>
+		<nav th:fragment="menu(activeMenu)" class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+			<div class="container-fluid">
+				<a class="navbar-brand"th:href="@{/{ctx}/(ctx=${eContext})}" ><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br />
+				<span class = "titleNav" th:text="${title != null ? title : 'Emargement'}"></span></a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+					data-bs-target="#navbarNav" aria-controls="navbarNav"
+					aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
 		
-		<div class="collapse navbar-collapse" id="navbarNav">
-			<ul class="navbar-nav mr-auto">
- 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager}">
-			     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
-			     </li>
- 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor or isUser}">
-			     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
-			     </li>
-		    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">
-			       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			         <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.supervisor}__')}"></span>
-			       	</a>			      
-			       	<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			         <a class="dropdown-item" th:classappend="${active == 'presence'} ? 'active' : ''"  th:href="@{/{ctx}/supervisor/presence(ctx=${eContext})}">Emargement</a>
-			       	</div>			        
-		     	</li>	
-			    <li class="nav-item dropdown" th:if="${isAdmin or isManager}">
-			     	<a class="nav-link dropdown-toggle" 
-			        		th:classappend="${active == 'tagChecker' or active == 'tagCheck' or active == 'stats'  or active == 'calendrier' 
-			        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' or active == 'event' 
-			        						or active == 'extraction' or active == 'person'
-			        						or active == 'groupe'} ? 'active font-weight-bold' : ''" 
-			        		href="#" id="navbarDropdown" role="button" 
-			        		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
-			          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.manager}__')}"></span>
-			        </a>			      
-			        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			          <a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a>
-			          <a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Individus</a>
-			          <a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a>
-			          <a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a>
-			          <div class="dropdown-divider"></div>
-			          <a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a>
-			          <a class="dropdown-item" th:classappend="${active == 'event'} ? 'active' : ''" th:href="@{/{ctx}/manager/event(ctx=${eContext})}">Evènements</a>
-			          <a class="dropdown-item" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/manager/stats(ctx=${eContext})}">Statistiques</a>
-			        </div>			        
-			     </li>
-			     <li class="nav-item dropdown"th:if="${isAdmin}">
-			        <a class="nav-link dropdown-toggle" th:classappend="${active == 'userApp' or active == 'location' 
-			        						or active == 'campus'  or active == 'logs'
-			        						or active == 'apps' or active == 'appliConfig'
-			        						or active == 'typeSession' or active == 'archives'} ? 'active font-weight-bold' : ''" 
-			        href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.admin}__')}"></span>
-			        </a>
-			        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			          <div th:if="${isAdmin}">
-			          	<a class="dropdown-item" th:classappend="${active == 'userApp'} ? 'active' : ''" th:href="@{/{ctx}/admin/userApp(ctx=${eContext})}">Agents</a>
-				          <a class="dropdown-item" th:classappend="${active == 'campus'} ? 'active' : ''" th:href="@{/{ctx}/admin/campus(ctx=${eContext})}">Sites</a>			          
-				          <a class="dropdown-item" th:classappend="${active == 'location'} ? 'active' : ''" th:href="@{/{ctx}/admin/location(ctx=${eContext})}">Lieux</a>
-				          <a class="dropdown-item" th:classappend="${active == 'typeSession'} ? 'active' : ''" th:href="@{/{ctx}/admin/typeSession(ctx=${eContext})}">Type session</a>
-				          <a class="dropdown-item" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/admin/logs(ctx=${eContext})}">Logs</a>
-				          <a class="dropdown-item" th:classappend="${active == 'appliConfig'} ? 'active' : ''" th:href="@{/{ctx}/admin/appliConfig(ctx=${eContext})}">Configurations</a>
-				          <a class="dropdown-item" th:classappend="${active == 'apps'} ? 'active' : ''" th:href="@{/{ctx}/admin/apps(ctx=${eContext})}">Applications</a>
-				          <a class="dropdown-item" th:classappend="${active == 'archives'} ? 'active' : ''" th:href="@{/{ctx}/admin/archives(ctx=${eContext})}">Archives</a>
-			          </div>
-			        </div>
-			      </li>
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			     	<a class="nav-link" th:classappend="${active == 'context'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/context(ctx=${eContext})}">Contextes</a>
-			      </li>
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			        <a class="nav-link" th:classappend="${active == 'admins'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/admins(ctx=${eContext})}">Agents</a>
-			      </li>
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			        <a class="nav-link" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/stats(ctx=${eContext})}">Statistiques</a>
-			      </li>			
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			        <a class="nav-link" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/calendar(ctx=${eContext})}">Calendrier</a>
-			      </li>		      
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			      	<a class="nav-link" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/logs(ctx=${eContext})}">Logs</a>
-			      </li>
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			      	<a class="nav-link" th:classappend="${active == 'help'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/help(ctx=${eContext})}">Aide</a>
-			      </li>
-			      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
-			      		<a class="nav-link" th:classappend="${active == 'su'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/su(ctx=${eContext})}">SU</a>
-			      </li>
-			      <li th:if="${!#ctx.containsVariable('index') and !#ctx.containsVariable('noContext')}"  class="nav-item"><a class="nav-link" href="#collapseHelp" role="button" data-toggle="collapse"><i class="fas fa-question-circle"></i></a></li>
-			</ul>
-			<ul class="mb-1 ml-5 mr-5 list-unstyled" th:if="${availableContexts!=null and availableContexts.size() > 1}">
-				<li>
-					<form class="emargementContextForm" th:action="@{/}">
-						<select name="emargementContext" id="selectContext"	class="form-control">
+			    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+			      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager}">
+				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
+				     </li>
+	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor or isUser}">
+				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
+				     </li>
+			    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">
+				       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button"  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				         <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.supervisor}__')}"></span>
+				       	</a>			      
+				       	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+				         <li><a class="dropdown-item" th:classappend="${active == 'presence'} ? 'active' : ''"  th:href="@{/{ctx}/supervisor/presence(ctx=${eContext})}">Emargement</a></li>
+				       	</ul>			        
+			     	</li>			        
+				    <li class="nav-item dropdown" th:if="${isAdmin or isManager}">
+				     	<a class="nav-link dropdown-toggle" 
+				        		th:classappend="${active == 'tagChecker' or active == 'tagCheck' or active == 'stats'  or active == 'calendrier' 
+				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' or active == 'event' 
+				        						or active == 'extraction' or active == 'person'
+				        						or active == 'groupe'} ? 'active font-weight-bold' : ''" 
+				        		href="#" id="navbarDropdown" role="button" 
+				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+				          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.manager}__')}"></span>
+				        </a>			      
+				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Individus</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>
+				          <li><hr class="dropdown-divider"></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'event'} ? 'active' : ''" th:href="@{/{ctx}/manager/event(ctx=${eContext})}">Evènements</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/manager/stats(ctx=${eContext})}">Statistiques</a></li>
+				        </ul>			        
+				     </li>
+				     <li class="nav-item dropdown"th:if="${isAdmin}">
+				        <a class="nav-link dropdown-toggle" th:classappend="${active == 'userApp' or active == 'location' 
+				        						or active == 'campus'  or active == 'logs'
+				        						or active == 'apps' or active == 'appliConfig'
+				        						or active == 'typeSession' or active == 'archives'} ? 'active font-weight-bold' : ''" 
+				        href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.admin}__')}"></span>
+				        </a>
+				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown" th:if="${isAdmin}">
+			          	  <li><a class="dropdown-item" th:classappend="${active == 'userApp'} ? 'active' : ''" th:href="@{/{ctx}/admin/userApp(ctx=${eContext})}">Agents</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'campus'} ? 'active' : ''" th:href="@{/{ctx}/admin/campus(ctx=${eContext})}">Sites</a></li>		          
+				          <li><a class="dropdown-item" th:classappend="${active == 'location'} ? 'active' : ''" th:href="@{/{ctx}/admin/location(ctx=${eContext})}">Lieux</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'typeSession'} ? 'active' : ''" th:href="@{/{ctx}/admin/typeSession(ctx=${eContext})}">Type session</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/admin/logs(ctx=${eContext})}">Logs</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'appliConfig'} ? 'active' : ''" th:href="@{/{ctx}/admin/appliConfig(ctx=${eContext})}">Configurations</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'apps'} ? 'active' : ''" th:href="@{/{ctx}/admin/apps(ctx=${eContext})}">Applications</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'archives'} ? 'active' : ''" th:href="@{/{ctx}/admin/archives(ctx=${eContext})}">Archives</a></li>
+				        </ul>
+				     </li>
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				     	<a class="nav-link" th:classappend="${active == 'context'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/context(ctx=${eContext})}">Contextes</a>
+				      </li>
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				        <a class="nav-link" th:classappend="${active == 'admins'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/admins(ctx=${eContext})}">Agents</a>
+				      </li>
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				        <a class="nav-link" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/stats(ctx=${eContext})}">Statistiques</a>
+				      </li>			
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				        <a class="nav-link" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/calendar(ctx=${eContext})}">Calendrier</a>
+				      </li>		      
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				      	<a class="nav-link" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/logs(ctx=${eContext})}">Logs</a>
+				      </li>
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				      	<a class="nav-link" th:classappend="${active == 'help'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/help(ctx=${eContext})}">Aide</a>
+				      </li>
+				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+				      		<a class="nav-link" th:classappend="${active == 'su'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/su(ctx=${eContext})}">SU</a>
+				      </li>
+				      <li th:if="${!#ctx.containsVariable('index') and !#ctx.containsVariable('noContext')}"  class="nav-item"><a class="nav-link" href="#collapseHelp" role="button" data-bs-toggle="collapse"><i class="fas fa-question-circle"></i></a></li>
+				     
+			      </ul>
+			      <div class="d-flex">
+					<form class="emargementContextForm me-2" th:action="@{/}">
+						<select name="emargementContext" id="selectContext"
+							class="form-select">
 							<optgroup label="Contextes">
 								<option th:each="c : ${availableContexts}" th:text="${c}"
 									th:selected="${c==eContext}"></option>
 							</optgroup>
-							<optgroup label="Gestion" th:if="${isAdmin or isManager or isSupervisor}">
+							<optgroup label="Gestion"
+								th:if="${isAdmin or isManager or isSupervisor}">
 								<option th:value="@{/{ctx}/supervisor/prefs(ctx=${eContext})}">Ordre</option>
 							</optgroup>
 						</select>
 					</form>
-				</li>
-			</ul>
-			<ul class="mt-4 ml-2 mb-1 list-unstyled">
-				<li class="nav-item mb-1">
-			      <a class="btn btn-success nav-link" sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a>
-			      <a class="btn btn-outline-success greenCustom nav-link"  sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')" th:href="@{/logout}">Déconnexion</a>
-			      <form sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')" th:action="@{/logout/switchUser}" id="formSu" method="post">
-			        <input type="submit" value="Déconnexion SU" class="btn btn-outline-danger redCustom nav-link" />
-			      </form>
-			    </li>
-			    <li><span th:text="${name}" class="navbar-text pb-0 pt-0"></span></li>
-			</ul>
-		</div>
-	</nav>
-</body>
+					<a class="btn btn-success nav-link"
+						sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a> <a class="btn btn-outline-success greenCustom nav-link"
+						sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+						th:href="@{/logout}">Déconnexion</a>
+					<form
+						sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+						th:action="@{/logout/switchUser}" id="formSu" method="post">
+						<input type="submit" value="Déconnexion SU"
+							class="btn btn-outline-danger redCustom nav-link" />
+					</form>
+				</div>
+			    </div>
+			</div>
+		</nav>
+	</body>
 </html>

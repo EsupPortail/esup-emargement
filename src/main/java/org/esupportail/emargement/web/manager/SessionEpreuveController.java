@@ -262,6 +262,7 @@ public class SessionEpreuveController {
     	}
     	uiModel.addAttribute("isSessionLibreDisabled", isSessionLibreDisabled);
     	uiModel.addAttribute("seId", id);
+    	uiModel.addAttribute("strDateExamen", sessionEpreuve.getDateExamen());
         return "manager/sessionEpreuve/update";
     }
     
@@ -281,11 +282,12 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/create")
     public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
-    						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
+    						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen) throws IOException, ParseException {
     	
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
-    	
+    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	sessionEpreuve.setDateExamen(dateExamen);
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
@@ -313,13 +315,15 @@ public class SessionEpreuveController {
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
-    					HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionEpreuve sessionEpreuve, 
+    		@RequestParam("strDateExamen") String strDateExamen,BindingResult bindingResult, Model uiModel, 
+    					HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException, ParseException {
         
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
-    	
+    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	sessionEpreuve.setDateExamen(dateExamen);
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {

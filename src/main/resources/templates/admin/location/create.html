@@ -12,7 +12,7 @@
                     <form action="#" th:action="@{/{ctx}/admin/location/create(ctx=${eContext})}" th:object="${location}" method="post" enctype="multipart/form-data" >
 	                    <div class="form-group row alert alert-primary" th:if="${!#lists.isEmpty(eventLocations)}">
 	                   		<div class="col-lg-2">
-	                    		<label for="locationEvent" class="col-form-label">Suggestions</label><span class="text-danger font-weight-bold" th:text="${' (' + #lists.size(eventLocations)  + ')'}"></span>
+	                    		<label for="locationEvent" class="form-label">Suggestions</label><span class="text-danger font-weight-bold" th:text="${' (' + #lists.size(eventLocations)  + ')'}"></span>
 	                    	</div>
 	                    	<div class="col-lg-6">
 	                        	<select id="icsEventLocations">
@@ -28,7 +28,7 @@
 						</div>
 	                    <div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="nom" class="col-form-label">Nom</label>
+	                    		<label for="nom" class="form-label">Nom</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<input type="text" th:field="*{nom}" class="form-control" required="required">
@@ -36,7 +36,7 @@
 						</div>
 	                    <div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="adresse" class="col-form-label">Adresse</label>
+	                    		<label for="adresse" class="form-label">Adresse</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<textarea  th:field="*{adresse}" class="form-control"></textarea>
@@ -44,7 +44,7 @@
 						</div>
 	                    <div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="capacite" class="col-form-label">Capacité maximale</label>
+	                    		<label for="capacite" class="form-label">Capacité maximale</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
@@ -52,7 +52,7 @@
 						</div>
 						<div class="form-group row">
 	                   		<div class="col-lg-2">
-	                    		<label for="campus" class="col-form-label">Site</label>
+	                    		<label for="campus" class="form-label">Site</label>
 	                    	</div>
 	                    	<div class="col-lg-10">
 								<select th:field="*{campus}" class="form-control" required="required">

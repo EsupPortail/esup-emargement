@@ -14,9 +14,9 @@
 		    		existe déjà dans la base de données de l'application, veuillez en trouver un autre.</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/create(ctx=${eContext})}" th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
-	                    <div class="form-group row" th:if="${!#lists.isEmpty(events)}">
+	                    <div class="row mb-3" th:if="${!#lists.isEmpty(events)}">
 		                    <div class="col-lg-2">
-		                    	<label for="event" class="col-form-label">Evènements ICS</label> <span class="text-danger font-weight-bold"></span>
+		                    	<label for="event" class="form-label">Evènements ICS</label> <span class="text-danger font-weight-bold"></span>
 		                    </div>
 		                    <div class="col-lg-10">
 		                    	<div class="row">
@@ -43,10 +43,8 @@
 								</div>
 							</div>
 						</div>
-	                    <div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="anneeUniv" class="col-form-label">*Année universitaire</label>
-	                    	</div>
+	                    <div class="row mb-3">
+	                    	<label for="anneeUniv" class="col-lg-2 form-label">*Année universitaire</label>
 	                    	<div class="col-lg-10">
 								<select id="anneeUniv" name="anneeUniv" required="required" class="form-control"> 
 									<option th:each="year : ${years}"
@@ -54,10 +52,8 @@
 								</select>
 							</div>
 						</div>
-						<div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="typeSession" class="col-form-label">*Type</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="typeSession" class="col-lg-2 form-label">*Type</label>
 	                    	<div class="col-lg-10">
 								<select id="typeSession" name="typeSession" required="required" class="form-control">
 									<option value="">----Choisir----</option>
@@ -66,10 +62,8 @@
 								</select>
 							</div>
 						</div>	
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                    	<label for="campus" class="col-form-label">*Site</label>
-		                    </div>
+	                    <div class="row mb-3">
+		                    <label for="campus" class="col-lg-2 form-label">*Site</label>
 		                    <div class="col-lg-10">
 								<select th:field="*{campus}" class="form-control" required="required">
 								<option value="">----Choisir----</option>
@@ -78,95 +72,74 @@
 								</select>
 							</div>
 						</div>	 	                    
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="nomSessionEpreuve" class="col-form-label">*Nom</label>
-		                    </div>
+	                    <div class="row mb-3">
+		                     <label for="nomSessionEpreuve" class="col-lg-2 form-label">*Nom</label>
 		                    <div class="col-lg-10">
 		                        <input type="text" th:field="*{nomSessionEpreuve}" class="form-control" required="required">
 		                    </div>
 	                    </div>
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="dateExamen" class="col-form-label">*Date</label>
-		                    </div>
+	                    <div class="row mb-3">
+							<label for="dateExamen" class="col-lg-2 form-label">*Date</label>
 		                    <div class="col-lg-10">
-		                        <input type="text" placeholder="dd/MM/YYYY" th:field="*{dateExamen}" class="form-control datetimepicker-input" required="required" id="dateSessionEpreuve" 
-		                        	data-toggle="datetimepicker" data-target="#dateSessionEpreuve">
+		                        <input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control datetimepicker-input" required="required" id="dateSessionEpreuve">
 		                    </div>
 	                    </div>   	                    
-	                   <div class="form-group row">
-		                   <div class="col-lg-2">
-		                        <label for="heureConvocation" class="col-form-label">Convocation</label>
-		                   </div>
+	                   <div class="row mb-3">
+						   <label for="heureConvocation" class="col-lg-2 form-label">Convocation</label>
 		                   <div class="col-lg-10">
-		                        <input type="time" th:field="*{heureConvocation}" class="form-control datetimepicker-input" id="heureConvocation"
-		                        	data-toggle="datetimepicker" data-target="#heureConvocation" required="required">
+		                        <input type="time" th:field="*{heureConvocation}" class="form-control datetimepicker-input " id="heureConvocation"
+		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureConvocation" required="required">
 		                    </div>
 	                    </div>
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                        <label for="heureEpreuve" class="col-form-label">Début</label>
-	                       	</div>
+	                    <div class="row mb-3">
+		                    <label for="heureEpreuve" class="col-lg-2 form-label">Début</label>
 	                       	<div class="col-lg-10">
-		                        <input type="time" th:field="*{heureEpreuve}" class="form-control datetimepicker-input" id="heureEpreuve"
-		                        	data-toggle="datetimepicker" data-target="#heureEpreuve" required="required">
+		                        <input type="time" th:field="*{heureEpreuve}" class="form-control datetimepicker-input timepicker" id="heureEpreuve"
+		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureEpreuve" required="required">
 	                        </div>
 	                    </div>
-	                    <div class="form-group row">
-	                    	<div class="col-lg-2">
-	                        	<label for="finEpreuve" class="col-form-label">Fin</label>
-	                        </div>
+	                    <div class="row mb-3">
+	                        <label for="finEpreuve" class="col-lg-2 form-label">Fin</label>
 	                        <div class="col-lg-10">
 	                        	<input type="time" th:field="*{finEpreuve}" class="form-control  datetimepicker-input" id="finEpreuve"
-	                        		data-toggle="datetimepicker" data-target="#finEpreuve" required="required">
+	                        		data-bs-toggle="datetimepicker" data-bs-target="#finEpreuve" required="required">
 	                        </div>
 	                    </div>	                    
-	                    <div class="form-group row">
-		                    <div class="col-lg-2">
-		                    	<label for="file" class="col-form-label">Pièces jointes</label>
-		                    </div>
-		                    <div class="col-lg-10 file-loading">
-			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+	                    <div class="row mb-3">
+		                    <label for="file" class="col-lg-2 form-label">Pièces jointes</label>
+		                    <div class="col-lg-10">
+			                    <div class="file-loading">
+				 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+				 				</div>
 			 				</div>
-						</div>
-	                    <div class="form-group row">
-	                    	<div class="col-lg-2">
-	                        	<label for="comment" class="col-form-label">Commentaire</label>
-	                        </div>
+						</div>						
+	                    <div class="row mb-3">
+	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
 	                        <div class="col-lg-10">
 	                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
 	                        </div>
 	                    </div>
-	                   <div class="form-group row">
-							<div class="col-lg-2">
-								<label class="form-check-label"  th:for="${isSessionLibre}">
-							        Type de badgeage
-							      </label>
-							</div>
+	                   <fieldset  class="row mb-3">
+	                   		<label class="form-label col-lg-2">Type de badgeage</label>
 							<div class="col-lg-10">
  								<div class="form-check form-check-inline" th:each="type : ${T(org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage).values()}">
 								  <input class="form-check-input" type="radio" th:field="*{typeBadgeage}" th:value="${type}" th:checked="${true}">
 								  <label class="form-check-label" th:for="${#ids.prev('typeBadgeage')}" th:text="${type}"></label>
 								</div>
 						    </div>
-						</div>
-	                   <div class="form-group row">
-							<div class="col-lg-2">
-								<label class="form-check-label"  th:for="${isSessionLibre}">
-							        Session Libre
-							      </label>
-							</div>
+						</fieldset >		                    
+	                   <div class="row mb-3">
+							<label class="col-lg-2 form-check-label"  th:for="${isSessionLibre}">
+						        Session Libre
+						      </label>
 							<div class="col-lg-10">
 								 <div class="form-check">
 								      <input class="form-check-input" type="checkbox" th:field="*{isSessionLibre}">
 								</div>
 						    </div>
 						</div>
-						<div class="form-group row">
-	                   		<div class="col-lg-2">
-	                    		<label for="blackListGroupe" class="col-form-label">Groupe à exclure (session libre)</label>
-	                    	</div>
+						<div class="row mb-3">
+	                    	<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure (session libre)</label>
 	                    	<div class="col-lg-10">
 								<select id="blackListGroupe" name="blackListGroupe">
 									<option value="">----Choisir----</option>
@@ -175,24 +148,20 @@
 								</select>
 							</div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-								<label class="form-check-label"  th:for="${isProcurationEnabled}">
-							        Procuration activée
-							      </label>
-							</div>
+						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label"  th:for="${isProcurationEnabled}">
+						        Procuration activée
+						     </label>
 							<div class="col-lg-10">
 								 <div class="form-check">
 								      <input class="form-check-input" type="checkbox" th:field="*{isProcurationEnabled}">
 								</div>
 						    </div>
 						</div>
-						<div class="form-group row">
-							<div class="col-lg-2">
-								<label class="form-check-label"  th:for="${isSessionEpreuveClosed}">
-							        Clôturée
-							      </label>
-							</div>
+						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label"  th:for="${isSessionEpreuveClosed}">
+						        Clôturée
+						    </label>
 							<div class="col-lg-10">
 								 <div class="form-check">
 								      <input class="form-check-input" type="checkbox" th:field="*{isSessionEpreuveClosed}">

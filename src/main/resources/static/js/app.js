@@ -428,20 +428,21 @@ function chartNoData(ctx, chart){
     ctx.textBaseline = 'middle';
     ctx.font = "22px Arial";
     ctx.fillStyle = "gray";
-    ctx.fillText('Aucune donnée disponible', chart.chart.width / 2, chart.chart.height / 2);
+    ctx.fillText('Aucune donnée disponible', chart.width / 2, chart.height / 2);
     ctx.restore();
 }
 
 //affiche stats
 function getStats(year, param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
-	Chart.plugins.register({
-		  afterDraw: chart => {
-		    if (chart.data.datasets.length === 0 || (chart.data.datasets.length != 0 && chart.data.datasets[0].data.length === 0)) {
-		      var ctx = chart.chart.ctx;
-		      chartNoData(ctx, chart);
-		    }
-		  }
-		});
+	Chart.register({
+		id : id,
+		afterDraw: function(chart) {
+			if (chart.data.datasets.length === 0 || (chart.data.datasets.length != 0 && chart.data.datasets[0].data.length === 0)) {
+				var ctx = chart.ctx;
+				chartNoData(ctx, chart);
+			}
+		}
+	});
     var prefId = document.getElementById(id);
     var request = new XMLHttpRequest();
     var paramUrl = (param != null) ? '&' + param : '';
@@ -450,31 +451,19 @@ function getStats(year, param, url, id, chartType, option, transTooltip, formatD
         if (request.status >= 200 && request.status < 400) {
 	        if(this.response != ""){
 	            var data = JSON.parse(this.response);
-		            if ((Object.keys(data[id]).length) > 0) {
-		                if (chartType == "multiBar") {
-		                	multiChartStackBar(data[id], id, 3, transTooltip, formatDate, 'linear');
-		                } else if (chartType == "chartBar") {
-		                	chartBar(data[id], label1, id, transTooltip, formatDate, data[data2], label2);
-		                } else if (chartType == "pie") {
-		                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-		                } else if (chartType == "doughnut") {
-		                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-		                } else if (chartType == "lineChart") {
-		                    lineChart(data[id], id, fill, arrayDates, formatDate);
-		                }
-		            } else {
-		                $("#" + id).next().show();
-		                $("#" + id).hide();
-		            }
-	        }else{
-	        	var ctx = document.getElementById(id).getContext("2d");
-	        	Chart.plugins.register({
-	        		afterDraw: chart => {
-	        			if (chart.data.datasets.length === 0) {
-	        				chartNoData(ctx, chart);
-	        			}
-	        		}
-	        	});
+	            if ((Object.keys(data[id]).length) > 0) {
+	                if (chartType == "multiBar") {
+	                	multiChartStackBar(data[id], id, 3, transTooltip, formatDate, 'linear');
+	                } else if (chartType == "chartBar") {
+	                	chartBar(data[id], label1, id, transTooltip, formatDate, data[data2], label2);
+	                } else if (chartType == "pie") {
+	                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
+	                } else if (chartType == "doughnut") {
+	                    chartPieorDoughnut(data[id], id, chartType, option, datalabels);
+	                } else if (chartType == "lineChart") {
+	                    lineChart(data[id], id, fill, arrayDates, formatDate);
+	                }
+	            } 
 	        }
         }
     }
@@ -501,16 +490,12 @@ function lineChart(data, id, fill, arrayDates, formatDate){
         	 label :'',
 	         backgroundColor: generateColors[a],
 	         borderColor: generateColors[a],
-	         pointColor: generateBorderColors[a],
 	         pointBorderColor: "#fff",
 	         pointHoverBorderColor: "#fff",
 	         pointBackgroundColor: generateColors[a],
              data: inlineValeurs,
              spanGaps: true,
              fill : fill,
-    			datalabels: {
-    				display: false
-    			}
         });
 		var dateLabels = dates;
 		if(formatDate){
@@ -527,24 +512,6 @@ function lineChart(data, id, fill, arrayDates, formatDate){
      	var myLineChart = new Chart(ctx3, {
     		type: 'line',
     		data: dataMois,
-    		options: {
-    			responsive: true,
-    			legend: {
-    				display: false
-    			},
-    			 scales:{
-    	                xAxes:[{
-    	        			ticks: {
-    	        				autoSkip: true
-    	        			}
-    	                }]
-    	            },
-	                tooltips: {
-	                	mode: 'label',
-	                	titleFontSize: 14,
-	                	bodyFontSize: 25
-	                }
-    		}
     	});     
  	}
 }
@@ -643,17 +610,17 @@ function multiChartStackBar(allData, id, start, transTooltip, formatDate, scaleT
     				display: true
     			},
     	        scales: {
-    	            yAxes: [{
+    	            y: {
     	                ticks: {
     	                    beginAtZero:true
     	                    
     	                },
     	                type: scaleType,
     	                stacked: true
-    	            }],
-    	            xAxes: [{
+    	            },
+    	            x: {
     	                stacked: true
-    	            }]
+    	            }
     	        },
                 tooltips: {
                 	mode: 'label',
@@ -1305,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var splitId = this.id.split("-");
         getStats(null, "&param=" + splitId[1], url, "countTagChecksByTimeBadgeage", "chartBar");
     })
-    $('#modal-chart').on('show.bs.modal', function(event) {
+    $('#modal-chart').on('shown.bs.modal', function(event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
         var title = button.data('whatever') // Extract info from data-* attributes
         var modal = $(this)
@@ -1321,41 +1288,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calendarElAll != null) {
         getCalendar(calendarElAll, emargementContextUrl + "/superadmin/calendar/events", false);
     }
-
-    //Datepicker SessionEpreuve
-    $('input[type=date]').on('click', function(event) {
-        event.preventDefault();
-    });
-    $('#dateSessionEpreuve').datetimepicker({
-        format: 'DD/MM/YYYY',
-        locale: 'fr',
-        daysOfWeekDisabled: [0],
-        useCurrent: false,
-        date: moment($("#dateSessionEpreuve").val(), 'DD/MM/YYYY')
-
-    });
-    $('#stringDate').datetimepicker({
-        format: 'DD/MM/YYYY',
-        locale: 'fr',
-        useCurrent: false
-
-    });
-    
-    $('#heureConvocation').datetimepicker({
-        format: 'LT',
-        locale: 'fr' ,
-        date: moment($("#heureConvocation").val(), 'HH:mm')
-    });
-    $('#heureEpreuve').datetimepicker({
-        format: 'LT',
-        locale: 'fr' ,
-        date: moment($("#heureEpreuve").val(), 'HH:mm')
-    });
-    $('#finEpreuve').datetimepicker({
-        format: 'LT',
-        locale: 'fr' ,
-        date: moment($("#finEpreuve").val(), 'HH:mm')
-    });
 
     //Pagination --->rajout tous
     if (document.getElementById('pagination') != null) {
@@ -1613,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var splitId = this.id.split("-");
             setSelectEvent(splitId[1], "#modal-body-event");
         })
-        $('#modal-event').on('show.bs.modal', function(event) {
+        $('#modal-event').on('shown.bs.modal', function(event) {
             var button = $(event.relatedTarget) // Button that triggered the modal
             var title = button.data('whatever') // Extract info from data-* attributes
             var modal = $(this)

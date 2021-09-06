@@ -25,7 +25,7 @@
 		 			<div class="row">
 						<div class="col-lg-6">
 							<h3>Convocation PDF
-							<a href="#" title="Prévisualiser PDF" class="btn btn-danger ml-2" id="pdfPreview"><i class="fa fa-eye"></i></a>
+							<a href="#" title="Prévisualiser PDF" class="btn btn-danger ms-2" id="pdfPreview"><i class="fa fa-eye"></i></a>
 							</h3>
 							<form id="formPdfConvoc" th:action="@{/{ctx}/manager/tagCheck/pdfConvocation(ctx=${eContext})}" method="post">
 								<input type="hidden" value="" name="htmltemplate" id="htmltemplate"></form>
@@ -39,7 +39,7 @@
 								<p class="mb-0"><strong>Pour :</strong> <span th:text="${tagChecks}"></span><span th:text="${all}? 'Tous' : ''"></span></p>
 								<form th:action="@{/{ctx}/manager/tagCheck/sendConvocation(ctx=${eContext})}" method="post" id="sendConvocation">
 				                    <div class="form-group row mb-0">
-				                        <label for="subject" class="col-form-label col-lg-2">Sujet : </label>
+				                        <label for="subject" class="form-label col-lg-2">Sujet : </label>
 				                        <div class="col-lg-10">
 				                        	<input type="text" th:id="subject" th:name="subject" class="form-control" required="required" th:value="${sujetMailConvocation}">
 				                        </div>

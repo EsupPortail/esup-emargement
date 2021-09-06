@@ -6,7 +6,7 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
            	<div class="card">
-		    	<div class="card-header"><h2 >Session</h2></div>
+           		<div class="card-header"><h2 >Session</h2></div>
   				<div class="card-body">
 					<dl class="row">
 			            <dt class="col-sm-2">Date</dt>
@@ -61,50 +61,48 @@
 			            <dt class="col-sm-2">Répartition</dt>
 			            <dd class="col-sm-10">
 							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
-							<i class="fa fa-exchange-alt text-primary mr-2"></i></a>
-							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  mr-2"></i>
+							<i class="fa fa-exchange-alt text-primary me-2"></i></a>
+							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-exchange-alt disabled  me-2"></i>
 							<span class='minusSize' th:text="${sessionEpreuve.nbDispatchTagCheck + ' / ' + sessionEpreuve.nbInscritsSession}"></span>
 			            </dd>
 			            <dt class="col-sm-2">Présence</dt>
 			            <dd class="col-sm-10">
 							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center">
-							<i class="fa fa-id-badge text-success  mr-2"></i></a>
-							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled mr-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
+							<i class="fa fa-id-badge text-success  me-2"></i></a>
+							<i th:if="${sessionEpreuve.isSessionEpreuveClosed}" class="fa fa-id-badge disabled me-2"></i><span class='minusSize' th:text="${sessionEpreuve.nbPresentsSession + 
 								' / ' + sessionEpreuve.nbInscritsSession}"></span>
 			            </dd>
 			            <dt class="col-sm-2">Commentaire</dt>
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.comment}"></dd>			            
 			            <dt class="col-sm-2">Actions</dt>
 			            <dd class="col-sm-10">
-							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
-							<a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${sessionEpreuve.id }"  class="center ml-2"><i class="fa fa-trash text-danger"></i></a>
+							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2"><i class="fa fa-pen text-warning"></i></a>
+							<a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }"  class="center ms-2"><i class="fa fa-trash text-danger"></i></a>
 							<div class="modal modal-warning fade in" th:id="modal-warning+${sessionEpreuve.id}" >
 							    <div class="modal-dialog">
 							        <div class="modal-content">
 							        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
 								        	<input type="hidden" name="_method" value="delete" />
 								            <div class="modal-header">
-								                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-										          <span aria-hidden="true">&times;</span>
-										        </button>
+								                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 								            </div>
 								            <div class="modal-body">
 								                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
 								                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
 								            </div>
 								            <div class="modal-footer">
-								                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+								                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 								                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 								            </div>
 							            </form>
 							        </div>
 							    </div>
 							</div>
-							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 								onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
-							<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+							<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 								onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
-							<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ml-2" 
+							<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 								onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>								
 			            </dd>
 					</dl>

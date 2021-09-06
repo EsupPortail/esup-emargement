@@ -6,17 +6,20 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 			<div class="card">
-  				<div class="card-body">
-	    			<div class="row">
-			    		<div class="col-lg-2">
+				<div class="card-header">
+					<div class="row">
+			    		<div class="col">
 					    	<h2>Evènements</h2>
 					    </div>
-					    <div class="col-lg-10">
-						    <div class="row mt-3 ml-2 float-right">
-						    	<a th:href="@{/{ctx}/manager/event?form(ctx=${eContext})}" class="btn btn-primary ml-2" title="Ajouter un évènement"><i class="fa fa-plus fa-lg"></i></a>
-						    </div>
-					    </div> 
-	    			</div>
+					    <div class="col">
+							<div class="col-auto">
+								<a th:href="@{/{ctx}/manager/event?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter un évènement">
+								<i class="fa fa-plus fa-lg"></i></a>
+							</div>								
+					    </div>
+					</div>
+				</div>
+  				<div class="card-body">
 					<table class="table table-hover table-striped table-bordered">
 						<thead class ="center sticky-top">
 							<tr>
@@ -37,26 +40,24 @@
 								<td th:text="${#dates.format(event.dateCreation, 'dd-MM-yyyy')}" class="d-none d-xl-table-cell"></td>
 								<td class ="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${event.isEnabled} ? 'fa fa-check text-success' : 'fa fa-times text-danger'"></i></td>
 								<td th:text="${event.commentaire}" class="d-none d-xl-table-cell"></td>
-								<td><a th:href="@{/{ctx}/manager/event/{id}(id=${event.id},ctx=${eContext})}" data-toggle="modal" data-target="#modal-event" 
-								th:attr="data-whatever=${event.nom}" th:id="${'event-'+ event.id}" class="center"><i class="fa fa-eye text-primary"></i></a>
-								<a th:href="@{/{ctx}/manager/event/{id}?form(id=${event.id},ctx=${eContext})}" class="center ml-2"><i class="fa fa-pen text-warning"></i></a>
-								<a data-toggle="modal" th:attr="data-target='#modal-warning'+${event.id }"  class="center ml-2"><i class="fa fa-trash text-danger"></i></a>
+								<td><a th:href="@{/{ctx}/manager/event/{id}(id=${event.id},ctx=${eContext})}" data-bs-toggle="modal" data-bs-target="#modal-event" 
+								th:attr="data-bs-whatever=${event.nom}" th:id="${'event-'+ event.id}" class="center"><i class="fa fa-eye text-primary"></i></a>
+								<a th:href="@{/{ctx}/manager/event/{id}?form(id=${event.id},ctx=${eContext})}" class="center ms-2"><i class="fa fa-pen text-warning"></i></a>
+								<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${event.id }"  class="center ms-2"><i class="fa fa-trash text-danger"></i></a>
 									<div class="modal fade in" th:id="modal-warning+${event.id}" >
 									    <div class="modal-dialog">
 									        <div class="modal-content">
 									        	<form id="command" th:action="@{/{ctx}/manager/event/{id}(id=${event.id},ctx=${eContext})}" method="POST">
 										        	<input type="hidden" name="_method" value="delete" />
 										            <div class="modal-header">
-										                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-												          <span aria-hidden="true">&times;</span>
-												        </button>
+										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 										            </div>
 										            <div class="modal-body">
 										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cet évènement: <br />
 										                	 <span th:text="${event.nom}" class="font-weight-bold"></span> ?</div>
 										            </div>
 										            <div class="modal-footer">
-										                <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Fermer</button>
+										                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
 										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
 										            </div>
 									            </form>
@@ -72,14 +73,12 @@
 					        <div class="modal-content">
 								<div class="modal-header">
 									<h5 class="modal-title"></h5>
-					                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							          <span aria-hidden="true">&times;</span>
-							        </button>
+					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					            </div>
 					            <div class="modal-body" id="modal-body-event">
 					            </div>
 								 <div class="modal-footer">
-					                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Fermer</button>
+					                <button type="button" class="btn btn-secondary pull-left" data-bs-dismiss="modal">Fermer</button>
 					            </div>
 					        </div>
 					    </div>

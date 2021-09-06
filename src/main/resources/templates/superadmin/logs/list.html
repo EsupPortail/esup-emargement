@@ -6,19 +6,21 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
          	<div class="card">
+	    		<div class="card-header">
+	    			<div class="row">
+	    				<div class="col-lg-2">
+	    					<h2>Logs</h2>
+	    				</div>
+						<div class="col">
+						    <div class="row float-end">
+						    	<div class="col-auto">
+							    	<button class="btn btn-info ml-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un log"><i class="fas fa-search"></i></button>
+						    	</div>
+						    </div>
+					    </div>
+			 		</div>
+			 	</div>
   				<div class="card-body">
-		    		<div class="card-header">
-		    			<div class="row">
-		    				<div class="col-lg-2">
-		    					<h2>Logs</h2>
-		    				</div>
-						    <div class="col-lg-10">
-							    <div class="row mt-3 ml-2 float-right">
-							    	<button class="btn btn-info ml-1" type="button" data-toggle="collapse" data-target="#searchCollapse" title="Rechercher un log"><i class="fas fa-search"></i></button>
-							    </div>
-						    </div> 
-				 		</div>
-				 	</div>
 		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 		    			<div class="form-group alert alert-dark pt-1 pb-1">
 							<form th:action="@{/{ctx}/superadmin/logs/search(ctx=${eContext})}" th:object="${logObject}" method="post" >
@@ -27,11 +29,12 @@
 										<div class="row">
 											<div class="col-lg-2">
 												<label  class="mb-0">Date</label>
-												<input type="date" name="stringDate" th:value="${stringDate}" class="form-control"/>
+												<input type="date" id="stringDate" name="stringDate" th:value="${#dates.format(stringDate,'yyyy-MM-dd')}" 
+													class="form-control"/>
 											</div>
 											<div class="col-lg-2">
 												<label class="mb-0">Eppn</label>
-												<select th:field="*{eppn}" class="custom-select">
+												<select th:field="*{eppn}" class="form-select">
 													<option value="">----choisir----</option>
 													<option th:each="eppn : ${eppns}"
 													th:value="${eppn}" th:text="${eppn}"></option>
@@ -39,7 +42,7 @@
 											</div>
 											<div class="col-lg-2">
 												<label class="mb-0">Action</label>
-												<select th:field="*{action}"  class="custom-select">
+												<select th:field="*{action}"  class="form-select">
 													<option value="">----choisir----</option>
 													<option th:each="action : ${actions}"
 													th:value="${action}" th:text="${action}"></option>
@@ -47,7 +50,7 @@
 											</div>
 											<div class="col-lg-2">
 												<label class="mb-0">Code</label>
-												<select th:field="*{retCode}"class="custom-select">
+												<select th:field="*{retCode}"class="form-select">
 													<option value="">----choisir----</option>
 													<option value="SUCCESS">SUCCESS</option>
 													<option value="FAILED">FAILED</option>
@@ -55,7 +58,7 @@
 											</div>
 											<div class="col-lg-2">
 												<label class="mb-0">Type</label>
-												<select th:field="*{type}" class="custom-select">
+												<select th:field="*{type}" class="form-select">
 													<option value="">----choisir----</option>
 													<option value="USER">USER</option>
 													<option value="SYSTEM">SYSTEM</option>
@@ -63,7 +66,7 @@
 											</div>
 											<div class="col-lg-2">
 												<label class="mb-0">Eppn cible</label>
-												<select th:field="*{cibleLogin}" class="custom-select">
+												<select th:field="*{cibleLogin}" class="form-select">
 													<option value="">----choisir----</option>
 													<option th:each="cible : ${cibleLogins}"
 													th:value="${cible}" th:text="${cible}"></option>
