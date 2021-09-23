@@ -563,30 +563,41 @@ function chartPieorDoughnut(data, id, type, option, datalabels){
 							weight: 'bold'
 						},
 						formatter: Math.round
-					}
-				},
-    			tooltips: {
+					},
+    			tooltip: {
     				enabled: true,
-    				callbacks: {
-	                       label: function(tooltipItem, data) {
-	                           var dataset = data.datasets[tooltipItem.datasetIndex];
-	                         var total = dataset.data.reduce(function(previousValue, currentValue, currentIndex, array) {
-	                           return previousValue + currentValue;
-	                         });
-	                         var currentValue = dataset.data[tooltipItem.index];
-	                         var percentage = Math.floor(((currentValue/total) * 100)+0.5);         
-	                         return data.labels[tooltipItem.index] + " : " + percentage + "% (" + currentValue + ")";
-	                       }
-	                   }
-
+                    callbacks: {
+                        label: function(context){
+                        	let total1 = context.dataset.data.reduce((x, y) => x + y)
+                        	var currentValue = context.parsed;
+                        	var percentage = ((currentValue / total1) * 100).toFixed(1);
+                        	var total = 0;
+                            var label = ' ' + context.label || '';
+                            if (label) {
+                                label += ' : ';
+                            }
+                            label += currentValue + " (" + percentage + " %)";
+                            
+                            return label;
+                        }     	
+                    }
+    			}
     			}
     		}
-    	});   
- 	} 	
+     	});   
+    } 	
 }
 
 function multiChartStackBar(allData, id, start, transTooltip, formatDate, scaleType){
 	if(document.getElementById(id) != null){
+		const footer = (tooltipItems) => {
+			  let sum = 0;
+
+			  tooltipItems.forEach(function(tooltipItem) {
+			    sum += tooltipItem.parsed.y;
+			  });
+			  return 'Total: ' + sum;
+		};
 		var dataSets = [];
     	var k = 0;
     	for(key in allData[1]) { 	
@@ -605,51 +616,35 @@ function multiChartStackBar(allData, id, start, transTooltip, formatDate, scaleT
     	myBar = new Chart(ctx, {
     		type: 'bar',
     		data: barChartData,
-    		options: {responsive : true,
+    		options: {
+    			responsive : true,
+    			interaction: {
+    	            mode: 'index'
+    	        },
     			legend: {
     				display: true
     			},
-    	        scales: {
-    	            y: {
-    	                ticks: {
-    	                    beginAtZero:true
-    	                    
-    	                },
-    	                type: scaleType,
-    	                stacked: true
-    	            },
-    	            x: {
-    	                stacked: true
-    	            }
-    	        },
-                tooltips: {
-                	mode: 'label',
-                	bodyFontSize :  15,
-                	titleFontSize: 16,
-                	footerFontSize: 15,
-                	callbacks: {
-                        afterTitle: function() {
-                            window.total = 0;
-                        },
-                        label: function (t, e) {
-                        	if( t.yLabel!=0){
-	                            var a = e.datasets[t.datasetIndex].label || '';
-	                            var valor = parseInt(e.datasets[t.datasetIndex].data[t.index]);
-	                            window.total += valor;
-	                            if(transTooltip != null){
-	                            	b = a.toString().replace(/_/g,"");
-	                            	msg = transTooltip + b.charAt(0).toUpperCase() + b.slice(1).toLowerCase();
-	                            	a = messages[msg];
-	                            }
-	                            return a + ': ' + t.yLabel 
-                        	}
-                        },
-                        footer: function() {
-                            return "TOTAL: " + window.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-                        }
-                	}
-                }
-    	   }
+    			tooltip: {
+    				callbacks: {
+    					footer: footer,
+    				}
+    			},
+    			scales: {
+    				x: {
+    					stacked: true,
+    				},
+    				y: {
+    					stacked: true
+    				}
+    			},
+    	        plugins: {
+    	        	tooltip: {
+    	        		callbacks: {
+        					footer: footer,
+        				}
+	                }
+    	        }
+    		}
     	});
 	}	
 }
@@ -692,30 +687,19 @@ function chartBar(data1, label1, id, transTooltip, formatDate, data2, label2){
     	myBar = new Chart(ctx, {
     		type: 'bar',
     		data: barChartData,
-    		options: {responsive : true,
-    			legend: {
-    				display: false
-    			},
-    			tooltips: {
-    				bodyFontSize : 22,
-    				callbacks: {
-                        title: function (t, e) {
-                        	tootipTitle = listTooltipLabels[t[0].index];
-                        	if(transTooltip != null){
-                        		b = tootipTitle.replace(/_/g,"");
-                        		msg = transTooltip + b.charAt(0).toUpperCase() + b.slice(1).toLowerCase(); 
-                        		tootipTitle = messages[msg];
-                        	}
-                        	return tootipTitle;
-                        }
-                	}
+    		options: {
+    			responsive : true,
+    			plugins: {
+	    			legend: {
+	    				display: false
+	    			}
     			},
     	        scales: {
-    	            yAxes: [{
+    	            y: {
     	                ticks: {
     	                    beginAtZero:true
     	                }
-    	            }]
+    	            }
     	        }
     		}
     	});
