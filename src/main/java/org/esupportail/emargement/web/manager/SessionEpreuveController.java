@@ -142,7 +142,10 @@ public class SessionEpreuveController {
 	public String list(Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "dateExamen")  Pageable pageable, @RequestParam(value="seNom", required = false) String seNom, 
 			@RequestParam(value="anneeUniv", required = false) String anneeUniv){
 		
-		if(anneeUniv==null) {
+		
+		if(model.getAttribute("currentAnneeUniv") != null) {
+			anneeUniv = (String) model.getAttribute("currentAnneeUniv");
+		}else if(anneeUniv==null) {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
 		}
 		
@@ -403,7 +406,7 @@ public class SessionEpreuveController {
     }
     
     @GetMapping("/manager/sessionEpreuve/close/{id}")
-    public String closeSession(@PathVariable String emargementContext, @PathVariable("id") Long id) throws IOException {
+    public String closeSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) throws IOException {
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	boolean isClosed = (sessionEpreuve.getIsSessionEpreuveClosed())? false : true;
@@ -411,6 +414,8 @@ public class SessionEpreuveController {
     	sessionEpreuve.setIsSessionEpreuveClosed(isClosed);
     	sessionEpreuveRepository.save(sessionEpreuve);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	
+    	redirectAttributes.addFlashAttribute("currentAnneeUniv", sessionEpreuve.getAnneeUniv());
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
     	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + msg, ldapService.getEppn(auth.getName()), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);

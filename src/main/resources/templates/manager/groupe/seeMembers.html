@@ -6,51 +6,51 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 	        <div class="card">
+	        	<form th:action="@{/{ctx}/manager/groupe/removeTagChecks/{id}(id=${groupe.id},ctx=${eContext})}" method="post">
 				<div class="card-header">
-					<div class="row">
-						<div class="col">
-							<h2>Membres <span class="badge badge-secondary badge-size" th:text="${count}"></span></h2>
-							<span class="text-muted h5" th:text="${groupe.nom}"></span>
-						</div>
-						<div class="col">
-							<div  class="row float-end">
-								<div class="col-auto">
-									<div class="row mt-3 ml-2 float-right">
-										<button	class="btn btn-danger ml-2" title="Supprimer les inscrits du groupe" 
-										onclick="return confirm('Confirmez-vous la suppression du groupe les inscrits sélectionnés?');"><i class="fa fa-trash"></i></button>
+						<div class="row">
+							<div class="col">
+								<h2>Membres <span class="badge badge-secondary badge-size" th:text="${count}"></span></h2>
+								<span class="text-muted h5" th:text="${groupe.nom}"></span>
+							</div>
+							<div class="col">
+								<div  class="row float-end">
+									<div class="col-auto">
+										<div class="row mt-3 ml-2 float-right">
+											<button	class="btn btn-danger ml-2" title="Supprimer les inscrits du groupe" 
+											onclick="return confirm('Confirmez-vous la suppression du groupe les inscrits sélectionnés?');"><i class="fa fa-trash"></i></button>
+										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</div>	        
-	        	<div class="card-body">
-	        		<form th:action="@{/{ctx}/manager/groupe/removeTagChecks/{id}(id=${groupe.id},ctx=${eContext})}" method="post">
-					<div class="alert alert-danger"  th:if="${#ctx.containsVariable('error')}"><span>Vous devez sélectionner des personnes !!</span></div>
-					<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
-						<thead class="sticky-top">
-							<tr>
-								<th scope="col"><input type="checkbox" id="selectall" /></th>
-								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
-								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
-								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>									
-								<th scope="col" class="hiddenBlock">Type</th>
-								<th scope="col">Identifiant</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.personOrGuestId}" > 
-								<td><input type="checkbox" th:value="${tagCheck.personOrGuestId + '@@' + tagCheck.type}" name="case"  class="case" /></td>
-								<td class="hiddenBlock"  th:text="${tagCheck.nom}"></td>
-								<td class="hiddenBlock"  th:text="${tagCheck.prenom}"></td>
-								<td class="hiddenBlock"  th:text="${tagCheck.numEtu}"></td>									
-								<td class="hiddenBlock"  th:text="#{person.type  + '.' + ${tagCheck.type}}"></td>
-								<td class="hiddenBlock"  th:text="${tagCheck.eppnOrEmail}"></td>
-							</tr>
-						</tbody>
-					</table>
+					</div>	        
+		        	<div class="card-body">
+						<div class="alert alert-danger"  th:if="${#ctx.containsVariable('error')}"><span>Vous devez sélectionner des personnes !!</span></div>
+						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
+							<thead class="sticky-top">
+								<tr>
+									<th scope="col"><input type="checkbox" id="selectall" /></th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>									
+									<th scope="col" class="hiddenBlock">Type</th>
+									<th scope="col">Identifiant</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.personOrGuestId}" > 
+									<td><input type="checkbox" th:value="${tagCheck.personOrGuestId + '@@' + tagCheck.type}" name="case"  class="case" /></td>
+									<td class="hiddenBlock"  th:text="${tagCheck.nom}"></td>
+									<td class="hiddenBlock"  th:text="${tagCheck.prenom}"></td>
+									<td class="hiddenBlock"  th:text="${tagCheck.numEtu}"></td>									
+									<td class="hiddenBlock"  th:text="#{person.type  + '.' + ${tagCheck.type}}"></td>
+									<td class="hiddenBlock"  th:text="${tagCheck.eppnOrEmail}"></td>
+								</tr>
+							</tbody>
+						</table>
+						</div>
 					</form>
-					</div>
 				</div>
 			</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

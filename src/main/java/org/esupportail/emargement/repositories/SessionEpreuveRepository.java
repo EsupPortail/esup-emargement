@@ -36,6 +36,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenLessThan(Date date);
 	
+	List<SessionEpreuve> findAllByDateArchivageIsNullOrderByNomSessionEpreuve();
+	
 	List<SessionEpreuve> findAByAnneeUnivAndDateArchivageIsNotNull(String anneeUniv);
 	
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);

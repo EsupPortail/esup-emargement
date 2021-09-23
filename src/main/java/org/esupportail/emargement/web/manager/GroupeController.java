@@ -208,7 +208,7 @@ public class GroupeController {
     		type= "user";
     	}else if("session".equals(tab)) {
     		type= "session";
-        	List<SessionEpreuve> allSessionEpreuves = sessionEpreuveRepository.findAll();
+        	List<SessionEpreuve> allSessionEpreuves = sessionEpreuveRepository.findAllByDateArchivageIsNullOrderByNomSessionEpreuve();
         	sessionEpreuveService.addNbInscrits(allSessionEpreuves);
         	uiModel.addAttribute("allSessionEpreuves",  allSessionEpreuves);
     	}else if("groupe".equals(tab)) {

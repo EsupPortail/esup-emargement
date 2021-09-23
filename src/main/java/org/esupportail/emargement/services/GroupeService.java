@@ -181,7 +181,7 @@ public class GroupeService {
     		appUser.setType("ext");
     		appUsers.add(appUser);
     	}
-    	appUsers.sort(Comparator.comparing(AppUser::getNom));
+    	appUsers.sort(Comparator.comparing(AppUser::getNom, Comparator.nullsFirst(Comparator.naturalOrder())));
 
     	return appUsers;
 	}
