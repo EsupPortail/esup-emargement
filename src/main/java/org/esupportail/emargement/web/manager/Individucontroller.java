@@ -22,9 +22,9 @@ import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.TagCheckerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -76,9 +76,9 @@ public class Individucontroller {
 	}
 	
 	@GetMapping(value = "/manager/individu")
-	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
+	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", 
+	value="eppnTagChecker") String eppnTagChecker, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1){
 		if(!identifiantTagCheck.isEmpty()) {
-			Pageable p1 = PageRequest.of(0, 10, Sort.by("sessionEpreuve"));
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
 				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(identifiantTagCheck, p1);
@@ -86,14 +86,12 @@ public class Individucontroller {
 			}else {
 				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, p1);
 			}
-			
 			model.addAttribute("tagChecksPage", pTagChecks);
 			if(!pTagChecks.isEmpty()) {
 				model.addAttribute("individu", pTagChecks.getContent().get(0));	
 			}
 		}else if(!eppnTagChecker.isEmpty()) {
-			Pageable p2 = PageRequest.of(0, 10, Sort.by("userApp"));
-			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, p2);
+			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, p1);
 			tagCheckerService.setNomPrenom4TagCheckers(pTagCheckers.getContent());
 			model.addAttribute("tagCheckersPage", pTagCheckers);
 			if(!pTagCheckers.isEmpty()) {

@@ -138,9 +138,7 @@
 	            </div>
 	            <div class="alert alert-danger  alert-dismissible fade show" th:if="${msgError != null}">
 	            	<span class="fw-bold"  th:text="${msgError}"></span> appartient au groupe des personnes non autorisées.
-	            	<button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
-    					<span aria-hidden="true">&times;</span>
- 					</button>
+	            	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
  				</div>
 	            <div th:if="${isSessionLibre and isCapaciteFull}" class="alert alert-dark fw-bold">La capacité maximale du lieu a été atteinte!! Les nouvelles personnes qui badgeront seront rejetées.
 						</div>		    	
@@ -152,7 +150,7 @@
 							<table class="table table-hover table-striped table-bordered table-sm"  data-sticky-header-offset-y="true">
 								<thead class="sticky-top">
 									<tr>
-										<th scope="col"><a class="sorted">Personne</a></th>
+										<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
 										<th scope="col" class="center" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Heure</a></th>
@@ -222,9 +220,7 @@
 							    <div class="modal-content">
 							      <div class="modal-header">
 							        <h5 class="modal-title">Procuration</h5>
-							        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-							          <span aria-hidden="true">&times;</span>
-							        </button>
+							        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 							      </div>
 							      <div class="modal-body">
 									<div class="alert alert-info text-center">

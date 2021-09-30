@@ -102,21 +102,21 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                         var valueNumEtu = "";
                         data.forEach(function(value, key) {
                             if (id == "searchTagCheck" || id == "searchUserApp") {
-                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
+                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                 list.push({
                                     label: labelValue,
                                     value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
                                 });
                             }else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
-                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Prénom : </strong>" + value.prenom + "<strong class='ml-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
-                                + "<strong class='ml-2'>Type : </strong>" + value.typeObject;
+                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
+                                + "<strong class='ms-2'>Type : </strong>" + value.typeObject;
                                 list.push({
                                     label: labelValue,
                                     value: value.identifiant + "//" + value.nom + "//" + value.prenom + valueNumEtu
                                 });
                             }
                             else if (id == "searchLocation") {
-                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ml-2'>Site : </strong>" + value.campus.site + "<strong class='ml-2'>Adresse : </strong>" +
+                                var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Adresse : </strong>" +
                                     value.adresse;
                                 list.push({
                                     label: labelValue,
@@ -126,7 +126,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                 var realDate = value.dateExamen.substring(0, 10);
                                 var splitDate = realDate.split("-");
                                 var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
-                                var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ml-2'>Site : </strong>" + value.campus.site + "<strong class='ml-2'>Date : </strong>" +
+                                var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Date : </strong>" +
                                     frDate;
                                 list.push({
                                     label: labelValue,
@@ -136,18 +136,18 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                 list.push(value);
                             } else {
                                 if (value.numEtudiant != null) {
-                                    labelNumEtu = "<strong class='ml-2'>N° Identifiant : </strong>" + value.numEtudiant;
+                                    labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numEtudiant;
                                     valueNumEtu = "//" + value.numEtudiant
                                 }
                                 if (value.username != null) {
-                                	 var labelValue = "<strong>Individu: </strong>" + value.username + " " + value.prenom + "<strong class='ml-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
+                                	 var labelValue = "<strong>Individu: </strong>" + value.username + " " + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                     list.push({
                                         label: labelValue,
                                         value: value.eppn + "//" + value.username + "//" + value.prenom + valueNumEtu
                                     });
                                 }
                                 if (value.numIdentifiant != null) {
-                                    labelNumEtu = "<strong class='ml-2'>N° Identifiant : </strong>" + value.numIdentifiant;
+                                    labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numIdentifiant;
                                     valueNumEtu = "//" + value.numEtudiant
                                 }
                             }

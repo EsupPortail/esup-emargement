@@ -30,13 +30,13 @@
 						<table class="table table-hover table-striped table-bordered" id="tableTagChecks">
 							<thead class="sticky-top">
 								<tr>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Session</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Groupe</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve">Date</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Session</a></th>
+									<th scope="col">Groupe</th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
 									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
 									<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
-									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Repartition</a></th>
+									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Repartition</a></th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
 									<th scope="col" class="center">Voir</th>
@@ -50,15 +50,15 @@
 									</td>
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-																			<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
+									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>
+									<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 												<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
 												<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 												<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 												<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 											 </span>
-										</td>
-									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
+									</td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
@@ -77,9 +77,9 @@
 							<thead>
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Session</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.campus">Site</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location.nom">Lieu</a></th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location.campus.site">Site</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve.dateExamen">Date</a></th>
 									<th scope="col" class="center">Voir</th>
 								</tr>
 							</thead>
