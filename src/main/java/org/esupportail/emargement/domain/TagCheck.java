@@ -68,6 +68,8 @@ public class TagCheck implements ContextSupport {
     
     private Boolean isUnknown = false;
     
+    private Boolean isExempt = false;
+    
     @ManyToOne
     private Person proxyPerson;
     
@@ -228,5 +230,12 @@ public class TagCheck implements ContextSupport {
 	public void setGuest(Guest guest) {
 		this.guest = guest;
 	}
-	
+
+	public Boolean getIsExempt() {
+		return isExempt;
+	}
+
+	public void setIsExempt(Boolean isExempt) {
+		this.isExempt = isExempt;
+	}
 }

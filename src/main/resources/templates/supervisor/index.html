@@ -175,7 +175,8 @@
 											<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 											th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 										</td>
-										<td class="center" >
+										<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
+										<td th:unless="${tagCheck.isExempt}" class="center" >
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 
 											th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate!=null}"  type="checkbox" class="presenceCheck" name="presenceCheck" 
@@ -185,7 +186,7 @@
 											th:value="${'' + ',' + sessionLocation.id + ',' + tagCheck.guest.email}">
 											<input th:if="${tagCheck.guest != null && tagCheck.tagDate!=null}"  type="checkbox" class="presenceCheck" name="presenceCheck" 
 											th:value="${'' + ',' + sessionLocation.id + ',' + tagCheck.guest.email}" 
-												th:disabled="${tagCheck.isUnknown or isSessionLibre}" checked="checked" >			
+												th:disabled="${tagCheck.isUnknown or isSessionLibre}" checked="checked" >	
 										</td>
 										<td class="center"  th:if="${sessionEpreuve.isProcurationEnabled}">
 										<span th:if="${tagCheck.person != null}" >

@@ -29,7 +29,9 @@
 			            <dt class="col-sm-2">N° identifiant</dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.person != null and tagCheck.person.numIdentifiant != null) ? tagCheck.person.numIdentifiant : ''}"></dd>
 			            <dt class="col-sm-2">Temps aménagé</dt>
-			            <dd class="col-sm-10" th:text="${tagCheck.isTiersTemps}"></dd>
+			            <dd class="col-sm-10"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></dd>	
+						<dt class="col-sm-2">Exempt</dt>
+			            <dd class="col-sm-10"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></dd>			            
 			            <dt class="col-sm-2">Envoi convocation</dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.dateEnvoiConvocation != null) ? #dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm') : ''}"></dd>
 			            <dt class="col-sm-2">Emargement</dt>

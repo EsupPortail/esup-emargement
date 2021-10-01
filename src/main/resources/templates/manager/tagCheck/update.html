@@ -47,6 +47,16 @@
 							    </div>
 						    </div>
 						</div>
+						<div class="row mb-3"  th:if="${!tagCheck.sessionEpreuve.isSessionLibre}">
+	                    	<label class="col-lg-2 form-check-label" th:for="isExempt">
+						        Exempt
+						    </label>
+						    <div class="col-lg-10">	
+							    <div class="form-check">
+							      <input class="form-check-input" type="checkbox" th:field="*{isExempt}">
+							    </div>
+						    </div>
+						</div>
 	                    <div class="row mb-3">
 	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
 	                        <div class="col-lg-10">	

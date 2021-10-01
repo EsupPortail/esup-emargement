@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -397,6 +398,7 @@ public class SessionEpreuveService {
 	        		String prenom = "";
 	        		String identifiant = "";
 	        		String numIdentifiant = "";
+	        		String signature = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
@@ -413,7 +415,7 @@ public class SessionEpreuveService {
 	        		PdfPCell cell4 = new PdfPCell(new Phrase(numIdentifiant)); cell4.setMinimumHeight(30);
 	        		PdfPCell cell5 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell5.setMinimumHeight(30);
 	        		PdfPCell cell6 = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell6.setMinimumHeight(30);
-	        		PdfPCell cell7 = new PdfPCell(new Phrase("")); cell7.setMinimumHeight(30);
+	        		PdfPCell cell7 = new PdfPCell(new Phrase(signature)); cell7.setMinimumHeight(30);
 	        		
 	        		
 	    	        table.addCell(cell1);

@@ -94,6 +94,7 @@
 									<th scope="col" class="d-none d-xl-table-cell">Groupe</th>					
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>							
 									<th scope="col" class="d-none d-xl-table-cell text-center" >Temps aménagé</th>
+									<th scope="col" class="d-none d-xl-table-cell text-center" >Exempt</th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
@@ -132,7 +133,8 @@
 									</td>
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}"></td>
-									<td class="text-center d-none d-xl-table-cell" ><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
+									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" 

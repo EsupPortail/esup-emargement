@@ -18,6 +18,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -848,9 +849,9 @@ public class TagCheckService {
 		if ("PDF".equals(type)) {
 			int nnColumns = 0;
 			if(anneeUniv != null) {
-				nnColumns = 12;
+				nnColumns = 13;
 			}else {
-				nnColumns = 10 ;
+				nnColumns = 11 ;
 			}
 			
 		   	PdfPTable table = new PdfPTable(nnColumns);
@@ -888,7 +889,8 @@ public class TagCheckService {
 	        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header8 = new PdfPCell(new Phrase("Lieu attendu")); header8.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header9 = new PdfPCell(new Phrase("Lieu badgé")); header9.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header10 = new PdfPCell(new Phrase("Temps aménagé")); header10.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header10 = new PdfPCell(new Phrase("Exempt")); header10.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header11 = new PdfPCell(new Phrase("Temps aménagé")); header11.setBackgroundColor(BaseColor.GRAY);
 	        
 	        if(anneeUniv != null) {
 		        table.addCell(header0);
@@ -904,6 +906,7 @@ public class TagCheckService {
 	        table.addCell(header8);
 	        table.addCell(header9);
 	        table.addCell(header10);
+	        table.addCell(header11);
 	        
 	        if(!list.isEmpty()) {
 	        	for(TagCheck tc : list) {
@@ -918,6 +921,7 @@ public class TagCheckService {
 	        		String identifiant = "";
 	        		String numIdentifiant = "";
 	        		String typeEmargement = "";
+	        		String isExempt = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
@@ -985,7 +989,10 @@ public class TagCheckService {
 	        		dateCell = new PdfPCell(new Paragraph(badged));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(tiersTemps));
+	        		dateCell = new PdfPCell(new Paragraph(isExempt));
+	        		dateCell.setBackgroundColor(b);
+	                table.addCell(dateCell);
+	                dateCell = new PdfPCell(new Paragraph(tiersTemps));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        	}
@@ -1029,7 +1036,7 @@ public class TagCheckService {
 
 				//create a csv writer
 				CSVWriter writer = new CSVWriter(response.getWriter()); 
-				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé", "Tiers-temps"};
+				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé", "Exempt", "Tiers-temps"};
 				writer.writeNext(headers);
 				for(TagCheck tc : list) {
 					List <String> line = new ArrayList<String>();
@@ -1044,6 +1051,7 @@ public class TagCheckService {
 	        		String prenom = "";
 	        		String identifiant = "";
 	        		String numIdentifiant = "";
+	        		String isExempt = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
@@ -1081,6 +1089,7 @@ public class TagCheckService {
 					line.add(typeEmargement);
 					line.add(attendu);
 					line.add(badged);
+					line.add(isExempt);
 					line.add(tiersTemps);
 					writer.writeNext(line.toArray(new String[1]));
 				}

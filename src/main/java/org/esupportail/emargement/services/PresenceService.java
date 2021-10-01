@@ -10,6 +10,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
@@ -185,6 +186,9 @@ public class PresenceService {
 	        			presence = "Présent";
 	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
 	        			b = new BaseColor(19, 232, 148, 50);
+	        		}
+	        		if(BooleanUtils.isTrue(tc.getIsExempt())) {
+	        			presence = "Exempt";
 	        		}
 	        		String type = "";
 	        		if(tc.getTypeEmargement()!=null) {

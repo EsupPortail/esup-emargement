@@ -34,6 +34,7 @@
 									<th scope="col">Groupe</th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
 									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
+									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Exempté</th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
 									<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
 									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Repartition</a></th>
@@ -49,7 +50,8 @@
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
-									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
+									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
