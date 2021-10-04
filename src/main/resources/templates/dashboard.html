@@ -76,8 +76,8 @@
 									<tr>
 										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Date</a></th>
 										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Epreuve</a></th>
-										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
-										<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve.campus.site">Site</a></th>
+										<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
+										<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve.campus.site">Site</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="userApp">Voir</a></th>
 									</tr>
 								</thead>
@@ -85,8 +85,8 @@
 									<tr th:each="tagChecker : ${tagCheckerPage}">
 										<td th:text="${#dates.format(tagChecker.sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>
 										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
-										<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
-										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.campus.site}"></td>
+										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
+										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.sessionEpreuve.campus.site}"></td>
 										<td class="center"><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${tagChecker.sessionLocation.sessionEpreuve.id},ctx=${eContext})}" ><i class="fa fa-eye text-primary"></i></a></td>
 									</tr>
 								</tbody>

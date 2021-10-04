@@ -51,11 +51,11 @@
 							<thead class ="center sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
+									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
 									<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.campus.site">Site</a></th>
 									<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Lieu</a></th>
-									<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
 									<th scope="col" class="d-none d-xl-table-cell">Convocation</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
@@ -66,9 +66,9 @@
 									<td th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}">Date</td>
 									<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></td>
-									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" ></td>
-									<td th:if="${tc.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
+									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
+									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
+									<td th:if="${tc.isExempt}" class="text-danger fw-bold text-center hiddenBlock">Exempt</td>
 									<td th:unless="${tc.isExempt}" class ="text-center hiddenBlock">
 										<span th:if="${tc.typeEmargement!=null}"
 											th:switch="${#strings.toString(tc.typeEmargement.name())}">

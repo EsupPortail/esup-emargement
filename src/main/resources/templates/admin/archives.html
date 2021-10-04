@@ -21,11 +21,11 @@
 									<tr>
 										<th scope="col">Année</th>
 										<th scope="col">Sessions</th>
-										<th scope="col">Première</th>
-										<th scope="col">Dernière</th>
+										<th scope="col" class="d-none d-xl-table-cell">Première</th>
+										<th scope="col" class="d-none d-xl-table-cell">Dernière</th>
 										<th scope="col">Date d'archivage</th>
-										<th scope="col">Archiveur</th>
-										<th scope="col">Inscrits archivés</th>
+										<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Archiveur</th>
+										<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Inscrits archivés</th>
 										<th scope="col">Actions</th>
 									</tr>
 								</thead>
@@ -33,11 +33,11 @@
 									<tr th:each="archive : ${archives}">
 										<td ><a th:href="@{/{ctx}/manager/sessionEpreuve?anneeUniv={annee}(annee=${archive.anneeUniv},ctx=${eContext})}" th:text="${archive.anneeUniv}"></a></td>
 										<td th:text="${archive.nbSessions}"></td>
-										<td th:text="${#dates.format(archive.firstDate, 'dd-MM-yyyy')}"></td>
-										<td th:text="${#dates.format(archive.lastDate, 'dd-MM-yyyy')}"></td>
+										<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.firstDate, 'dd-MM-yyyy')}"></td>
+										<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.lastDate, 'dd-MM-yyyy')}"></td>
 										<td th:text="${#dates.format(archive.dateArchivage, 'dd-MM-yyyy')}"></td>
-										<td th:text="${archive.loginArchivage}"></td>
-										<td th:text="${archive.nbAnonymousTagChecks + ' / ' +  archive.nbTagChecks}"></td>
+										<td th:text="${archive.loginArchivage}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
+										<td th:text="${archive.nbAnonymousTagChecks + ' / ' +  archive.nbTagChecks}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
 										<td class="row">
 											<form th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks == 0}" th:action="@{/{ctx}/admin/archives/export(ctx=${eContext})}" method="post">
 												<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />

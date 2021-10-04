@@ -18,7 +18,7 @@
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="key">Clé</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="description">Description</a></th>
-									<th scope="col">Valeur</th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Valeur</th>
 									<th class ="center" scope="col">Voir</th>
 								</tr>
 							</thead>
@@ -26,7 +26,7 @@
 								<tr th:each="help : ${helpPage}">
 									<td th:text="${help.key}"></td>
 									<td th:text="${help.description}" th:maxlength="4" class="d-none d-lg-table-cell d-xl-table-cell"></td>						
-									<td th:utext="${help.value}"></td>
+									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:utext="${help.value}"></td>
 									<td class ="center"><a th:href="@{/{ctx}/superadmin/help/{id}(id=${help.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/superadmin/help/{id}?form(id=${help.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ms-2"></i></a>
 										<!-- >a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${help.id }"><i class="fa fa-trash text-danger ms-2"></i></a-->
