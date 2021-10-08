@@ -10,6 +10,7 @@ import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.web.supervisor.SearchLongPollController;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,9 +49,12 @@ public class WsRestEsupNfcController {
     @Resource
     ContextService contextService;
     
+    @Resource
+    PresenceService presenceService;
+    
 	@Resource
 	LogService logService;
-
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	/**
@@ -114,5 +119,24 @@ public class WsRestEsupNfcController {
 			return new ResponseEntity<String>("Erreur de validation de présence", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@RequestMapping(value="/display",  method=RequestMethod.POST)
+	@ResponseBody
+	public String display(@RequestBody EsupNfcTagLog taglog, Model uiModel) {
+		String photo64 = presenceService.getBase64Photo(taglog);
+		String image ="";
+
+		try {
+			if(photo64 != null) {
+				image= "<h1>" + taglog.getFirstname() + " " + taglog.getLastname() + "</h1><p><img width='225' height='282' class='img-fluid img-thumbnail' alt='...' "
+			    		+ "src = 'data:image/jpeg;base64, " + photo64 + "' /></p>";
+			}
+		} catch (Exception e) {
+			log.info("Pas d'affichage d'image");
+		}
+		return image;
+	}
+	
+
 
 }

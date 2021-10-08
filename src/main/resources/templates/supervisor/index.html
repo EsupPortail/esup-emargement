@@ -71,7 +71,7 @@
 							</div>
 					    </div>
 					    <div class="col-xl-2 col-lg-3 col-md-1 col-sm-1">
-						<div class="btn-group-toggle float-end ms-1"  th:if="${isQrCodeEnabled}"
+						<div class="btn-group-toggle float-end ms-1"  th:if="${isQrCodeEnabled or isUserQrCodeEnabled}"
 							data-bs-toggle="buttons">
 							<label class="btn btn-secondary active"> <input
 								type="checkbox" class="btn-check" id="webCamCheck"

@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
@@ -22,6 +25,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -32,14 +36,29 @@ import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
+import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -80,6 +99,9 @@ public class PresenceService {
 	
     @Resource
     UserLdapRepository userLdapRepository;
+    
+    @Resource    
+    AppliConfigRepository appliConfigRepository;
 	
 	@Autowired
 	PersonRepositoryCustom personRepositoryCustom;
@@ -105,8 +127,19 @@ public class PresenceService {
 	@Resource
 	GroupeService groupeService;
 	
+	@Value("${emargement.wsrest.photo.prefixe}")
+	private String photoPrefixe;
+	
+	@Value("${emargement.wsrest.photo.suffixe}")
+	private String photoSuffixe;
+	
 	@Autowired
     private MessageSource messageSource;
+	
+    @Resource
+    AppliConfigService appliConfigService;
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
 		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
@@ -430,5 +463,44 @@ public class PresenceService {
     	}
 		
 		return isBlackListed;
+	}
+	
+	public String getBase64Photo(EsupNfcTagLog taglog) {
+		String photo64 = null;
+		String locationNom = taglog.getLocation();
+		String[] splitLocationNom = locationNom.split(" // "); 
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+		Context ctx = sessionEpreuve.getContext();
+		List<AppliConfig> list = appliConfigRepository.findAppliConfigByKeyAndContext(AppliConfigKey.ENABLE_PHOTO_ESUPNFCTAG.name(), ctx);
+		log.info(list.get(0).getValue());
+		if(!list.isEmpty() && list.get(0).getValue().equals("true")) {
+			String eppn = taglog.getEppn();
+			RestTemplate template = new RestTemplate();
+			String uri = null;
+			byte[] photo = null;
+			Boolean noPhoto = true;
+			HttpHeaders headers = new HttpHeaders();
+			ResponseEntity<byte[]> httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+			if(!"inconnu".equals(eppn)) {
+				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
+				MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<String, Object>();
+				HttpEntity<Object> request = new HttpEntity<Object>(multipartMap, headers);
+				uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
+					noPhoto = false;
+					httpResponse = template.exchange(uri, HttpMethod.GET, request, byte[].class);
+					if(httpResponse.getBody() == null) noPhoto = true;
+			}
+			if (noPhoto) {
+				ClassPathResource noImg = new ClassPathResource("NoPhoto.png");
+				try {
+					photo = IOUtils.toByteArray(noImg.getInputStream());
+					httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+				} catch (IOException e) {
+					log.info("IOException reading ", e);
+				}
+			}
+			photo64 = Base64Utils.encodeToString(httpResponse.getBody());
+		}
+		return photo64;
 	}
 }

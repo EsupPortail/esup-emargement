@@ -277,6 +277,7 @@ public class PresenceController {
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("isSessionLibre", isSessionLibre);
         uiModel.addAttribute("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
+        uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addAttribute("active", ITEM);
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));

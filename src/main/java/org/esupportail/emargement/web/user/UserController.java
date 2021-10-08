@@ -1,5 +1,7 @@
 package org.esupportail.emargement.web.user;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
@@ -7,7 +9,9 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
@@ -16,15 +20,18 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.esupportail.emargement.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,7 +43,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.google.zxing.WriterException;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -52,6 +62,9 @@ public class UserController {
 	@Resource
 	LogService logService;
 	
+	@Resource
+	AppliConfigService appliConfigService;
+	
 	@Autowired	
 	UserLdapRepository userLdapRepository;
 	
@@ -63,6 +76,9 @@ public class UserController {
 	
 	@Autowired	
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	ToolUtil toolUtil;
 	
 	private final static String ITEM = "user";
 	
@@ -108,6 +124,8 @@ public class UserController {
 		}
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
+		model.addAttribute("today", new Date());
+		model.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
 		return "user/index";
 	}
 	
@@ -149,5 +167,16 @@ public class UserController {
 		
 		return String.format("redirect:/%s/user" , emargementContext);
 	}
+	
+	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
+    @ResponseBody
+    public void getQrCode(@PathVariable("eppn") String eppn, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
+        String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
+        InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        IOUtils.copy(inputStream, response.getOutputStream());
+
+        IOUtils.copy(inputStream, response.getOutputStream());
+    }
 	
 }

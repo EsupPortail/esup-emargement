@@ -40,7 +40,7 @@ public class AppliConfigService {
 		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, NO_REPLY_ADRESS, QRCODE_SUJET_MAIL,
-		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK
+		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE
 	}
 	
 	public List<String> getTypes() {
@@ -176,6 +176,16 @@ public class AppliConfigService {
 	
 	public Boolean isSendLinkEnabled() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_EMARGER_LINK);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isPhotoEsupNfcTagEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_PHOTO_ESUPNFCTAG);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isUserQrCodeEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_USER_QRCODE);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
