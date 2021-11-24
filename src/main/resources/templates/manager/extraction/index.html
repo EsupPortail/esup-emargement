@@ -41,6 +41,7 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="composante" class="form-label">Composantes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
+											<span class='ml-2 text-danger font-weight-bold' id="nbInscritsComposante">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
 											<select  th:id="codCmp" th:name="codCmp" required="required" class="step3">
@@ -54,9 +55,10 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodEtp'>[0]</span>
+											<span class='ml-2 text-danger font-weight-bold' id="nbInscritsEtp">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
-											<select th:id="codEtp" th:name="codEtp" required="required" class="step4">
+											<select th:id="codEtp" th:name="codEtp" class="step4">
 											</select>
 										</div>
 									</div>	
@@ -67,7 +69,7 @@
 				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsMatiere">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
-											<select th:id="codElp" th:name="codElp" required="required" class="step5"></select>
+											<select th:id="codElp" th:name="codElp" class="step5"></select>
 										</div>
 									</div>	
 			                    	<div class="row mb-3">

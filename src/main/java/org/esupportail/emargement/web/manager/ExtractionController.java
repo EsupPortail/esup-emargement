@@ -227,35 +227,15 @@ public class ExtractionController {
 			e.printStackTrace();
 		}
 	}
-
-	@GetMapping("/manager/extraction/searchDiplomes")
+	
+	@GetMapping("/manager/extraction/search/{param}")
     @ResponseBody
-    public List<ApogeeBean> searchDiplomes(ApogeeBean apogeeBean) {
+    public List<ApogeeBean> searchDiplomes(@PathVariable String param, ApogeeBean apogeeBean) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<ApogeeBean> diplomes = apogeeService.getElementsPedagogiques(apogeeBean);
+		List<ApogeeBean> diplomes = apogeeService.searchList(param, apogeeBean);
     	
         return diplomes;
-    }
-    
-	@GetMapping("/manager/extraction/searchMatieres")
-    @ResponseBody
-    public List<ApogeeBean> searchMatieres(ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<ApogeeBean> diplomes = apogeeService.getMatieres(apogeeBean);
-    	
-        return diplomes;
-    }
-    
-	@GetMapping("/manager/extraction/searchGroupes")
-    @ResponseBody
-    public List<ApogeeBean> searchGroupes(ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<ApogeeBean> groupes = apogeeService.getGroupes(apogeeBean);
-    	
-        return groupes;
     }
 	
 	@GetMapping("/manager/extraction/searchLocations")
@@ -283,26 +263,16 @@ public class ExtractionController {
         return locations;
     }
     
-	@GetMapping("/manager/extraction/countAutorises")
+	@GetMapping("/manager/extraction/countAutorises/{param}")
     @ResponseBody
-    public int countNbEtudiants(ApogeeBean apogeeBean) {
+    public int countNbEtudiants(@PathVariable String param, ApogeeBean apogeeBean) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-		int nbEtudiants = apogeeService.countAutorisesEpreuve(apogeeBean);
+		int nbEtudiants = apogeeService.countAutorises(param, apogeeBean);
     	
         return nbEtudiants;
     }
-    
-	@GetMapping("/manager/extraction/countAutorisesGroupe")
-    @ResponseBody
-    public int countNbEtudiantsGroupe(ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		int nbEtudiants = apogeeService.countAutorisesEpreuveGroupe(apogeeBean);
-    	
-        return nbEtudiants;
-    }
-    
+
     @GetMapping("/manager/extraction/ldap/searchGroup")
     @ResponseBody
     public  List<String> searchGroupsLdap(@RequestParam("searchValue") String searchValue) throws InvalidNameException {

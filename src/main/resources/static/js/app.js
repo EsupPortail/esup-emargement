@@ -378,6 +378,12 @@ function countItem(apogeeBean, countUrl, type) {
             if (type == "groupe") {
                 $("#nbInscritsGroupe").text("[" + data + "]");
             }
+            if (type == "composante") {
+                $("#nbInscritsComposante").text("[" + data + "]");
+            }
+            if (type == "diplome") {
+                $("#nbInscritsEtp").text("[" + data + "]");
+            }
         }
     });
 }
@@ -956,7 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selector: '.step4',
                 requires: ['.step1', '.step2', '.step3'],
                 source: function(request, response) {
-                    $.getJSON(emargementContextUrl + "/manager/extraction/searchDiplomes", request, function(data) {
+                    $.getJSON(emargementContextUrl + "/manager/extraction/search/diplome", request, function(data) {
                         $("#nbCodEtp").text("[" + data.length + "]");
                         response($.map(data, function(item, index) {
                             return {
@@ -972,7 +978,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selector: '.step5',
                 requires: ['.step1', '.step2', '.step3', '.step4'],
                 source: function(request, response) {
-                    $.getJSON(emargementContextUrl + "/manager/extraction/searchMatieres", request, function(data) {
+                    $.getJSON(emargementContextUrl + "/manager/extraction/search/matiere", request, function(data) {
                         $("#nbCodElp").text("[" + data.length + "]");
                         response($.map(data, function(item, index) {
                         	
@@ -989,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 selector: '.step6',
                 requires: ['.step1', '.step2', '.step3', '.step4', '.step5'],
                 source: function(request, response) {
-                    $.getJSON(emargementContextUrl + "/manager/extraction/searchGroupes", request, function(data) {
+                    $.getJSON(emargementContextUrl + "/manager/extraction/search/groupe", request, function(data) {
                         $("#nbCodExtGpe").text("[" + data.length + "]");
                        
                         response($.map(data, function(item, index) {
@@ -1012,10 +1018,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     "codSes": codSes.value,
                     "codExtGpe": codExtGpe.value
                 };
-                var countUrlGroupe = emargementContextUrl + "/manager/extraction/countAutorisesGroupe";
-                var countUrl = emargementContextUrl + "/manager/extraction/countAutorises";
+                var countUrlGroupe = emargementContextUrl + "/manager/extraction/countAutorises/groupe";
+                var countUrlDiplome = emargementContextUrl + "/manager/extraction/countAutorises/diplome";
+                var countUrlComposante = emargementContextUrl + "/manager/extraction/countAutorises/composante";
+                var countUrl = emargementContextUrl + "/manager/extraction/countAutorises/matiere";
+                
+                countItem(apogeeBean, countUrlDiplome, "diplome");
                 countItem(apogeeBean, countUrl, "matiere");
                 countItem(apogeeBean, countUrlGroupe, "groupe");
+                countItem(apogeeBean, countUrlComposante, "composante");
             }
         });
     }
@@ -1330,11 +1341,11 @@ document.addEventListener('DOMContentLoaded', function() {
         	if(document.getElementById(item) != null){
 	        	var slim = new SlimSelect({
 	                 select: select,
+	                 allowDeselect : true
 	             });
 	        	slim.enable();
         	}
         });
-        
     }
     if (document.getElementById('icsSelect') != null) {
         new SlimSelect({
