@@ -196,8 +196,10 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/executeRepartition/{id}", produces = "text/html")
-    public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
-		boolean isOver = sessionEpreuveService.executeRepartition(id);
+    public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, 
+    		@RequestParam(value="alphaOrder", required = false) Boolean alphaOrder, final RedirectAttributes redirectAttributes) {
+		
+		boolean isOver = sessionEpreuveService.executeRepartition(id, alphaOrder);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
 		if(sessionEpreuve.isSessionEpreuveClosed) {
 			isOver = true;
@@ -390,8 +392,9 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")
     @Transactional
-    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel,@ModelAttribute(value="form") PropertiesForm  propertiesForm){
-		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext);
+    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel,@ModelAttribute(value="form") PropertiesForm  propertiesForm,
+    		@RequestParam(value="alphaOrder", required = false) Boolean alphaOrder){
+		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext, alphaOrder);
     	 return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
     

@@ -52,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -193,9 +194,9 @@ public class TagCheckService {
     	}
     	else {
     		if(withUnknown) {
-    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(id, id, pageable);
+    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedIdOrderByPersonEppn(id, id, pageable);
     		}else {
-    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedId(id, pageable);
+    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrderByPersonEppn(id, pageable);
     		}
     	}
 		if(!allTagChecks.getContent().isEmpty()) {
@@ -210,6 +211,9 @@ public class TagCheckService {
 					if(!userLdaps.isEmpty()) {
 						tc.getPerson().setNom(userLdaps.get(0).getUsername());
 						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
+						tc.setNomPrenom(userLdaps.get(0).getUsername().concat(userLdaps.get(0).getPrenom()));
+					}else {
+						tc.setNomPrenom("");
 					}
 				}
 				if(tc.getTagChecker() != null) {
@@ -223,8 +227,15 @@ public class TagCheckService {
 						tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(userAppService.getGenericUser()));
 					}
 				}
-				
 			}
+			List<TagCheck> sortedUsers = allTagChecks.stream()
+			  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
+			  .collect(Collectors.toList());
+			
+			Page<TagCheck> page = new PageImpl<>(sortedUsers, pageable, sortedUsers.size());
+			
+			allTagChecks=page;
+
 		}
     	
     	return allTagChecks;
@@ -486,8 +497,10 @@ public class TagCheckService {
 					if(!userLdaps.isEmpty()) {
 						tc.getPerson().setNom(userLdaps.get(0).getUsername());
 						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
+						tc.setNomPrenom(userLdaps.get(0).getUsername().concat(userLdaps.get(0).getPrenom()));
+					}else {
+						tc.setNomPrenom("");
 					}
-					//count ++;
 				}
 			}
 		}

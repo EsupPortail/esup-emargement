@@ -31,7 +31,7 @@ function rgb2hex(rgb){
 function displayAffinage(classes, isTiers){
     var total = 0; 
     classes.forEach(function(item) {
-    	var number =  parseInt(item.value);
+    	var number =  parseInt(item.value.replace(/\s/g, ''));
     	total = (total + number);
     });
     var affinageId = null;
@@ -1869,5 +1869,12 @@ document.addEventListener('DOMContentLoaded', function() {
            });
        }
     })
+    
+      $("#alphaOrder").on("change", function (event) {
+    	  var alphaOrder = $("#alphaOrder").prop('checked');
+    	  $("#alphaOrderAffinage").val(alphaOrder);
+    	  $("#alphaOrderRepartition").val(alphaOrder);
+      });
+    
    });
     

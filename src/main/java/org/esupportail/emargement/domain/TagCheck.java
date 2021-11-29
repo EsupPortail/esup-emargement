@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -78,6 +79,9 @@ public class TagCheck implements ContextSupport {
     private Boolean checkLdap = true;
     
     private String sessionToken;
+    
+    @Transient
+    private String nomPrenom;
 
 	public Long getId() {
 		return id;
@@ -237,5 +241,13 @@ public class TagCheck implements ContextSupport {
 
 	public void setIsExempt(Boolean isExempt) {
 		this.isExempt = isExempt;
+	}
+
+	public String getNomPrenom() {
+		return nomPrenom;
+	}
+
+	public void setNomPrenom(String nomPrenom) {
+		this.nomPrenom = nomPrenom;
 	}
 }
