@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.5</version>
+		<version>2.5.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>5.1.1</version>
+			<version>5.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -114,7 +114,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 		    <artifactId>chartjs</artifactId>
-		    <version>3.5.1</version>
+		    <version>3.6.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -144,7 +144,7 @@
 		<dependency>
 		    <groupId>org.webjars.bower</groupId>
 		    <artifactId>bootstrap-fileinput</artifactId>
-		    <version>5.2.1</version>
+		    <version>5.2.5</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
