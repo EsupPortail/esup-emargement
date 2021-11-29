@@ -38,14 +38,15 @@
 								</div>
 								<div class="alert alert-danger text-center font-weight-bold" th:if="${isAlReadybadged or isSessionExpired}">
 									<p th:if="${isAlReadybadged}">Vous avez déjà émarger</p>
-									<p th:if="${isSessionExpired and !isAlReadybadged  and !isBeforeConvocation}">Le lien n'est pas valable, <br />la session est commencée ou terminée.</p>
-									<p th:if="${isBeforeConvocation}">Le lien n'est pas encore valable, <br />Il le sera à partir de l'heure de convocation indiquée sur le mail.</p>
+									<p th:if="${isSessionExpired and !isAlReadybadged  and !isHourOk}">Le lien n'est pas valable, <br />la session est commencée ou terminée.</p>
+									<p th:if="${isHourOk}">Le lien n'est pas encore valable, <br />Il le sera à partir de l'heure de convocation indiquée sur le mail.</p>
 								</div>
 							</div>
 					    </div>
 					  </div>
 					</div>
-					<div  class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
+					<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
+					<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
 					<div th:if="${not #lists.isEmpty(tagChecksPage)}">
 						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
 							<thead class ="center sticky-top">

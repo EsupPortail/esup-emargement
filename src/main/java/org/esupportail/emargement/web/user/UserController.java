@@ -95,7 +95,7 @@ public class UserController {
 			List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
-			boolean isBeforeConvocation = false;
+			boolean isHourOk = false;
 			if(!userLdap.isEmpty()) {
 				String eppn = userLdap.get(0).getEppn();
 				TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
@@ -106,12 +106,19 @@ public class UserController {
 				LocalTime now = LocalTime.now();
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				Date date = dateFormat.parse(dateFormat.format(new Date()));
-				Long verifySe =sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+				Long verifySe = null;
+				if(appliConfigService.beforeStartEmargerLink()) {
+					verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+				}else {
+					verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now);
+				}
+				
 				if(verifySe >0) {
 					isSessionExpired = false;
 				}else {
 					if(sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now) >0) {
-						isBeforeConvocation = true;logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
+						isHourOk = true;
+						logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
 					}else {
 						logService.log(ACTION.REPORT_LINK_TOO_LATE, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
 					}
@@ -120,7 +127,7 @@ public class UserController {
 			model.addAttribute("isAlReadybadged", isAlreadyBadged);
 			model.addAttribute("sessionToken", sessionToken);
 			model.addAttribute("isSessionExpired", isSessionExpired);
-			model.addAttribute("isBeforeConvocation", isBeforeConvocation);
+			model.addAttribute("isHourOk", isHourOk);
 		}
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
@@ -143,7 +150,12 @@ public class UserController {
 					LocalTime now = LocalTime.now();
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 					Date date = dateFormat.parse(dateFormat.format(new Date()));
-					Long verifySe =sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+					Long verifySe = null;
+					if(appliConfigService.beforeStartEmargerLink()) {
+						verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+					}else {
+						verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now);
+					}
 					if(verifySe >0) {
 						TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 						if (tc.getSessionLocationBadged()!=null) {
@@ -160,6 +172,8 @@ public class UserController {
 							tagCheckRepository.save(tc);
 							redirectAttributes.addFlashAttribute("msgTokenOk", "msgTokenOk");
 						}
+					}else {
+						redirectAttributes.addFlashAttribute("msgTokenNotOk", "msgTokenNotOk");
 					}
 				}
 			}
@@ -171,6 +185,7 @@ public class UserController {
 	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
     @ResponseBody
     public void getQrCode(@PathVariable("eppn") String eppn, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
+        List <TagCheck> tcs =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(id, eppn);
         String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
         InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
