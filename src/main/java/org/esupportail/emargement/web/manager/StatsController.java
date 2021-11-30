@@ -43,10 +43,10 @@ public class StatsController {
 	}
 
 	@GetMapping(value = "/manager/stats")
-	public String list(Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
+	public String list(@PathVariable String emargementContext, Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
 		
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
-		model.addAttribute("years", sessionEpreuveService.getYears());
+		model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
 		if(anneeUniv==null) {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
 			
