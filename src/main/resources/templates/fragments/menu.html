@@ -93,7 +93,7 @@
 				     
 			      </ul>
 			      <div class="d-flex">
-					<form class="emargementContextForm me-2" th:action="@{/}">
+					<form th:if="${not #lists.isEmpty(availableContexts)}" class="emargementContextForm me-2" th:action="@{/}">
 						<select name="emargementContext" id="selectContext"
 							class="form-select">
 							<optgroup label="Contextes">

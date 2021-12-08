@@ -94,32 +94,56 @@ public class LdapService {
 				});
     }
     
-    public List<Map<String, List<String>>>  getAllmembers(String searchValue, boolean unique) throws InvalidNameException {
-    	String searchUsers = "memberOf=cn=" + searchValue + "," + ldapGroups;
-    	if(unique) {
+    public List<Map<String, List<String>>>  getAllmembers(String searchValue) throws InvalidNameException {
+    	String searchUsers = "";
+    	
+    	if(!searchValue.trim().isEmpty()) {
+    		searchUsers = "memberOf=cn=" + searchValue + "," + ldapGroups;
+    	}
+
+    	return ldapSearch(searchUsers);
+    }
+    
+    public List<Map<String, List<String>>>  getAllSuperAdmins() throws InvalidNameException {
+    	String searchUsers = "";
+    	
+    	if(!ruleSuperAdminUid.trim().isEmpty()) {
+    		String splitUids []= ruleSuperAdminUid.split(",");
+    		StringBuilder res = new StringBuilder();
+    		for(int i=0; i<splitUids.length; i++) {
+    			res.append("(uid=" + splitUids [i].trim() + ")");
+    		}
+    		searchUsers = "(|"+ res.toString() + ")";
+    	}
+    	else {
     		searchUsers = "memberOf=" + ruleSuperAdmin;
     	}
+
+    	return ldapSearch(searchUsers);
+    }
+    
+    public List<Map<String, List<String>>> ldapSearch(String searchUsers){
     	return  ldapTemplate.search(ldapPeople,searchUsers,
-          new AttributesMapper<Map<String, List<String>>>() {
-              @Override
-              public Map<String, List<String>> mapFromAttributes(Attributes attributes) throws NamingException {
-                  Map<String, List<String>> attrsMap = new HashMap<>();
-                  NamingEnumeration<String> attrIdEnum = attributes.getIDs();
-                  while (attrIdEnum.hasMoreElements()) {
-                      // Get attribute id:
-                      String attrId = attrIdEnum.next();
-                      // Get all attribute values:
-                      Attribute attr = attributes.get(attrId);
-                      NamingEnumeration<?> attrValuesEnum = attr.getAll();
-                      while (attrValuesEnum.hasMore()) {
-                          if (!attrsMap.containsKey(attrId))
-                              attrsMap.put(attrId, new ArrayList<String>()); 
-                          attrsMap.get(attrId).add(attrValuesEnum.next().toString());
-                      }
-                  }
-                  return attrsMap;
-              }
-          });
+    			new AttributesMapper<Map<String, List<String>>>() {
+    		@Override
+    		public Map<String, List<String>> mapFromAttributes(Attributes attributes) throws NamingException {
+    			Map<String, List<String>> attrsMap = new HashMap<>();
+    			NamingEnumeration<String> attrIdEnum = attributes.getIDs();
+    			while (attrIdEnum.hasMoreElements()) {
+    				// Get attribute id:
+    				String attrId = attrIdEnum.next();
+    				// Get all attribute values:
+    				Attribute attr = attributes.get(attrId);
+    				NamingEnumeration<?> attrValuesEnum = attr.getAll();
+    				while (attrValuesEnum.hasMore()) {
+    					if (!attrsMap.containsKey(attrId))
+    						attrsMap.put(attrId, new ArrayList<String>()); 
+    					attrsMap.get(attrId).add(attrValuesEnum.next().toString());
+    				}
+    			}
+    			return attrsMap;
+    		}
+    	});
     }
     
     public Boolean checkIsUserInGroupSuperAdminLdap(String searchValue) throws InvalidNameException {
@@ -134,7 +158,7 @@ public class LdapService {
 	        	isSuperAdmin = true;
 			}
     	}else {
-	    	List<Map<String, List<String>>>  list =  this.getAllmembers(searchValue, true);
+	    	List<Map<String, List<String>>>  list =  this.getAllSuperAdmins();
 	    	
 	    	if(list.size()>0) {//TO DO optimiser ....
 	    		for(Map<String, List<String>> map : list ) {
@@ -157,7 +181,7 @@ public class LdapService {
 	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
   	  Map<String, String> usersMap = new HashMap<>();
   	  
-  	  List<Map<String, List<String>>>  list =  this.getAllmembers(searchValue, false);
+  	  List<Map<String, List<String>>>  list =  this.getAllmembers(searchValue);
   	  if(!list.isEmpty()){
   		  for(Map<String, List<String>> map : list) {
   			usersMap.put(map.get("eduPersonPrincipalName").get(0), map.get("displayName").get(0));

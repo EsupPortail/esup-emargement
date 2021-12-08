@@ -220,7 +220,7 @@ public class UserAppService {
 	
 	public List<UserApp> getSuperAdmins(Pageable pageable) throws InvalidNameException{
 		
-		List<Map<String, List<String>>> allMembers = ldapService.getAllmembers("", true);
+		List<Map<String, List<String>>> allMembers = ldapService.getAllSuperAdmins();
 		List<UserApp> users = new ArrayList<UserApp>();
 		for(Map<String, List<String>> map : allMembers) {
 			UserApp userApp = new UserApp();
