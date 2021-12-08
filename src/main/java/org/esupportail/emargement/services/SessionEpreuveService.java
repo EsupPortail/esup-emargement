@@ -27,6 +27,7 @@ import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -76,6 +77,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	PrefsRepository prefsRepository;
+	
+	@Autowired
+	ContextRepository contextRepository;
 	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
@@ -568,18 +572,35 @@ public class SessionEpreuveService {
 		return newList;
 	}
 	
-	public List<String> getYears() {
-
+	public List<String> getYears(String ctx) {
+		
 		List<String> years = new ArrayList<String>();
+
+		Context context = contextRepository.findByContextKey(ctx);
+		List<String> anneeUnivs = null;
+		if("all".equals(ctx)) {
+			anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUnivAll();
+		}else {
+			 anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUniv(context.getId());
+		}
+		
 		int year = Calendar.getInstance().get(Calendar.YEAR);
 		int month = Calendar.getInstance().get(Calendar.MONTH);
 		int start = year;
-		int end = start +1;
 		if(month<8) {
 			start = year-1;
 		}
+		int end = start +1;
+		if(!anneeUnivs.isEmpty()) {
+			start = Integer.valueOf(anneeUnivs.get(0));
+			if(month<8) {
+				end = year;
+			}else {
+				end = year + 1;
+			}
+		}
 		
-		for(int i= start-1;i<end; i++) {
+		for(int i= start;i<end; i++) {
 			years.add(String.valueOf(i) + "/" + String.valueOf(i + 1));
 		}
 		return years;

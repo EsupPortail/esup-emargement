@@ -43,13 +43,13 @@ public class StatsSuperAdminController {
 	}
 
 	@GetMapping(value = "/superadmin/stats")
-	public String list(Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
+	public String list(@PathVariable String emargementContext, Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
 		
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		if(anneeUniv==null) {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
 		}
-		model.addAttribute("years", sessionEpreuveService.getYears());
+		model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
 		model.addAttribute("currentAnneeUniv", anneeUniv);
 		return "superadmin/stats/index";
 	}

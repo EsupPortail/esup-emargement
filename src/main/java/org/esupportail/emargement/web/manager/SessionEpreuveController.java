@@ -139,7 +139,7 @@ public class SessionEpreuveController {
 	}
 
 	@GetMapping(value = "/manager/sessionEpreuve")
-	public String list(Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "dateExamen")  Pageable pageable, @RequestParam(value="seNom", required = false) String seNom, 
+	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "dateExamen")  Pageable pageable, @RequestParam(value="seNom", required = false) String seNom, 
 			@RequestParam(value="anneeUniv", required = false) String anneeUniv){
 		
 		
@@ -158,7 +158,7 @@ public class SessionEpreuveController {
         }
         sessionEpreuveService.computeCounters(sessionEpreuvePage.getContent());
         model.addAttribute("currentAnneeUniv", anneeUniv);
-        model.addAttribute("years", sessionEpreuveService.getYears());
+        model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         model.addAttribute("sessionEpreuvePage", sessionEpreuvePage);
         model.addAttribute("paramUrl", "0");
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
@@ -249,7 +249,7 @@ public class SessionEpreuveController {
     public String createForm(@PathVariable String emargementContext, Model uiModel, @RequestParam(value = "anneeUniv", required = false) String anneeUniv) throws IOException, ParserException, ParseException {
     	SessionEpreuve SessionEpreuve = new SessionEpreuve();
     	SessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
-    	populateEditForm(uiModel, SessionEpreuve, anneeUniv);
+    	populateEditForm(uiModel, SessionEpreuve, anneeUniv, emargementContext);
     	List<Event> icsList = eventRepository.findByIsEnabledTrue();
     	eventService.setNbEvent(icsList);
     	uiModel.addAttribute("icsList", icsList);
@@ -258,9 +258,9 @@ public class SessionEpreuveController {
     }
     
     @GetMapping(value = "/manager/sessionEpreuve/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	populateEditForm(uiModel, sessionEpreuve, null);
+    	populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
     	boolean isSessionLibreDisabled = true;
     	if(sessionEpreuve.getIsSessionLibre() || tagCheckRepository.countTagCheckBySessionEpreuveId(id) == 0) {
     		isSessionLibreDisabled = false;
@@ -271,12 +271,12 @@ public class SessionEpreuveController {
         return "manager/sessionEpreuve/update";
     }
     
-    void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv) {
+    void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv, String emargementContext) {
     	uiModel.addAttribute("types", typeSessionRepository.findAllByOrderByLibelle());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-        uiModel.addAttribute("years", sessionEpreuveService.getYears());
+        uiModel.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("anneeUniv", anneeUniv);
         Date date = Calendar.getInstance().getTime();  
@@ -297,7 +297,7 @@ public class SessionEpreuveController {
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0) {
-            populateEditForm(uiModel, sessionEpreuve, null);
+            populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
@@ -332,7 +332,7 @@ public class SessionEpreuveController {
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {
-            populateEditForm(uiModel, sessionEpreuve, null);
+            populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
