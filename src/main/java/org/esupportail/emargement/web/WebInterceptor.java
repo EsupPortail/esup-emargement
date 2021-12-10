@@ -42,8 +42,8 @@ public class WebInterceptor implements HandlerInterceptor {
 		String context = WebUtils.getContext(request);
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
+		String uid =(auth != null)? auth.getName() : null;
+		List<UserLdap> userLdap = ldapService.getUserLdaps(null, uid);
 		String name = (!userLdap.isEmpty())?  userLdap.get(0).getPrenomNom()  : "";
 
 		if(modelAndView != null) {
@@ -53,7 +53,9 @@ public class WebInterceptor implements HandlerInterceptor {
 	
 			if (!isRedirectView && !viewNameStartsWithRedirect && context!=null && !context.isEmpty()) {
 				Context configContext = contextRepository.findByContextKey(context);
-				userAppService.setDateConnexion(auth.getName());
+				if(auth != null) {
+					userAppService.setDateConnexion(auth.getName());
+				}
 				if(configContext!=null) {
 					modelAndView.addObject("title", configContext.getTitle());
 					modelAndView.addObject("htmlFooter", configContext.getPageFooter());

@@ -146,13 +146,21 @@
 						</div>
 						<div class="row mb-3">
 	                    	<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure (session libre)</label>
-	                    	<div class="col-lg-10">
+	                    	<div class="col-lg-4">
 								<select id="blackListGroupe" name="blackListGroupe">
 									<option value="">----Choisir----</option>
 									<option th:each="groupe : ${allGroupes}"
 										th:value="${groupe.id}" th:text="${groupe.nom}"></option>
 								</select>
 							</div>
+							<label class="col-lg-3 form-check-label"  th:for="${isSaveInExcluded}">
+						        Enregistrement automatique
+						    </label>
+							<div class="col-lg-3">
+								 <div class="form-check">
+								      <input class="form-check-input" type="checkbox" th:field="*{isSaveInExcluded}">
+								</div>
+						    </div>
 						</div>
 						<div class="row mb-3">
 							<label class="col-lg-2 form-check-label"  th:for="${isProcurationEnabled}">

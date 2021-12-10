@@ -640,6 +640,7 @@ public class SessionEpreuveService {
         newSe.setTypeBadgeage(originalSe.getTypeBadgeage());
         newSe.setIsSessionLibre(originalSe.isSessionLibre);
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
+        newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);

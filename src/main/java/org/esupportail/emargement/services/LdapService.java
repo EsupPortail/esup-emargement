@@ -196,7 +196,7 @@ public class LdapService {
 		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
 		String identifiant = (eppn != null)? eppn : uid;
 		
-		if(identifiant.startsWith(userAppService.getGenericUser())) {
+		if(identifiant != null &&identifiant.startsWith(userAppService.getGenericUser())) {
 			String splitIdentifiant [] = identifiant.split("_");
 			String prenom = StringUtils.capitalize(userAppService.getGenericUser());
 			String ctx = splitIdentifiant[1];
