@@ -48,7 +48,7 @@
 	                    	<div class="col-lg-10">
 								<select id="anneeUniv" name="anneeUniv" required="required" class="form-control"> 
 									<option th:each="year : ${years}"
-										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}" th:selected="${#strings.substringBefore(year,'/') ==anneeUniv}"></option>
+										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}" th:selected="${#strings.substringBefore(year,'/') == anneeUniv}"></option>
 								</select>
 							</div>
 						</div>
@@ -80,10 +80,16 @@
 	                    </div>
 	                    <div class="row mb-3">
 							<label for="dateExamen" class="col-lg-2 form-label">*Date</label>
-		                    <div class="col-lg-10">
-		                        <input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control datetimepicker-input" required="required" id="dateSessionEpreuve">
+		                    <div class="col-lg-4">
+		                        <input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control datetimepicker-input" required="required" 
+		                        	>
 		                    </div>
-	                    </div>   	                    
+		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs jours)</small></label>
+		                    <div class="col-lg-4">
+		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control datetimepicker-input"
+		                        	>
+		                    </div>
+	                    </div>
 	                   <div class="row mb-3">
 						   <label for="heureConvocation" class="col-lg-2 form-label">Convocation</label>
 		                   <div class="col-lg-10">
@@ -157,6 +163,14 @@
 								      <input class="form-check-input" type="checkbox" th:field="*{isProcurationEnabled}">
 								</div>
 						    </div>
+						</div>
+						<div class="row mb-3">
+							<label for="maxBadgeageAlert" class="col-lg-2 form-label">Alerte
+								badgeage max</label>
+							<div class="col-lg-10">
+								<input type="number" min="1" th:field="*{maxBadgeageAlert}"
+									class="form-control" value="1" required="required">
+							</div>
 						</div>
 						<div class="row mb-3">
 							<label class="col-lg-2 form-check-label"  th:for="${isSessionEpreuveClosed}">

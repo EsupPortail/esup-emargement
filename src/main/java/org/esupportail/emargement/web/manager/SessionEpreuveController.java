@@ -252,6 +252,7 @@ public class SessionEpreuveController {
     	populateEditForm(uiModel, SessionEpreuve, anneeUniv, emargementContext);
     	List<Event> icsList = eventRepository.findByIsEnabledTrue();
     	eventService.setNbEvent(icsList);
+    	uiModel.addAttribute("currentAnneeUniv", anneeUniv);
     	uiModel.addAttribute("icsList", icsList);
     	uiModel.addAttribute("events", eventService.getEventsListFromIcs(emargementContext, eventService.getAllUrlList() ));
         return "manager/sessionEpreuve/create";
@@ -268,6 +269,7 @@ public class SessionEpreuveController {
     	uiModel.addAttribute("isSessionLibreDisabled", isSessionLibreDisabled);
     	uiModel.addAttribute("seId", id);
     	uiModel.addAttribute("strDateExamen", sessionEpreuve.getDateExamen());
+    	uiModel.addAttribute("strDateFin", sessionEpreuve.getDateFin());
         return "manager/sessionEpreuve/update";
     }
     
@@ -287,12 +289,19 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/create")
     public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
-    						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen) throws IOException, ParseException {
+    						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen, 
+    						@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
     	
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	if(!strDateFin.isEmpty()) {
+    		Date dateFin =new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+    		sessionEpreuve.setDateFin(dateFin);
+    	}
+    	
     	sessionEpreuve.setDateExamen(dateExamen);
+    	
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
@@ -321,14 +330,19 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
     public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionEpreuve sessionEpreuve, 
-    		@RequestParam("strDateExamen") String strDateExamen,BindingResult bindingResult, Model uiModel, 
+    		@RequestParam("strDateExamen") String strDateExamen, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, Model uiModel, 
     					HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException, ParseException {
         
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
-    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	Date dateFin = null;
+    	if(!strDateFin.isEmpty() && !strDateFin.equals(strDateExamen)) {
+    		dateFin = new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+    	}
+    	Date dateExamen = new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
+    	sessionEpreuve.setDateFin(dateFin);
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {

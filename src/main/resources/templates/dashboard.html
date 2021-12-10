@@ -15,7 +15,9 @@
 						            <span class="info-box-icon bg-aqua"><i class="fas fa-calendar"></i></span>
 						            <div class="info-box-content">
 						              <span class="info-box-text">Aujourd'hui:</span>
-						              <span class="info-box-number" th:text="${#ctx.containsVariable('seTodayList')? seTodayList.nomSessionEpreuve + ' : ' +  #dates.format(seTodayList.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
+						              <span class="info-box-number" th:text="${#ctx.containsVariable('seTodayList')? seTodayList.nomSessionEpreuve + ' : ' +  
+						              	#dates.format(seTodayList.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
+						              <span th:text="${#ctx.containsVariable('seTodayList')? ' ' + #dates.format(seTodayList.dateFin, 'dd/MM/yyyy') :''}"></span>
 						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"><strong>Surveillants : </strong></span>
 						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"  class="info-box-text"   th:each="userApp : ${userAppsToday}">
 						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
@@ -83,7 +85,10 @@
 								</thead>
 								<tbody>
 									<tr th:each="tagChecker : ${tagCheckerPage}">
-										<td th:text="${#dates.format(tagChecker.sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>
+										<td>
+											<span th:text="${#dates.format(tagChecker.sessionLocation.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br />
+											<span th:text="${#dates.format(tagChecker.sessionLocation.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>									
+										</td>
 										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
 										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.sessionEpreuve.campus.site}"></td>

@@ -28,11 +28,15 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Date startDate, Date endDate);
 	
+	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate, Date endDate, Date startDateFin, Date endDateFin);
+	
 	List<SessionEpreuve> findAllByDateExamen(Date date);
 	
 	Long countByDateExamenGreaterThanEqual(Date date);
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThan(Date date);
+	
+	List<SessionEpreuve> findAllByDateExamenOrDateFinNotNullAndDateFinLessThanEqualAndDateFinGreaterThanEqual(Date date, Date dateFin, Date dateFin2);
 	
 	List<SessionEpreuve> findAllByDateExamenLessThan(Date date);
 	
@@ -51,7 +55,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	Long countSessionEpreuveIdExpected(String eppn, Date date);
 	
 	@Query(value = "select * from session_epreuve "
-			+ "where date_examen >= :startDate and date_examen <= :endDate", nativeQuery = true)
+			+ "where (date_examen >= :startDate and date_examen <= :endDate) or "
+			+ " (date_fin >= :startDate and date_fin <= :endDate)", nativeQuery = true)
 	List<SessionEpreuve> getAllSessionEpreuveForCalendar(Date startDate, Date endDate);
 	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
@@ -63,20 +68,44 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve >= :now and  heure_convocation <= :now", nativeQuery = true)
-	Long checkIsBeforeSession(String eppn, Date date, LocalTime now);
+			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve >= :now and "
+			+ "heure_convocation <= :now and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeSession(String eppn, Date date, LocalTime now, Long id);
+	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and person.eppn= :eppn and date_examen <= :date and date_fin >= :dateFin "
+			+ "and heure_epreuve >= :now and heure_convocation <= :now and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeSessionWithDateFin(String eppn, Date date, Date dateFin, LocalTime now, Long id);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 	+ "where tag_check.person_id = person.id "
 	+ "and session_epreuve.id = tag_check.session_epreuve_id "
-	+ "and person.eppn= :eppn and date_examen= :date and  heure_convocation > :now", nativeQuery = true)
-	Long checkIsBeforeConvocation(String eppn, Date date, LocalTime now);
+	+ "and person.eppn= :eppn and date_examen= :date and  heure_convocation > :now "
+	+ "and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeConvocation(String eppn, Date date, LocalTime now, Long id);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 	+ "where tag_check.person_id = person.id "
 	+ "and session_epreuve.id = tag_check.session_epreuve_id "
-	+ "and person.eppn= :eppn and date_examen= :date and :now <= fin_epreuve", nativeQuery = true)
-	Long checkIsBeforeFin(String eppn, Date date, LocalTime now);
+	+ "and person.eppn= :eppn and date_examen <= :date and date_fin >= :dateFin "
+	+ "and heure_convocation > :now and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeConvocationWithDateFin(String eppn, Date date, Date dateFin, LocalTime now, Long id);
+	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+	+ "where tag_check.person_id = person.id "
+	+ "and session_epreuve.id = tag_check.session_epreuve_id "
+	+ "and person.eppn= :eppn and date_examen= :date and :now <= fin_epreuve "
+	+ "and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeFin(String eppn, Date date, LocalTime now, Long id);
+	
+	@Query(value = "select count(*) from tag_check, person, session_epreuve "
+	+ "where tag_check.person_id = person.id "
+	+ "and session_epreuve.id = tag_check.session_epreuve_id "
+	+ "and person.eppn= :eppn and date_examen<= :date and date_fin >= :dateFin "
+	+ "and :now <= fin_epreuve and session_epreuve.id = :id", nativeQuery = true)
+	Long checkIsBeforeFinWithDateFin(String eppn, Date date, Date dateFin, LocalTime now, Long id);
 	
 	@Query(value = "select date_examen from session_epreuve where annee_univ = :anneeUniv and context_id = :ctxId order by date_examen limit 1;", nativeQuery = true)
 	Date findFirstDateExamen(String anneeUniv, Long ctxId);

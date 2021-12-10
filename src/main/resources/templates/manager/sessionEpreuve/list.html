@@ -78,7 +78,10 @@
 							</thead>
 							<tbody class ="center">
 								<tr th:each="sessionEpreuve : ${sessionEpreuvePage}" th:classappend="${sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${sessionEpreuve.id}">
-									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}">Date</td>
+									<td>
+										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
+										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+									</td>
 									<td th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>

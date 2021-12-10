@@ -1,7 +1,5 @@
 package org.esupportail.emargement.domain;
 
-
-
 import java.util.Date;
 import java.util.List;
 
@@ -43,6 +41,8 @@ public class SessionEpreuve implements ContextSupport {
     
     public Boolean isSessionLibre = false;
     
+    public Integer maxBadgeageAlert = 1;
+    
     @Column
     @Enumerated(EnumType.STRING)
     public TypeBadgeage typeBadgeage;
@@ -59,6 +59,9 @@ public class SessionEpreuve implements ContextSupport {
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateExamen;
+    
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateFin;
     
     @DateTimeFormat(pattern = "HH:mm")
     @Temporal(TemporalType.TIME)
@@ -339,4 +342,19 @@ public class SessionEpreuve implements ContextSupport {
 		this.typeBadgeage = typeBadgeage;
 	}
 
+	public Date getDateFin() {
+		return dateFin;
+	}
+
+	public void setDateFin(Date dateFin) {
+		this.dateFin = dateFin;
+	}
+
+	public int getMaxBadgeageAlert() {
+		return maxBadgeageAlert;
+	}
+
+	public void setMaxBadgeageAlert(int maxBadgeageAlert) {
+		this.maxBadgeageAlert = maxBadgeageAlert;
+	}
 }

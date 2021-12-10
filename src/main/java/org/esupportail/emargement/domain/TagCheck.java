@@ -82,6 +82,8 @@ public class TagCheck implements ContextSupport {
     
     @Transient
     private String nomPrenom;
+    
+    private Integer nbBadgeage;
 
 	public Long getId() {
 		return id;
@@ -249,5 +251,13 @@ public class TagCheck implements ContextSupport {
 
 	public void setNomPrenom(String nomPrenom) {
 		this.nomPrenom = nomPrenom;
+	}
+
+	public Integer getNbBadgeage() {
+		return nbBadgeage;
+	}
+
+	public void setNbBadgeage(Integer nbBadgeage) {
+		this.nbBadgeage = nbBadgeage;
 	}
 }

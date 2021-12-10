@@ -13,6 +13,7 @@
 					    	<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" class="fw-bold h6 text-danger" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
 								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' ' + #dates.format(sessionEpreuve.heureEpreuve, 'HH:mm') + '-' + #dates.format(sessionEpreuve.finEpreuve, 'HH:mm') }" 
 								th:attr="title=${'Convocation : ' +  #dates.format(sessionEpreuve.heureConvocation, 'HH:mm')}"></span><br/>
+							<span th:if="${sessionEpreuve.dateFin != null}" class="fw-bold h6 text-danger" th:text="${'Fin : ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br th:if="${sessionEpreuve.dateFin != null}" />
 							<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" class="fw-bold h6 text-danger" th:text="${sessionLocation.location.nom  + ', 
 								site : ' +  sessionEpreuve.campus.site}"></span><br/>
 							<small th:if="${!isSessionLibre and tagCheckPage!=null and !tagCheckPage.isEmpty()}"  class="fw-bold h6">Nombre de présents : 
@@ -147,6 +148,10 @@
 							<div class="progress" th:if="${!isSessionLibre}">
 							  <div  th:if="${sessionEpreuve.id !=null and sessionLocation !=null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar fw-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}"  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 							</div>
+							<div th:if="${#ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
+							  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
+							  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+							</div>
 							<table class="table table-hover table-striped table-bordered table-sm"  data-sticky-header-offset-y="true">
 								<thead class="sticky-top">
 									<tr>
@@ -197,8 +202,11 @@
 											<i class="fa fa-user me-2" aria-hidden="true"></i><span th:text="${tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom}"></span></a>
 											</span>
 										</td>
-										<td class="center" id="tagDate" th:text="${(#dates.format(tagCheck.tagDate, 'dd-MM-yyyy')==#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy'))?  
-											#dates.format(tagCheck.tagDate, 'HH:mm:ss') : #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm:ss')}"></td>
+										<td class="center" id="tagDate">
+											<span th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy')}"></span>
+											<strong class="me-2"><span th:text="${#dates.format(tagCheck.tagDate, ' HH:mm:ss')}"></span></strong>
+											
+										</td>
 										<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 												<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>

@@ -153,13 +153,16 @@ public class PresenceService {
     	tagCheckService.setNomPrenomTagChecks(list);
     	SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
     	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
-    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+    	String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
+    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_");
     	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
     	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
+    	
         //On créer l'objet cellule.
         String libelleSe = se.getNomSessionEpreuve().concat(" ").
-        		concat(String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).
+        		concat(String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat(dateFin).
         		concat(" à ").concat(sl.getLocation().getCampus().getSite()).concat(" --  ").
         		concat(sl.getLocation().getNom()).concat(" --  nb de présents :  ").
         		concat(totalPresent.toString()).concat("/").concat(totalExpected.toString())).concat((sl.getIsTiersTempsOnly())? " -- Temps aménagé" : "");
@@ -307,7 +310,14 @@ public class PresenceService {
 			Date date = dateFormat.parse(dateFormat.format(new Date()));
 			TagCheck presentTagCheck = null;
 			Long realSlId = null;
-			Long sessionLocationId = tagCheckRepository.getSessionLocationId(nomLocation, esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
+			Long sessionLocationId =  null;
+			SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+			Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
+			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+				sessionLocationId = tagCheckRepository.getSessionLocationId(nomLocation, esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
+			}else {
+				sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(nomLocation, esupNfcTagLog.getEppn(), date, dateFin, nomSessionEpreuve);
+			}
 			SessionEpreuve se = sessionEpreuveRepository.findByNomSessionEpreuve(nomSessionEpreuve, null).getContent().get(0);
 			Long sessionEpreuveId = se.getId();
 			String urlPresent = "";
@@ -372,6 +382,7 @@ public class PresenceService {
     	presentTagCheck.setTagChecker(tagChecker);
     	presentTagCheck.setTagDate(date);
     	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
+    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
     	presentTagCheck.setContext(contextService.getcurrentContext());
     	presentTagCheck.setTypeEmargement(typeEmargement);
     	tagCheckRepository.save(presentTagCheck);

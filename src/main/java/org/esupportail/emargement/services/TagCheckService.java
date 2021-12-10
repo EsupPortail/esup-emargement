@@ -133,6 +133,9 @@ public class TagCheckService {
     @Resource   
     TagCheckerService tagCheckerService;
     
+    @Resource   
+    TagCheckService tagCheckService;
+    
 	@Resource
 	LdapService ldapService;
 	
@@ -165,6 +168,7 @@ public class TagCheckService {
 				tc.setTypeEmargement(null);
 				tc.setTagChecker(null);
 				tc.setNumAnonymat(null);
+				tc.setNbBadgeage(null);
 				tagCheckRepository.save(tc);
     		}
     	}
@@ -642,12 +646,17 @@ public class TagCheckService {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = dateFormat.parse(dateFormat.format(new Date()));
 		String[] splitLocationNom = locationNom.split(" // "); 
-		
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+		Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
 		if("isTagable".equals(action)) {
 			log.info("isTagable pour l'eppn : " + eppn);
-			Long tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn, date, splitLocationNom[0]);
 			boolean isUnknown = false;
-			SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+			Long tc =  null;
+			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+				tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn,  date, splitLocationNom[0]);
+			}else {
+				tc = tagCheckRepository.checkIsTagableWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+			}
 			SessionLocation sessionLocationBadged =  null;
 			TagChecker tagChecker = null;
 			Context ctx = sessionEpreuve.getContext();
@@ -722,7 +731,7 @@ public class TagCheckService {
 							}
 							comment = "Inconnu dans cette session " + lieu;
 						}else {
-							comment = "Inconnu dans cette session, Attendue dans une autre session aujourd'hui";
+							comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
 							isUnknown = true;
 						}
 					}else { //Il est vraiment inconnu!!!
@@ -742,7 +751,12 @@ public class TagCheckService {
 			log.info("validateTag pour l'eppn : " + eppn);
 			Long realSlId = null;
 			log.info("Eppn : " + eppn + " Date " + date);
-			Long sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], eppn, date, splitLocationNom[1]);
+			Long sessionLocationId =  null;
+			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+				sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
+			}else {
+				sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+			}
 			log.info("SessionLocationId : " + sessionLocationId);
 			TagCheck presentTagCheck = null;
 			if(sessionLocationId!=null) {
@@ -764,6 +778,7 @@ public class TagCheckService {
 				TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
 		    	presentTagCheck.setTagChecker(tagChecker);
 		    	presentTagCheck.setSessionLocationBadged(sl);
+		    	presentTagCheck.setNbBadgeage(this.getNbBadgeage(presentTagCheck, true));
 		    	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
 		    	sl.setNbPresentsSessionLocation(countPresent);
 		    	List<TagChecker> tcList = new ArrayList<TagChecker>();
@@ -845,12 +860,15 @@ public class TagCheckService {
         Long count = new Long(0);
         Long presentTotal = new Long(0);
         String nomFichier = "export";
+        String fin = "";
 		if(anneeUniv != null) {
 			list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
 			nomFichier = "Export_inscrits_annee_universitaire_" + anneeUniv;
 		}else {
 			SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-			nomFichier = se.getNomSessionEpreuve().concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+			Date dateFin = se.getDateFin();
+	    	fin = (dateFin != null)? "_" + String.format("%1$td-%1$tm-%1$tY", dateFin) : "" ;
+			nomFichier = se.getNomSessionEpreuve().concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen())).concat(fin);
 	   		list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
 	   		nomFichier = nomFichier.replace(" ", "_");
 			count = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(id);
@@ -879,7 +897,7 @@ public class TagCheckService {
 	    	}else {
 		    	TagCheck tch = list.get(0);
 		    	libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
-		    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen())))
+		    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen()))).concat(fin)
 		    			.concat(" --  nb de présents :  ").concat(presentTotal.toString()).concat("/").concat(count.toString());
 	    	}
 	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
@@ -929,6 +947,7 @@ public class TagCheckService {
 	        		String badged  = "--";
 	        		String tiersTemps  = "--";
 	        		String dateSessionEpreuve = "";
+	        		String dateFin = "";
 	        		String nom = "";
 	        		String prenom = "";
 	        		String identifiant = "";
@@ -970,7 +989,8 @@ public class TagCheckService {
 	    	                dateCell.setBackgroundColor(b);
 	    	                table.addCell(dateCell);
 	        				dateSessionEpreuve = String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen());
-	        				dateCell = new PdfPCell(new Paragraph(dateSessionEpreuve));
+	        				dateFin = (tc.getSessionEpreuve().getDateFin() != null)? " / " + String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateFin()) : "";
+	        				dateCell = new PdfPCell(new Paragraph(dateSessionEpreuve + dateFin));
 	    	        		dateCell.setBackgroundColor(b);
 	    	                table.addCell(dateCell);
 	        			}
@@ -1054,6 +1074,7 @@ public class TagCheckService {
 				for(TagCheck tc : list) {
 					List <String> line = new ArrayList<String>();
 					String dateSession = String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen());
+					String dateFin = (tc.getSessionEpreuve().getDateFin() != null)? " / " + String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateFin()) : "";
 	        		String presence = "Absent";
 	        		String date  = "--";
 	        		String badged  = "--";
@@ -1092,7 +1113,7 @@ public class TagCheckService {
 	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
 	        		}
 					line.add(tc.getSessionEpreuve().getNomSessionEpreuve());
-					line.add(dateSession);
+					line.add(dateSession + dateFin);
 					line.add(numIdentifiant);
 					line.add(identifiant);
 					line.add(nom);
@@ -1126,7 +1147,14 @@ public class TagCheckService {
 		String locationNom = esupNfcTagLog.getLocation();
 		String[] splitLocationNom = locationNom.split(" // ");
 		String eppn = esupNfcTagLog.getEppn();
-		key = tagCheckRepository.getContextId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+		Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
+		if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+			key = tagCheckRepository.getContextId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
+		}else {
+			key = tagCheckRepository.getContextIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+		}
+		
 		if(key == null) {
 			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
 			SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
@@ -1314,5 +1342,18 @@ public class TagCheckService {
 			logService.log(ACTION.CLEAN_PERSONS, RETCODE.SUCCESS, " Nombre " + clean, null, null, emargementContext, null);
 
 		}
+	}
+	
+	public int getNbBadgeage(TagCheck tc, boolean isPresent) {
+		int previousNb = (tc.getNbBadgeage() == null)? 0 : tc.getNbBadgeage();
+		int nbBadgeage = 0;
+		if(isPresent) {
+			nbBadgeage = previousNb + 1;
+		}else {
+			if(previousNb > 0) {
+				nbBadgeage = previousNb - 1;
+			}
+		}
+		return nbBadgeage;
 	}
 }

@@ -25,8 +25,8 @@ import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.utils.ToolUtil;
 import org.esupportail.emargement.services.UserService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -107,16 +107,32 @@ public class UserController {
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				Date date = dateFormat.parse(dateFormat.format(new Date()));
 				Long verifySe = null;
+				Long seId = tc.getSessionEpreuve().getId();
+				Date dateFin = tc.getSessionEpreuve().getDateFin();
 				if(appliConfigService.beforeStartEmargerLink()) {
-					verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+					if(dateFin != null) {
+						verifySe = sessionEpreuveRepository.checkIsBeforeSessionWithDateFin(eppn, date, date, now, seId);
+					}else {
+						verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now, seId);
+					}
 				}else {
-					verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now);
+					if(dateFin != null) {
+						verifySe = sessionEpreuveRepository.checkIsBeforeFinWithDateFin(eppn, date, date, now, seId);
+					}else {
+						verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now, seId);
+					}
 				}
 				
 				if(verifySe >0) {
 					isSessionExpired = false;
 				}else {
-					if(sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now) >0) {
+					Long check = null;
+					if(dateFin != null) {
+						check = sessionEpreuveRepository.checkIsBeforeConvocationWithDateFin(eppn, date, date, now, seId);
+					}else {
+						check = sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now, seId);
+					}
+					if(check > 0) {
 						isHourOk = true;
 						logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
 					}else {
@@ -137,7 +153,7 @@ public class UserController {
 	}
 	
 	@PostMapping(value = "/user/isPresent")
-	public String isPrseent(@PathVariable String emargementContext, @RequestParam(value="sessionToken", required = true)  
+	public String isPresent(@PathVariable String emargementContext, @RequestParam(value="sessionToken", required = true)  
 			 String sessionToken, final RedirectAttributes redirectAttributes) throws ParseException {
 		
 		if(sessionToken != null) {
@@ -146,18 +162,28 @@ public class UserController {
 			if(!userLdap.isEmpty()) {
 				String eppn = userLdap.get(0).getEppn();
 				if(tagCheckRepository.countTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn) == 1){
+					TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 					//On regarde l'heure
 					LocalTime now = LocalTime.now();
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 					Date date = dateFormat.parse(dateFormat.format(new Date()));
 					Long verifySe = null;
+					Long seId = tc.getSessionEpreuve().getId();
+					Date dateFin = tc.getSessionEpreuve().getDateFin();
 					if(appliConfigService.beforeStartEmargerLink()) {
-						verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now);
+						if(dateFin != null) {
+							verifySe = sessionEpreuveRepository.checkIsBeforeSessionWithDateFin(eppn, date, date, now, seId);
+						}else {
+							verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now, seId);
+						}
 					}else {
-						verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now);
+						if(dateFin != null) {
+							verifySe = sessionEpreuveRepository.checkIsBeforeFinWithDateFin(eppn, date, date, now, seId);
+						}else {
+							verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now, seId);
+						}
 					}
 					if(verifySe >0) {
-						TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 						if (tc.getSessionLocationBadged()!=null) {
 							redirectAttributes.addFlashAttribute("alReadyPresent", "alReadyPresent");
 						}else {

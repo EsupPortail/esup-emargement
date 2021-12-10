@@ -86,7 +86,7 @@ public class WsRestEsupNfcController {
 		if(isTagable){
 			return new ResponseEntity<String>("OK", responseHeaders, HttpStatus.OK);
 		}else {
-			log.error("Erreur 'isTagable' des Ws Rest pour l'eppn : " + eppn );
+			log.warn("Erreur 'isTagable' des Ws Rest pour l'eppn : " + eppn );
 			logService.log(ACTION.WSREST_ISTAGABLE, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
 			return new ResponseEntity<String>("Personne non trouvée", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -114,7 +114,7 @@ public class WsRestEsupNfcController {
 		if(isOk){
 			return new ResponseEntity<String>("OK", responseHeaders, HttpStatus.OK);
 		} else {
-			log.error("Erreur 'validateTag' des Ws Rest pour l'eppn : " + eppn );
+			log.warn("Erreur 'validateTag' des Ws Rest pour l'eppn : " + eppn );
 			logService.log(ACTION.WSREST_VALIDATETAG, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
 			return new ResponseEntity<String>("Erreur de validation de présence", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 		}

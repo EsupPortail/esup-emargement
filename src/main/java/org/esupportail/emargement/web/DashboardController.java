@@ -92,7 +92,7 @@ public class DashboardController {
 			}
 		}
 		//Today
-		List<SessionEpreuve> seTodayList = sessionEpreuveRepository.findAllByDateExamen(date);
+		List<SessionEpreuve> seTodayList = sessionEpreuveRepository.findAllByDateExamenOrDateFinNotNullAndDateFinLessThanEqualAndDateFinGreaterThanEqual(date, date, date);
 		if(!seTodayList.isEmpty()) {
 			model.addAttribute("seTodayList", seTodayList.get(0));
 			List<SessionLocation> slsToday =sessionLocationRepository.findSessionLocationBySessionEpreuve(seTodayList.get(0), null).getContent();

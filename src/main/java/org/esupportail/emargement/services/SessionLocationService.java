@@ -147,7 +147,14 @@ public class SessionLocationService {
 			List<UserApp> userApps = userAppRepositoryCustom.findByEppn(eppn);
 			List<TagChecker> tagCheckers = tagCheckerRepositoryCustom.findTagCheckerByUserAppIn(userApps);
 			for(TagChecker tc : tagCheckers) {
-				if(!tc.getSessionEpreuve().isSessionEpreuveClosed && toolUtil.compareDate(tc.getSessionEpreuve().getDateExamen(), new Date(), "yyyy-MM-dd")==0) {
+				int check =  toolUtil.compareDate(tc.getSessionEpreuve().getDateExamen(), new Date(), "yyyy-MM-dd");
+				int checkIfDateFinIsOk = -1;
+				if(tc.getSessionEpreuve().getDateFin() != null) {
+					checkIfDateFinIsOk = toolUtil.compareDate(tc.getSessionEpreuve().getDateFin(), new Date(), "yyyy-MM-dd");
+				}else {
+					checkIfDateFinIsOk = check;
+				}
+				if(!tc.getSessionEpreuve().isSessionEpreuveClosed && (check==0 || checkIfDateFinIsOk>=0)) {
 					locations.add(tc.getSessionLocation().getSessionEpreuve().getNomSessionEpreuve().concat(" // ").concat(tc.getSessionLocation().getLocation().getNom()));
 				}
 			}

@@ -49,7 +49,10 @@
 									<td>
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
-									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>	
+									<td>
+										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
+										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+									</td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>
@@ -90,7 +93,10 @@
 									<td th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"  th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
-									<td th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></td>
+									<td>
+										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
+										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+									</td>
 									<td class="center"><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>	
 								</tr>
 							</tbody>

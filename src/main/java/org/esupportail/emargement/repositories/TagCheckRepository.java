@@ -215,6 +215,14 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
 	Long checkIsTagable(String nomLocation, String eppn, Date date, String nom);
 	
+	@Query(value = "select count(*) from tag_check, session_location, person, location, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_location.id = tag_check.session_location_expected_id "
+			+ "and location.id= session_location.location_id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen <= :date and date_fin <= :dateFin and session_epreuve.nom_session_epreuve = :nom and date_fin is not null", nativeQuery = true)
+	Long checkIsTagableWithDateFin(String nomLocation, String eppn, Date date, Date dateFin, String nom);
+	
 	@Query(value = "select session_location.id from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_location.id = tag_check.session_location_expected_id "
@@ -222,6 +230,14 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "
 			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
 	Long getSessionLocationId(String nomLocation, String eppn, Date date, String nom);
+	
+	@Query(value = "select session_location.id from tag_check, session_location, person, location, session_epreuve "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_location.id = tag_check.session_location_expected_id "
+			+ "and location.id= session_location.location_id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen <= :date and date_fin <= :dateFin and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	Long getSessionLocationIdWithDateFin(String nomLocation, String eppn, Date date, Date dateFin, String nom);
 	
 	@Query(value = "select context.key from tag_check, session_location, person, location, session_epreuve, context "
 			+ "where tag_check.person_id = person.id "
@@ -231,6 +247,15 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and context.id = session_location.context_id "
 			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen= :date and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
 	String getContextId(String nomLocation, String eppn, Date date, String nom);
+	
+	@Query(value = "select context.key from tag_check, session_location, person, location, session_epreuve, context "
+			+ "where tag_check.person_id = person.id "
+			+ "and session_location.id = tag_check.session_location_expected_id "
+			+ "and location.id= session_location.location_id "
+			+ "and session_epreuve.id = tag_check.session_epreuve_id "
+			+ "and context.id = session_location.context_id "
+			+ "and location.nom= :nomLocation and person.eppn= :eppn and date_examen <= :date and date_fin <= :dateFin and session_epreuve.nom_session_epreuve = :nom", nativeQuery = true)
+	String getContextIdWithDateFin(String nomLocation, String eppn, Date date, Date dateFin, String nom);
 	
 	@Query(value = "select context.key from tag_check, session_location, person, location, session_epreuve, context "
 			+ "where tag_check.person_id = person.id "

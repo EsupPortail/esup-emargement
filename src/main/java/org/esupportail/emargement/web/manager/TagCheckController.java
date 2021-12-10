@@ -188,6 +188,22 @@ public class TagCheckController {
 	    String strDate = dateFormat.format(date);
 	    Date now = dateFormat.parse(strDate);
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
+		Date dateFin = se.getDateFin();
+		long countForButtonLinkOrQrCode = 0;
+		if(dateFin == null || dateFin.equals(se.getDateExamen()) && dateFin.equals(date)){
+			countForButtonLinkOrQrCode = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationBadgedIsNullAndSessionEpreuveDateExamen(id, now);
+		}else {
+			int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
+			int checkIfDateFinIsOk = -1;
+			if(se.getDateFin() != null) {
+				checkIfDateFinIsOk = toolUtil.compareDate(se.getDateFin(), new Date(), "yyyy-MM-dd");
+			}else {
+				checkIfDateFinIsOk = check;
+			}
+			if(check<=0 && checkIfDateFinIsOk>=0) {
+				countForButtonLinkOrQrCode = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationBadgedIsNullAndSessionEpreuveDateExamen(id, se.getDateExamen());
+			}
+		}
 		model.addAttribute("isSessionLibre", se.getIsSessionLibre());
         model.addAttribute("tagCheckPage", tagCheckPage);
         model.addAttribute("isSessionEpreuveClosed", se.isSessionEpreuveClosed);
@@ -203,7 +219,7 @@ public class TagCheckController {
 		model.addAttribute("collapse", collapse);
 		model.addAttribute("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
 		model.addAttribute("isLinkEmargerEnabled", appliConfigService.isSendLinkEnabled());
-		model.addAttribute("countForButtonLinkOrQrCode", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationBadgedIsNullAndSessionEpreuveDateExamen(id, now));
+		model.addAttribute("countForButtonLinkOrQrCode", countForButtonLinkOrQrCode);
 		model.addAttribute("countRepartition", tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNull(id) - unknown);
 		model.addAttribute("countConvocations", tagCheckRepository.countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(id) - unknown);
 		model.addAttribute("countUnknown", unknown);

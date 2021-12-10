@@ -382,7 +382,9 @@ public class SessionEpreuveService {
 		List<TagCheck> list = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
 		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
 		SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
-    	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+		String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+    	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
+    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));;
     	nomFichier = nomFichier.replace(" ", "_");		
 		tagCheckService.setNomPrenomTagChecks(list);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
@@ -414,7 +416,7 @@ public class SessionEpreuveService {
 	    	
 	        //On créer l'objet cellule.
 	        String libelleSe = list.get(0).getSessionLocationExpected().getSessionEpreuve().getNomSessionEpreuve().concat(" ").
-	        		concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionLocationExpected().getSessionEpreuve().getDateExamen())).
+	        		concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionLocationExpected().getSessionEpreuve().getDateExamen())).concat(dateFin).
 	        		concat(" à ").concat(list.get(0).getSessionLocationExpected().getLocation().getCampus().getSite()).concat(" --  ").
 	        		concat(list.get(0).getSessionLocationExpected().getLocation().getNom()));
 	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
@@ -561,7 +563,13 @@ public class SessionEpreuveService {
 			if(!newList.contains(se) && !se.getIsSessionEpreuveClosed()) {
 				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
 					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
-					if(check>=0) {
+					int checkIfDateFinIsOk = -1;
+					if(se.getDateFin() != null) {
+						checkIfDateFinIsOk = toolUtil.compareDate(se.getDateFin(), new Date(), "yyyy-MM-dd");
+					}else {
+						checkIfDateFinIsOk = check;
+					}
+					if(check>=0 || checkIfDateFinIsOk>=0) {
 						newList.add(se);
 					}
 				}else {

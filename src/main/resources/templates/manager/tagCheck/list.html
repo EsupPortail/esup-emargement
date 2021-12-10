@@ -12,7 +12,8 @@
 		    			<div class="col">
 			    			<h2>Inscrits <span class="badge badge-secondary badge-size" th:text="${countTagChecks}"></span></h2>
 					    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span><br />
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span>
+							<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
 							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>
 						</div>
 		    			<div class="col">
@@ -99,6 +100,7 @@
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="nbBadgeage">Nb badgeage</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
@@ -145,7 +147,8 @@
 										<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
-									 </span>
+									 </span></td>
+									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:text="${tagCheck.nbBadgeage}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:if="${sessionEpreuve.isProcurationEnabled}"><span th:text="${(tagCheck.proxyPerson != null) ? tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom :''}"></span></td>
 									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>

@@ -70,7 +70,7 @@ public class AppliConfigController {
 	}
 	
 	@GetMapping(value = "/admin/appliConfig")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.ASC, sort = "key")  Pageable pageable) {
+	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 50, direction = Direction.ASC, sort = "key")  Pageable pageable) {
 		
         Page<AppliConfig> appliConfigPage = appliConfigRepository.findAll(pageable);
         Context context = contextRepository.findByContextKey(emargementContext);

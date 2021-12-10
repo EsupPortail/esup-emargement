@@ -12,7 +12,8 @@
 		    			<div class="col-lg-2">
 	    					<h2>Répartition</h2>
 							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
+								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small><br />
+								<small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${'Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
 						</div>
 	    				<div class="col-lg-10">
 		    				<div class="row">
