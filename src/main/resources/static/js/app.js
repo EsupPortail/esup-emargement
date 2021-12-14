@@ -1265,6 +1265,9 @@ document.addEventListener('DOMContentLoaded', function() {
     $('[id^=modalChartSeBtn]').on('click', function(e) {
         var url = "manager";
         var splitId = this.id.split("-");
+        var canvas = document.getElementById("countTagChecksByTimeBadgeage");
+        canvas.remove();
+        $('#chartListSession').append("<canvas id='countTagChecksByTimeBadgeage' style='height: 394px; width: 789px;' height='394' width='789'></canvas>");
         getStats(null, "&param=" + splitId[1], url, "countTagChecksByTimeBadgeage", "chartBar");
     })
     $('#modal-chart').on('shown.bs.modal', function(event) {
