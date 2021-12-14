@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header"><h2>Emargement</h2></div>
+	 				<div class="card-body">
+					<dl class="row">
+						<dt class="col-sm-2">Personne</dt>
+						<dd class="col-sm-10" th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown}? bg-warning : ''">
+							<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="fw-bold" 
+							th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
+						</dd>
+						<dd class="col-sm-10" th:if="${tagCheck.guest != null}"  th:classappend="${tagCheck.isUnknown}? bg-warning : ''">
+							<a href="#" class="me-1 userModal" 
+							th:attr="data-whatever=${'inconnu//' + tagCheck.guest.nom + '//' + tagCheck.guest.prenom}">
+							<i class="fa fa-user" aria-hidden="true"></i></a>
+							<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
+							th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
+						</dd>
+			            <dt class="col-sm-2">Présent</dt>
+						<dd class="col-sm-10 text-danger fw-bold" th:if="${tagCheck.isExempt}">Exempt</dd>
+						<dd class="col-sm-10" th:unless="${tagCheck.isExempt}"><i th:if="${tagCheck.tagDate != null}" class="fa fa-check text-success"></i></dd>
+						<dt class="col-sm-2">Procuration</dt>
+						<dd class="col-sm-10"><span th:if="${tagCheck.proxyPerson!=null}"
+						 th:text="${tagCheck.proxyPerson.eppn}"></span></dd>           
+			            <dt class="col-sm-2">Heure</dt>
+			            <dd class="col-sm-10">
+							<span  th:if="${tagCheck.tagDate != null}" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy')}"></span>
+							<strong  th:if="${tagCheck.tagDate != null}" class="me-2"><span th:text="${#dates.format(tagCheck.tagDate, ' HH:mm:ss')}"></span></strong>
+			            </dd>
+						<dt class="col-sm-2">Emargement</dt>
+						<dd class="col-sm-10">
+							<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
+								<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+								<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+								<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+								<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+							 </span>
+						</dd>						
+						<dt class="col-sm-2">Lieu</dt>
+						<dd class="col-sm-10">
+							<span th:if="${tagCheck.sessionLocationBadged!=null}" th:class="${(tagCheck.sessionLocationBadged != tagCheck.sessionLocationExpected)? 'fw-bold' : ''}" 
+							th:text="${tagCheck.sessionLocationBadged.location.nom}"></span>
+						</dd>						
+						<dt class="col-sm-2">Surveillant</dt>
+						<dd class="col-sm-10"><span th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></span>
+						</dd>
+					</dl>
+				</div>
+
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

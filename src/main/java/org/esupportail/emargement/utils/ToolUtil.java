@@ -45,4 +45,16 @@ public class ToolUtil {
         bos.close();
         return inputStream;
 	}
+	
+	public boolean isLong(String strNum) {
+	    if (strNum == null) {
+	        return false;
+	    }
+	    try {
+	        long l = Long.parseLong(strNum);
+	    } catch (NumberFormatException nfe) {
+	        return false;
+	    }
+	    return true;
+	}
 }

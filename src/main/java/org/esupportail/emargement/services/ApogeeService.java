@@ -55,7 +55,8 @@ public class ApogeeService {
 						"WHERE IAE.COD_ETP = ETP.COD_ETP " + 
 						"AND IAE.COD_ANU= ? " + 
 						"AND IAE.COD_CMP= ? " + 
-						"AND etp.cod_cur IN ('L','M') ";
+						"AND etp.cod_cur IN ('L','M') " +
+						"ORDER BY lib";
 		
 		try {
 			inscrits = apogeeJdbcTemplate.queryForList(query, new Object[] {apogeeBean.getCodAnu(), apogeeBean.getCodCmp()});
@@ -85,7 +86,7 @@ public class ApogeeService {
 					   "AND (IND_CONTRAT_ELP.COD_ANU= ? ) AND (IND_CONTRAT_ELP.COD_ETP= ? ) " + 
 					   "OR (ELEMENT_PEDAGOGI.COD_NEL='CM') AND (IND_CONTRAT_ELP.COD_ANU= ? ) AND (IND_CONTRAT_ELP.COD_ETP= ? ) " + 
 					   "OR (ELEMENT_PEDAGOGI.COD_NEL='TD') AND (IND_CONTRAT_ELP.COD_ANU= ? ) AND (IND_CONTRAT_ELP.COD_ETP= ? ))" +
-					   "ORDER BY ELEMENT_PEDAGOGI.COD_ELP";
+					   "ORDER BY ELEMENT_PEDAGOGI.LIB_ELP";
 		
 		try {
 			

@@ -39,19 +39,20 @@
 									<th scope="col"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
 									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
 									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
-									<th th:if="${currentKey != 'all'}"  class ="center" scope="col">Actions</th>
+									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr th:each="userApp : ${userAppPage}" th:id="${userApp.id}" th:class="${#strings.equals(itsme,userApp.eppn)} ? table-info : ''">
-									<td th:text="${userApp.eppn}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Eppn</td>
+									<td th:text="${userApp.eppn}">Eppn</td>
 									<td th:text="${userApp.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
-									<td th:text="${userApp.prenom}">Prénom</td>
+									<td th:text="${userApp.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
 									<td th:text="${userApp.userRole}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Rôle</td>
 									<th th:text="${userApp.context.key}">Contexte</th>
 									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
-									<td th:if="${currentKey != 'all'}"  class ="center"><a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<td th:if="${currentKey != 'all'}"  class ="center">
+									<a th:href="@{/{ctx}/superadmin/admins/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${isAdminContext}" th:href="@{/{ctx}/superadmin/admins/{id}?form(id=${userApp.id},ctx=${eContext})}">
 											<i class="fa fa-pen text-warning ms-2"></i>
 										</a>
@@ -78,6 +79,9 @@
 										        </div>
 										    </div>
 										</div>
+									</td>
+									<td th:unless="${currentKey != 'all'}"  class ="center">
+										<a th:href="@{/{ctx}/superadmin/admins/{eppn}(eppn=${userApp.eppn},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 									</td>
 								</tr>
 							</tbody>

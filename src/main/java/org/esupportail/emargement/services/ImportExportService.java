@@ -67,7 +67,7 @@ public class ImportExportService {
 	public List<SessionEpreuve> getNotFreeSessionEpreuve(){
 		List<SessionEpreuve> newSe = new LinkedList<SessionEpreuve>();
 		
-		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve();
+		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen();
 		if(!se.isEmpty()) {
 			for (SessionEpreuve item : se) {
 				newSe.add(item);

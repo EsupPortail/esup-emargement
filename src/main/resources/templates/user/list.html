@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+ 					<div class="card-header">
+    				<div class="row">
+		    			<div class="col-lg-2">
+				    		<h2>Participant</h2>
+				   		</div>
+				   </div>
+				</div>			
+  				<div class="card-body">
+					<div class="modal" tabindex="-1" id="modalUser" th:if="${#ctx.containsVariable('sessionToken')}">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title">Emarger</h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <div class="modal-body">
+								<div class="alert alert-danger text-center font-weight-bold" th:if="${!isAlReadybadged and !isSessionExpired}">
+									<p>
+										Je confirme être présent à la session : <br />
+										<span class="bg bg-warning p-1" th:text="${se.nomSessionEpreuve}"></span><br />
+										<span th:if="${se.dateFin == null}">
+											se déroulant le <br />
+											<span class="bg bg-warning p-1" th:text="${#dates.format(se.dateExamen, 'dd-MM-yyyy')} + ' entre ' + 
+													${#dates.format(se.heureEpreuve, 'HH:mm')} + ' et ' +  ${#dates.format(se.finEpreuve, 'HH:mm')} "></span>
+										</span>
+										<span th:unless="${se.dateFin == null}">
+											se déroulant entre du<br />
+											<span class="bg bg-warning p-1" th:text="${#dates.format(se.dateExamen, 'dd-MM-yyyy')} +' au ' + 
+												${#dates.format(se.dateFin, 'dd-MM-yyyy')}+ ' entre ' + 
+												${#dates.format(se.heureEpreuve, 'HH:mm')} + ' et ' +  ${#dates.format(se.finEpreuve, 'HH:mm')} "></span>
+										</span>
+									</p>
+									<form method="post"
+										th:action="@{/{ctx}/user/isPresent(ctx=${eContext})}">
+										<input type="hidden" name="sessionToken"
+											th:value="${sessionToken}"> <input type="submit"
+											name="dd" class="btn btn-success" value="Confirmer">
+									</form>
+								</div>
+								<div class="alert alert-danger text-center font-weight-bold" th:if="${isAlReadybadged or isSessionExpired}">
+									<p th:if="${isAlReadybadged}">Vous avez déjà émarger</p>
+									<p th:if="${isSessionExpired and !isAlReadybadged  and !isHourOk}">Le lien n'est pas valable, <br />la session est terminée ou a lieu plus tard.</p>
+									<p th:if="${isHourOk}">Le lien n'est pas encore valable, <br />Il le sera à partir de l'heure de convocation indiquée sur le mail.</p>
+								</div>
+							</div>
+					    </div>
+					  </div>
+					</div>
+					<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
+					<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
+					<div th:if="${not #lists.isEmpty(tagChecksPage)}">
+						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
+							<thead class ="center sticky-top">
+								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
+									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
+									<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.campus.site">Site</a></th>
+									<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Lieu</a></th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
+									<th scope="col" class="d-none d-xl-table-cell">Convocation</th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
+									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
+									<th scope="col" class="center">Voir</th>
+								</tr>
+							</thead>
+							<tbody class ="center">
+								<tr th:each="tc : ${tagChecksPage}" th:classappend="${tc.sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${tc.sessionEpreuve.id}" >
+									<td th:if="${(#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy')) and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
+										<button th:if="${tc.sessionLocationExpected != null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
+										<i class="fas fa-qrcode"></i></button>
+										<div class="modal" th:attr="id=${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog">
+											<div class="modal-dialog" role="document">
+												<div class="modal-content">
+													<div class="modal-header">
+														<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
+														<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+													</div>
+													<div class="modal-body">
+														<img th:if="${tc.sessionLocationExpected != null}" th:src="@{${'/' + tc.context.key  + '/user/qrCode/' + tc.person.eppn + '/' + tc.sessionLocationExpected.id}}" />
+													</div>
+												</div>
+											</div>
+										</div>
+									</td>
+									<td th:unless="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy') and tc.sessionLocationBadged == null and isUserQrCodeEnabled}" >
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
+									</td>
+									<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
+									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
+									<td th:if="${tc.isExempt}" class="text-danger fw-bold text-center hiddenBlock">Exempt</td>
+									<td th:unless="${tc.isExempt}" class ="text-center hiddenBlock">
+										<span th:if="${tc.typeEmargement!=null}"
+											th:switch="${#strings.toString(tc.typeEmargement.name())}">
+											<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+											<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+											<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+											<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+										</span>
+									</td>
+									<td th:text="${#dates.format(tc.sessionEpreuve.heureConvocation, 'HH:mm')}" class="d-none d-xl-table-cell"></td>
+									<td th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:text="${#dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td class="center"><a th:href="@{/{ctx}/user/{id}(id=${tc.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					</div>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

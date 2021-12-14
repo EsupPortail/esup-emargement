@@ -67,6 +67,13 @@ public class LogsSuperAdminController {
     	return "superadmin/logs/list";
     }
     
+	@GetMapping(value = "/superadmin/logs/{id}", produces = "text/html")
+    public String show(@PathVariable("id") Long id, Model uiModel) {
+        uiModel.addAttribute("log",  logsRepository.findById(id).get());
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "superadmin/logs/show";
+    }
+    
     void addAttribute(Model model, Log logObject, Page<Log> logsPage, Date stringDate) {
         model.addAttribute("eppns", logsRepositoryCustom.findDistinctEppn());
         model.addAttribute("actions", logsRepositoryCustom.findDistinctAction());

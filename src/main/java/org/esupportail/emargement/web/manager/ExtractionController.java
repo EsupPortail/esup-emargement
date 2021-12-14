@@ -288,7 +288,7 @@ public class ExtractionController {
     	Map<String, String> ldapMembers = ldapService.getMapUsersFromMapAttributes(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
-    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve());
+    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen());
     	uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));

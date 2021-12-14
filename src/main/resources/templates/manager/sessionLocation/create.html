@@ -30,7 +30,7 @@
 	                    	<div class="col-lg-10">
 								<select class="form-control" th:field="*{location}"  required="required">
 									<option th:each="location : ${allLocations}"
-										th:value="${location.id}" th:text="${location.nom}"></option>
+										th:value="${location.id}" th:text="${location.nom + ' (' + location.capacite + ' max)'}"></option>
 								</select>
 								<div th:if="${#lists.isEmpty(allLocations)}"><span class='text-danger font-weight-bold alertmsg'>Aucun lieu disponible ou tous les lieux du site sont déjà affectés</span><br/></div>
 							</div>

@@ -80,6 +80,7 @@
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.comment}"></dd>
 			            <dt class="col-sm-2">Actions</dt>
 			            <dd class="col-sm-10">
+			            	<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="center ms-2"><i class="fa fa-list text-primary"></i></a>
 							<a th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2"><i class="fa fa-pen text-warning"></i></a>
 							<a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }"  class="center ms-2"><i class="fa fa-trash text-danger"></i></a>
 							<div class="modal modal-warning fade in" th:id="modal-warning+${sessionEpreuve.id}" >

@@ -91,7 +91,7 @@
 												<select name="sessionEpreuve"  id="sessionEpreuve" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>

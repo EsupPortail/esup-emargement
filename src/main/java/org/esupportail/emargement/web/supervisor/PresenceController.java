@@ -289,7 +289,7 @@ public class PresenceController {
 		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
 		uiModel.addAttribute("msgError", msgError);
 		
-        return "supervisor/index";
+        return "supervisor/list";
     }
     
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
@@ -416,6 +416,13 @@ public class PresenceController {
 
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" + msgError , emargementContext, 
     			sl.getSessionEpreuve().getId(), slId);
+    }
+    
+	@GetMapping(value = "/supervisor/{id}", produces = "text/html")
+    public String show(@PathVariable("id") Long id, Model uiModel) {
+        uiModel.addAttribute("tagCheck",  tagCheckRepository.findById(id).get());
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "supervisor/show";
     }
 
 }

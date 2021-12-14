@@ -20,7 +20,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Page<SessionEpreuve> findByNomSessionEpreuve(String nomSessionEpreuve, Pageable pageable);
 	
-	List<SessionEpreuve> findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByNomSessionEpreuve();
+	List<SessionEpreuve> findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen();
 	
 	List<SessionEpreuve>  findSessionEpreuveByDateExamenAndCampusEqualsAndIdNot(Date date, Campus campus, Long id);
 	

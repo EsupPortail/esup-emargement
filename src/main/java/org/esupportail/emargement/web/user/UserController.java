@@ -149,7 +149,7 @@ public class UserController {
 		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
 		model.addAttribute("today", new Date());
 		model.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
-		return "user/index";
+		return "user/list";
 	}
 	
 	@PostMapping(value = "/user/isPresent")
@@ -207,6 +207,13 @@ public class UserController {
 		
 		return String.format("redirect:/%s/user" , emargementContext);
 	}
+	
+	@GetMapping(value = "/user/{id}", produces = "text/html")
+    public String show(@PathVariable("id") Long id, Model uiModel) {
+        uiModel.addAttribute("tc",  tagCheckRepository.findById(id).get());
+        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        return "user/show";
+    }
 	
 	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
     @ResponseBody

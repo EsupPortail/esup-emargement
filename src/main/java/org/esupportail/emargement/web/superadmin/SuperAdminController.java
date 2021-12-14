@@ -25,6 +25,7 @@ import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.UserAppService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +83,9 @@ public class SuperAdminController {
 	@Resource
 	HelpService helpService;
 	
+	@Autowired
+	ToolUtil toolUtil;
+	
 	private final static String ITEM = "admins";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -127,11 +131,18 @@ public class SuperAdminController {
 	
 	
 	@GetMapping(value = "/superadmin/admins/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
-		List<UserApp> users = new ArrayList<UserApp>();
-		users.add(userAppRepository.findById(id).get());
+    public String show(@PathVariable("id") String id, Model uiModel) {
 		
-        uiModel.addAttribute("userApp", userAppService.setNomPrenom(users, true).get(0));
+		UserApp userApp = null;
+		List<UserApp> users = new ArrayList<UserApp>();
+		if(toolUtil.isLong(id)) {
+			users.add(userAppRepository.findById(Long.valueOf(id)).get());
+		}else {
+			users.add(userAppService.setSuperAdminUserApp(id));
+		}
+		userApp = userAppService.setNomPrenom(users, true).get(0);
+
+        uiModel.addAttribute("userApp", userApp);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "superadmin/admins/show";
     }

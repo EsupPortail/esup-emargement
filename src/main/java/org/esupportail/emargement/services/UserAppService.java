@@ -261,5 +261,16 @@ public class UserAppService {
 		
 		return userApp;
 	}
+	
+	public UserApp setSuperAdminUserApp(String eppn) {
+		UserApp userApp = new UserApp();
+		Context context = new Context();
+		context.setKey("ALL");
+		userApp.setContext(context);
+		userApp.setUserRole(Role.SUPERADMIN);
+		userApp.setEppn(eppn);
+		
+		return userApp;
+	}
 
 }

@@ -93,6 +93,7 @@
 								<th scope="col" class="d-none  d-lg-table-cell d-xl-table-cell">Eppn cible</th>
 								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Commentaire</th>
 								<th scope="col" class="d-none  d-lg-table-cell d-xl-table-cell">Ip</th>
+								<th scope="col" class="center">Voir</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -105,6 +106,7 @@
 								<td th:text="${log.cibleLogin}"  class="d-none  d-lg-table-cell d-xl-table-cell"></td>
 								<td th:text="${log.comment}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 								<td th:text="${log.remoteAddress}" class="d-none  d-lg-table-cell d-xl-table-cell"></td>
+								<td class="center"><a th:href="@{/{ctx}/superadmin/logs/{id}(id=${log.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
 							</tr>
 						</tbody>
 					</table>
