@@ -8,6 +8,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -56,5 +58,29 @@ public class ToolUtil {
 	        return false;
 	    }
 	    return true;
+	}
+	
+	public String getDureeEpreuve(SessionEpreuve se) {
+		
+		String duree ="";
+		
+		Date heureEpreuve = se.getHeureEpreuve();
+		Date finEpreuve = se.getFinEpreuve();
+		//Date dureeEpreuve = sameSe.getDureeEpreuve();
+		long diff = finEpreuve.getTime() - heureEpreuve.getTime();
+		
+		long diffMinutes = diff / (60 * 1000) % 60;
+		long diffHours = diff / (60 * 60 * 1000) % 24;
+		if(diffHours != 0) {
+			duree = String.valueOf(diffHours).concat("H");
+		}
+		if(diffMinutes != 0) {
+			duree = duree.concat(StringUtils.leftPad(String.valueOf(diffMinutes), 2, "0"));
+			if(diffHours == 0) {
+				duree = duree.concat("mn");
+			}
+		}
+		
+		return duree;
 	}
 }

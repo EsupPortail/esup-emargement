@@ -24,6 +24,7 @@ import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
+import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.web.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -54,17 +55,11 @@ public class UserAppService {
 	ContextRepository contextRepository;
 	
 	@Resource
-	UserAppService userAppService;
-	
-	@Resource
 	LdapService ldapService;
 	
-	private final String GENERIC_USER = "emargement";
+	@Autowired
+	ParamUtil paramUtil;
 	
-	public String getGenericUser() {
-		return GENERIC_USER;
-	}
-
 	public List<Role> getAllRoles(String key,  UserApp userApp){
 		if("all".equals(key)) {
 			return  Arrays.asList(Role.ADMIN);
@@ -78,7 +73,7 @@ public class UserAppService {
 			}
 			List<Role> newRoles = new ArrayList<Role>() ;
 			
-			if(Role.ADMIN.equals(roleAuth) || eppn.startsWith(GENERIC_USER)) {
+			if(Role.ADMIN.equals(roleAuth) || eppn.startsWith(paramUtil.getGenericUser())) {
 				newRoles = Arrays.asList(new Role[] {Role.ADMIN, Role.MANAGER, Role.SUPERVISOR});
 			}
 			return newRoles;
@@ -131,9 +126,9 @@ public class UserAppService {
 					userApp.setPrenom("--");
 					newList.add(userApp);
 				}
-				if(userLdap.isEmpty() && userApp.getEppn().startsWith(userAppService.getGenericUser())) {
+				if(userLdap.isEmpty() && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
 					userApp.setNom(userApp.getContext().getKey());
-					userApp.setPrenom(StringUtils.capitalize(GENERIC_USER));
+					userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 					newList.add(userApp);
 				}
 			}
@@ -257,7 +252,7 @@ public class UserAppService {
 		userApp.setContext(context);
 		userApp.setUserRole(UserApp.Role.ADMIN);
 		userApp.setNom(context.getKey());
-		userApp.setPrenom(StringUtils.capitalize(GENERIC_USER));
+		userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 		
 		return userApp;
 	}

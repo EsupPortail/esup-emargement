@@ -24,6 +24,7 @@ import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.UserAppService;
+import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +86,9 @@ public class UserAppController {
 
 	@Resource
 	AppliConfigService appliConfigService;
+	
+	@Autowired
+	ParamUtil paramUtil;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -159,7 +163,7 @@ public class UserAppController {
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-    	if(!userLdap.isEmpty() && userLdap.get(0).getEppn().startsWith(userAppService.getGenericUser())) {
+    	if(!userLdap.isEmpty() && userLdap.get(0).getEppn().startsWith(paramUtil.getGenericUser())) {
     		Context ctx = contextRepository.findByContextKey(context);
     		UserApp test =userAppRepository.findByEppnAndContext(userLdap.get(0).getEppn(), ctx);
     		if(test == null) {

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -21,6 +20,7 @@ import javax.naming.ldap.LdapName;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.AttributesMapper;
@@ -54,8 +54,8 @@ public class LdapService {
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
 	
-	@Resource
-	UserAppService userAppService;
+	@Autowired
+	ParamUtil paramUtil;
 	
 	public void setLdapTemplate(LdapTemplate ldapTemplate) {
 	      this.ldapTemplate = ldapTemplate;
@@ -76,7 +76,7 @@ public class LdapService {
 		String eppn = "";
 		if( userLdapRepository.findByUid(uid) != null && !userLdapRepository.findByUid(uid).isEmpty()) {
 			eppn = userLdapRepository.findByUid(uid).get(0).getEppn();
-		}else if(uid.startsWith(userAppService.getGenericUser())) {
+		}else if(uid.startsWith(paramUtil.getGenericUser())) {
 			eppn= uid + "@" + nomDomaine;
 		}
 		return eppn;
@@ -196,9 +196,9 @@ public class LdapService {
 		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
 		String identifiant = (eppn != null)? eppn : uid;
 		
-		if(identifiant != null &&identifiant.startsWith(userAppService.getGenericUser())) {
+		if(identifiant != null &&identifiant.startsWith(paramUtil.getGenericUser())) {
 			String splitIdentifiant [] = identifiant.split("_");
-			String prenom = StringUtils.capitalize(userAppService.getGenericUser());
+			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
 			String ctx = splitIdentifiant[1];
 			UserLdap generic = new UserLdap();
 			generic.setUid(identifiant);

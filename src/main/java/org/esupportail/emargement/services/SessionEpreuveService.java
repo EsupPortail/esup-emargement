@@ -94,9 +94,6 @@ public class SessionEpreuveService {
 	BigFileRepository bigFileRepository;
 	
 	@Resource
-	SessionEpreuveService sessionEpreuveService;
-	
-	@Resource
 	SessionLocationService sessionLocationService;
 	
 	@Resource
@@ -147,7 +144,7 @@ public class SessionEpreuveService {
 			session.setNbTagCheckerSession(nbTagCheckerSession);
 			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
-			session.setDureeEpreuve(getDureeEpreuve(session));
+			session.setDureeEpreuve(toolUtil.getDureeEpreuve(session));
 			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId(), TypeEmargement.CARD.name(), session.getContext().getId()));
 			session.setNbStoredFiles(storedFileRepository.countBySessionEpreuve(session));
 			session.setNbUnknown(unknown);
@@ -162,13 +159,13 @@ public class SessionEpreuveService {
     	//Tiers-temps
     	Long countTagChecksIsTiersTemps = tagCheckService.countNbTagCheckRepartitionNull(sessionEpreuveId, true);
     	Long countTagChecksRepartisIsTiersTemps = tagCheckService.countNbTagCheckRepartitionNotNull(sessionEpreuveId, true);
-    	int capaciteTotaleIsTiersTemps= sessionEpreuveService.countCapaciteTotalSessionLocations(sessionEpreuveId, true);
+    	int capaciteTotaleIsTiersTemps= countCapaciteTotalSessionLocations(sessionEpreuveId, true);
     	Long capaciteRestanteIsTiersTemps = new Long(capaciteTotaleIsTiersTemps) - countTagChecksRepartisIsTiersTemps;
     	
     	//Non Tiers-temps
     	Long countTagChecksIsNotTiersTemps = tagCheckService.countNbTagCheckRepartitionNull(sessionEpreuveId, false);
     	Long countTagChecksRepartisIsNotTiersTemps = tagCheckService.countNbTagCheckRepartitionNotNull(sessionEpreuveId, false);
-    	int capaciteTotaleIsNotTiersTemps= sessionEpreuveService.countCapaciteTotalSessionLocations(sessionEpreuveId, false);
+    	int capaciteTotaleIsNotTiersTemps= countCapaciteTotalSessionLocations(sessionEpreuveId, false);
     	Long capaciteRestanteIsNotTiersTemps = new Long(capaciteTotaleIsNotTiersTemps) - countTagChecksRepartisIsNotTiersTemps;
     	
     	if(countTagChecksIsTiersTemps<=capaciteRestanteIsTiersTemps && countTagChecksIsNotTiersTemps<=capaciteRestanteIsNotTiersTemps) {
@@ -198,7 +195,7 @@ public class SessionEpreuveService {
     	    				}else {
 			    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
 			    					tc.setSessionLocationExpected(sl);
-			    					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
+			    					tc.setNumAnonymat(constructNumAnonymat(sessionEpreuve, j));
 			    					tagCheckRepository.save(tc);
 			    					nbUsedPlace++;
 			    					j++;
@@ -235,7 +232,7 @@ public class SessionEpreuveService {
     	    				}else {
 	    	    				if(nbUsedPlace.intValue()<sl.getCapacite()) {
 		        					tc.setSessionLocationExpected(sl);
-		        					tc.setNumAnonymat(sessionEpreuveService.constructNumAnonymat(sessionEpreuve, j));
+		        					tc.setNumAnonymat(constructNumAnonymat(sessionEpreuve, j));
 		        					tagCheckRepository.save(tc);
 		        					nbUsedPlace++;
 		        					j++;
@@ -523,30 +520,6 @@ public class SessionEpreuveService {
 				}
 			}
 		}
-	}
-	
-	public String getDureeEpreuve(SessionEpreuve se) {
-		
-		String duree ="";
-		
-		Date heureEpreuve = se.getHeureEpreuve();
-		Date finEpreuve = se.getFinEpreuve();
-		//Date dureeEpreuve = sameSe.getDureeEpreuve();
-		long diff = finEpreuve.getTime() - heureEpreuve.getTime();
-		
-		long diffMinutes = diff / (60 * 1000) % 60;
-		long diffHours = diff / (60 * 60 * 1000) % 24;
-		if(diffHours != 0) {
-			duree = String.valueOf(diffHours).concat("H");
-		}
-		if(diffMinutes != 0) {
-			duree = duree.concat(StringUtils.leftPad(String.valueOf(diffMinutes), 2, "0"));
-			if(diffHours == 0) {
-				duree = duree.concat("mn");
-			}
-		}
-		
-		return duree;
 	}
 	
 	public List<SessionEpreuve> getListSessionEpreuveByTagchecker(String eppn, String nom){

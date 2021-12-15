@@ -28,6 +28,7 @@ import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.UserAppService;
+import org.esupportail.emargement.utils.ParamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Resource
 	UserAppService userAppService;
 	
+	@Autowired
+	ParamUtil paramUtil;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Override
@@ -101,7 +105,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			log.error("Pb lors du test superdamin UserDetailsServiceImpl en mode su", e);
 		}
 		List<Context> allcontexts = new ArrayList<Context>();
-		if(targetUser.getEppn().startsWith(userAppService.getGenericUser())) {
+		if(targetUser.getEppn().startsWith(paramUtil.getGenericUser())) {
 			String ctxSplit [] = targetUser.getUid().split("_");
 			Context ctx =contextRepository.findByContextKey(ctxSplit[1]);
 			allcontexts.add(ctx);
@@ -163,7 +167,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		
 		UserApp userApp = null;
 		
-		if(eppn.startsWith(userAppService.getGenericUser())) {
+		if(eppn.startsWith(paramUtil.getGenericUser())) {
 			userApp = userAppService.setGenericUserApp(userApp, eppn, context);
 		}else {
 			userApp = userAppRepository.findByEppnAndContext(eppn, context);

@@ -44,7 +44,9 @@ import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.utils.PdfGenaratorUtil;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,9 +123,6 @@ public class TagCheckService {
 	@Resource
 	PersonService personService;
 	
-	@Resource	
-	SessionEpreuveService sessionEpreuveService;
-	
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
 	
@@ -132,9 +131,6 @@ public class TagCheckService {
     
     @Resource   
     TagCheckerService tagCheckerService;
-    
-    @Resource   
-    TagCheckService tagCheckService;
     
 	@Resource
 	LdapService ldapService;
@@ -146,7 +142,13 @@ public class TagCheckService {
 	UserAppService userAppService;
 	
 	@Autowired
+	ParamUtil paramUtil;
+	
+	@Autowired
     private MessageSource messageSource;
+	
+	@Autowired
+	ToolUtil toolUtil;
 	
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
@@ -226,9 +228,9 @@ public class TagCheckService {
 						tc.getTagChecker().getUserApp().setNom(userLdaps2.get(0).getUsername());
 						tc.getTagChecker().getUserApp().setPrenom(userLdaps2.get(0).getPrenom());
 					}
-					if(userLdaps2.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(userAppService.getGenericUser())) {
+					if(userLdaps2.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 						tc.getTagChecker().getUserApp().setNom(tc.getTagChecker().getUserApp().getContext().getKey());
-						tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(userAppService.getGenericUser()));
+						tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 					}
 				}
 			}
@@ -567,7 +569,7 @@ public class TagCheckService {
 		finalString = finalString.replace(wrapChar.concat("heureConvocation").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getHeureConvocation()));
 		finalString = finalString.replace(wrapChar.concat("debutEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getHeureEpreuve()));
 		finalString = finalString.replace(wrapChar.concat("finEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getFinEpreuve()));
-		finalString = finalString.replace(wrapChar.concat("dureeEpreuve").concat(wrapChar), sessionEpreuveService.getDureeEpreuve(tc.getSessionEpreuve()));
+		finalString = finalString.replace(wrapChar.concat("dureeEpreuve").concat(wrapChar), toolUtil.getDureeEpreuve(tc.getSessionEpreuve()));
 		finalString = finalString.replace(wrapChar.concat("site").concat(wrapChar), tc.getSessionEpreuve().getCampus().getSite());
 		finalString = finalString.replace(wrapChar.concat("salle").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getNom());
 		finalString = finalString.replace(wrapChar.concat("adresse").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getAdresse());
