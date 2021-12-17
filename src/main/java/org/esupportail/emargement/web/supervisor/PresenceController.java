@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -32,6 +33,7 @@ import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.PresenceService;
@@ -113,6 +115,9 @@ public class PresenceController {
 	
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	GroupeService groupeService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -413,6 +418,11 @@ public class PresenceController {
     	SessionLocation sl = sessionLocationRepository.findById(slId).get();
     	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
     	String msgError = (isBlackListed) ? "&msgError=" + eppn : "";
+    	if(!isBlackListed && sl.getSessionEpreuve().getBlackListGroupe()!=null && BooleanUtils.isTrue(sl.getSessionEpreuve().getIsSaveInExcluded())) {
+    		List <Long> idsGpe = new ArrayList<Long>();
+    		idsGpe.add(sl.getSessionEpreuve().getBlackListGroupe().getId());
+    		groupeService.addMember(eppn,idsGpe);
+    	}
 
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" + msgError , emargementContext, 
     			sl.getSessionEpreuve().getId(), slId);

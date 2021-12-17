@@ -1248,7 +1248,7 @@ public class TagCheckService {
 		Page<TagCheck> tagCheckPage = null;
 		if("tiers".equals(tempsAmenage)) {
     		if(eppn.isEmpty() && repartitionId == null) {
-	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonEppn(id, pageable);
+	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(id, pageable);
     		}else if(!eppn.isEmpty()) {
     			if(repartitionId == null) {
     				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEqualsAndIsTiersTempsTrue(id, eppn, pageable);
@@ -1257,12 +1257,12 @@ public class TagCheckService {
     			}
     		}else if(eppn.isEmpty()) {
     			if(repartitionId != null) {
-    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsTrueOrderByPersonEppn(id, repartitionId, pageable);
+    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsTrue(id, repartitionId, pageable);
     			}
     		}
     	}else if("notTiers".equals(tempsAmenage)) {
     		if(eppn.isEmpty() && repartitionId == null) {
-	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonEppn(id, pageable);
+	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalse(id, pageable);
     		}else if(!eppn.isEmpty()) {
     			if(repartitionId ==null) {
     				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEqualsAndIsTiersTempsFalse(id, eppn, pageable);
@@ -1272,12 +1272,12 @@ public class TagCheckService {
     		}
     		else if(eppn.isEmpty()) {
     			if(repartitionId != null) {
-    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsFalseOrderByPersonEppn(id, repartitionId, pageable);
+    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsFalse(id, repartitionId, pageable);
     			}
     		}
     	}else {
     		if(eppn.isEmpty() && repartitionId == null) {
-	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, pageable);
+	    		tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveId(id, pageable);
     		}else if(!eppn.isEmpty()) {
     			if(repartitionId == null) {
     				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(id, eppn, pageable);
@@ -1286,7 +1286,7 @@ public class TagCheckService {
     			}
     		}else if(eppn.isEmpty()) {
     			if(repartitionId != null) {
-    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsOrderByPersonEppn(id, repartitionId, pageable);
+    				tagCheckPage = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEquals(id, repartitionId, pageable);
     			}
     		}
     	}

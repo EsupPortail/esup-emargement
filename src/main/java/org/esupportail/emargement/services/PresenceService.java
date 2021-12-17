@@ -467,6 +467,7 @@ public class PresenceService {
 			    	tc.setSessionLocationExpected(sl);
 			    	tc.setTagChecker(tagChecker);
 			    	tc.setTagDate(new Date());
+			    	tc.setNbBadgeage(tagCheckService.getNbBadgeage(tc, true));
 			    	tc.setIsTiersTemps(sl.getIsTiersTempsOnly());
 			    	tagCheckRepository.save(tc);
 	    		}

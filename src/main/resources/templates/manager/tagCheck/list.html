@@ -10,7 +10,7 @@
 	    		<div class="card-header">
 	    			<div class="row">
 		    			<div class="col">
-			    			<h2>Inscrits <span class="badge badge-secondary badge-size" th:text="${countTagChecks}"></span></h2>
+			    			<h2>Inscrits <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span></h2>
 					    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
 								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span>
 							<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
@@ -36,11 +36,11 @@
 			    				</div>
 							</div>
 						</div>
-						<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
-									or countCheckedBycard > 0 or notInLdap > 0}">
+						<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${!isSessionLibre and (countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
+									or countCheckedBycard > 0 or notInLdap > 0)}">
 							<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger me-2" th:text="${'A répartir : ' + countRepartition}"></span>
 							<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger me-2" th:text="${'Intrus : ' + countUnknown}"></span>
-							<span th:if="${isConvocationEnabled and countConvocations > 0}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
+							<span th:if="${isConvocationEnabled and countConvocations > 0 and !isSessionLibre}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
 							<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
 						</div>
 					</div>

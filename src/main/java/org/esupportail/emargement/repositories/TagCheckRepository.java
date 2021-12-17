@@ -39,8 +39,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(Long id, Pageable pageable);
 	
-	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonEppn(Long id, Pageable pageable);
-	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsFalse(Long id, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonEppn(Long id, Pageable pageable);
@@ -48,6 +46,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndPersonEppnEquals(Long id, String eppn, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsOrderByPersonEppn(Long id,  Long slId, Pageable pageable);
+	
+	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEquals(Long id,  Long slId, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndPersonEppnEqualsAndSessionLocationExpectedLocationIdEquals(Long id, String eppn,  Long slId, Pageable pageable);
 	
@@ -57,9 +57,9 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndPersonEppnEqualsAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsTrue(Long id, String eppn,  Long slId, Pageable pageable);
 	
-	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsTrueOrderByPersonEppn(Long id, Long slId, Pageable pageable);
+	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsTrue(Long id, Long slId, Pageable pageable);
 	
-	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsFalseOrderByPersonEppn(Long id, Long slId, Pageable pageable);
+	Page<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsFalse(Long id, Long slId, Pageable pageable);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveIdAndPersonEppnEqualsAndSessionLocationExpectedLocationIdEqualsAndIsTiersTempsFalse(Long id, String eppn, Long slId, Pageable pageable);
 	

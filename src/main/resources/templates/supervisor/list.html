@@ -19,13 +19,13 @@
 							<small th:if="${!isSessionLibre and tagCheckPage!=null and !tagCheckPage.isEmpty()}"  class="fw-bold h6">Nombre de présents : 
 								<span th:if="${sessionEpreuve.id !=null and sessionLocation !=null}" th:id="${'totalPresent' + sessionLocation.id}" th:text="${nbTagChecksPresent}">
 								</span>  / <span th:text="${nbTagChecksExpected}"></span></small><br />
-							<small th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and totalNotExpected>0}"  class="fw-bold h6">Nombre d'intrus : <span id="totalNotExpected" class="badge badge-pill badge-warning" th:text="${totalNotExpected}">
+							<small th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and totalNotExpected>0}"  class="fw-bold h6">Nombre d'intrus : <span id="totalNotExpected" class="badge badge-pill bg-warning" th:text="${totalNotExpected}">
 								</span></small>		
 							<small th:if="${sessionEpreuve !=null and sessionLocation !=null}"  th:text="${(sessionLocation.isTiersTempsOnly)? 'Temps aménagé' : ''}"></small>
 							<span th:if="${sessionEpreuve.isProcurationEnabled}" class="fw-bold h6" th:text="${'Procurations : ' + countProxyPerson + '/' + maxProxyPerson}"></span>
 							<span th:if="${notInLdap > 0}" class="text-info fw-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span><br />
 							<span th:if="${isSessionLibre}" class="alert alert-danger fw-bold p-2">SESSION LIBRE</span>
-							<span th:if="${isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}" class="badge badge-warning big" th:text="${'Remplissage : ' + nbTagChecksPresent + ' / ' + sessionLocation.capacite}"></span>
+							<span th:if="${isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}" class="badge bg-warning big" th:text="${'Remplissage : ' + nbTagChecksPresent + ' / ' + sessionLocation.capacite}"></span>
 							<a th:if="${isSessionLibre and !isCapaciteFull and sessionEpreuve !=null and sessionLocation !=null}" title="Ajouter un inscrit" data-bs-toggle="collapse" href="#collapseExample" class="btn btn-sm btn-primary ml-2"><i class="fa fa-plus fa-lg"></i></a>	
 						</div>
 					    <div class="col-xl-7 col-lg-6 col-md-7 col-sm-6">
