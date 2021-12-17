@@ -15,6 +15,8 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EventRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,20 +34,25 @@ public class EventService {
 	
 	@Autowired
 	EventRepository eventRepository;
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public List<CalendarComponent> geCalendarComponents(List<String> urlList) throws IOException, ParserException {
 		List<CalendarComponent> allComponents = new ArrayList<CalendarComponent>();
-		if(!urlList.isEmpty()) {
-			for(String url : urlList) {
-				InputStream fin = new URL(url).openStream();
-				CalendarBuilder builder = new CalendarBuilder();
-				Calendar calendar = builder.build(fin);
-				if(!calendar.getComponents().isEmpty()) {
-					allComponents.addAll(calendar.getComponents());
+		try {
+			if(!urlList.isEmpty()) {
+				for(String url : urlList) {
+					InputStream fin = new URL(url).openStream();
+					CalendarBuilder builder = new CalendarBuilder();
+					Calendar calendar = builder.build(fin);
+					if(!calendar.getComponents().isEmpty()) {
+						allComponents.addAll(calendar.getComponents());
+					}
 				}
 			}
+		} catch (Exception e) {
+			log.error("Impossible de récupérer les évènements ics", e);
 		}
-
 		return allComponents;
 	}
 	
