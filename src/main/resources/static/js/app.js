@@ -1872,12 +1872,16 @@ document.addEventListener('DOMContentLoaded', function() {
            });
        }
     })
+
+    $("#alphaOrder").on("change", function (event) {
+    	var alphaOrder = $("#alphaOrder").prop('checked');
+    	$("#alphaOrderAffinage").val(alphaOrder);
+    	$("#alphaOrderRepartition").val(alphaOrder);
+    });
     
-      $("#alphaOrder").on("change", function (event) {
-    	  var alphaOrder = $("#alphaOrder").prop('checked');
-    	  $("#alphaOrderAffinage").val(alphaOrder);
-    	  $("#alphaOrderRepartition").val(alphaOrder);
-      });
-    
-   });
+    $(".contextualHelp").on("mouseover", function (event) {
+    	$(this).tooltip("show"); 
+    	$(this).prop("title" ,"");
+    });
+});
     

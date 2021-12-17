@@ -26,7 +26,7 @@
 								<a th:href="@{/{ctx}/admin/location/addAll(ctx=${eContext})}" onclick="return confirm('Confirmez-vous l\'import de tous les lieux?');" class="btn btn-success" id="">Importer tous ces lieux</a>
 							</div>
 						</div>
-	                    <div class="form-group row">
+	                    <div class="row mb-3">
 	                   		<div class="col-lg-2">
 	                    		<label for="nom" class="form-label">Nom</label>
 	                    	</div>
@@ -34,7 +34,7 @@
 								<input type="text" th:field="*{nom}" class="form-control" required="required">
 							</div>
 						</div>
-	                    <div class="form-group row">
+	                    <div class="row mb-3">
 	                   		<div class="col-lg-2">
 	                    		<label for="adresse" class="form-label">Adresse</label>
 	                    	</div>
@@ -42,7 +42,7 @@
 								<textarea  th:field="*{adresse}" class="form-control"></textarea>
 							</div>
 						</div>
-	                    <div class="form-group row">
+	                    <div class="row mb-3">
 	                   		<div class="col-lg-2">
 	                    		<label for="capacite" class="form-label">Capacité maximale</label>
 	                    	</div>
@@ -50,7 +50,7 @@
 								 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
 							</div>
 						</div>
-						<div class="form-group row">
+						<div class="row mb-3">
 	                   		<div class="col-lg-2">
 	                    		<label for="campus" class="form-label">Site</label>
 	                    	</div>

@@ -16,7 +16,10 @@
                     <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/create(ctx=${eContext})}" th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
 	                    <div class="row mb-3" th:if="${!#lists.isEmpty(events)}">
 		                    <div class="col-lg-2">
-		                    	<label for="event" class="form-label">Evènements ICS</label> <span class="text-danger font-weight-bold"></span>
+		                    	<label for="event" class="form-label">Evènements ICS
+		                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.ics}">
+			                    	<i class="fas fa-question-circle"></i></a>
+		                    	</label>
 		                    </div>
 		                    <div class="col-lg-10">
 		                    	<div class="row">
@@ -63,7 +66,10 @@
 							</div>
 						</div>	
 	                    <div class="row mb-3">
-		                    <label for="campus" class="col-lg-2 form-label">*Site</label>
+		                    <label for="campus" class="col-lg-2 form-label">*Site 
+			                    <a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.site}">
+			                    <i class="fas fa-question-circle"></i></a>
+		                    </label>
 		                    <div class="col-lg-10">
 								<select th:field="*{campus}" class="form-control" required="required">
 								<option value="">----Choisir----</option>
@@ -73,7 +79,10 @@
 							</div>
 						</div>	 	                    
 	                    <div class="row mb-3">
-		                     <label for="nomSessionEpreuve" class="col-lg-2 form-label">*Nom</label>
+		                     <label for="nomSessionEpreuve" class="col-lg-2 form-label">*Nom
+			                    <a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.nom}">
+			                    <i class="fas fa-question-circle"></i></a>
+		                     </label>
 		                    <div class="col-lg-10">
 		                        <input type="text" th:field="*{nomSessionEpreuve}" class="form-control" required="required">
 		                    </div>
@@ -81,8 +90,7 @@
 	                    <div class="row mb-3">
 							<label for="dateExamen" class="col-lg-2 form-label">*Date</label>
 		                    <div class="col-lg-4">
-		                        <input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control datetimepicker-input" required="required" 
-		                        	>
+		                        <input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control datetimepicker-input" required="required">
 		                    </div>
 		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs jours)</small></label>
 		                    <div class="col-lg-4">
@@ -91,21 +99,24 @@
 		                    </div>
 	                    </div>
 	                   <div class="row mb-3">
-						   <label for="heureConvocation" class="col-lg-2 form-label">Convocation</label>
+						   <label for="heureConvocation" class="col-lg-2 form-label">*Convocation
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.heures}">
+		                    	<i class="fas fa-question-circle"></i></a>			   
+						   </label>
 		                   <div class="col-lg-10">
 		                        <input type="time" th:field="*{heureConvocation}" class="form-control datetimepicker-input " id="heureConvocation"
 		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureConvocation" required="required">
 		                    </div>
 	                    </div>
 	                    <div class="row mb-3">
-		                    <label for="heureEpreuve" class="col-lg-2 form-label">Début</label>
+		                    <label for="heureEpreuve" class="col-lg-2 form-label">*Début</label>
 	                       	<div class="col-lg-10">
 		                        <input type="time" th:field="*{heureEpreuve}" class="form-control datetimepicker-input timepicker" id="heureEpreuve"
 		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureEpreuve" required="required">
 	                        </div>
 	                    </div>
 	                    <div class="row mb-3">
-	                        <label for="finEpreuve" class="col-lg-2 form-label">Fin</label>
+	                        <label for="finEpreuve" class="col-lg-2 form-label">*Fin</label>
 	                        <div class="col-lg-10">
 	                        	<input type="time" th:field="*{finEpreuve}" class="form-control  datetimepicker-input" id="finEpreuve"
 	                        		data-bs-toggle="datetimepicker" data-bs-target="#finEpreuve" required="required">
@@ -126,7 +137,10 @@
 	                        </div>
 	                    </div>
 	                   <fieldset  class="row mb-3">
-	                   		<label class="form-label col-lg-2">Type de badgeage</label>
+	                   		<label class="form-label col-lg-2">Type de badgeage
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.typebadgeage}">
+		                    	<i class="fas fa-question-circle"></i></a>                  		
+	                   		</label>
 							<div class="col-lg-10">
  								<div class="form-check form-check-inline" th:each="type : ${T(org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage).values()}">
 								  <input class="form-check-input" type="radio" th:field="*{typeBadgeage}" th:value="${type}" th:checked="${true}">
@@ -137,6 +151,8 @@
 	                   <div class="row mb-3">
 							<label class="col-lg-2 form-check-label"  th:for="${isSessionLibre}">
 						        Session Libre
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.sessionlibre}">
+		                    	<i class="fas fa-question-circle"></i></a> 						        
 						      </label>
 							<div class="col-lg-10">
 								 <div class="form-check">
@@ -145,7 +161,10 @@
 						    </div>
 						</div>
 						<div class="row mb-3">
-	                    	<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure (session libre)</label>
+	                    	<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure (session libre)
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.groupe}">
+		                    	<i class="fas fa-question-circle"></i></a> 	                   	
+	                    	</label>
 	                    	<div class="col-lg-4">
 								<select id="blackListGroupe" name="blackListGroupe">
 									<option value="">----Choisir----</option>
@@ -165,6 +184,8 @@
 						<div class="row mb-3">
 							<label class="col-lg-2 form-check-label"  th:for="${isProcurationEnabled}">
 						        Procuration activée
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.procuration}">
+		                    	<i class="fas fa-question-circle"></i></a> 	 						        
 						     </label>
 							<div class="col-lg-10">
 								 <div class="form-check">
@@ -174,7 +195,10 @@
 						</div>
 						<div class="row mb-3">
 							<label for="maxBadgeageAlert" class="col-lg-2 form-label">Alerte
-								badgeage max</label>
+								badgeage max
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.alerte}">
+		                    	<i class="fas fa-question-circle"></i></a> 	 									
+								</label>
 							<div class="col-lg-10">
 								<input type="number" min="1" th:field="*{maxBadgeageAlert}"
 									class="form-control" value="1" required="required">

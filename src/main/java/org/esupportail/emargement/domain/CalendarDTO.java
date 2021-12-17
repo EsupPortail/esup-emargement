@@ -1,12 +1,12 @@
 package org.esupportail.emargement.domain;
 
 public class CalendarDTO {
-    public Long id;
-    public String title;
-    public String start;
-    public String end;
-    public String color;
-    public String url;
+	private Long id;
+    private String title;
+    private String start;
+    private String end;
+    private String color;
+    private String url;
     public String getColor() {
         return color;
     }

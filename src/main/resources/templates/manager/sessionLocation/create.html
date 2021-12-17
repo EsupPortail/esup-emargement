@@ -28,7 +28,7 @@
 						<div class="row mb-3">
 	                    	<label for="location" class="col-lg-2 form-label">Lieu</label>
 	                    	<div class="col-lg-10">
-								<select class="form-control" th:field="*{location}"  required="required">
+								<select class="form-control" name="location" id="addSessionLocation"  required="required">
 									<option th:each="location : ${allLocations}"
 										th:value="${location.id}" th:text="${location.nom + ' (' + location.capacite + ' max)'}"></option>
 								</select>
@@ -38,7 +38,7 @@
 						<div class="row mb-3">
 	                    	<label for="priorite" class="col-lg-2 form-label">Priorité</label>
 	                    	<div class="col-lg-10">
-								<input type="number" min="1" th:field="*{priorite}" class="form-control" required="required">
+								<input type="number" min="1" th:field="*{priorite}"  class="form-control" required="required">
 							</div>
 						</div>
 						<div class="row mb-3">
