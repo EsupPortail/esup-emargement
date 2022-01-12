@@ -163,7 +163,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
     }
 }
 
-function changeSelectSessionEpreuve2(id, id2, url) {
+function changeSelectSessionEpreuve2(id, id2, url, change) {
     var selectOrigin = document.getElementById(id);
     var selectToPopulate = document.getElementById(id2);
     var request = new XMLHttpRequest();
@@ -203,6 +203,11 @@ function changeSelectSessionEpreuve2(id, id2, url) {
 	                    option.textContent = value.location.nom;
 	                    selectToPopulate.appendChild(option);
 	                });
+	                if(change && data.length == 1){
+	                	console.log(data[0].id);
+	                	var redirect = "?sessionEpreuve=" +selectOrigin.value + "&location=" + data[0].id;
+	                	window.location.href = redirect;
+	                }
 	            }
 	        } else {
 	            console.log("erreur du serveur!");
@@ -263,8 +268,12 @@ function deleteParam(urlLocation, name) {
     return url;
 }
 
-function updatePresence(url, numEtu) {
+function updatePresence(url, numEtu, anchorId) {
     var tagDate = document.getElementById("tagDate");
+	var anchor = "";
+	if(anchorId != null){
+		anchor = anchorId;
+	}    
     var request = new XMLHttpRequest();
     request.open('GET', url + "?presence=" + numEtu, true);
     request.onload = function() {
@@ -283,7 +292,7 @@ function updatePresence(url, numEtu) {
                 }
                 var date = new Date().toLocaleTimeString("fr-FR", options);
                 var person = data[0].person;;
-                var guest = data[0].guest;;
+                var guest = data[0].guest;
                 var identifiant = "";
                 var varUrl = "";
                 if(person != null){
@@ -315,13 +324,27 @@ function updatePresence(url, numEtu) {
                 modal.find('.modal-body #photoPresent').prop("src", url);
                 modal.find('.modal-body #photoPresent').prop("alt", identifiant);
                 modal.modal('show');
-                setTimeout(function() {
-                    window.location.href = redirect;
-                }, 1750);
-            } else {
-                window.location.href = redirect;
             }
-
+            setTimeout(function() {
+            	if (typeof modal != "undefined") {
+            		modal.modal('hide');
+            	}
+            	var splitlRedirect = redirect.split("#");
+            	if(splitlRedirect.length>0){
+            		window.location.href = splitlRedirect[0]  + anchor;
+            		if (typeof modal == "undefined") {
+            			window.location.reload(true);
+            		}
+            	}else{
+            		window.location.href = redirect + anchor;
+            		if (typeof modal == "undefined") {
+            			window.location.reload(true);
+            		}
+            	}
+            	$('html,body').animate({
+            		scrollTop: ($(anchor).position().top + $(anchor).height())
+            	}, 1000);
+            }, 1750);
         } else {
             console.log("erreur du serveur!");
         }
@@ -791,9 +814,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var presenceForm = document.getElementById("presenceForm");
     if (presenceForm != null) {
         var selectSessionEpreuve = document.getElementById("sessionEpreuvePresence");
-        changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations");
+        changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations", false);
         selectSessionEpreuve.addEventListener("change", function() {
-            changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations");
+            changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations", true);
         });
     }
 
@@ -858,7 +881,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target.matches('.presenceCheck')) {
             var isPresent = event.target.checked;
             var isPresentValue = isPresent + ',' + event.target.value;
-            updatePresence(emargementContextUrl + "/supervisor/updatePresents", isPresentValue);
+            var anchorId = event.target.parentElement.id;
+            updatePresence(emargementContextUrl + "/supervisor/updatePresents", isPresentValue, anchorId);
         }
         if (event.target.matches('#pdfPreview')) {
             var htmltemplate = document.getElementById("htmltemplate");
@@ -1220,7 +1244,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-
     var helpForm = document.getElementById('helpForm');
     if (helpForm != null) {
         var areaEditor = document.getElementById("areaEditor");
@@ -1416,6 +1439,8 @@ document.addEventListener('DOMContentLoaded', function() {
             $("#" + tagCheck.id + " #tagDate").html(isPresent ? moment(tagCheck.tagDate).format('HH:mm:ss') : "");
             $("#" + tagCheck.id).prop("class", (isPresent) ? "table-success" : "table-danger");
             $("#" + tagCheck.id + " .presenceCheck").prop("checked", (isPresent) ? true : false);
+            $("#" + tagCheck.id + " .procuration").hide();
+            console.log( $("#" + tagCheck.id));
             var typeEmargement = '';
             if(tagCheck.typeEmargement != null){
             	if(tagCheck.typeEmargement == 'MANUAL'){
@@ -1525,7 +1550,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (request.status >= 200 && request.status < 400) {
                     var data = JSON.parse(this.response);
                     $("#nomSessionEpreuve").val(data.summary);
-                    $("#dateSessionEpreuve").val(moment(data.startDate).format('DD/MM/YYYY'));
+                    $("#dateSessionEpreuve").val(moment(data.startDate).format('YYYY-MM-DD'));
                     $("#heureConvocation").val(moment(data.startDate).subtract(30, 'minutes').format('HH:mm'));
                     $("#heureEpreuve").val(moment(data.startDate).format('HH:mm'));
                     $("#finEpreuve").val(moment(data.endDate).format('HH:mm'));
@@ -1797,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        });
 	        if (code) {
 	          console.log("Found QR code", code.data);
-	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data);
+	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data, null);
 	          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
 	          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
 	          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");

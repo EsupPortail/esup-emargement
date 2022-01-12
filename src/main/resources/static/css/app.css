@@ -207,6 +207,7 @@ info-box-text {
 table thead.sticky-top {
 	top: 128px;
 	z-index: 1000;
+    background-color: white;
 }
 .ss-main .ss-single-selected .placeholder .ss-disabled {
     color: red!important;

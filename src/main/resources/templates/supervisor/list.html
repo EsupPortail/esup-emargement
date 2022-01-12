@@ -168,7 +168,7 @@
 								<tbody>
 									<tr th:each="tagCheck : ${tagCheckPage}" th:class="${tagCheck.tagDate == null}? table-danger : table-success" th:id="${tagCheck.id}">
 										<td th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown}? bg-warning : ''" class="nomPrenom">
-											<a href="#" class="me-1 userModal" 
+											<a href="###" class="me-1 userModal"
 											th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 											<i class="fa fa-user" aria-hidden="true"></i></a>
 											<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="fw-bold" 
@@ -182,7 +182,7 @@
 											th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 										</td>
 										<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
-										<td th:unless="${tagCheck.isExempt}" class="center" >
+										<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 
 											th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate!=null}"  type="checkbox" class="presenceCheck" name="presenceCheck" 
@@ -195,7 +195,7 @@
 												th:disabled="${tagCheck.isUnknown or isSessionLibre}" checked="checked" >	
 										</td>
 										<td class="center"  th:if="${sessionEpreuve.isProcurationEnabled}">
-											<span th:if="${tagCheck.person != null}" >
+											<span th:if="${tagCheck.person != null}" class="procuration">
 												<input  th:if="${tagCheck.tagDate==null && tagCheck.proxyPerson==null && !isOver}" type="checkbox" class="proxyPersonCheck" name="proxyPersonCheck" 
 												th:value="${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom}" />
 												<a th:if="${tagCheck.proxyPerson!=null}" href="#" data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="proxyPersonCheck btn btn-primary btn-sm" 

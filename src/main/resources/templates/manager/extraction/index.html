@@ -154,7 +154,7 @@
 												<select name="sessionEpreuveLdap"  id="sessionEpreuveLdap" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
@@ -196,7 +196,7 @@
 												<select name="sessionEpreuveCsv"  id="sessionEpreuveCsv" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
@@ -239,7 +239,7 @@
 												<select name="sessionEpreuveGroupe"  id="sessionEpreuveGroupe"  class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
