@@ -61,6 +61,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -434,5 +435,36 @@ public class PresenceController {
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "supervisor/show";
     }
-
+	
+    @Transactional
+    @PostMapping(value = "/supervisor/tagCheck/{id}")
+    @ResponseBody
+    public Boolean delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    	TagCheck tagCheck = tagCheckRepository.findById(id).get();
+    	boolean isOk = false;
+    	if(tagCheck.getSessionEpreuve().isSessionEpreuveClosed) {
+	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
+    	}else {
+    		Person person = tagCheck.getPerson();
+    		tagCheckRepository.delete(tagCheck);
+    		Long count = tagCheckRepository.countTagCheckByPerson(person);
+    		if(count==0) {
+    			personRepository.delete(person);
+    		}
+    		isOk = true;
+    	}
+    	return isOk;
+    }
+    
+    @Transactional
+    @PostMapping("/supervisor/savecomment")
+    public String saveComment(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
+    		 @RequestParam("sessionLocationId") Long sessionLocationId, String comment) {
+    	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+    	se.setComment(comment);
+    	sessionEpreuveRepository.save(se);
+    	log.info("Maj commentaire de la session " + se.getNomSessionEpreuve());
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			sessionEpreuveId, sessionLocationId);
+    }
 }

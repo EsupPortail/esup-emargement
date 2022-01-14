@@ -1908,5 +1908,20 @@ document.addEventListener('DOMContentLoaded', function() {
     	$(this).tooltip("show"); 
     	$(this).prop("title" ,"");
     });
+    
+    $("#toto").on("click", function (event) {
+	  if (window.confirm('Confirmez-vous la suppression cet individu?')) {
+	    	var trParent = $(this)[0].parentElement.parentElement;
+	    	var id = trParent.id;
+	    	var request = new XMLHttpRequest();
+			request.open('POST', emargementContextUrl + "/supervisor/tagCheck/" + id, true);
+			request.onload = function() {
+				if (request.status >= 200 && request.status < 400) {
+					$("#" + id).hide();
+				}
+			}
+			request.send();
+	    }
+    });
 });
     

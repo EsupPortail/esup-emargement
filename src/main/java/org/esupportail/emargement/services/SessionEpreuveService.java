@@ -405,7 +405,11 @@ public class SessionEpreuveService {
 		});
 		PdfPTable table = null;
 		if("Liste".equals(type)) {
-			int nbColumn = (se.getIsProcurationEnabled())? 7 : 6;
+			int nbColumn = (se.getIsProcurationEnabled())? 5 : 4;
+	    	Long countTempsAmenage = tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(se.getId());
+	    	if(countTempsAmenage>0) {
+	    		nbColumn = nbColumn + 1;
+			}
 	    	table = new PdfPTable(nbColumn);
 	    	
 	    	table.setWidthPercentage(100);
@@ -422,10 +426,9 @@ public class SessionEpreuveService {
 	        table.addCell(cell);
 	   
 	        //contenu du tableau.
-	        PdfPCell header1 = new PdfPCell(new Phrase("Nom")); header1.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header2 = new PdfPCell(new Phrase("Prénom")); header2.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header3 = new PdfPCell(new Phrase("Identifiant")); header3.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header4 = new PdfPCell(new Phrase("Numéro identifiant")); header4.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header5 = new PdfPCell(new Phrase("Tiers-temps")); header5.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header6 = new PdfPCell(new Phrase("Procuration")); header6.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header7 = new PdfPCell(new Phrase("Signature")); header7.setBackgroundColor(BaseColor.GRAY);
@@ -433,8 +436,9 @@ public class SessionEpreuveService {
 	        table.addCell(header1);
 	        table.addCell(header2);
 	        table.addCell(header3);
-	        table.addCell(header4);
-	        table.addCell(header5);
+	        if(countTempsAmenage>0) {
+	        	table.addCell(header5);
+	        }
 	        if(se.getIsProcurationEnabled()) {
 	        	table.addCell(header6);
 	        }
@@ -445,32 +449,32 @@ public class SessionEpreuveService {
 	        		String nom = "";
 	        		String prenom = "";
 	        		String identifiant = "";
-	        		String numIdentifiant = "";
 	        		String signature = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
-	        			identifiant = tc.getPerson().getEppn();
-	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        			identifiant = tc.getPerson().getNumIdentifiant();
+	        			if(identifiant == null) {
+	        				identifiant = tc.getPerson().getEppn();
+	        			}
 	        		}else if(tc.getGuest() !=null ) {
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
 	        			identifiant = tc.getGuest().getEmail();
 	        		}
-	        		PdfPCell cell1 = new PdfPCell(new Phrase(nom)); cell1.setMinimumHeight(30); 
+	        		PdfPCell cell1 = new PdfPCell(new Phrase(identifiant)); cell1.setMinimumHeight(30); 
 	        		PdfPCell cell2 = new PdfPCell(new Phrase(prenom)); cell2.setMinimumHeight(30);
-	        		PdfPCell cell3 = new PdfPCell(new Phrase(identifiant)); cell3.setMinimumHeight(30);
-	        		PdfPCell cell4 = new PdfPCell(new Phrase(numIdentifiant)); cell4.setMinimumHeight(30);
+	        		PdfPCell cell3 = new PdfPCell(new Phrase(nom)); cell3.setMinimumHeight(30);
 	        		PdfPCell cell5 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell5.setMinimumHeight(30);
 	        		PdfPCell cell6 = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell6.setMinimumHeight(30);
 	        		PdfPCell cell7 = new PdfPCell(new Phrase(signature)); cell7.setMinimumHeight(30);
 	        		
-	        		
 	    	        table.addCell(cell1);
 	    	        table.addCell(cell2);
 	    	        table.addCell(cell3);
-	    	        table.addCell(cell4);
-	    	        table.addCell(cell5);
+	    	        if(countTempsAmenage>0) {
+	    	        	table.addCell(cell5);
+	    	        }
 	    	        if(se.getIsProcurationEnabled()) {
 	    	        	 table.addCell(cell6);
 	    	        }

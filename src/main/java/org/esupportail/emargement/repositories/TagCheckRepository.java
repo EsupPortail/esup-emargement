@@ -93,6 +93,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countBySessionEpreuveIdAndTagDateIsNotNull(Long id);
 	
+	Long countBySessionEpreuveIdAndIsUnknownTrue(Long id);
+	
 	Long countBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedIsNotNull(Long id);
 	
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(Long id);

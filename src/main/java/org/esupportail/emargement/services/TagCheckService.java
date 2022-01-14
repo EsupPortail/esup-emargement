@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -234,7 +235,7 @@ public class TagCheckService {
 					}
 				}
 			}
-			List<TagCheck> sortedUsers = allTagChecks.stream()
+			List<TagCheck> sortedUsers = allTagChecks.stream().filter(x->x.getNomPrenom()!=null)
 			  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 			  .collect(Collectors.toList());
 			
@@ -866,8 +867,10 @@ public class TagCheckService {
 		List<TagCheck> list = null;
         Long count = new Long(0);
         Long presentTotal = new Long(0);
+        Long inconnuTotal = new Long(0);
         String nomFichier = "export";
         String fin = "";
+        String nbInconnus = "";
 		if(anneeUniv != null) {
 			list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
 			nomFichier = "Export_inscrits_annee_universitaire_" + anneeUniv;
@@ -880,16 +883,24 @@ public class TagCheckService {
 	   		nomFichier = nomFichier.replace(" ", "_");
 			count = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(id);
 			presentTotal = tagCheckRepository.countTagCheckBySessionEpreuveIdAndTagDateIsNotNullAndSessionLocationExpectedLocationIdIsNotNull(id);
+			inconnuTotal = tagCheckRepository.countBySessionEpreuveIdAndIsUnknownTrue(id);
+			if(inconnuTotal>0) {
+				nbInconnus = " --  nb d'inconnus :  " + inconnuTotal;
+			}
 		}
-		
 
 		this.setNomPrenomTagChecks(list);
 		if ("PDF".equals(type)) {
 			int nnColumns = 0;
 			if(anneeUniv != null) {
-				nnColumns = 13;
+				nnColumns = 9;
 			}else {
-				nnColumns = 11 ;
+				nnColumns = 7;
+			}
+			
+			Long countTempsAmenage = tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(id);
+			if(countTempsAmenage>0) {
+				nnColumns = nnColumns+1;
 			}
 			
 		   	PdfPTable table = new PdfPTable(nnColumns);
@@ -905,7 +916,7 @@ public class TagCheckService {
 		    	TagCheck tch = list.get(0);
 		    	libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
 		    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen()))).concat(fin)
-		    			.concat(" --  nb de présents :  ").concat(presentTotal.toString()).concat("/").concat(count.toString());
+		    			.concat(" --  nb de présents :  ").concat(presentTotal.toString()).concat("/").concat(count.toString()).concat(nbInconnus);
 	    	}
 	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
 	        cell.setBackgroundColor(BaseColor.GREEN);
@@ -918,16 +929,13 @@ public class TagCheckService {
 	        	header0 = new PdfPCell(new Phrase("Session")); header0.setBackgroundColor(BaseColor.GRAY);
 	        	header00 = new PdfPCell(new Phrase("Date")); header00.setBackgroundColor(BaseColor.GRAY);
 	        }
-	        PdfPCell header1 = new PdfPCell(new Phrase("N° Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header2 = new PdfPCell(new Phrase("Eppn")); header2.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header5 = new PdfPCell(new Phrase("Présent")); header5.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header8 = new PdfPCell(new Phrase("Lieu attendu")); header8.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header9 = new PdfPCell(new Phrase("Lieu badgé")); header9.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header10 = new PdfPCell(new Phrase("Exempt")); header10.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header11 = new PdfPCell(new Phrase("Temps aménagé")); header11.setBackgroundColor(BaseColor.GRAY);
 	        
 	        if(anneeUniv != null) {
@@ -935,41 +943,38 @@ public class TagCheckService {
 		        table.addCell(header00);
 	        }
 	        table.addCell(header1);
-	        table.addCell(header2);
 	        table.addCell(header3);
 	        table.addCell(header4);
-	        table.addCell(header5);
 	        table.addCell(header6);
 	        table.addCell(header7);
 	        table.addCell(header8);
 	        table.addCell(header9);
-	        table.addCell(header10);
-	        table.addCell(header11);
+	        if(countTempsAmenage>0) {
+	        	table.addCell(header11);
+	        }
 	        
 	        if(!list.isEmpty()) {
 	        	for(TagCheck tc : list) {
-	        		String presence = "Absent";
-	        		String date  = "--";
-	        		String attendu  = "--";
-	        		String badged  = "--";
-	        		String tiersTemps  = "--";
+	        		String date  = "";
+	        		String attendu  = "";
+	        		String badged  = "";
+	        		String tiersTemps  = "";
 	        		String dateSessionEpreuve = "";
 	        		String dateFin = "";
 	        		String nom = "";
 	        		String prenom = "";
-	        		String identifiant = "";
 	        		String numIdentifiant = "";
 	        		String typeEmargement = "";
-	        		String isExempt = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
-	        			identifiant = tc.getPerson().getEppn();
 	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
+	        			if(numIdentifiant==null) {
+	        				numIdentifiant = tc.getPerson().getEppn();
+	        			}
 	        		}else if(tc.getGuest() !=null ) {
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
-	        			identifiant = tc.getGuest().getEmail();
 	        		}
 	        		if(tc.getTypeEmargement()!=null) {
 	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
@@ -977,9 +982,14 @@ public class TagCheckService {
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		PdfPCell dateCell = null;
 	        		if(tc.getTagDate() != null) {
-	        			presence = "Présent";
 	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
 	        			b = new BaseColor(19, 232, 148, 50);
+	        			if(tc.getIsUnknown()) {
+	        				b = new BaseColor(237, 223, 14, 50);
+	        			}
+	        		}
+	        		if(BooleanUtils.isTrue(tc.getIsExempt())){
+	        			date = "Exempt";
 	        		}
 	        		if(tc.getSessionLocationExpected()!=null) {
 	        			attendu = tc.getSessionLocationExpected().getLocation().getNom();
@@ -1005,16 +1015,10 @@ public class TagCheckService {
 	        		dateCell = new PdfPCell(new Paragraph(numIdentifiant));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(identifiant));
-	        		dateCell.setBackgroundColor(b);
-	                table.addCell(dateCell);	                
 	        		dateCell = new PdfPCell(new Paragraph(nom));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(prenom));
-	        		dateCell.setBackgroundColor(b);
-	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(presence));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
 	        		dateCell = new PdfPCell(new Paragraph(date));
@@ -1029,12 +1033,11 @@ public class TagCheckService {
 	        		dateCell = new PdfPCell(new Paragraph(badged));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
-	        		dateCell = new PdfPCell(new Paragraph(isExempt));
-	        		dateCell.setBackgroundColor(b);
-	                table.addCell(dateCell);
-	                dateCell = new PdfPCell(new Paragraph(tiersTemps));
-	        		dateCell.setBackgroundColor(b);
-	                table.addCell(dateCell);
+	                if(countTempsAmenage>0) {
+		                dateCell = new PdfPCell(new Paragraph(tiersTemps));
+		        		dateCell.setBackgroundColor(b);
+		                table.addCell(dateCell);
+	                }
 	        	}
 	        }
 	        
@@ -1073,9 +1076,10 @@ public class TagCheckService {
 				response.setContentType("text/csv");
 				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
 				        "attachment; filename=\"" + filename + "\"");
+				response.setCharacterEncoding("UTF-8");
 
 				//create a csv writer
-				CSVWriter writer = new CSVWriter(response.getWriter()); 
+				CSVWriter writer = new CSVWriter(response.getWriter());
 				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé", "Exempt", "Tiers-temps"};
 				writer.writeNext(headers);
 				for(TagCheck tc : list) {
