@@ -130,6 +130,10 @@
 								data-bs-toggle="modal" data-bs-target="#commentModal">
 								<i class="fas fa-comment-dots"></i>
 							</button>
+							<button class="btn btn-success mb-1" type="button"
+								data-bs-toggle="modal" data-bs-target="#emailModal">
+								<i class="fas fa-at"></i>
+							</button>
 							<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 								type="submit" class="btn btn-primary exportInscrits mb-1"
 								title="Liste d'émargement">
@@ -142,7 +146,7 @@
 						</form>
 					</div>
 					<div class="modal fade" id="commentModal" tabindex="-1"
-						aria-hidden="true">
+						aria-hidden="true" th:if="${sessionLocation !=null}">
 						<div class="modal-dialog">
 							<form
 								th:action="@{/{ctx}/supervisor/savecomment(ctx=${eContext})}"
@@ -163,6 +167,40 @@
 									</div>
 									<div class="modal-footer">
 										<button type="submit" class="btn btn-success">Sauvegarder</button>
+									</div>
+
+								</div>
+							</form>
+						</div>
+					</div>
+					<div class="modal fade" id="emailModal" tabindex="-1"
+						aria-hidden="true" th:if="${sessionLocation !=null}">
+						<div class="modal-dialog">
+							<form
+								th:action="@{/{ctx}/supervisor/senEmailPdf(ctx=${eContext})}"
+								method="post">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 class="modal-title" id="exampleModalLabel">Destinataires</h5>
+										<button type="button" class="btn-close"
+											data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+										<p>Le PDF d'émargement sera envoyé aux destinataires suivants : </p>
+										<input type="hidden" id="sessionId" name="sessionLocationId"
+										th:value="${sessionLocation.id}" /> <input type="hidden"
+										id="sessionEpreuveId" name="sessionEpreuveId"
+										th:value="${sessionEpreuve.id}" />
+										<div >
+											<div class="form-check" th:each="email : ${emails}">
+											  <input class="form-check-input" type="checkbox" th:value="${email}" name="emails" checked="checked" id="emails">
+											  <label class="form-check-label" for="emails" th:text="${email}">
+											  </label>
+											</div>
+										</div>
+									</div>
+									<div class="modal-footer">
+										<button type="submit" class="btn btn-success">Envoyer</button>
 									</div>
 
 								</div>
@@ -218,6 +256,11 @@
 	            </div>
 	            <div class="alert alert-danger  alert-dismissible fade show" th:if="${msgError != null}">
 	            	<span class="fw-bold"  th:text="${msgError}"></span> appartient au groupe des personnes non autorisées.
+	            	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+ 				</div>
+ 				<p th:text="${nbEmails}"></p>
+ 				<div class="alert alert-danger  alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">
+	            	<span class="fw-bold"  th:text="${nbEmails}"></span> mail(s envoyé(s)
 	            	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
  				</div>
 	            <div th:if="${isSessionLibre and isCapaciteFull}" class="alert alert-dark fw-bold">La capacité maximale du lieu a été atteinte!! Les nouvelles personnes qui badgeront seront rejetées.
