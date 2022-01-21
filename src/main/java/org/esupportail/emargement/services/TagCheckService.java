@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -248,7 +249,7 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, String origine, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
+    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
     	if(reader!=null) {
@@ -308,7 +309,9 @@ public class TagCheckService {
 												personRepository.save(person);
 											}
 										}
-										tc.setCodeEtape(origine);
+										if(mapEtapes != null) {
+											tc.setCodeEtape(mapEtapes.get(line));
+										}
 				    				}else {
 				    					userLdaps = userLdapRepository.findByEppnEquals(line);
 				    					if(!userLdaps.isEmpty() || !checkLdap) {
@@ -320,6 +323,9 @@ public class TagCheckService {
 												person = new Person();
 												if(checkLdap) {
 						    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
+						    							if(mapEtapes!= null && mapEtapes.containsKey("addUser")) {
+						    								tc.setCodeEtape(mapEtapes.get("addUser"));
+						    							}
 														person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
 														person.setType("student");
 						    						}

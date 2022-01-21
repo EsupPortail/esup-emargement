@@ -316,10 +316,10 @@ public class ExtractionController {
     public String importFromApogee(@PathVariable String emargementContext, ApogeeBean apogeebean, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
     		@RequestParam(value = "sessionLocation", required = false) Long slId, final RedirectAttributes redirectAttributes) throws Exception {
         uiModel.asMap().clear();
-        List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(apogeebean);
-        List<ApogeeBean> list = apogeeService.getElementsPedagogiques(apogeebean);
-        String etape = (!list.isEmpty())? list.get(0).getCodEtp() + " - "  + list.get(0).getLibEtp() : "";
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, etape, true, null, slId, null);
+        List<ApogeeBean> futursInscrits = apogeeService.getListeFutursInscrits(apogeebean);
+        List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(futursInscrits);
+        Map<String,String> mapEtapes = apogeeService.getMapEtapes(apogeebean, futursInscrits);
+        List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, mapEtapes, true, null, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/extraction/tabs/apogee", emargementContext);

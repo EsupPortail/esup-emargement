@@ -71,7 +71,7 @@
 									<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
 										<option value ="">-----Aucune----</option>
 										<option th:each="code : ${codeEtapes}"
-											th:value="${code}" th:text="${code}"></option>
+											th:value="${code.key + ' - ' + code.value}" th:text="${code.key + ' - ' + code.value}"></option>
 									</select>
 								</div>
 							</div>						

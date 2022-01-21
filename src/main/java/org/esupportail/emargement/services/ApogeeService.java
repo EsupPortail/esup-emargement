@@ -1,8 +1,10 @@
 package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -173,9 +175,9 @@ public class ApogeeService {
 	public List<ApogeeBean> getGroupes(ApogeeBean apogeeBean){
 		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 		List<ApogeeBean> groupesTD = new ArrayList<ApogeeBean>();
-		String query = "SELECT DISTINCT GROUPE.COD_EXT_GPE, GROUPE.LIB_GPE FROM APOGEE.GPE_OBJ, APOGEE.GROUPE, " +
+		String query = "SELECT DISTINCT GROUPE.COD_GPE, GROUPE.LIB_GPE FROM APOGEE.GPE_OBJ, APOGEE.GROUPE, " +
 				 		"APOGEE.IND_AFFECTE_GPE WHERE GPE_OBJ.COD_GPE = GROUPE.COD_GPE AND IND_AFFECTE_GPE.COD_GPE = GROUPE.COD_GPE " +
-				 		"AND IND_AFFECTE_GPE.COD_ANU= ? AND GPE_OBJ.COD_ELP= ? ORDER BY GROUPE.COD_EXT_GPE";
+				 		"AND IND_AFFECTE_GPE.COD_ANU= ? AND GPE_OBJ.COD_ELP= ? ORDER BY GROUPE.COD_GPE";
 		
 		try {
 			results = apogeeJdbcTemplate.queryForList(query, new Object[] {apogeeBean.getCodAnu(), apogeeBean.getCodElp()});
@@ -183,7 +185,7 @@ public class ApogeeService {
 				ApogeeBean ab = new ApogeeBean();
 				ab.setCodAnu(apogeeBean.getCodAnu());
 				ab.setCodElp(apogeeBean.getCodElp());
-				ab.setCodExtGpe((so.get("COD_EXT_GPE")!=null)? so.get("COD_EXT_GPE").toString(): "");
+				ab.setCodExtGpe((so.get("COD_GPE")!=null)? so.get("COD_GPE").toString(): "");
 				ab.setLibGpe((so.get("LIB_GPE")!=null)? so.get("LIB_GPE").toString(): "");
 				groupesTD.add(ab);
 			}
@@ -201,7 +203,7 @@ public class ApogeeService {
                 + "FROM APOGEE.GPE_OBJ GPE_OBJ, APOGEE.GROUPE GROUPE, APOGEE.IND_AFFECTE_GPE IND_AFFECTE_GPE, "
                 + "APOGEE.INDIVIDU INDIVIDU WHERE INDIVIDU.COD_IND = IND_AFFECTE_GPE.COD_IND AND "
                 + "GPE_OBJ.COD_GPE = IND_AFFECTE_GPE.COD_GPE AND GROUPE.COD_GPE = GPE_OBJ.COD_GPE "
-                + "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_EXT_GPE = ? ";
+                + "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_GPE = ? ";
 
 		try {
 			count =apogeeJdbcTemplate.queryForObject(
@@ -222,7 +224,7 @@ public class ApogeeService {
 				+ "FROM APOGEE.GPE_OBJ GPE_OBJ, APOGEE.GROUPE GROUPE, APOGEE.IND_AFFECTE_GPE IND_AFFECTE_GPE, "
 				+ "APOGEE.INDIVIDU INDIVIDU WHERE INDIVIDU.COD_IND = IND_AFFECTE_GPE.COD_IND AND "
 				+ "GPE_OBJ.COD_GPE = IND_AFFECTE_GPE.COD_GPE AND GROUPE.COD_GPE = GPE_OBJ.COD_GPE "
-				+ "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_EXT_GPE = ? "
+				+ "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_GPE = ? "
 				+ "ORDER BY INDIVIDU.LIB_NOM_PAT_IND";
 		
 		try {
@@ -416,9 +418,8 @@ public class ApogeeService {
 		return futursInscrits;
 	}
 	
-    public  List<List<String>> getListeFutursInscritsDirectImport(ApogeeBean apogeeBean){
+    public  List<List<String>> getListeFutursInscritsDirectImport(List<ApogeeBean> futursInscrits){
     	
-		List<ApogeeBean> futursInscrits = getListeFutursInscrits(apogeeBean);
 		List<List<String>> finalList = new ArrayList<List<String>>();
 		for(ApogeeBean ab : futursInscrits ) {
 			List<String> strings = new ArrayList<String>();
@@ -464,5 +465,16 @@ public class ApogeeService {
     	}
 
     	return list;
+    }
+    
+    public Map<String,String> getMapEtapes(ApogeeBean apogeebean, List<ApogeeBean> futursInscrits){
+    	Map<String,String> mapEtapes = new HashMap<String,String>();
+    	List<ApogeeBean> list = getElementsPedagogiques(apogeebean);
+    	Map<String, String> mapEtp = list.stream().collect(
+    			Collectors.toMap(ApogeeBean::getCodEtp, ApogeeBean::getLibEtp));
+    	for(ApogeeBean apogeeBean : futursInscrits) {
+    		mapEtapes.put(apogeeBean.getCodEtu(),  apogeeBean.getCodEtp() + " - " + mapEtp.get(apogeeBean.getCodEtp()));
+    	}
+    	return mapEtapes;
     }
 }

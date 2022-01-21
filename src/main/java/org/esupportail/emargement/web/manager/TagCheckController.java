@@ -7,7 +7,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
@@ -270,7 +272,15 @@ public class TagCheckController {
     	uiModel.addAttribute("allSessionLocations", sessionLocations);
     	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
-        uiModel.addAttribute("codeEtapes", tagCheckService.findDistinctCodeEtapeSessionEpreuve(id));
+        Map<String,String> mapEtapes = new HashMap<String,String>();
+        List<String> etapes = tagCheckService.findDistinctCodeEtapeSessionEpreuve(id);
+        if(!etapes.isEmpty()) {
+        	for(String etape : etapes) {
+        		String splitEtapes []= etape.split(" - ");
+        		mapEtapes.put(splitEtapes[0], splitEtapes[1]);
+        	}
+        }
+        uiModel.addAttribute("codeEtapes", mapEtapes);
     }
     
     @PostMapping("/manager/tagCheck/create")
@@ -291,7 +301,11 @@ public class TagCheckController {
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, tagCheck.getCodeEtape(), 
+        Map<String,String> mapTempEtapes = new HashMap <String,String>();
+        if(tagCheck.getCodeEtape()!=null) {
+        	mapTempEtapes.put("addUser", tagCheck.getCodeEtape());
+        }
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, mapTempEtapes, 
     			tagCheck.getCheckLdap(), tagCheck.getPerson(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null, tagCheck.getGuest());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
