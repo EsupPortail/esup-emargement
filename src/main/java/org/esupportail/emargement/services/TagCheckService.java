@@ -11,7 +11,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -56,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
@@ -202,9 +200,9 @@ public class TagCheckService {
     	}
     	else {
     		if(withUnknown) {
-    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedIdOrderByPersonEppn(id, id, pageable);
+    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(id, id, pageable);
     		}else {
-    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrderByPersonEppn(id, pageable);
+    			allTagChecks =  tagCheckRepository.findTagCheckBySessionLocationExpectedId(id, pageable);
     		}
     	}
 		if(!allTagChecks.getContent().isEmpty()) {
@@ -236,13 +234,6 @@ public class TagCheckService {
 					}
 				}
 			}
-			List<TagCheck> sortedUsers = allTagChecks.stream().filter(x->x.getNomPrenom()!=null)
-			  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
-			  .collect(Collectors.toList());
-			
-			Page<TagCheck> page = new PageImpl<>(sortedUsers, pageable, sortedUsers.size());
-			
-			allTagChecks=page;
 
 		}
     	
@@ -899,9 +890,9 @@ public class TagCheckService {
 		if ("PDF".equals(type)) {
 			int nnColumns = 0;
 			if(anneeUniv != null) {
-				nnColumns = 9;
+				nnColumns = 10;
 			}else {
-				nnColumns = 7;
+				nnColumns = 8;
 			}
 			
 			Long countTempsAmenage = tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(id);
@@ -938,8 +929,9 @@ public class TagCheckService {
 	        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header41 = new PdfPCell(new Phrase("Type")); header41.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
-	        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header8 = new PdfPCell(new Phrase("Lieu attendu")); header8.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header9 = new PdfPCell(new Phrase("Lieu badgé")); header9.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header11 = new PdfPCell(new Phrase("Temps aménagé")); header11.setBackgroundColor(BaseColor.GRAY);
@@ -951,6 +943,7 @@ public class TagCheckService {
 	        table.addCell(header1);
 	        table.addCell(header3);
 	        table.addCell(header4);
+	        table.addCell(header41);
 	        table.addCell(header6);
 	        table.addCell(header7);
 	        table.addCell(header8);
@@ -971,6 +964,7 @@ public class TagCheckService {
 	        		String prenom = "";
 	        		String numIdentifiant = "";
 	        		String typeEmargement = "";
+	        		String typeIndividu = "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
@@ -978,9 +972,11 @@ public class TagCheckService {
 	        			if(numIdentifiant==null) {
 	        				numIdentifiant = tc.getPerson().getEppn();
 	        			}
+	        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
 	        		}else if(tc.getGuest() !=null ) {
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
+	        			typeIndividu = "Externe";
 	        		}
 	        		if(tc.getTypeEmargement()!=null) {
 	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
@@ -1027,6 +1023,9 @@ public class TagCheckService {
 	        		dateCell = new PdfPCell(new Paragraph(prenom));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);
+	                dateCell = new PdfPCell(new Paragraph(typeIndividu));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);     
 	        		dateCell = new PdfPCell(new Paragraph(date));
 	        		dateCell.setBackgroundColor(b);
 	                table.addCell(dateCell);

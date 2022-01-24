@@ -142,12 +142,49 @@ public class PresenceService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
-		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuveId);
-		int nbColumn = (countProxyPerson>0)? 7 : 6;
+
+        Document document = new Document();
+        document.setMargins(10, 10, 10, 10);
+        SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+        SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+        List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(sessionEpreuveId, null).getContent();
+        String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+        String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
+    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
+        PdfPTable table = getTablePdf(response, sl, se, emargementContext);
+        try 
+        {
+          response.setContentType("application/pdf");
+          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+          PdfWriter.getInstance(document,  response.getOutputStream());
+          document.open();
+          document.add(table);
+          Paragraph paragraph = new Paragraph(se.getComment());
+          paragraph.setSpacingBefore(10f);
+          document.add(paragraph);
+          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+        } catch (DocumentException de) {
+          de.printStackTrace();
+          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+        } catch (IOException de) {
+          de.printStackTrace();
+          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+        }
+       
+        document.close();
+    }
+	
+	public PdfPTable getTablePdf(HttpServletResponse response, SessionLocation sl, SessionEpreuve se, String emargementContext) {
+		
+		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(se.getId());
+		int nbColumn = (countProxyPerson>0)? 8 : 7;
     	PdfPTable table = new PdfPTable(nbColumn);
     	String nbInconnus = "";
     	Long inconnuTotal = new Long(0);
-    	inconnuTotal = tagCheckRepository.countBySessionEpreuveIdAndIsUnknownTrue(sessionEpreuveId);
+    	inconnuTotal = tagCheckRepository.countBySessionEpreuveIdAndIsUnknownTrue(se.getId());
 		if(inconnuTotal>0) {
 			nbInconnus = " --  nb d'inconnus :  " + inconnuTotal;
 		}
@@ -155,16 +192,14 @@ public class PresenceService {
     	table.setWidthPercentage(100);
     	table.setHorizontalAlignment(Element.ALIGN_CENTER);
     	
-    	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(sessionEpreuveId, null).getContent();
+    	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
     	tagCheckService.setNomPrenomTagChecks(list);
-    	SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
-    	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
     	String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
     	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_");
-    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
-    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
+    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sl.getId());
+    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sl.getId());
     	
         //On créer l'objet cellule.
         String libelleSe = se.getNomSessionEpreuve().concat(" ").
@@ -182,14 +217,16 @@ public class PresenceService {
         PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header5 = new PdfPCell(new Phrase("Type")); header5.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Type")); header7.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header8 = new PdfPCell(new Phrase("Lieu")); header8.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.GRAY);
         
         table.addCell(header1);
         table.addCell(header3);
         table.addCell(header4);
+        table.addCell(header5);
         table.addCell(header6);
         table.addCell(header7);
         table.addCell(header8);        
@@ -207,6 +244,7 @@ public class PresenceService {
         		String prenom = "";
         		String identifiant = "";
         		String typeemargement = "";
+        		String typeIndividu = "";
         		if(tc.getPerson() !=null ) {
         			nom = tc.getPerson().getNom();
         			prenom = tc.getPerson().getPrenom();
@@ -214,10 +252,12 @@ public class PresenceService {
         			if(identifiant == null) {
         				identifiant = tc.getPerson().getEppn();
         			}
+        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
         		}else if(tc.getGuest() !=null ) {
         			nom = tc.getGuest().getNom();
         			prenom = tc.getGuest().getPrenom();
         			identifiant = tc.getGuest().getEmail();
+        			typeIndividu = "Externe";
         		}
         		if(tc.getTagDate() != null) {
         			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
@@ -245,6 +285,9 @@ public class PresenceService {
         		dateCell = new PdfPCell(new Paragraph(prenom));
         		dateCell.setBackgroundColor(b);
         		table.addCell(dateCell);
+         		dateCell = new PdfPCell(new Paragraph(typeIndividu));
+        		dateCell.setBackgroundColor(b);
+        		table.addCell(dateCell);
         		dateCell = new PdfPCell(new Paragraph(date));
         		dateCell.setBackgroundColor(b);
                 table.addCell(dateCell);
@@ -261,33 +304,8 @@ public class PresenceService {
                 }
         	}
         }
-        
-        Document document = new Document();
-        document.setMargins(10, 10, 10, 10);
-        try 
-        {
-          response.setContentType("application/pdf");
-          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
-          PdfWriter.getInstance(document,  response.getOutputStream());
-          document.open();
-          document.add(table);
-          Paragraph paragraph = new Paragraph(se.getComment());
-          paragraph.setSpacingBefore(10f);
-          document.add(paragraph);
-          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
-					null, emargementContext, null);
-        } catch (DocumentException de) {
-          de.printStackTrace();
-          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
-					null, emargementContext, null);
-        } catch (IOException de) {
-          de.printStackTrace();
-          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
-					null, emargementContext, null);
-        }
-       
-        document.close();
-    }
+		return table;
+	}
 	
 	public String getHandleRedirectUrl(EsupNfcTagLog esupNfcTagLog, String keyContext) throws ParseException {
 		

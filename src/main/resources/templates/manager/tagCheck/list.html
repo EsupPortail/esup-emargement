@@ -88,14 +88,14 @@
 							<thead class="sticky-top">
 								<tr>
 									<th th:if="${!isSessionEpreuveClosed and isConvocationEnabled}" scope="col"><input type="checkbox" id="selectall" /></th>
-									<th scope="col" class="hiddenBlock">Type</th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
 									<th scope="col">Identifiant</th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.eppn">Nom</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col" class="d-none d-xl-table-cell">Groupe</th>					
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>							
 									<th scope="col" class="d-none d-xl-table-cell text-center" >Temps aménagé</th>
-									<th scope="col" class="d-none d-xl-table-cell text-center" >Exempt</th>
+									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="isExempt">Exempt</a></th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>

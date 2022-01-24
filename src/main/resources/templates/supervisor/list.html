@@ -97,7 +97,7 @@
 									</form>
 								</div>
 							</div>
-							<div class="col-lg-3" id="qrCodeCam" th:if="${enableWebcam}">
+							<div  class="col-lg-3" id="qrCodeCam" th:if="${enableWebcam and isQrCodeEnabled or isUserQrCodeEnabled}">
 								<div id="loadingMessage">🎥 Impossible d'accéder à la
 									webCam</div>
 								<canvas id="canvas"></canvas>
@@ -105,14 +105,10 @@
 						</div>
 					</div>
 					<div class="col-xl-2 col-lg-3 col-md-1 col-sm-1">
-						<div class="btn-group-toggle float-end ms-1"
-							th:if="${isQrCodeEnabled or isUserQrCodeEnabled}"
-							data-bs-toggle="buttons">
-							<label class="btn btn-secondary active"> <input
-								type="checkbox" class="btn-check" id="webCamCheck"
-								th:checked="${enableWebcam}"> <i class="fas fa-video"></i>
-							</label>
-						</div>
+						<label th:if="${isQrCodeEnabled or isUserQrCodeEnabled}" class="btn btn-secondary active float-end mb-1" data-bs-toggle="buttons"> <input
+							type="checkbox" class="btn-check" id="webCamCheck"
+							th:checked="${enableWebcam}"> <i class="fas fa-video"></i>
+						</label>
 						<form th:if="${sessionEpreuve !=null and sessionLocation !=null}"
 							th:action="@{/{ctx}/supervisor/emargementPdf(ctx=${eContext})}"
 							method="post" id="modalFormChoixExport" class="float-end ms-2">
@@ -141,7 +137,7 @@
 							</button>
 							<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 								th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
-								class="btn btn-danger mb-1" title="Exporter les émargements"><i
+								class="btn btn-danger mb-1 me-1" title="Exporter les émargements"><i
 								class="fas fa-file-export"></i></a>
 						</form>
 					</div>
@@ -278,6 +274,7 @@
 								<thead class="sticky-top">
 									<tr>
 										<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
+										<th scope="col" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
 										<th scope="col" class="center" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Heure</a></th>
@@ -304,6 +301,9 @@
 											<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 											th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 										</td>
+										<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${tagCheck.person != null}"  th:text="#{person.type  + '.' + ${tagCheck.person.type}}">
+										</td>
+										<td th:unless="${tagCheck.person != null}"></td>
 										<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
 										<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 

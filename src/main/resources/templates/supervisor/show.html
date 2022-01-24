@@ -21,6 +21,8 @@
 							<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 							th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 						</dd>
+ 						<dt class="col-sm-2">Type</dt>
+						<dd class="col-sm-10" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></dd>
 			            <dt class="col-sm-2">Présent</dt>
 						<dd class="col-sm-10 text-danger fw-bold" th:if="${tagCheck.isExempt}">Exempt</dd>
 						<dd class="col-sm-10" th:unless="${tagCheck.isExempt}"><i th:if="${tagCheck.tagDate != null}" class="fa fa-check text-success"></i></dd>

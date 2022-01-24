@@ -167,7 +167,7 @@ public class TagCheckController {
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
     public String listTagCheckBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
-    		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person")  Pageable pageable, 
+    		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person.eppn")  Pageable pageable, 
     			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
 		
