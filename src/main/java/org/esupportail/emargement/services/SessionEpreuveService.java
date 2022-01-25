@@ -56,6 +56,7 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -414,6 +415,9 @@ public class SessionEpreuveService {
 	    	if(countTempsAmenage>0) {
 	    		nbColumn = nbColumn + 1;
 			}
+	    	if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+				nbColumn = nbColumn + 1;
+			}
 	    	table = new PdfPTable(nbColumn);
 	    	
 	    	table.setWidthPercentage(100);
@@ -433,6 +437,7 @@ public class SessionEpreuveService {
 	        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header2 = new PdfPCell(new Phrase("Nom")); header2.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header3 = new PdfPCell(new Phrase("Prénom")); header3.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header31 = new PdfPCell(new Phrase("Groupe")); header31.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header4 = new PdfPCell(new Phrase("Type")); header4.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header5 = new PdfPCell(new Phrase("Tiers-temps")); header5.setBackgroundColor(BaseColor.GRAY);
 	        PdfPCell header6 = new PdfPCell(new Phrase("Procuration")); header6.setBackgroundColor(BaseColor.GRAY);
@@ -441,6 +446,9 @@ public class SessionEpreuveService {
 	        table.addCell(header1);
 	        table.addCell(header2);
 	        table.addCell(header3);
+	        if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+	        	table.addCell(header31);
+	        }  
 	        table.addCell(header4);
 	        if(countTempsAmenage>0) {
 	        	table.addCell(header5);
@@ -457,6 +465,7 @@ public class SessionEpreuveService {
 	        		String identifiant = "";
 	        		String typeIndividu = "";
 	        		String signature = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
+	        		String groupe = "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
@@ -465,15 +474,24 @@ public class SessionEpreuveService {
 	        				identifiant = tc.getPerson().getEppn();
 	        			}
 	        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
+	        			if(tc.getPerson().getGroupes() != null) {
+		        			List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+		        			groupe = StringUtils.join(groupes,",");
+	        			}
 	        		}else if(tc.getGuest() !=null ) {
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
 	        			identifiant = tc.getGuest().getEmail();
 	        			typeIndividu = "Externe";
+	        			if(tc.getGuest().getGroupes() != null) {
+		        			List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+		        			groupe = StringUtils.join(groupes,",");
+	        			}
 	        		}
 	        		PdfPCell cell1 = new PdfPCell(new Phrase(identifiant)); cell1.setMinimumHeight(30); 
 	        		PdfPCell cell2 = new PdfPCell(new Phrase(nom)); cell2.setMinimumHeight(30);
 	        		PdfPCell cell3 = new PdfPCell(new Phrase(prenom)); cell3.setMinimumHeight(30);
+	        		PdfPCell cell31 = new PdfPCell(new Phrase(groupe)); cell31.setMinimumHeight(30);
 	        		PdfPCell cell4 = new PdfPCell(new Phrase(typeIndividu)); cell4.setMinimumHeight(30);
 	        		PdfPCell cell5 = new PdfPCell(new Phrase((tc.getIsTiersTemps())? "Oui": "Non")); cell5.setMinimumHeight(30);
 	        		PdfPCell cell6 = new PdfPCell(new Phrase((tc.getProxyPerson()!=null)? tc.getProxyPerson().getNom(): "")); cell6.setMinimumHeight(30);
@@ -482,6 +500,9 @@ public class SessionEpreuveService {
 	    	        table.addCell(cell1);
 	    	        table.addCell(cell2);
 	    	        table.addCell(cell3);
+	    	        if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+	    	        	table.addCell(cell31);
+	    	        }
 	    	        table.addCell(cell4);
 	    	        if(countTempsAmenage>0) {
 	    	        	table.addCell(cell5);

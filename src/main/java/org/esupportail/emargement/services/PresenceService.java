@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -181,6 +183,9 @@ public class PresenceService {
 		
 		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(se.getId());
 		int nbColumn = (countProxyPerson>0)? 8 : 7;
+		if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+			nbColumn = nbColumn + 1;
+		}
     	PdfPTable table = new PdfPTable(nbColumn);
     	String nbInconnus = "";
     	Long inconnuTotal = new Long(0);
@@ -217,6 +222,7 @@ public class PresenceService {
         PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header41 = new PdfPCell(new Phrase("Groupe")); header41.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header5 = new PdfPCell(new Phrase("Type")); header5.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
         PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.GRAY);
@@ -226,6 +232,9 @@ public class PresenceService {
         table.addCell(header1);
         table.addCell(header3);
         table.addCell(header4);
+        if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+        	table.addCell(header41);
+        }        
         table.addCell(header5);
         table.addCell(header6);
         table.addCell(header7);
@@ -245,6 +254,7 @@ public class PresenceService {
         		String identifiant = "";
         		String typeemargement = "";
         		String typeIndividu = "";
+        		String groupe = "";
         		if(tc.getPerson() !=null ) {
         			nom = tc.getPerson().getNom();
         			prenom = tc.getPerson().getPrenom();
@@ -253,11 +263,19 @@ public class PresenceService {
         				identifiant = tc.getPerson().getEppn();
         			}
         			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
+        			if(tc.getPerson().getGroupes() != null) {
+	        			List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+	        			groupe = StringUtils.join(groupes,",");
+        			}
         		}else if(tc.getGuest() !=null ) {
         			nom = tc.getGuest().getNom();
         			prenom = tc.getGuest().getPrenom();
         			identifiant = tc.getGuest().getEmail();
         			typeIndividu = "Externe";
+        			if(tc.getGuest().getGroupes() != null) {
+	        			List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+	        			groupe = StringUtils.join(groupes,",");
+        			}
         		}
         		if(tc.getTagDate() != null) {
         			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
@@ -285,6 +303,11 @@ public class PresenceService {
         		dateCell = new PdfPCell(new Paragraph(prenom));
         		dateCell.setBackgroundColor(b);
         		table.addCell(dateCell);
+        		if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+	        		dateCell = new PdfPCell(new Paragraph(groupe));
+	        		dateCell.setBackgroundColor(b);
+	        		table.addCell(dateCell);
+        		}
          		dateCell = new PdfPCell(new Paragraph(typeIndividu));
         		dateCell.setBackgroundColor(b);
         		table.addCell(dateCell);

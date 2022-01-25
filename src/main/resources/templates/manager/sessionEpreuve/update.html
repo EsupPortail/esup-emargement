@@ -137,6 +137,18 @@
 						    </div>
 						</div>
 						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label"  th:for="${isGroupeDisplayed}">
+						        Afficher groupes
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.displayGroupe}">
+		                    	<i class="fas fa-question-circle"></i></a>
+						     </label>
+							<div class="col-lg-10">
+								 <div class="form-check">
+								      <input class="form-check-input" type="checkbox" th:field="*{isGroupeDisplayed}">
+								</div>
+						    </div>
+						</div>
+						<div class="row mb-3">
 							<label class="col-lg-2 form-check-label"  th:for="${isProcurationEnabled}">
 						        Procuration activée
 						    </label>

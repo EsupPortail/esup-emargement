@@ -92,7 +92,7 @@
 									<th scope="col">Identifiant</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.eppn">Nom</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
-									<th scope="col" class="d-none d-xl-table-cell">Groupe</th>					
+									<th th:if="${isGroupeDisplayed}" scope="col" class="d-none d-xl-table-cell">Groupe</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>							
 									<th scope="col" class="d-none d-xl-table-cell text-center" >Temps aménagé</th>
 									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="isExempt">Exempt</a></th>
@@ -129,7 +129,7 @@
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td class="d-none d-xl-table-cell">
+									<td th:if="${isGroupeDisplayed}" class="d-none d-xl-table-cell">
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 										<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 									</td>

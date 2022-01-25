@@ -274,7 +274,8 @@
 								<thead class="sticky-top">
 									<tr>
 										<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
-										<th scope="col" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
+										<th th:if="${isGroupeDisplayed}"  class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" scope="col">Groupe</th>
+										<th scope="col" class="center hiddenBlock"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
 										<th scope="col" class="center" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
 										<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Heure</a></th>
@@ -301,9 +302,12 @@
 											<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 											th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 										</td>
-										<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${tagCheck.person != null}"  th:text="#{person.type  + '.' + ${tagCheck.person.type}}">
+										<td th:if="${isGroupeDisplayed}" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
+											<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+											<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 										</td>
-										<td th:unless="${tagCheck.person != null}"></td>
+										<td class="hiddenBlock center" th:if="${tagCheck.person != null}"  th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
+										<td class="hiddenBlock"  th:unless="${tagCheck.person != null}">Externe</td>
 										<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
 										<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 

@@ -43,6 +43,8 @@ public class SessionEpreuve implements ContextSupport {
     
     public Boolean isSaveInExcluded = false;
     
+    public Boolean isGroupeDisplayed = false;
+    
     public Integer maxBadgeageAlert = 1;
     
     @Column
@@ -356,7 +358,7 @@ public class SessionEpreuve implements ContextSupport {
 		return maxBadgeageAlert;
 	}
 
-	public void setMaxBadgeageAlert(int maxBadgeageAlert) {
+	public void setMaxBadgeageAlert(Integer maxBadgeageAlert) {
 		this.maxBadgeageAlert = maxBadgeageAlert;
 	}
 
@@ -366,5 +368,13 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setIsSaveInExcluded(Boolean isSaveInExcluded) {
 		this.isSaveInExcluded = isSaveInExcluded;
+	}
+
+	public Boolean getIsGroupeDisplayed() {
+		return isGroupeDisplayed;
+	}
+
+	public void setIsGroupeDisplayed(Boolean isGroupeDisplayed) {
+		this.isGroupeDisplayed = isGroupeDisplayed;
 	}
 }

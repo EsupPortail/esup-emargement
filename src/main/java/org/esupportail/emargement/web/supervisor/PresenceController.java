@@ -1,6 +1,11 @@
 package org.esupportail.emargement.web.supervisor;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -33,9 +39,13 @@ import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.EmailService;
 import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
+import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -73,8 +83,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -116,9 +131,15 @@ public class PresenceController {
 	
 	@Resource
 	LdapService ldapService;
+	
+	@Resource
+	LogService logService;
 
 	@Resource
 	GroupeService groupeService;
+	
+	@Resource
+	EmailService emailService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -282,6 +303,7 @@ public class PresenceController {
     	uiModel.addAttribute("totalNotExpected", totalNotExpected);
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
         uiModel.addAttribute("isSessionLibre", isSessionLibre);
+        uiModel.addAttribute("isGroupeDisplayed", sessionEpreuve.isGroupeDisplayed);
         uiModel.addAttribute("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
         uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         uiModel.addAttribute("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
@@ -294,6 +316,7 @@ public class PresenceController {
 		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
 		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
 		uiModel.addAttribute("msgError", msgError);
+		uiModel.addAttribute("emails",  appliConfigService.getListeGestionnaires());
 		
         return "supervisor/list";
     }
@@ -464,6 +487,56 @@ public class PresenceController {
     	se.setComment(comment);
     	sessionEpreuveRepository.save(se);
     	log.info("Maj commentaire de la session " + se.getNomSessionEpreuve());
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			sessionEpreuveId, sessionLocationId);
+    }
+    
+    @Transactional
+    @PostMapping("/supervisor/senEmailPdf")
+    public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
+    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("emails") List<String> emails, String comment, 
+    		 HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
+    	
+    	if(!emails.isEmpty()) {
+    		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+            SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+			try 
+			{
+				ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				PdfPTable table = presenceService.getTablePdf(response, sl, se, emargementContext);
+				Document document = new Document();
+				document.setMargins(10, 10, 10, 10);
+				PdfWriter.getInstance(document, bos);
+				document.open();
+				document.add(table);
+				Paragraph paragraph = new Paragraph(se.getComment());
+				paragraph.setSpacingBefore(10f);
+				document.add(paragraph);
+				document.close();
+				byte[] bytes = bos.toByteArray();
+				InputStream inputStream = new ByteArrayInputStream(bytes);
+    		    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy");  
+    		    String strDate = dateFormat.format(se.getDateExamen());  
+    		    String strDateFin = (se.getDateFin() != null)? " / ".concat(dateFormat.format(se.getDateFin())) : "";  
+    			String subject = "Emargement : " + se.getNomSessionEpreuve() + " - " + strDate + strDateFin; 
+    			String bodyMsg = "PDF d'émargement ci-joint";
+    			String fileName = se.getNomSessionEpreuve() + ".pdf";
+    			String[] ccArray = {};
+    			int i = 0;
+	    		for(String email : emails) {
+	    			emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, null, fileName, ccArray, inputStream);
+	    			i++;
+	    		}
+				bos.close();
+	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        	log.info("Envoi Pdf export " + se.getNomSessionEpreuve());
+	        	redirectAttributes.addAttribute("nbEmails", i);
+			} catch (Exception e) {
+				log.error("Erreur lors de l'envoi de l'export PDF, sesioon :" +  se.getNomSessionEpreuve(), e);
+			} 
+    	}
+
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sessionEpreuveId, sessionLocationId);
     }

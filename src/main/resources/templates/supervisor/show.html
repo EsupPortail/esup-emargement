@@ -21,6 +21,11 @@
 							<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 							th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 						</dd>
+						<dt th:if="${tagCheck.sessionEpreuve.isGroupeDisplayed}" class="col-sm-2">Groupe</dt>
+						<dd th:if="${tagCheck.sessionEpreuve.isGroupeDisplayed}" class="col-sm-10">
+							<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+							<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
+						</dd>
  						<dt class="col-sm-2">Type</dt>
 						<dd class="col-sm-10" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></dd>
 			            <dt class="col-sm-2">Présent</dt>

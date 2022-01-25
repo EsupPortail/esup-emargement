@@ -209,6 +209,7 @@ public class TagCheckController {
 		model.addAttribute("isSessionLibre", se.getIsSessionLibre());
         model.addAttribute("tagCheckPage", tagCheckPage);
         model.addAttribute("isSessionEpreuveClosed", se.isSessionEpreuveClosed);
+        model.addAttribute("isGroupeDisplayed", se.isGroupeDisplayed);
 		model.addAttribute("paramUrl", String.valueOf(id));
 		model.addAttribute("countTagChecks", count);
 		model.addAttribute("tempsAmenage",tempsAmenage);
