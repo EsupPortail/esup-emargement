@@ -11,7 +11,7 @@ import org.springframework.ldap.odm.annotations.Id;
  * @author jptran
  *
  */
-@Entry(base = "ou=people,dc=univ-ville,dc=fr", objectClasses  = {"inetOrgPerson" })
+@Entry(base = "ou=people", objectClasses  = {"inetOrgPerson" })
 public final class UserLdap {
     @Id
     private Name id;
@@ -24,7 +24,7 @@ public final class UserLdap {
     private @Attribute(name = "givenName") String prenom;
     private @Attribute(name = "supannEtuId") String numEtudiant;
     private @Attribute(name = "supannCivilite") String civilite;
-    private @DnAttribute(value = "uid", index = 3) String uid;
+    private @Attribute(name = "uid") String uid;
     
 	public Name getId() {
 		return id;

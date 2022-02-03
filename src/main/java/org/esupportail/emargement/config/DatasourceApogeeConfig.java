@@ -3,6 +3,7 @@ package org.esupportail.emargement.config;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 @PropertySource(value = "classpath:/emargement.properties", encoding = "UTF-8")
+@ConditionalOnProperty(value="emargement.datasource.apogee.jdbc-url")
 public class DatasourceApogeeConfig {
 	
 	@Bean(name="apogeeDb")

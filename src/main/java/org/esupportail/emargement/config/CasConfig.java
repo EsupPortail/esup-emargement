@@ -5,6 +5,7 @@ import javax.servlet.http.HttpSessionEvent;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
+import org.esupportail.emargement.repositories.UserLdapRepository;
 import org.esupportail.emargement.security.ContextCasAuthenticationProvider;
 import org.esupportail.emargement.security.ContextUserDetailsService;
 import org.jasig.cas.client.session.SingleSignOutFilter;
@@ -79,11 +80,13 @@ public class CasConfig {
 	}
 
 	@Bean
-	public ContextCasAuthenticationProvider casAuthenticationProvider(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, PersonRepository personRepository) {
+	public ContextCasAuthenticationProvider casAuthenticationProvider(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository,
+																	  UserLdapRepository userLdapRepository, PersonRepository personRepository,
+																	  ServiceProperties serviceProperties, TicketValidator ticketValidator) {
 		ContextCasAuthenticationProvider provider = new ContextCasAuthenticationProvider();
-		provider.setServiceProperties(serviceProperties());
-		provider.setTicketValidator(ticketValidator());
-		provider.setAuthenticationUserDetailsService(new ContextUserDetailsService(config, userAppRepository, contextRepository, personRepository));
+		provider.setServiceProperties(serviceProperties);
+		provider.setTicketValidator(ticketValidator);
+		provider.setAuthenticationUserDetailsService(new ContextUserDetailsService(config, userAppRepository, contextRepository, userLdapRepository, personRepository));
 		provider.setKey(key);
 		return provider;
 	}

@@ -6,7 +6,6 @@ import org.esupportail.emargement.domain.UserLdap;
 import org.springframework.data.ldap.repository.LdapRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
 public interface UserLdapRepository extends LdapRepository<UserLdap> {
 
 	List<UserLdap> findByUid(String uid);

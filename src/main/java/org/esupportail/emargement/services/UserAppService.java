@@ -214,36 +214,30 @@ public class UserAppService {
 	}
 	
 	public List<UserApp> getSuperAdmins(Pageable pageable) throws InvalidNameException{
-		
-		List<Map<String, List<String>>> allMembers = ldapService.getAllSuperAdmins();
-		List<UserApp> users = new ArrayList<UserApp>();
-		for(Map<String, List<String>> map : allMembers) {
-			UserApp userApp = new UserApp();
-			Context context = new Context();
-			context.setKey("ALL");
-			userApp.setContext(context);
-			userApp.setUserRole(Role.SUPERADMIN);
-			for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-				if("eduPersonPrincipalName".equals((entry.getKey()))){
-					userApp.setEppn(entry.getValue().get(0));
-				}else if("sn".equals((entry.getKey()))){
-					userApp.setNom(entry.getValue().get(0));
-				}else if("givenName".equals((entry.getKey()))){
-					userApp.setPrenom(entry.getValue().get(0));
-				}
-			}
-			users.add(userApp);
-			String order = "eppn: ASC";
-			if(pageable.getSort()!=null){
-		        order= pageable.getSort().toString();
-			}
-			if("eppn: ASC".equals(order)) {
-				users.sort(Comparator.comparing(UserApp::getNom));
-			}else {
-				users.sort(Comparator.comparing(UserApp::getNom).reversed());
-			}
+
+		Context allContext = new Context();
+		allContext.setKey("ALL");
+		List<UserLdap> userLdaps =  ldapService.getAllSuperAdmins();
+		List<UserApp> admins = new ArrayList<UserApp>();
+		for(UserLdap userLdap : userLdaps) {
+			UserApp admin = new UserApp();
+			admin.setContext(allContext);
+			admin.setUserRole(Role.SUPERADMIN);
+			admin.setEppn(userLdap.getEppn());
+			admin.setNom(userLdap.getUsername());
+			admin.setPrenom(userLdap.getPrenom());
+			admins.add(admin);
 		}
-		return users;
+		String order = "eppn: ASC";
+		if (pageable.getSort() != null) {
+			order = pageable.getSort().toString();
+		}
+		if ("eppn: ASC".equals(order)) {
+			admins.sort(Comparator.comparing(UserApp::getNom));
+		} else {
+			admins.sort(Comparator.comparing(UserApp::getNom).reversed());
+		}
+		return admins;
 	}
 	
 	public UserApp setGenericUserApp(UserApp userApp, String eppn, Context context) {

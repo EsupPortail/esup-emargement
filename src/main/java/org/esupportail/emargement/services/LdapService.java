@@ -17,6 +17,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.UserLdapRepository;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Service;
 
@@ -56,10 +58,6 @@ public class LdapService {
 	
 	@Autowired
 	ParamUtil paramUtil;
-	
-	public void setLdapTemplate(LdapTemplate ldapTemplate) {
-	      this.ldapTemplate = ldapTemplate;
-	   }
 
 	public List<UserLdap> search(final String search) {
 		List<UserLdap> userList = null;
@@ -83,28 +81,27 @@ public class LdapService {
 	}
     
     public List<String> getAllGroupNames(String searchValue) throws InvalidNameException {
-		LdapName toto = new LdapName(ldapGroups);
+		LdapName ldapBase = new LdapName(ldapGroups);
 		String searchfilter = (searchValue.isEmpty())? "*": "*".concat(searchValue).concat("*");
-		return ldapTemplate.search(
-				query().base(toto).searchScope(SearchScope.SUBTREE).timeLimit(THREE_SECONDS).where("cn").like(searchfilter),
+		List<String>  groups = ldapTemplate.search(
+				query().base(ldapBase).searchScope(SearchScope.SUBTREE).timeLimit(THREE_SECONDS).where("cn").like(searchfilter),
 				new AttributesMapper<String>() {
 					public String mapFromAttributes(Attributes attrs) throws NamingException {
 						return attrs.get("cn").get().toString();
 					}
 				});
+		return groups;
     }
     
-    public List<Map<String, List<String>>>  getAllmembers(String searchValue) throws InvalidNameException {
+    public List<UserLdap>  getAllmembers(String searchValue) throws InvalidNameException {
     	String searchUsers = "";
-    	
     	if(!searchValue.trim().isEmpty()) {
-    		searchUsers = "memberOf=cn=" + searchValue + "," + ldapGroups;
+    		searchUsers = "(memberOf=cn=" + searchValue + "," + ldapGroups+")";
     	}
-
-    	return ldapSearch(searchUsers);
+		return IterableUtils.toList(userLdapRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
     }
     
-    public List<Map<String, List<String>>>  getAllSuperAdmins() throws InvalidNameException {
+    public List<UserLdap>  getAllSuperAdmins() throws InvalidNameException {
     	String searchUsers = "";
     	
     	if(!ruleSuperAdminUid.trim().isEmpty()) {
@@ -119,35 +116,14 @@ public class LdapService {
     		searchUsers = "memberOf=" + ruleSuperAdmin;
     	}
 
-    	return ldapSearch(searchUsers);
+    	return IterableUtils.toList(userLdapRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
     }
-    
-    public List<Map<String, List<String>>> ldapSearch(String searchUsers){
-    	return  ldapTemplate.search(ldapPeople,searchUsers,
-    			new AttributesMapper<Map<String, List<String>>>() {
-    		@Override
-    		public Map<String, List<String>> mapFromAttributes(Attributes attributes) throws NamingException {
-    			Map<String, List<String>> attrsMap = new HashMap<>();
-    			NamingEnumeration<String> attrIdEnum = attributes.getIDs();
-    			while (attrIdEnum.hasMoreElements()) {
-    				// Get attribute id:
-    				String attrId = attrIdEnum.next();
-    				// Get all attribute values:
-    				Attribute attr = attributes.get(attrId);
-    				NamingEnumeration<?> attrValuesEnum = attr.getAll();
-    				while (attrValuesEnum.hasMore()) {
-    					if (!attrsMap.containsKey(attrId))
-    						attrsMap.put(attrId, new ArrayList<String>()); 
-    					attrsMap.get(attrId).add(attrValuesEnum.next().toString());
-    				}
-    			}
-    			return attrsMap;
-    		}
-    	});
-    }
+
     
     public Boolean checkIsUserInGroupSuperAdminLdap(String searchValue) throws InvalidNameException {
-    	
+
+		// TODO à revoir
+
     	boolean isSuperAdmin = false;
     	
     	if(!ruleSuperAdminUid.isEmpty()) {
@@ -158,44 +134,30 @@ public class LdapService {
 	        	isSuperAdmin = true;
 			}
     	}else {
-	    	List<Map<String, List<String>>>  list =  this.getAllSuperAdmins();
-	    	
-	    	if(list.size()>0) {//TO DO optimiser ....
-	    		for(Map<String, List<String>> map : list ) {
-	    			for (Map.Entry<String, List<String>> map2 : map.entrySet()) {
-	    		        if("uid".equals(map2.getKey()) && searchValue.equals(map2.getValue().get(0))) {
-	    		        	isSuperAdmin = true;
-	    		        	break;
-	    		        }
-	    		       /* if("eduPersonPrincipalName".equals(map2.getKey()) && searchValue.equals(map2.getValue())) {
-	    		        	isSuperAdmin = true;
-	    		        	break;
-	    		        }*/
-	    		    }
-	    		}
+	    	List<UserLdap>  admins =  this.getAllSuperAdmins();
+			for(UserLdap admin : admins) {
+				if("uid".equals(searchValue.equals(admin.getUid()))) {
+					isSuperAdmin = true;
+					break;
+				}
 	    	}
     	}
     	return isSuperAdmin;
     }
     
 	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
-  	  Map<String, String> usersMap = new HashMap<>();
-  	  
-  	  List<Map<String, List<String>>>  list =  this.getAllmembers(searchValue);
-  	  if(!list.isEmpty()){
-  		  for(Map<String, List<String>> map : list) {
-  			usersMap.put(map.get("eduPersonPrincipalName").get(0), map.get("displayName").get(0));
+  	  	Map<String, String> usersMap = new HashMap<>();
+  	  	List<UserLdap>  userLdaps =  this.getAllmembers(searchValue);
+		for(UserLdap userLdap : userLdaps) {
+  			usersMap.put(userLdap.getEppn(), userLdap.getPrenomNom());
   		  }
-  	  }
-  	  TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
-  	  return sortMap;
+  	  	TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
+  	  	return sortMap;
   }
 	
 	public List<UserLdap> getUserLdaps(String eppn, String uid) {
-		
 		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
 		String identifiant = (eppn != null)? eppn : uid;
-		
 		if(identifiant != null &&identifiant.startsWith(paramUtil.getGenericUser())) {
 			String splitIdentifiant [] = identifiant.split("_");
 			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
@@ -212,7 +174,6 @@ public class LdapService {
 				userLdaps = userLdapRepository.findByEppnEquals(eppn);
 			}
 		}
-		
 		return userLdaps;
 	}
           

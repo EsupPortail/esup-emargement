@@ -74,8 +74,6 @@ public class WebInterceptor implements HandlerInterceptor {
 				modelAndView.addObject("name", name);
 			}
 		}
-
 	}
-
 }
 

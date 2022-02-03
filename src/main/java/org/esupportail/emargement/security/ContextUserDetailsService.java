@@ -15,6 +15,7 @@ import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
@@ -37,10 +38,11 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 	
 	EmargementConfig config;
 	
-	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, PersonRepository personRepository){
+	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, UserLdapRepository userLdapRepository, PersonRepository personRepository){
 		this.config = config;
 		this.userAppRepository = userAppRepository;
 		this.contextRepository = contextRepository;
+		this.userLdapRepository = userLdapRepository;
 		this.personRepository = personRepository;
 	}
 
@@ -79,13 +81,23 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 				}
 			}
 		}
+		String eppn = "";
+		// si eduPersonPrincipalName proposé par CAS
+		if(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName") != null) {
+			eppn = assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString();
+		} else {
+			// sinon récupération via ldap
+			String uid = assertion.getPrincipal().getName();
+			List<UserLdap> users = userLdapRepository.findByUid(uid);
+			if(!users.isEmpty()) {
+				eppn = users.get(0).getEppn();
+			}
+		}
 		List<Context> allcontexts = contextRepository.findAll();
 		for(Context context: allcontexts) {
 			String contextKey = context.getKey();
 			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
-
-			authorities.addAll(getEmargementAdditionalRoles(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString(), context));
-			
+			authorities.addAll(getEmargementAdditionalRoles(eppn, context));
 			if(!authorities.isEmpty()) {
 				availableContexts.add(contextKey);
 			}
@@ -95,7 +107,6 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 			availableContextIds.put(contextKey, id);
 		}
 		//contexte par défaut en premier
-		String eppn = assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString();
 		List<Object[]> list = contextRepository.findByEppn(eppn);
 		HashMap<String,String> map = new HashMap<String, String>();
 		for(Object[] o : list) {

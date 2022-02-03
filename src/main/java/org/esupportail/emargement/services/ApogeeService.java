@@ -8,14 +8,17 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.config.DatasourceApogeeConfig;
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnBean(DatasourceApogeeConfig.class)
 public class ApogeeService {
 
 	@Resource

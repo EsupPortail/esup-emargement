@@ -59,7 +59,7 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class ExtractionController {
 	
-	@Resource
+	@Autowired(required = false)
 	ApogeeService apogeeService;
 	
 	@Resource
@@ -123,7 +123,11 @@ public class ExtractionController {
 		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
 		if("apogee".equals(type)) {
 			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
-			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+			if(apogeeService != null) {
+				uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+			} else {
+				uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+			}
 		}else if("groupes".equals(type)) {
 			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
 		}
@@ -132,6 +136,10 @@ public class ExtractionController {
 	
 	@PostMapping(value = "/manager/extraction/search")
 	public void search(@PathVariable String emargementContext,Model model, ApogeeBean apogeebean, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		if(apogeeService == null) {
+			log.warn("Apogée non configurée");
+			return;
+		}
 		try {
 			List<ApogeeBean> inscrits = apogeeService.getListeFutursInscrits(apogeebean);
 			String filename = "users.csv";
@@ -231,10 +239,14 @@ public class ExtractionController {
 	@GetMapping("/manager/extraction/search/{param}")
     @ResponseBody
     public List<ApogeeBean> searchDiplomes(@PathVariable String param, ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<ApogeeBean> diplomes = apogeeService.searchList(param, apogeeBean);
-    	
+		List<ApogeeBean> diplomes = new ArrayList<>();
+		if(apogeeService != null) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json; charset=utf-8");
+			diplomes = apogeeService.searchList(param, apogeeBean);
+		} else {
+			log.warn("Apogée non configurée");
+		}
         return diplomes;
     }
 	
@@ -269,16 +281,13 @@ public class ExtractionController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		int nbEtudiants = apogeeService.countAutorises(param, apogeeBean);
-    	
         return nbEtudiants;
     }
 
     @GetMapping("/manager/extraction/ldap/searchGroup")
     @ResponseBody
     public  List<String> searchGroupsLdap(@RequestParam("searchValue") String searchValue) throws InvalidNameException {
-    	
     	 List<String> ldapGroups = ldapService.getAllGroupNames(searchValue);
-    	
     	return ldapGroups;
     }
     
@@ -289,7 +298,11 @@ public class ExtractionController {
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
     	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen());
-    	uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+		if(apogeeService != null) {
+			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+		} else {
+			uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+		}
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("size", helpService.getValueOfKey(ITEM));

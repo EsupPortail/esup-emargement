@@ -131,9 +131,6 @@ public class TagCheckController {
 	PdfGenaratorUtil pdfGenaratorUtil;
 	
 	@Resource
-	ApogeeService apogeeService;
-	
-	@Resource
 	LogService logService;
 
 	@Resource
