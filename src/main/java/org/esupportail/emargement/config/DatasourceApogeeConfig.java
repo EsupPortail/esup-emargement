@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 @PropertySource(value = "classpath:/emargement.properties", encoding = "UTF-8")
-@ConditionalOnProperty(value="emargement.datasource.apogee.jdbc-url")
+@ConditionalOnProperty(prefix="emargement.datasource.apogee", name="jdbc-url", matchIfMissing = true)
 public class DatasourceApogeeConfig {
 	
 	@Bean(name="apogeeDb")
