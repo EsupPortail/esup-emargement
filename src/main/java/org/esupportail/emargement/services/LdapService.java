@@ -44,9 +44,6 @@ public class LdapService {
 	@Value("${ldap.groups}")
 	private String ldapGroups;
 	
-	@Value("${ldap.people}")
-	private String ldapPeople;
-	
 	@Value("${emargement.ruleSuperAdmin.memberOf}")
 	private String ruleSuperAdmin;
 	
