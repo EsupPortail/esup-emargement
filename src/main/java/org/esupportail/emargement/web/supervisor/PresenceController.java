@@ -20,13 +20,8 @@ import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.Prefs;
-import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionLocation;
-import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.*;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -35,7 +30,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
@@ -118,7 +113,7 @@ public class PresenceController {
 	private TagCheckerRepository tagCheckerRepository;
 	
     @Resource
-    UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
     
     @Resource
     LocationRepository locationRepository;
@@ -198,8 +193,8 @@ public class PresenceController {
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap =ldapService.getUserLdaps(null, auth.getName());;
-		String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
+		List<LdapUser> ldapUser =ldapService.getUserLdaps(null, auth.getName());;
+		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
         if(sessionLocationId != null) {
     		if(sessionEpreuve.isSessionEpreuveClosed) {
     			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
@@ -326,8 +321,8 @@ public class PresenceController {
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
-    	List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
+    	List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(sessionEpreuve.getId(), eppnAuth);
@@ -420,17 +415,17 @@ public class PresenceController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppn = (ldapUser != null)?  ldapUser.get(0).getEppn()  : "";
         presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
     }
     
     @GetMapping("/supervisor/searchUsersLdap")
     @ResponseBody
-    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;

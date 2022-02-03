@@ -6,7 +6,7 @@ import java.util.Random;
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,8 +28,8 @@ public class UserService {
 	public Page<TagCheck> getTagChecks( Pageable pageable) {
 		Page<TagCheck> tcs = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap =  ldapService.getUserLdaps(null, auth.getName());
-		String eppn = (userLdap != null)?  userLdap.get(0).getEppn()  : "";
+		List<LdapUser> ldapUser =  ldapService.getUserLdaps(null, auth.getName());
+		String eppn = (ldapUser != null)?  ldapUser.get(0).getEppn()  : "";
 		if(!eppn.isEmpty()) {
 			tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, pageable);
 		}

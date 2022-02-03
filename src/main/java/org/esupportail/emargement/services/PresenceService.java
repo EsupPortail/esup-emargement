@@ -15,18 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.AppliConfig;
-import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.Prefs;
-import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionLocation;
-import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.*;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
-import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -36,7 +27,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -100,7 +91,7 @@ public class PresenceService {
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
     @Resource
-    UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
     
     @Resource    
     AppliConfigRepository appliConfigRepository;
@@ -411,8 +402,8 @@ public class PresenceService {
 	    	}
     	}
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdaps =  ldapService.getUserLdaps(null, auth.getName());
-		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdaps.get(0).getEppn(), null).getContent().get(0) : null;
+		List<LdapUser> ldapUsers =  ldapService.getUserLdaps(null, auth.getName());
+		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUsers.get(0).getEppn(), null).getContent().get(0) : null;
 		
     	presentTagCheck.setTagChecker(tagChecker);
     	presentTagCheck.setTagDate(date);
@@ -478,9 +469,9 @@ public class PresenceService {
 			    	List<Person> list = personRepository.findByEppn(eppn);
 			    	Context context = contextRepository.findByContextKey(emargementContext);
 			    	Person p = null;
-			    	UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+			    	LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 			    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			    	UserLdap authUser = userLdapRepository.findByUid(auth.getName()).get(0);
+			    	LdapUser authUser = ldapUserRepository.findByUid(auth.getName()).get(0);
 			    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
 			    	if(!list.isEmpty()) {
 			    		p = list.get(0);

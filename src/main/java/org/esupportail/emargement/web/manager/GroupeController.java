@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.AppUser;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -228,8 +228,8 @@ public class GroupeController {
     		@RequestParam(value="groupes") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppn = ldapUser.get(0).getEppn();
     	groupeService.addMember(eppnTagCheck, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "UtILISATEUR -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
 
@@ -241,8 +241,8 @@ public class GroupeController {
     		@RequestParam(value="groupeIds") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppn = ldapUser.get(0).getEppn();
     	groupeService.addMembersFromSessionEpreuve(seIds, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "SESSION -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
 
@@ -266,8 +266,8 @@ public class GroupeController {
     		@RequestParam(value="groupeIds2") List<Long> gr2Ids){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap =  ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		List<LdapUser> ldapUser =  ldapService.getUserLdaps(null, auth.getName());
+		String eppn = ldapUser.get(0).getEppn();
     	
     	groupeService.addMembersFromGroupe(gr1Ids, gr2Ids);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "GROUPE -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(gr1Ids)), eppn, null, emargementContext, null);
@@ -280,8 +280,8 @@ public class GroupeController {
     		@RequestParam(value="case", required = false) List<String> keys, final RedirectAttributes redirectAttributes) {
     	if(keys != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-			String eppn = userLdap.get(0).getEppn();
+			List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+			String eppn = ldapUser.get(0).getEppn();
 	    	
 	    	Groupe groupe = groupeRepository.findById(id).get();
 	    	

@@ -3,9 +3,9 @@ package org.esupportail.emargement.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.UserLdap;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +13,16 @@ import org.springframework.stereotype.Service;
 public class PersonService {
 	
 	@Autowired
-	private UserLdapRepository userLdapRepository;
+	private LdapUserRepository ldapUserRepository;
 	
 	public List<Person> setNomPrenom(List<Person> persons){
 		
 		if(!persons.isEmpty()) {
 			for(Person p : persons) {
-				List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(p.getEppn());
-				if(!userLdaps.isEmpty()) {
-					p.setNom(userLdaps.get(0).getUsername());
-					p.setPrenom(userLdaps.get(0).getPrenom());
+				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(p.getEppn());
+				if(!ldapUsers.isEmpty()) {
+					p.setNom(ldapUsers.get(0).getUsername());
+					p.setPrenom(ldapUsers.get(0).getPrenom());
 				}
 			}
 		}

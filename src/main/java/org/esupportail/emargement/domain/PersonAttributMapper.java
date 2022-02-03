@@ -6,9 +6,9 @@ import org.springframework.ldap.core.AttributesMapper;
 
 public class PersonAttributMapper implements AttributesMapper<Object> {
 	
-	public UserLdap mapFromAttributes(Attributes attrs)
+	public LdapUser mapFromAttributes(Attributes attrs)
 			throws javax.naming.NamingException {
-		UserLdap p = new UserLdap();
+		LdapUser p = new LdapUser();
 		if (null!=attrs.get("uid")) {
 			p.setUid(attrs.get("uid").get().toString());
 		}

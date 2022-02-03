@@ -16,7 +16,7 @@ import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -103,8 +103,8 @@ public class GroupeService {
 		List<Guest> allGuests =new ArrayList<Guest>();
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppn = ldapUser.get(0).getEppn();
 		
 		for(Long id : ids) {
 			SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
@@ -134,8 +134,8 @@ public class GroupeService {
 		List<Person> allPersons =new ArrayList<Person>();
 		List<Guest> allGuests =new ArrayList<Guest>();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		String eppn = ldapUser.get(0).getEppn();
 		
 		for(Long id : gr1Ids) {
 			Groupe groupe = groupeRepository.findById(id).get();

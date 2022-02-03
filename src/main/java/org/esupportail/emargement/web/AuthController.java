@@ -4,7 +4,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +23,7 @@ public class AuthController {
     ContextService contextService;
     
     @Resource
-    UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@GetMapping("/login")
 	public String login() {

@@ -15,11 +15,11 @@ import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.jasig.cas.client.validation.Assertion;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,17 +32,17 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 	
 	ContextRepository contextRepository;
 	
-	UserLdapRepository userLdapRepository;
+	LdapUserRepository ldapUserRepository;
 	
 	PersonRepository personRepository;
 	
 	EmargementConfig config;
 	
-	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, UserLdapRepository userLdapRepository, PersonRepository personRepository){
+	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, LdapUserRepository ldapUserRepository, PersonRepository personRepository){
 		this.config = config;
 		this.userAppRepository = userAppRepository;
 		this.contextRepository = contextRepository;
-		this.userLdapRepository = userLdapRepository;
+		this.ldapUserRepository = ldapUserRepository;
 		this.personRepository = personRepository;
 	}
 
@@ -88,7 +88,7 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		} else {
 			// sinon récupération via ldap
 			String uid = assertion.getPrincipal().getName();
-			List<UserLdap> users = userLdapRepository.findByUid(uid);
+			List<LdapUser> users = ldapUserRepository.findByUid(uid);
 			if(!users.isEmpty()) {
 				eppn = users.get(0).getEppn();
 			}

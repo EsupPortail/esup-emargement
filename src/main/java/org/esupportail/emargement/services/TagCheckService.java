@@ -21,18 +21,10 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.Guest;
-import org.esupportail.emargement.domain.Location;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.*;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
-import org.esupportail.emargement.domain.SessionLocation;
-import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
-import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
@@ -42,7 +34,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.ParamUtil;
@@ -85,7 +77,7 @@ public class TagCheckService {
 	ContextRepository contextRepository;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
@@ -213,22 +205,22 @@ public class TagCheckService {
 					tc.setIsUnknown(false);
 				}
 				if(tc.getPerson() != null) {
-				List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn());
-					if(!userLdaps.isEmpty()) {
-						tc.getPerson().setNom(userLdaps.get(0).getUsername());
-						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
-						tc.setNomPrenom(userLdaps.get(0).getUsername().concat(userLdaps.get(0).getPrenom()));
+				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
+					if(!ldapUsers.isEmpty()) {
+						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
+						tc.setNomPrenom(ldapUsers.get(0).getUsername().concat(ldapUsers.get(0).getPrenom()));
 					}else {
 						tc.setNomPrenom("");
 					}
 				}
 				if(tc.getTagChecker() != null) {
-					List<UserLdap>  userLdaps2 = userLdapRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
-					if(!userLdaps2.isEmpty()) {
-						tc.getTagChecker().getUserApp().setNom(userLdaps2.get(0).getUsername());
-						tc.getTagChecker().getUserApp().setPrenom(userLdaps2.get(0).getPrenom());
+					List<LdapUser> ldaps2User = ldapUserRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
+					if(!ldaps2User.isEmpty()) {
+						tc.getTagChecker().getUserApp().setNom(ldaps2User.get(0).getUsername());
+						tc.getTagChecker().getUserApp().setPrenom(ldaps2User.get(0).getPrenom());
 					}
-					if(userLdaps2.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
+					if(ldaps2User.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 						tc.getTagChecker().getUserApp().setNom(tc.getTagChecker().getUserApp().getContext().getKey());
 						tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 					}
@@ -269,7 +261,7 @@ public class TagCheckService {
 			    			Person person = null;
 			    			Guest guest = null;
 			    			String eppn  = null;
-			    			List<UserLdap>  userLdaps = null;
+			    			List<LdapUser> ldapUsers = null;
 			    			boolean isFromDomain = false;
 			    			String line = row.get(0).trim();
 			    			line = line.replace("\"","");
@@ -284,9 +276,9 @@ public class TagCheckService {
 			    			if(!line.startsWith("#")) {
 				    			try {
 				    				if(line.chars().allMatch(Character::isDigit)){
-				    					userLdaps = userLdapRepository.findByNumEtudiantEquals(line);
-										if(!userLdaps.isEmpty()) {
-											eppn = userLdaps.get(0).getEppn();
+				    					ldapUsers = ldapUserRepository.findByNumEtudiantEquals(line);
+										if(!ldapUsers.isEmpty()) {
+											eppn = ldapUsers.get(0).getEppn();
 											List<Person> existingPersons = personRepository.findByEppn(eppn);
 											if(!existingPersons.isEmpty()) {
 												person = existingPersons.get(0);
@@ -304,20 +296,20 @@ public class TagCheckService {
 											tc.setCodeEtape(mapEtapes.get(line));
 										}
 				    				}else {
-				    					userLdaps = userLdapRepository.findByEppnEquals(line);
-				    					if(!userLdaps.isEmpty() || !checkLdap) {
-				    						eppn =(!userLdaps.isEmpty())? userLdaps.get(0).getEppn() : line;
+				    					ldapUsers = ldapUserRepository.findByEppnEquals(line);
+				    					if(!ldapUsers.isEmpty() || !checkLdap) {
+				    						eppn =(!ldapUsers.isEmpty())? ldapUsers.get(0).getEppn() : line;
 				    						List<Person> existingPersons = personRepository.findByEppn(eppn);
 				    						if(!existingPersons.isEmpty()) {
 												person = existingPersons.get(0);
 											}else {
 												person = new Person();
 												if(checkLdap) {
-						    						if(userLdaps.get(0).getNumEtudiant()!=null && !userLdaps.get(0).getNumEtudiant().isEmpty()) {
+						    						if(ldapUsers.get(0).getNumEtudiant()!=null && !ldapUsers.get(0).getNumEtudiant().isEmpty()) {
 						    							if(mapEtapes!= null && mapEtapes.containsKey("addUser")) {
 						    								tc.setCodeEtape(mapEtapes.get("addUser"));
 						    							}
-														person.setNumIdentifiant(userLdaps.get(0).getNumEtudiant());
+														person.setNumIdentifiant(ldapUsers.get(0).getNumEtudiant());
 														person.setType("student");
 						    						}
 						    						else {
@@ -379,7 +371,7 @@ public class TagCheckService {
 	    								tc.setSessionLocationBadged(slLibre);
 	    								tc.setSessionLocationExpected(slLibre);
 					    			}
-					    			if(!userLdaps.isEmpty() || !checkLdap && eppn!=null) {
+					    			if(!ldapUsers.isEmpty() || !checkLdap && eppn!=null) {
 					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionEpreuveId, eppn);
 					    			}else if(!isFromDomain && splitLine!=null) {
 					    				tcTest = tagCheckRepository.countTagCheckBySessionEpreuveIdAndGuestEmailEquals(sessionEpreuveId, splitLine[0]);
@@ -389,7 +381,7 @@ public class TagCheckService {
 									tcTest = new Long(-1);
 									log.error("Erreur sur le login ou numéro identifiant "  + line + " lors de la recherche LDAP", e);
 								}
-					    		if(!userLdaps.isEmpty() && tcTest == 0 || userLdaps.isEmpty() && tcTest == 0 && guest!=null || !checkLdap && tcTest == 0 && eppn!=null ){
+					    		if(!ldapUsers.isEmpty() && tcTest == 0 || ldapUsers.isEmpty() && tcTest == 0 && guest!=null || !checkLdap && tcTest == 0 && eppn!=null ){
 				    				tcToSave.add(tc);
 				    				i++;
 				    			}else if(tcTest >0){
@@ -497,11 +489,11 @@ public class TagCheckService {
 		if(!tagChecks.isEmpty()) {
 			for(TagCheck tc : tagChecks) {
 				if(tc.getPerson()!=null) {
-					List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn());
-					if(!userLdaps.isEmpty()) {
-						tc.getPerson().setNom(userLdaps.get(0).getUsername());
-						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
-						tc.setNomPrenom(userLdaps.get(0).getUsername().concat(userLdaps.get(0).getPrenom()));
+					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
+					if(!ldapUsers.isEmpty()) {
+						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
+						tc.setNomPrenom(ldapUsers.get(0).getUsername().concat(ldapUsers.get(0).getPrenom()));
 					}else {
 						tc.setNomPrenom("");
 					}
@@ -519,10 +511,10 @@ public class TagCheckService {
 		if(!tagCheckIds.isEmpty()) {
 			for(Long id : tagCheckIds) {
 				TagCheck tc =tagCheckRepository.findById(id).get();
-				List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn());
+				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 				String sn = "";
-				if(!userLdaps.isEmpty()) {
-					sn = userLdaps.get(0).getPrenom().concat(" ").concat(userLdaps.get(0).getUsername());
+				if(!ldapUsers.isEmpty()) {
+					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getUsername());
 				}
 				snTagChecks.add(sn);
 			}
@@ -592,14 +584,14 @@ public class TagCheckService {
 			
 			for(Long id : listeIds) {
 				TagCheck tc = tagCheckRepository.findById(id).get();
-				List<UserLdap> userLdaps = userLdapRepository.findByEppnEquals(tc.getPerson().getEppn());
-				if(!userLdaps.isEmpty()) {
+				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
+				if(!ldapUsers.isEmpty()) {
 					try {
-						tc.getPerson().setNom(userLdaps.get(0).getUsername());
-						tc.getPerson().setPrenom(userLdaps.get(0).getPrenom());
-						tc.getPerson().setCivilite(userLdaps.get(0).getCivilite());
+						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
+						tc.getPerson().setCivilite(ldapUsers.get(0).getCivilite());
 						String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
-						String email = userLdaps.get(0).getEmail();
+						String email = ldapUsers.get(0).getEmail();
 						if(!appliConfigService.getTestEmail().isEmpty()) {
 							email = appliConfigService.getTestEmail();
 						}
@@ -611,7 +603,7 @@ public class TagCheckService {
 						tagCheckRepository.save(tc);
 						i++;
 					} catch (Exception e) {
-						errors.add(userLdaps.get(0).getEppn());
+						errors.add(ldapUsers.get(0).getEppn());
 						e.printStackTrace();
 						j++;
 					}
@@ -832,7 +824,7 @@ public class TagCheckService {
 				p.setEppn(eppn);
 				personRepository.save(p);
 			}
-			List<UserLdap> users = userLdapRepository.findByEppnEquals(eppn);
+			List<LdapUser> users = ldapUserRepository.findByEppnEquals(eppn);
 			if(!users.isEmpty()) {
 				p.setType((users.get(0).getNumEtudiant()!=null)? "student" : "staff");
 				p.setNumIdentifiant(users.get(0).getNumEtudiant());

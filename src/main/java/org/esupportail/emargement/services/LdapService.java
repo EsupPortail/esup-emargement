@@ -3,7 +3,6 @@ package org.esupportail.emargement.services;
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,16 +10,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.naming.InvalidNameException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.UserLdap;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.utils.ParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +31,7 @@ import org.springframework.stereotype.Service;
 public class LdapService {
 
 	@Autowired
-	private UserLdapRepository userLdapRepository;
+	private LdapUserRepository ldapUserRepository;
 	
 	private static final Integer THREE_SECONDS = 3000;
 	
@@ -56,9 +53,9 @@ public class LdapService {
 	@Autowired
 	ParamUtil paramUtil;
 
-	public List<UserLdap> search(final String search) {
-		List<UserLdap> userList = null;
-		userList = userLdapRepository.findByNomPrenomContainingIgnoreCase(search);
+	public List<LdapUser> search(final String search) {
+		List<LdapUser> userList = null;
+		userList = ldapUserRepository.findByNomPrenomContainingIgnoreCase(search);
 
 		if (userList == null) {
 			return Collections.emptyList();
@@ -69,8 +66,8 @@ public class LdapService {
 	
 	public String getEppn(String uid) {
 		String eppn = "";
-		if( userLdapRepository.findByUid(uid) != null && !userLdapRepository.findByUid(uid).isEmpty()) {
-			eppn = userLdapRepository.findByUid(uid).get(0).getEppn();
+		if( ldapUserRepository.findByUid(uid) != null && !ldapUserRepository.findByUid(uid).isEmpty()) {
+			eppn = ldapUserRepository.findByUid(uid).get(0).getEppn();
 		}else if(uid.startsWith(paramUtil.getGenericUser())) {
 			eppn= uid + "@" + nomDomaine;
 		}
@@ -90,17 +87,17 @@ public class LdapService {
 		return groups;
     }
     
-    public List<UserLdap>  getAllmembers(String searchValue) throws InvalidNameException {
+    public List<LdapUser>  getAllmembers(String searchValue) throws InvalidNameException {
     	String searchUsers = "";
     	if(!searchValue.trim().isEmpty()) {
     		searchUsers = "(memberOf=cn=" + searchValue + "," + ldapGroups+")";
     	}
-		return IterableUtils.toList(userLdapRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
+		return IterableUtils.toList(ldapUserRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
     }
     
-    public List<UserLdap>  getAllSuperAdmins() throws InvalidNameException {
+    public List<LdapUser>  getAllSuperAdmins() throws InvalidNameException {
 		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
-		Iterable<UserLdap> superAdmins = userLdapRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
+		Iterable<LdapUser> superAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
 		return IterableUtils.toList(superAdmins);
     }
 
@@ -124,40 +121,40 @@ public class LdapService {
 	public Boolean checkIsUserInGroupSuperAdminLdap(String uid) throws InvalidNameException {
 		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
 		String isSuperAdminsLdapFilter = String.format("&(uid=%s)(%s)", uid, superAdminsLdapFilter);
-		Iterable<UserLdap> isSuperAdmins = userLdapRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
+		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
 		return !IterableUtils.isEmpty(isSuperAdmins);
     }
     
 	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
   	  	Map<String, String> usersMap = new HashMap<>();
-  	  	List<UserLdap>  userLdaps =  this.getAllmembers(searchValue);
-		for(UserLdap userLdap : userLdaps) {
-  			usersMap.put(userLdap.getEppn(), userLdap.getPrenomNom());
+  	  	List<LdapUser> ldapUsers =  this.getAllmembers(searchValue);
+		for(LdapUser ldapUser : ldapUsers) {
+  			usersMap.put(ldapUser.getEppn(), ldapUser.getPrenomNom());
   		  }
   	  	TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
   	  	return sortMap;
   }
 	
-	public List<UserLdap> getUserLdaps(String eppn, String uid) {
-		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
+	public List<LdapUser> getUserLdaps(String eppn, String uid) {
+		List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
 		String identifiant = (eppn != null)? eppn : uid;
 		if(identifiant != null &&identifiant.startsWith(paramUtil.getGenericUser())) {
 			String splitIdentifiant [] = identifiant.split("_");
 			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
 			String ctx = splitIdentifiant[1];
-			UserLdap generic = new UserLdap();
+			LdapUser generic = new LdapUser();
 			generic.setUid(identifiant);
 			generic.setEppn(identifiant + "@" + nomDomaine);
 			generic.setPrenomNom(StringUtils.capitalize(prenom) + " " + StringUtils.capitalize(ctx));
-			userLdaps.add(generic);
+			ldapUsers.add(generic);
 		}else {
 			if(uid !=null) {
-				userLdaps = userLdapRepository.findByUid(uid);
+				ldapUsers = ldapUserRepository.findByUid(uid);
 			}else if(eppn != null) {
-				userLdaps = userLdapRepository.findByEppnEquals(eppn);
+				ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
 			}
 		}
-		return userLdaps;
+		return ldapUsers;
 	}
           
 }

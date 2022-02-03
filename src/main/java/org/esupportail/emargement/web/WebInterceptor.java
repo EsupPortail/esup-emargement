@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.services.LdapService;
@@ -43,8 +43,8 @@ public class WebInterceptor implements HandlerInterceptor {
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String uid =(auth != null)? auth.getName() : null;
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, uid);
-		String name = (!userLdap.isEmpty())?  userLdap.get(0).getPrenomNom()  : "";
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, uid);
+		String name = (!ldapUser.isEmpty())?  ldapUser.get(0).getPrenomNom()  : "";
 
 		if(modelAndView != null) {
 			boolean isViewObject = modelAndView.getView() == null;

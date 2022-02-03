@@ -12,7 +12,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -68,10 +68,10 @@ public class DashboardController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();		
 		//List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
 		
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
 		
-		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdap.get(0).getEppn(), pageable);
-		model.addAttribute("userLdap", userLdap.get(0));
+		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUser.get(0).getEppn(), pageable);
+		model.addAttribute("ldapUser", ldapUser.get(0));
 		model.addAttribute("tagCheckerPage", tagCheckerPage);
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 	    Date today = new Date();

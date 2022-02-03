@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -14,15 +13,15 @@ import javax.naming.InvalidNameException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
-import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.web.WebUtils;
@@ -43,7 +42,7 @@ public class UserAppService {
 	TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
@@ -97,9 +96,9 @@ public class UserAppService {
 	}
 	
     public void setDateConnexion(String userName) {
-		 List<UserLdap> userLdaps =  userLdapRepository.findByUid(userName);
-		 if(!userLdaps.isEmpty()) {
-			 List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(userLdaps.get(0).getEppn());
+		 List<LdapUser> ldapUsers =  ldapUserRepository.findByUid(userName);
+		 if(!ldapUsers.isEmpty()) {
+			 List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(ldapUsers.get(0).getEppn());
 			 if(!userApps.isEmpty()){
 				 UserApp userApp = userApps.get(0);
 				 userApp.setLastConnexion(new Date());
@@ -112,21 +111,21 @@ public class UserAppService {
 		List<UserApp> newList = new ArrayList<UserApp>();
 		if(!allUserApps.isEmpty()) {
 			for(UserApp userApp : allUserApps) {
-				List<UserLdap> userLdap = userLdapRepository.findByEppnEquals(userApp.getEppn());
-				if(!userLdap.isEmpty()) {
-					userApp.setNom(userLdap.get(0).getUsername());
-					userApp.setPrenom(userLdap.get(0).getPrenom());
+				List<LdapUser> ldapUser = ldapUserRepository.findByEppnEquals(userApp.getEppn());
+				if(!ldapUser.isEmpty()) {
+					userApp.setNom(ldapUser.get(0).getUsername());
+					userApp.setPrenom(ldapUser.get(0).getPrenom());
 					newList.add(userApp);
 				}
-				if(!userLdap.isEmpty() && isIncluded) {
+				if(!ldapUser.isEmpty() && isIncluded) {
 					newList.add(userApp);
 				}
-				if(userLdap.isEmpty() && isIncluded) {
+				if(ldapUser.isEmpty() && isIncluded) {
 					userApp.setNom("--");
 					userApp.setPrenom("--");
 					newList.add(userApp);
 				}
-				if(userLdap.isEmpty() && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
+				if(ldapUser.isEmpty() && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
 					userApp.setNom(userApp.getContext().getKey());
 					userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 					newList.add(userApp);
@@ -217,15 +216,15 @@ public class UserAppService {
 
 		Context allContext = new Context();
 		allContext.setKey("ALL");
-		List<UserLdap> userLdaps =  ldapService.getAllSuperAdmins();
+		List<LdapUser> ldapUsers =  ldapService.getAllSuperAdmins();
 		List<UserApp> admins = new ArrayList<UserApp>();
-		for(UserLdap userLdap : userLdaps) {
+		for(LdapUser ldapUser : ldapUsers) {
 			UserApp admin = new UserApp();
 			admin.setContext(allContext);
 			admin.setUserRole(Role.SUPERADMIN);
-			admin.setEppn(userLdap.getEppn());
-			admin.setNom(userLdap.getUsername());
-			admin.setPrenom(userLdap.getPrenom());
+			admin.setEppn(ldapUser.getEppn());
+			admin.setNom(ldapUser.getUsername());
+			admin.setPrenom(ldapUser.getPrenom());
 			admins.add(admin);
 		}
 		String order = "eppn: ASC";

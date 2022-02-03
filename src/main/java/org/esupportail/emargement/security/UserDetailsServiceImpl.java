@@ -15,13 +15,13 @@ import javax.naming.InvalidNameException;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -46,7 +46,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	UserAppRepositoryCustom userAppRepositoryCustom;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Autowired
 	ContextRepository contextRepository;
@@ -77,17 +77,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
 		
-		List<UserLdap> userLdaps = ldapService.getUserLdaps(eppn, null);
+		List<LdapUser> ldapUsers = ldapService.getUserLdaps(eppn, null);
 		
-		if(!userLdaps.isEmpty()) {
-			UserLdap userLdap = userLdaps.get(0);
-			return  loadUserByUser(userLdap);
+		if(!ldapUsers.isEmpty()) {
+			LdapUser ldapUser = ldapUsers.get(0);
+			return  loadUserByUser(ldapUser);
 		}else {
 			return null;
 		}
 	}	
 	
-	public UserDetails loadUserByUser(UserLdap targetUser){
+	public UserDetails loadUserByUser(LdapUser targetUser){
 
 		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
 		List<String> availableContexts = new ArrayList<String>(); 
