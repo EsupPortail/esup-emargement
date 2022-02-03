@@ -81,7 +81,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		
 		if(!userLdaps.isEmpty()) {
 			UserLdap userLdap = userLdaps.get(0);
-			return loadUserByUser(userLdap);
+			return  loadUserByUser(userLdap);
 		}else {
 			return null;
 		}

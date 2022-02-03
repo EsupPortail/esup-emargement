@@ -102,47 +102,33 @@ public class LdapService {
     }
     
     public List<UserLdap>  getAllSuperAdmins() throws InvalidNameException {
-    	String searchUsers = "";
-    	
-    	if(!ruleSuperAdminUid.trim().isEmpty()) {
-    		String splitUids []= ruleSuperAdminUid.split(",");
-    		StringBuilder res = new StringBuilder();
-    		for(int i=0; i<splitUids.length; i++) {
-    			res.append("(uid=" + splitUids [i].trim() + ")");
-    		}
-    		searchUsers = "(|"+ res.toString() + ")";
-    	}
-    	else {
-    		searchUsers = "memberOf=" + ruleSuperAdmin;
-    	}
-
-    	return IterableUtils.toList(userLdapRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
+		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
+		Iterable<UserLdap> superAdmins = userLdapRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
+		return IterableUtils.toList(superAdmins);
     }
 
-    
-    public Boolean checkIsUserInGroupSuperAdminLdap(String searchValue) throws InvalidNameException {
-
-		// TODO à revoir
-
-    	boolean isSuperAdmin = false;
-    	
-    	if(!ruleSuperAdminUid.isEmpty()) {
-			String [] splitValues = ruleSuperAdminUid.split(",");
-			List<String> list = Arrays.asList(splitValues);
-			list.replaceAll(String::trim);
-			if(list.contains(searchValue)){
-	        	isSuperAdmin = true;
+	private String getSuperAdminsLdapFilter() {
+		String superAdminsLdapFilter = "";
+		if(!ruleSuperAdminUid.trim().isEmpty()) {
+			String splitUids []= ruleSuperAdminUid.split(",");
+			StringBuilder res = new StringBuilder();
+			for(int i=0; i<splitUids.length; i++) {
+				res.append("(uid=" + splitUids [i].trim() + ")");
 			}
-    	}else {
-	    	List<UserLdap>  admins =  this.getAllSuperAdmins();
-			for(UserLdap admin : admins) {
-				if("uid".equals(searchValue.equals(admin.getUid()))) {
-					isSuperAdmin = true;
-					break;
-				}
-	    	}
-    	}
-    	return isSuperAdmin;
+			superAdminsLdapFilter = "(|"+ res.toString() + ")";
+		}
+		else {
+			superAdminsLdapFilter = "memberOf=" + ruleSuperAdmin;
+		}
+		return superAdminsLdapFilter;
+	}
+
+
+	public Boolean checkIsUserInGroupSuperAdminLdap(String uid) throws InvalidNameException {
+		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
+		String isSuperAdminsLdapFilter = String.format("&(uid=%s)(%s)", uid, superAdminsLdapFilter);
+		Iterable<UserLdap> isSuperAdmins = userLdapRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
+		return !IterableUtils.isEmpty(isSuperAdmins);
     }
     
 	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
