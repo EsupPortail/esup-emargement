@@ -134,7 +134,7 @@
 							   				<label for="usersGroupLdap">Liste des membres du groupe <span class="form-label" th:text="${group}"></span></label>
 								    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
 										    	<span id="selectedUsers">0</span> / 
-										    	<span th:text="${#maps.size(ldapMembers)}" id="ldapMembersSize"></span>
+										    	<span th:text="${ldapMembers.size()}" id="ldapMembersSize"></span>
 										    	<span>
 											    	<button id="selectAll" type="button" class="btn btn-info btn-sm ml-2 mt-n1">Sélection</button>
 										    	</span>					    	
@@ -143,7 +143,7 @@
 									    <div class="col-lg-10">
 										    <select multiple class="form-control" id="usersGroupLdap" name="usersGroupLdap" required="required">
 												<option th:each="member : ${ldapMembers}"
-														th:value="${member.key}" th:text="${member.value}"></option>
+														th:value="${member.eppn}" th:text="${member.prenomNom}"></option>
 										    </select>
 									    </div>
 								  	</div>

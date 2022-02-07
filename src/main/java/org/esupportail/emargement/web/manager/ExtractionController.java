@@ -14,10 +14,7 @@ import javax.naming.InvalidNameException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.esupportail.emargement.domain.ApogeeBean;
-import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.*;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -290,8 +287,8 @@ public class ExtractionController {
     
     @GetMapping("/manager/extraction/ldap/searchUsers")
     public String searchUsersLdap(@PathVariable String emargementContext, Model uiModel,@RequestParam("searchGroup") String searchGroup) throws InvalidNameException {
-    	
-    	Map<String, String> ldapMembers = ldapGroupService.getLdapMembersAsMap(searchGroup) ;
+
+		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
     	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen());

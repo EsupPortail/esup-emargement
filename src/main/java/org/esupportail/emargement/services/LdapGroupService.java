@@ -53,23 +53,14 @@ public class LdapGroupService {
         return groups;
     }
 
-    List<LdapUser> getLdapMembers(String searchValue) throws InvalidNameException {
+    public List<LdapUser> getLdapMembers(String searchValue) throws InvalidNameException {
         String searchUsers = "";
         if(!searchValue.trim().isEmpty()) {
             searchUsers = String.format("(memberOf=cn=%s,%s,%s)", searchValue, ldapGroups, contextSource.getBaseLdapName());
         }
-        return IterableUtils.toList(ldapUserRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
-    }
-
-
-    public Map<String,String> getLdapMembersAsMap(String searchValue) throws InvalidNameException {
-        Map<String, String> usersMap = new HashMap<>();
-        List<LdapUser> ldapUsers =  this.getLdapMembers(searchValue);
-        for(LdapUser ldapUser : ldapUsers) {
-            usersMap.put(ldapUser.getEppn(), ldapUser.getPrenomNom());
-        }
-        TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
-        return sortMap;
+        List<LdapUser> users = IterableUtils.toList(ldapUserRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
+        users.sort((LdapUser u1, LdapUser u2) -> u1.getPrenomNom().compareTo(u2.getPrenomNom()) );
+        return users;
     }
 
 }
