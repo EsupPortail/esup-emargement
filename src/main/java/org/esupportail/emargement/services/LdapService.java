@@ -33,14 +33,6 @@ public class LdapService {
 	@Autowired
 	private LdapUserRepository ldapUserRepository;
 	
-	private static final Integer THREE_SECONDS = 3000;
-	
-	@Autowired
-    private LdapTemplate ldapTemplate;
-	
-	@Value("${ldap.groups}")
-	private String ldapGroups;
-	
 	@Value("${emargement.ruleSuperAdmin.memberOf}")
 	private String ruleSuperAdmin;
 	
@@ -74,27 +66,6 @@ public class LdapService {
 		return eppn;
 	}
     
-    public List<String> getAllGroupNames(String searchValue) throws InvalidNameException {
-		LdapName ldapBase = new LdapName(ldapGroups);
-		String searchfilter = (searchValue.isEmpty())? "*": "*".concat(searchValue).concat("*");
-		List<String>  groups = ldapTemplate.search(
-				query().base(ldapBase).searchScope(SearchScope.SUBTREE).timeLimit(THREE_SECONDS).where("cn").like(searchfilter),
-				new AttributesMapper<String>() {
-					public String mapFromAttributes(Attributes attrs) throws NamingException {
-						return attrs.get("cn").get().toString();
-					}
-				});
-		return groups;
-    }
-    
-    public List<LdapUser>  getAllmembers(String searchValue) throws InvalidNameException {
-    	String searchUsers = "";
-    	if(!searchValue.trim().isEmpty()) {
-    		searchUsers = "(memberOf=cn=" + searchValue + "," + ldapGroups+")";
-    	}
-		return IterableUtils.toList(ldapUserRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
-    }
-    
     public List<LdapUser>  getAllSuperAdmins() throws InvalidNameException {
 		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
 		Iterable<LdapUser> superAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
@@ -124,16 +95,6 @@ public class LdapService {
 		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
 		return !IterableUtils.isEmpty(isSuperAdmins);
     }
-    
-	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
-  	  	Map<String, String> usersMap = new HashMap<>();
-  	  	List<LdapUser> ldapUsers =  this.getAllmembers(searchValue);
-		for(LdapUser ldapUser : ldapUsers) {
-  			usersMap.put(ldapUser.getEppn(), ldapUser.getPrenomNom());
-  		  }
-  	  	TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
-  	  	return sortMap;
-  }
 	
 	public List<LdapUser> getUserLdaps(String eppn, String uid) {
 		List<LdapUser> ldapUsers = new ArrayList<LdapUser>();

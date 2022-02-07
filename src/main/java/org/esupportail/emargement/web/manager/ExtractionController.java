@@ -22,15 +22,9 @@ import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.services.ApogeeService;
-import org.esupportail.emargement.services.GroupeService;
-import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.ImportExportService;
-import org.esupportail.emargement.services.LdapService;
-import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.*;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.services.TagCheckService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +64,9 @@ public class ExtractionController {
 
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	LdapGroupService ldapGroupService;
 	
 	@Resource
 	ImportExportService importExportService;
@@ -287,14 +284,14 @@ public class ExtractionController {
     @GetMapping("/manager/extraction/ldap/searchGroup")
     @ResponseBody
     public  List<String> searchGroupsLdap(@RequestParam("searchValue") String searchValue) throws InvalidNameException {
-    	 List<String> ldapGroups = ldapService.getAllGroupNames(searchValue);
+    	 List<String> ldapGroups = ldapGroupService.getAllGroupNames(searchValue);
     	return ldapGroups;
     }
     
     @GetMapping("/manager/extraction/ldap/searchUsers")
     public String searchUsersLdap(@PathVariable String emargementContext, Model uiModel,@RequestParam("searchGroup") String searchGroup) throws InvalidNameException {
     	
-    	Map<String, String> ldapMembers = ldapService.getMapUsersFromMapAttributes(searchGroup) ;
+    	Map<String, String> ldapMembers = ldapGroupService.getLdapMembersAsMap(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
     	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen());
