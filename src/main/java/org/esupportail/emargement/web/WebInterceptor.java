@@ -43,7 +43,7 @@ public class WebInterceptor implements HandlerInterceptor {
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String uid =(auth != null)? auth.getName() : null;
-		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, uid);
+		List<LdapUser> ldapUser = ldapService.getUsers(null, uid);
 		String name = (!ldapUser.isEmpty())?  ldapUser.get(0).getPrenomNom()  : "";
 
 		if(modelAndView != null) {

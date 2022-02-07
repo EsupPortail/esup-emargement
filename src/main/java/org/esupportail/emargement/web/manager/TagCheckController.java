@@ -445,7 +445,7 @@ public class TagCheckController {
     	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
     	if(!tcs.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        	List<LdapUser> ldapUser = (auth!=null)?  ldapUserRepository.findByUid(auth.getName()) : null;
+        	List<LdapUser> ldapUser = (auth!=null)?  ldapService.getUsers(auth.getName()) : null;
         	String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
     		int nbMailEnvoye = 0;
     		int nbMailNonEnvoye = 0;

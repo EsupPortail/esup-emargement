@@ -103,7 +103,7 @@ public class GroupeService {
 		List<Guest> allGuests =new ArrayList<Guest>();
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
 		String eppn = ldapUser.get(0).getEppn();
 		
 		for(Long id : ids) {
@@ -134,7 +134,7 @@ public class GroupeService {
 		List<Person> allPersons =new ArrayList<Person>();
 		List<Guest> allGuests =new ArrayList<Guest>();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
 		String eppn = ldapUser.get(0).getEppn();
 		
 		for(Long id : gr1Ids) {

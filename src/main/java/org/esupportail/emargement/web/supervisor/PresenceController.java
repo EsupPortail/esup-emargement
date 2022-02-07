@@ -193,7 +193,7 @@ public class PresenceController {
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser =ldapService.getUserLdaps(null, auth.getName());;
+		List<LdapUser> ldapUser =ldapService.getUsers(null, auth.getName());;
 		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
         if(sessionLocationId != null) {
     		if(sessionEpreuve.isSessionEpreuveClosed) {
@@ -321,7 +321,7 @@ public class PresenceController {
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
-    	List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+    	List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
 		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
@@ -415,7 +415,7 @@ public class PresenceController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
 		String eppn = (ldapUser != null)?  ldapUser.get(0).getEppn()  : "";
         presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
     }

@@ -21,7 +21,6 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.web.WebUtils;
@@ -40,9 +39,6 @@ public class UserAppService {
 	
 	@Autowired
 	TagCheckerRepository tagCheckerRepository;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
 
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
@@ -96,7 +92,7 @@ public class UserAppService {
 	}
 	
     public void setDateConnexion(String userName) {
-		 List<LdapUser> ldapUsers =  ldapUserRepository.findByUid(userName);
+		 List<LdapUser> ldapUsers =  ldapService.getUsers(userName);
 		 if(!ldapUsers.isEmpty()) {
 			 List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(ldapUsers.get(0).getEppn());
 			 if(!userApps.isEmpty()){
@@ -111,7 +107,7 @@ public class UserAppService {
 		List<UserApp> newList = new ArrayList<UserApp>();
 		if(!allUserApps.isEmpty()) {
 			for(UserApp userApp : allUserApps) {
-				List<LdapUser> ldapUser = ldapUserRepository.findByEppnEquals(userApp.getEppn());
+				List<LdapUser> ldapUser = ldapService.getUsers(userApp.getEppn(), null);
 				if(!ldapUser.isEmpty()) {
 					userApp.setNom(ldapUser.get(0).getUsername());
 					userApp.setPrenom(ldapUser.get(0).getPrenom());

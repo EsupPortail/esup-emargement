@@ -402,7 +402,7 @@ public class PresenceService {
 	    	}
     	}
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUsers =  ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUsers =  ldapService.getUsers(null, auth.getName());
 		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUsers.get(0).getEppn(), null).getContent().get(0) : null;
 		
     	presentTagCheck.setTagChecker(tagChecker);
@@ -471,7 +471,7 @@ public class PresenceService {
 			    	Person p = null;
 			    	LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 			    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			    	LdapUser authUser = ldapUserRepository.findByUid(auth.getName()).get(0);
+			    	LdapUser authUser = ldapService.getUsers(auth.getName()).get(0);
 			    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
 			    	if(!list.isEmpty()) {
 			    		p = list.get(0);

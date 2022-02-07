@@ -20,12 +20,9 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
-import org.esupportail.emargement.services.AppliConfigService;
-import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.*;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.services.UserService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -67,7 +64,10 @@ public class UserController {
 	
 	@Autowired
     LdapUserRepository ldapUserRepository;
-	
+
+	@Autowired
+	LdapService ldapService;
+
 	@Autowired	
 	TagCheckRepository tagCheckRepository;
 	
@@ -92,7 +92,7 @@ public class UserController {
 			@RequestParam(value="sessionToken", required = false) String sessionToken) throws ParseException{
 		if(sessionToken!=null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<LdapUser> ldapUser = (auth!=null)?  ldapUserRepository.findByUid(auth.getName()) : null;
+			List<LdapUser> ldapUser = (auth!=null)?  ldapService.getUsers(auth.getName()) : null;
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
 			boolean isHourOk = false;
@@ -158,7 +158,7 @@ public class UserController {
 		
 		if(sessionToken != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<LdapUser> ldapUser = (auth!=null)?  ldapUserRepository.findByUid(auth.getName()) : null;
+			List<LdapUser> ldapUser = (auth!=null)?  ldapService.getUsers(auth.getName()) : null;
 			if(!ldapUser.isEmpty()) {
 				String eppn = ldapUser.get(0).getEppn();
 				if(tagCheckRepository.countTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn) == 1){

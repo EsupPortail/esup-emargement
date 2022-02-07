@@ -68,7 +68,7 @@ public class DashboardController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();		
 		//List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
 		
-		List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
 		
 		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUser.get(0).getEppn(), pageable);
 		model.addAttribute("ldapUser", ldapUser.get(0));

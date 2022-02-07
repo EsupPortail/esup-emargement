@@ -162,7 +162,7 @@ public class UserAppController {
     
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<LdapUser> ldapUser = ldapService.getUserLdaps(null, auth.getName());
+    	List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
     	if(!ldapUser.isEmpty() && ldapUser.get(0).getEppn().startsWith(paramUtil.getGenericUser())) {
     		Context ctx = contextRepository.findByContextKey(context);
     		UserApp test =userAppRepository.findByEppnAndContext(ldapUser.get(0).getEppn(), ctx);

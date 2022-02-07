@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.naming.InvalidNameException;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
@@ -77,12 +76,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
 		
-		List<LdapUser> ldapUsers = ldapService.getUserLdaps(eppn, null);
+		List<LdapUser> ldapUsers = ldapService.getUsers(eppn, null);
 		
 		if(!ldapUsers.isEmpty()) {
 			LdapUser ldapUser = ldapUsers.get(0);
 			return  loadUserByUser(ldapUser);
-		}else {
+		} else {
 			return null;
 		}
 	}	
