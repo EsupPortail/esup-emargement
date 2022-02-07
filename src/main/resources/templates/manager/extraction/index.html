@@ -9,7 +9,7 @@
 		    	<div class="card-header" id="toto"><h2>Import/export</h2></div>
   				<div class="card-body">
   				    <ul class="nav nav-tabs" role="tablist" >
-					    <li class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
+					    <li class="nav-item" th:if="${apogeeAvailable}"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'ldap'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}">LDAP</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'csv'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/csv(ctx=${eContext})}">CSV</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'groupes'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/groupes(ctx=${eContext})}">GROUPES</a></li>

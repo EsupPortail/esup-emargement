@@ -52,7 +52,9 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class ExtractionController {
-	
+
+	enum ExtractionType {apogee, ldap, csv, groupes};
+
 	@Autowired(required = false)
 	ApogeeService apogeeService;
 	
@@ -97,35 +99,33 @@ public class ExtractionController {
 	public String getActiveMenu() {
 		return ITEM;
 	}
+
+	@ModelAttribute("apogeeAvailable")
+	public Boolean isApogeeAvailable() {
+		return apogeeService != null;
+	}
 	
 	@GetMapping(value = "/manager/extraction")
-	public String index(Model model, @RequestParam(value = "type", required = false) String type){
-		if("apogee".equals(type)) {
-			return redirectTab(model, type);
-		}else if("ldap".equals(type)) {
-			return redirectTab(model, type);
-		}else if("csv".equals(type)) {
-			return redirectTab(model, type);
-		}else if("groupes".equals(type)) {
-			return redirectTab(model, type);
-		}else {
-			return redirectTab(model, "apogee");
+	public String index(Model model, @RequestParam(value = "type", required = false) ExtractionType type){
+		if(type == null) {
+			type = apogeeService != null ? ExtractionType.apogee : ExtractionType.ldap;
 		}
+		return redirectTab(model, type);
 	}
 	
 	@RequestMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
-    public String redirectTab(Model uiModel, @PathVariable("type") String type ) {
-		uiModel.addAttribute("type", type);
+    public String redirectTab(Model uiModel, @PathVariable("type") ExtractionType type ) {
+		uiModel.addAttribute("type", type.name());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
-		if("apogee".equals(type)) {
+		if(ExtractionType.apogee.equals(type)) {
 			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 			if(apogeeService != null) {
 				uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 			} else {
 				uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
 			}
-		}else if("groupes".equals(type)) {
+		}else if(ExtractionType.groupes.equals(type)) {
 			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
 		}
 		return "manager/extraction/index";

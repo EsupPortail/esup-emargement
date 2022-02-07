@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnBean(DatasourceApogeeConfig.class)
+@ConditionalOnBean(name = "apogeeJdbcTemplate")
 public class ApogeeService {
 
 	@Resource
