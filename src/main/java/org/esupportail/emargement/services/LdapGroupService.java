@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class LdapGroupService {
     @Autowired
     private LdapUserRepository ldapUserRepository;
 
+    @Autowired
+    LdapContextSource contextSource;
+
     public List<String> getAllGroupNames(String searchValue) throws InvalidNameException {
         LdapName ldapBase = new LdapName(ldapGroups);
         String searchfilter = (searchValue.isEmpty())? "*": "*".concat(searchValue).concat("*");
@@ -52,7 +56,7 @@ public class LdapGroupService {
     List<LdapUser> getLdapMembers(String searchValue) throws InvalidNameException {
         String searchUsers = "";
         if(!searchValue.trim().isEmpty()) {
-            searchUsers = "(memberOf=cn=" + searchValue + "," + ldapGroups+")";
+            searchUsers = String.format("(memberOf=cn=%s,%s,%s)", searchValue, ldapGroups, contextSource.getBaseLdapName());
         }
         return IterableUtils.toList(ldapUserRepository.findAll(LdapQueryBuilder.query().filter(searchUsers)));
     }
