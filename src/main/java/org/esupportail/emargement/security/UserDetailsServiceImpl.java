@@ -124,6 +124,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			id =contextRepository.findByContextKey(contextKey).getId();
 			availableContextIds.put(contextKey, id);
 		}
+
+		// TODO : simplifier et factoriser le code avec ContextUserDetailsService.loadUserDetails
 		//contexte par défaut en premier
 		List<Object[]> list = contextRepository.findByEppn(targetUser.getEppn());
 		HashMap<String,String> map = new HashMap<String, String>();

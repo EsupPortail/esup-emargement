@@ -82,6 +82,8 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 			id =contextRepository.findByContextKey(contextKey).getId();
 			availableContextIds.put(contextKey, id);
 		}
+
+		// TODO : simplifier et factoriser le code avec UserDetailsServiceImpl.loadUserByUser
 		//contexte par défaut en premier
 		List<Object[]> list = contextRepository.findByEppn(eppn);
 		HashMap<String,String> map = new HashMap<String, String>();
