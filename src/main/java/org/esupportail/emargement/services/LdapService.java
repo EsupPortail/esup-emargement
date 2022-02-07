@@ -33,11 +33,8 @@ public class LdapService {
 	@Autowired
 	private LdapUserRepository ldapUserRepository;
 	
-	@Value("${emargement.ruleSuperAdmin.memberOf}")
-	private String ruleSuperAdmin;
-	
-	@Value("${emargement.ruleSuperAdmin.uid}")
-	private String ruleSuperAdminUid;
+	@Value("${ldap.superAdminFilter}")
+	private String superAdminLdapFilter;
 	
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
@@ -67,30 +64,13 @@ public class LdapService {
 	}
     
     public List<LdapUser>  getAllSuperAdmins() throws InvalidNameException {
-		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
+		String superAdminsLdapFilter = superAdminLdapFilter;
 		Iterable<LdapUser> superAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
 		return IterableUtils.toList(superAdmins);
     }
 
-	private String getSuperAdminsLdapFilter() {
-		String superAdminsLdapFilter = "";
-		if(!ruleSuperAdminUid.trim().isEmpty()) {
-			String splitUids []= ruleSuperAdminUid.split(",");
-			StringBuilder res = new StringBuilder();
-			for(int i=0; i<splitUids.length; i++) {
-				res.append("(uid=" + splitUids [i].trim() + ")");
-			}
-			superAdminsLdapFilter = "(|"+ res.toString() + ")";
-		}
-		else {
-			superAdminsLdapFilter = "memberOf=" + ruleSuperAdmin;
-		}
-		return superAdminsLdapFilter;
-	}
-
-
-	public Boolean checkIsUserInGroupSuperAdminLdap(String uid) throws InvalidNameException {
-		String superAdminsLdapFilter = getSuperAdminsLdapFilter();
+	public Boolean checkIsUserInGroupSuperAdminLdap(String uid) {
+		String superAdminsLdapFilter = superAdminLdapFilter;
 		String isSuperAdminsLdapFilter = String.format("&(uid=%s)(%s)", uid, superAdminsLdapFilter);
 		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
 		return !IterableUtils.isEmpty(isSuperAdmins);

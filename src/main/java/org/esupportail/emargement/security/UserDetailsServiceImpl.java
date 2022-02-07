@@ -93,17 +93,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		List<String> availableContexts = new ArrayList<String>(); 
 		Map<String, Long> availableContextIds = new HashMap<String, Long>();
 		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
-		
-		try {
-			boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(targetUser.getUid());
-			if(isSuperAdmin) {
-				rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-				availableContexts.add("all");
-				contextAuthorities.put("all", rootAuthorities);
-			}
-		} catch (InvalidNameException e) {
-			log.error("Pb lors du test superdamin UserDetailsServiceImpl en mode su", e);
+
+		boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(targetUser.getUid());
+		if(isSuperAdmin) {
+			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+			availableContexts.add("all");
+			contextAuthorities.put("all", rootAuthorities);
 		}
+
 		List<Context> allcontexts = new ArrayList<Context>();
 		if(targetUser.getEppn().startsWith(paramUtil.getGenericUser())) {
 			String ctxSplit [] = targetUser.getUid().split("_");

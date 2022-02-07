@@ -20,6 +20,7 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
+import org.esupportail.emargement.services.LdapService;
 import org.jasig.cas.client.validation.Assertion;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,17 +33,17 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 	
 	ContextRepository contextRepository;
 	
-	LdapUserRepository ldapUserRepository;
+	LdapService ldapService;
 	
 	PersonRepository personRepository;
 	
 	EmargementConfig config;
 	
-	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, LdapUserRepository ldapUserRepository, PersonRepository personRepository){
+	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, LdapService ldapService, PersonRepository personRepository){
 		this.config = config;
 		this.userAppRepository = userAppRepository;
 		this.contextRepository = contextRepository;
-		this.ldapUserRepository = ldapUserRepository;
+		this.ldapService = ldapService;
 		this.personRepository = personRepository;
 	}
 
@@ -54,32 +55,10 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		Map<String, Long> availableContextIds = new HashMap<String, Long>();
 		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
 		
-		for(String superAdminRuleKey : config.getRuleSuperAdmin().keySet()) {
-			if("uid".equals(superAdminRuleKey)) {
-				String values = config.getRuleSuperAdmin().get("uid");
-				
-				if(!values.isEmpty()) {
-					String [] splitValues = values.split(",");
-					List<String> list = Arrays.asList(splitValues);
-					list.replaceAll(String::trim);
-					if(list.contains(assertion.getPrincipal().toString())){
-						rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-						availableContexts.add("all");
-						contextAuthorities.put("all", rootAuthorities);
-						break;
-					}
-				}
-			}else {
-				for(String attributeValue : getAttrValuesAsList(assertion.getPrincipal().getAttributes().get(superAdminRuleKey))) {
-					String superAdminRuleRegex =  config.getRuleSuperAdmin().get(superAdminRuleKey);
-					if(attributeValue.matches(superAdminRuleRegex)) {
-						rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-						availableContexts.add("all");
-						contextAuthorities.put("all", rootAuthorities);
-						break;
-					}
-				}
-			}
+		if(ldapService.checkIsUserInGroupSuperAdminLdap(assertion.getPrincipal().getName())) {
+			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+			availableContexts.add("all");
+			contextAuthorities.put("all", rootAuthorities);
 		}
 		String eppn = "";
 		// si eduPersonPrincipalName proposé par CAS
@@ -88,10 +67,7 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		} else {
 			// sinon récupération via ldap
 			String uid = assertion.getPrincipal().getName();
-			List<LdapUser> users = ldapUserRepository.findByUid(uid);
-			if(!users.isEmpty()) {
-				eppn = users.get(0).getEppn();
-			}
+			eppn = ldapService.getEppn(uid);
 		}
 		List<Context> allcontexts = contextRepository.findAll();
 		for(Context context: allcontexts) {

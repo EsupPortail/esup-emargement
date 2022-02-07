@@ -15,16 +15,6 @@ import org.springframework.stereotype.Component;
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 @EnableScheduling
 public class EmargementConfig {
-	
-	Map<String, String> ruleSuperAdmin = new HashMap<String, String>();
-	
-	public Map<String, String> getRuleSuperAdmin() {
-		return ruleSuperAdmin;
-	}
 
-	public void setRuleSuperAdmin(Map<String, String> ruleSuperAdmin) {
-		this.ruleSuperAdmin = ruleSuperAdmin;
-	}
-	
 }
 
