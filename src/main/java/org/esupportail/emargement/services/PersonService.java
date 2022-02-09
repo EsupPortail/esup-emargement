@@ -21,7 +21,7 @@ public class PersonService {
 			for(Person p : persons) {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(p.getEppn());
 				if(!ldapUsers.isEmpty()) {
-					p.setNom(ldapUsers.get(0).getUsername());
+					p.setNom(ldapUsers.get(0).getName());
 					p.setPrenom(ldapUsers.get(0).getPrenom());
 				}
 			}

@@ -143,7 +143,7 @@ public class GroupeController {
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
         }else {
         	groupe.setDateCreation(new Date());
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	groupe.setModificateur(eppn);
         	groupe.setContext(contexteService.getcurrentContext());
             groupeRepository.save(groupe);
@@ -170,7 +170,7 @@ public class GroupeController {
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
         }else {
         	oldGroupe.setDateModification(new Date());
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	oldGroupe.setDescription(groupe.getDescription());
         	oldGroupe.setNom(groupe.getNom());
         	oldGroupe.setModificateur(eppn);
@@ -190,10 +190,10 @@ public class GroupeController {
     	try {
     		groupeService.delete(groupe);
 	        log.info("suppression groupe : " + nom);
-	        logService.log(ACTION.DELETE_GROUPE, RETCODE.SUCCESS, null, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        logService.log(ACTION.DELETE_GROUPE, RETCODE.SUCCESS, null, auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 	        log.info("suppression du groupe impossible  : " + nom, e);
-	        logService.log(ACTION.DELETE_GROUPE, RETCODE.FAILED,  null, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        logService.log(ACTION.DELETE_GROUPE, RETCODE.FAILED,  null, auth.getName(), null, emargementContext, null);
 		}
         return String.format("redirect:/%s/manager/groupe", emargementContext);
     }

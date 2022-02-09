@@ -49,9 +49,6 @@ public class CampusController {
 	LogService logService;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	ContextService contexteService;
 	
 	@Resource
@@ -129,7 +126,7 @@ public class CampusController {
         	campus.setContext(contexteService.getcurrentContext());
             campusRepository.save(campus);
             log.info("Ajout site : " + campus.getSite());
-            logService.log(ACTION.AJOUT_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+            logService.log(ACTION.AJOUT_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
             return String.format("redirect:/%s/admin/campus", emargementContext);
         }
     }
@@ -153,7 +150,7 @@ public class CampusController {
         	campus.setContext(contexteService.getcurrentContext());
             campusRepository.save(campus);
             log.info("Maj site : " + campus.getSite());
-            logService.log(ACTION.UPDATE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+            logService.log(ACTION.UPDATE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
             return String.format("redirect:/%s/admin/campus", emargementContext);
         }  
     }
@@ -165,7 +162,7 @@ public class CampusController {
     	try {
 			campusRepository.delete(campus);
 			log.info("Suppression du  site  : " + campus.getSite());
-			logService.log(ACTION.DELETE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+			logService.log(ACTION.DELETE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			redirectAttributes.addFlashAttribute("item", campus.getSite());

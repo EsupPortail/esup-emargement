@@ -73,9 +73,9 @@ public class LdapService {
 		return IterableUtils.toList(superAdmins);
     }
 
-	public Boolean checkIsUserInGroupSuperAdminLdap(String uid) {
+	public Boolean checkIsUserInGroupSuperAdminLdap(String eppn) {
 		String superAdminsLdapFilter = superAdminLdapFilter;
-		String isSuperAdminsLdapFilter = String.format("&" + userLdapFilter + "(%s)", uid, superAdminsLdapFilter);
+		String isSuperAdminsLdapFilter = String.format("&" + userLdapFilter + "(%s)", eppn, superAdminsLdapFilter);
 		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
 		return !IterableUtils.isEmpty(isSuperAdmins);
     }
@@ -88,7 +88,6 @@ public class LdapService {
 			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
 			String ctx = splitIdentifiant[1];
 			LdapUser generic = new LdapUser();
-			generic.setUid(identifiant);
 			generic.setEppn(identifiant + "@" + nomDomaine);
 			generic.setPrenomNom(StringUtils.capitalize(prenom) + " " + StringUtils.capitalize(ctx));
 			ldapUsers.add(generic);

@@ -112,12 +112,6 @@ public class PresenceController {
 	@Autowired
 	private TagCheckerRepository tagCheckerRepository;
 	
-    @Resource
-    LdapUserRepository ldapUserRepository;
-    
-    @Resource
-    LocationRepository locationRepository;
-	
 	@Autowired
 	TagCheckRepositoryCustom tagCheckRepositoryCustom;
 	
@@ -193,8 +187,7 @@ public class PresenceController {
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser =ldapService.getUsers(null, auth.getName());;
-		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
+		String eppnAuth = auth.getName();
         if(sessionLocationId != null) {
     		if(sessionEpreuve.isSessionEpreuveClosed) {
     			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
@@ -321,8 +314,7 @@ public class PresenceController {
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
-    	List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
-		String eppnAuth = (ldapUser !=null)? ldapUser.get(0).getEppn(): null;
+		String eppnAuth = auth.getName();
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(sessionEpreuve.getId(), eppnAuth);
@@ -415,8 +407,7 @@ public class PresenceController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
-		String eppn = (ldapUser != null)?  ldapUser.get(0).getEppn()  : "";
+		String eppn = auth.getName();
         presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
     }
     
@@ -427,7 +418,6 @@ public class PresenceController {
 		headers.add("Content-Type", "application/json; charset=utf-8");
     	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
-    	
         return userAppsList;
     }
     
@@ -524,7 +514,7 @@ public class PresenceController {
 	    			i++;
 	    		}
 				bos.close();
-	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
 	        	log.info("Envoi Pdf export " + se.getNomSessionEpreuve());
 	        	redirectAttributes.addAttribute("nbEmails", i);
 			} catch (Exception e) {

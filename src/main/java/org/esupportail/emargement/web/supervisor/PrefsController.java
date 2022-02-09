@@ -44,9 +44,6 @@ public class PrefsController {
 	@Resource
 	HelpService helpService;
 	
-	@Resource
-	LdapService ldapService;
-	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return  ITEM;
@@ -60,7 +57,7 @@ public class PrefsController {
 		Map<String, Long> otherCtxs = new HashMap<String, Long>();
 		otherCtxs.putAll(mapCtxs);
 		LinkedHashMap<UserApp,Context> map = new LinkedHashMap<UserApp, Context>();
-		String eppn = ldapService.getEppn(auth.getName());
+		String eppn = auth.getName();
 		List<Object[]> ctxs = contextRepository.findByEppn(eppn);
 		for(Object[] o : ctxs) {
 			Context c = contextRepository.findByKey(o[1].toString());

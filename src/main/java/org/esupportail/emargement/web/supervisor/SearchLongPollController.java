@@ -44,7 +44,7 @@ public class SearchLongPollController {
 	public DeferredResult<String> searchPoll(HttpServletRequest request) {
 		final String authName;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		authName = ldapService.getEppn(auth.getName());
+		authName = auth.getName();
 		final DeferredResult<String> searchEppn = new DeferredResult<String>(null, "");
 		
 		if(this.suspendedSearchPollRequests.containsKey(authName)) {

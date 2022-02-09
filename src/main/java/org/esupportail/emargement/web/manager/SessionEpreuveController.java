@@ -323,7 +323,7 @@ public class SessionEpreuveController {
         	sessionEpreuveService.save(sessionEpreuve, emargementContext);
         	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         	log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-        	logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        	logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
             return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }        
     }
@@ -364,7 +364,7 @@ public class SessionEpreuveController {
         	sessionEpreuveService.save(sessionEpreuve, emargementContext);
         	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-        	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
         	return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }        
     }
@@ -377,11 +377,11 @@ public class SessionEpreuveController {
     	try {
 			sessionEpreuveService.delete(sessionEpreuve);
 			log.info("Suppression d'une session : " + nom);
-			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + nom, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + nom, auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "constrainttError");
 			log.info("Impossible de supprimer la session : " + nom, e);
-			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.FAILED, "Nom : " + nom, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.FAILED, "Nom : " + nom, auth.getName(), null, emargementContext, null);
 		}
         return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
@@ -434,7 +434,7 @@ public class SessionEpreuveController {
     	
     	redirectAttributes.addFlashAttribute("currentAnneeUniv", sessionEpreuve.getAnneeUniv());
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + msg, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + msg, auth.getName(), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     	
     }

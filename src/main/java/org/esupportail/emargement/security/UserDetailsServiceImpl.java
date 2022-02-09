@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
@@ -75,25 +77,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	
 	@Override
 	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
-		
-		List<LdapUser> ldapUsers = ldapService.getUsers(eppn, null);
-		
-		if(!ldapUsers.isEmpty()) {
-			LdapUser ldapUser = ldapUsers.get(0);
-			return  loadUserByUser(ldapUser);
-		} else {
-			return null;
-		}
-	}	
-	
-	public UserDetails loadUserByUser(LdapUser targetUser){
 
 		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
 		List<String> availableContexts = new ArrayList<String>(); 
 		Map<String, Long> availableContextIds = new HashMap<String, Long>();
 		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
 
-		boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(targetUser.getUid());
+		boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(eppn);
 		if(isSuperAdmin) {
 			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
 			availableContexts.add("all");
@@ -101,9 +91,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 
 		List<Context> allcontexts = new ArrayList<Context>();
-		if(targetUser.getEppn().startsWith(paramUtil.getGenericUser())) {
-			String ctxSplit [] = targetUser.getUid().split("_");
-			Context ctx =contextRepository.findByContextKey(ctxSplit[1]);
+		if(eppn.startsWith(paramUtil.getGenericUser())) {
+			String context = StringUtils.substringBetween(eppn, "_", "@");
+			Context ctx = contextRepository.findByContextKey(context);
 			allcontexts.add(ctx);
 		}else {
 			 allcontexts = contextRepository.findAll();
@@ -113,7 +103,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			String contextKey = context.getKey();
 			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
 
-			authorities.addAll(getEmargementAdditionalRoles(targetUser.getEppn(), context));
+			authorities.addAll(getEmargementAdditionalRoles(eppn, context));
 			
 			if(!authorities.isEmpty()) {
 				availableContexts.add(contextKey);
@@ -126,7 +116,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 		// TODO : simplifier et factoriser le code avec ContextUserDetailsService.loadUserDetails
 		//contexte par défaut en premier
-		List<Object[]> list = contextRepository.findByEppn(targetUser.getEppn());
+		List<Object[]> list = contextRepository.findByEppn(eppn);
 		HashMap<String,String> map = new HashMap<String, String>();
 		for(Object[] o : list) {
 			map.put(o[1].toString(), o[0].toString());
@@ -153,8 +143,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			}
 		}
 		
-		ContextUserDetails contextUserDetails = new ContextUserDetails(targetUser.getUid(), contextAuthorities, availableContexts, availableContextIds);
-		logService.log(ACTION.SWITCH_USER, RETCODE.SUCCESS, "SU : " + targetUser.getEppn(), targetUser.getEppn(), null, "all", null);
+		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, contextAuthorities, availableContexts, availableContextIds);
+		logService.log(ACTION.SWITCH_USER, RETCODE.SUCCESS, "SU : " + eppn, eppn, null, "all", null);
 		return contextUserDetails;
 
 	}

@@ -207,9 +207,9 @@ public class TagCheckService {
 				if(tc.getPerson() != null) {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 					if(!ldapUsers.isEmpty()) {
-						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setNom(ldapUsers.get(0).getName());
 						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
-						tc.setNomPrenom(ldapUsers.get(0).getUsername().concat(ldapUsers.get(0).getPrenom()));
+						tc.setNomPrenom(ldapUsers.get(0).getName().concat(ldapUsers.get(0).getPrenom()));
 					}else {
 						tc.setNomPrenom("");
 					}
@@ -217,7 +217,7 @@ public class TagCheckService {
 				if(tc.getTagChecker() != null) {
 					List<LdapUser> ldaps2User = ldapUserRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
 					if(!ldaps2User.isEmpty()) {
-						tc.getTagChecker().getUserApp().setNom(ldaps2User.get(0).getUsername());
+						tc.getTagChecker().getUserApp().setNom(ldaps2User.get(0).getName());
 						tc.getTagChecker().getUserApp().setPrenom(ldaps2User.get(0).getPrenom());
 					}
 					if(ldaps2User.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
@@ -491,9 +491,9 @@ public class TagCheckService {
 				if(tc.getPerson()!=null) {
 					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 					if(!ldapUsers.isEmpty()) {
-						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setNom(ldapUsers.get(0).getName());
 						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
-						tc.setNomPrenom(ldapUsers.get(0).getUsername().concat(ldapUsers.get(0).getPrenom()));
+						tc.setNomPrenom(ldapUsers.get(0).getName().concat(ldapUsers.get(0).getPrenom()));
 					}else {
 						tc.setNomPrenom("");
 					}
@@ -514,7 +514,7 @@ public class TagCheckService {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 				String sn = "";
 				if(!ldapUsers.isEmpty()) {
-					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getUsername());
+					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getName());
 				}
 				snTagChecks.add(sn);
 			}
@@ -587,7 +587,7 @@ public class TagCheckService {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 				if(!ldapUsers.isEmpty()) {
 					try {
-						tc.getPerson().setNom(ldapUsers.get(0).getUsername());
+						tc.getPerson().setNom(ldapUsers.get(0).getName());
 						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
 						tc.getPerson().setCivilite(ldapUsers.get(0).getCivilite());
 						String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));

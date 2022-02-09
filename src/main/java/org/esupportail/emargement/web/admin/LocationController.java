@@ -69,16 +69,10 @@ public class LocationController {
 	CampusRepository campusRepository;
 	
 	@Resource
-	StoredFileService storedFileService;
-	
-	@Resource
 	LocationService locationService;
 	
 	@Resource
 	LogService logService;
-	
-	@Resource
-	LdapService ldapService;
 	
 	@Resource
 	HelpService helpService;
@@ -172,7 +166,7 @@ public class LocationController {
         	location.setContext(contexteService.getcurrentContext());
         	locationRepository.save(location);
         	log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        	logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
             return String.format("redirect:/%s/admin/location", emargementContext);
         }
     }
@@ -202,7 +196,7 @@ public class LocationController {
         	location.setContext(contexteService.getcurrentContext());
         	locationRepository.save(location);
         	log.info("maj lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	logService.log(ACTION.UPDATE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        	logService.log(ACTION.UPDATE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
             return String.format("redirect:/%s/admin/location", emargementContext);
         }        
     }
@@ -214,7 +208,7 @@ public class LocationController {
     	try {
     		locationRepository.delete(location);
     		log.info("Suppression du lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-    		logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+    		logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			redirectAttributes.addFlashAttribute("item", location.getNom());
@@ -245,7 +239,7 @@ public class LocationController {
 				location.setContext(contexteService.getcurrentContext());
 				locationRepository.save(location);
 			}
-			logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, StringUtils.join(nomLocations, ","), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+			logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, StringUtils.join(nomLocations, ","), auth.getName(), null, emargementContext, null);
 			log.info("Ajout de lieux venants d'ics");
 		}
 		redirectAttributes.addAttribute("msgModal", "ddd");

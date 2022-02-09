@@ -65,13 +65,11 @@ public class DashboardController {
 	
 	@GetMapping(value = "/dashboard")
 	public String list(Model model, @PageableDefault(size = 10, direction = Direction.ASC, sort = "userApp.eppn")  Pageable pageable) throws ParseException {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();		
-		//List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-		
-		List<LdapUser> ldapUser = ldapService.getUsers(null, auth.getName());
-		
-		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUser.get(0).getEppn(), pageable);
-		model.addAttribute("ldapUser", ldapUser.get(0));
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();;
+		LdapUser ldapUser = ldapService.getUsers(auth.getName(), null).get(0);
+
+		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), pageable);
+		model.addAttribute("ldapUser", ldapUser);
 		model.addAttribute("tagCheckerPage", tagCheckerPage);
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 	    Date today = new Date();

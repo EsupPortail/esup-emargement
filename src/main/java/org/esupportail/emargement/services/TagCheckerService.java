@@ -63,7 +63,7 @@ public class TagCheckerService {
 		for(TagChecker tagChecker: tagCheckers.getContent()) {
 			List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
 			if(!ldapUsers.isEmpty()) {
-				tagChecker.getUserApp().setNom(ldapUsers.get(0).getUsername());
+				tagChecker.getUserApp().setNom(ldapUsers.get(0).getName());
 				tagChecker.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
 			}
 			if(ldapUsers.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
@@ -79,7 +79,7 @@ public class TagCheckerService {
 			for(TagChecker tagChecker: allTagCheckers) {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
 				if(!ldapUsers.isEmpty()) {
-					tagChecker.getUserApp().setNom(ldapUsers.get(0).getUsername());
+					tagChecker.getUserApp().setNom(ldapUsers.get(0).getName());
 					tagChecker.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
 				}
 				if(ldapUsers.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
@@ -100,7 +100,7 @@ public class TagCheckerService {
 				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getUserApp().getEppn());
 				String sn = "";
 				if(!ldapUsers.isEmpty()) {
-					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getUsername());
+					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getName());
 					snTagChecks.add(sn);
 				}
 				
@@ -143,7 +143,7 @@ public class TagCheckerService {
 					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getUserApp().getEppn());
 					if(!ldapUsers.isEmpty()) {
 						try {
-							tc.getUserApp().setNom(ldapUsers.get(0).getUsername());
+							tc.getUserApp().setNom(ldapUsers.get(0).getName());
 							tc.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
 							tc.getUserApp().setCivilite(ldapUsers.get(0).getCivilite());
 							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));

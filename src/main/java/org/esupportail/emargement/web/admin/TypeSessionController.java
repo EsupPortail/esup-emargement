@@ -40,7 +40,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
 public class TypeSessionController {
-	
+
+	private final static String ITEM = "typeSession";
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	TypeSessionRepository typeSessionRepository;
 	
@@ -50,18 +54,11 @@ public class TypeSessionController {
 	@Autowired
 	ContextRepository contextRepository;
 	
-	private final static String ITEM = "typeSession";
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
 	@Resource
 	HelpService helpService;
 	
 	@Resource
 	LogService logService;
-	
-	@Resource
-	LdapService ldapService;
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -119,7 +116,7 @@ public class TypeSessionController {
         	typeSession.setContext(context);
         	typeSessionRepository.save(typeSession);
             log.info("Création type de session : " + "Key : ".concat(typeSession.getKey()));
-            logService.log(ACTION.AJOUT_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), ldapService.getEppn(auth.getName()), null, 
+            logService.log(ACTION.AJOUT_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), auth.getName(), null,
             		emargementContext, null);
             return String.format("redirect:/%s/admin/typeSession", emargementContext);
         }
@@ -138,7 +135,7 @@ public class TypeSessionController {
         typeSession.setDateModification(new Date());
         typeSessionRepository.save(typeSession);
         log.info("Maj type de session : " + "Key : ".concat(typeSession.getKey()));
-        logService.log(ACTION.UPDATE_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), ldapService.getEppn(auth.getName()), null, 
+        logService.log(ACTION.UPDATE_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), auth.getName(), null,
         		emargementContext, null);
         return String.format("redirect:/%s/admin/typeSession", emargementContext);
     }
@@ -156,7 +153,7 @@ public class TypeSessionController {
     	try {
     		typeSessionRepository.delete(typeSession);
 			log.info("Suppression type de session : " + "Key : ".concat(typeSession.getKey()).concat(typeSession.getLibelle()));
-	        logService.log(ACTION.DELETE_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), ldapService.getEppn(auth.getName()), null, 
+	        logService.log(ACTION.DELETE_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), auth.getName(), null,
 	        		emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -112,7 +112,7 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 			}
 		}
 		//
-		ContextUserDetails contextUserDetails = new ContextUserDetails(assertion.getPrincipal().getName(), contextAuthorities, availableContexts, availableContextIds);
+		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, contextAuthorities, availableContexts, availableContextIds);
 
 		return contextUserDetails;
 	}

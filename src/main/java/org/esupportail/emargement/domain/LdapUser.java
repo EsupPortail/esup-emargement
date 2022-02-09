@@ -15,7 +15,7 @@ public final class LdapUser {
     @Id
     private Name id;
      
-    private @Attribute(name = "sn") String username;
+    private @Attribute(name = "sn") String name;
     private @Attribute(name = "mail") String email;
     private @Attribute(name = "eduPersonPrincipalName") String eppn;
     private @Attribute(name = "cn") String nomPrenom;
@@ -23,30 +23,21 @@ public final class LdapUser {
     private @Attribute(name = "givenName") String prenom;
     private @Attribute(name = "supannEtuId") String numEtudiant;
     private @Attribute(name = "supannCivilite") String civilite;
-    private @Attribute(name = "uid") String uid;
     
 	public Name getId() {
 		return id;
 	}
-
 	public void setId(Name id) {
 		this.id = id;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getName() {
+		return name;
 	}
-	
-	public void setUsername(String username) {
-		this.username = username;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getUid() {
-		return uid;
-	}
-	public void setUid(String uid) {
-		this.uid = uid;
-	}
 	public String getEmail() {
 		return email;
 	}

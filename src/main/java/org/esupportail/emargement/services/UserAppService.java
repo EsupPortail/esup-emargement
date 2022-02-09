@@ -109,7 +109,7 @@ public class UserAppService {
 			for(UserApp userApp : allUserApps) {
 				List<LdapUser> ldapUser = ldapService.getUsers(userApp.getEppn(), null);
 				if(!ldapUser.isEmpty()) {
-					userApp.setNom(ldapUser.get(0).getUsername());
+					userApp.setNom(ldapUser.get(0).getName());
 					userApp.setPrenom(ldapUser.get(0).getPrenom());
 					newList.add(userApp);
 				}
@@ -219,7 +219,7 @@ public class UserAppService {
 			admin.setContext(allContext);
 			admin.setUserRole(Role.SUPERADMIN);
 			admin.setEppn(ldapUser.getEppn());
-			admin.setNom(ldapUser.getUsername());
+			admin.setNom(ldapUser.getName());
 			admin.setPrenom(ldapUser.getPrenom());
 			admins.add(admin);
 		}
