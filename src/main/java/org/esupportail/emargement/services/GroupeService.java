@@ -103,8 +103,7 @@ public class GroupeService {
 		List<Guest> allGuests =new ArrayList<Guest>();
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUsers(auth.getName());
-		String eppn = ldapUser.get(0).getEppn();
+		String eppn = auth.getName();
 		
 		for(Long id : ids) {
 			SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
@@ -134,8 +133,7 @@ public class GroupeService {
 		List<Person> allPersons =new ArrayList<Person>();
 		List<Guest> allGuests =new ArrayList<Guest>();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser = ldapService.getUsers(auth.getName());
-		String eppn = ldapUser.get(0).getEppn();
+		String eppn = auth.getName();
 		
 		for(Long id : gr1Ids) {
 			Groupe groupe = groupeRepository.findById(id).get();

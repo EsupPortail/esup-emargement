@@ -92,12 +92,11 @@ public class UserController {
 			@RequestParam(value="sessionToken", required = false) String sessionToken) throws ParseException{
 		if(sessionToken!=null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<LdapUser> ldapUser = (auth!=null)?  ldapService.getUsers(auth.getName()) : null;
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
 			boolean isHourOk = false;
-			if(!ldapUser.isEmpty()) {
-				String eppn = ldapUser.get(0).getEppn();
+			if(auth != null) {
+				String eppn = auth.getName();
 				TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 				model.addAttribute("se", tc.getSessionEpreuve());
 				if(tc.getSessionLocationBadged()!=null) {
@@ -158,9 +157,8 @@ public class UserController {
 		
 		if(sessionToken != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<LdapUser> ldapUser = (auth!=null)?  ldapService.getUsers(auth.getName()) : null;
-			if(!ldapUser.isEmpty()) {
-				String eppn = ldapUser.get(0).getEppn();
+			if(auth != null) {
+				String eppn = auth.getName();
 				if(tagCheckRepository.countTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn) == 1){
 					TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 					//On regarde l'heure
