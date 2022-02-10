@@ -91,15 +91,12 @@ public class UserAppService {
 
 	}
 	
-    public void setDateConnexion(String userName) {
-		 List<LdapUser> ldapUsers =  ldapService.getUsersByUid(userName);
-		 if(!ldapUsers.isEmpty()) {
-			 List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(ldapUsers.get(0).getEppn());
-			 if(!userApps.isEmpty()){
-				 UserApp userApp = userApps.get(0);
-				 userApp.setLastConnexion(new Date());
-				 userAppRepository.save(userApp);
-			 }
+    public void setDateConnexion(String eppn) {
+		List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(eppn);
+		if(!userApps.isEmpty()){
+			 UserApp userApp = userApps.get(0);
+			 userApp.setLastConnexion(new Date());
+			 userAppRepository.save(userApp);
 		 }
     }
     

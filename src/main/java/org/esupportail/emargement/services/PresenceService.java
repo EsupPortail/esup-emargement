@@ -115,9 +115,6 @@ public class PresenceService {
 	LogService logService;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	GroupeService groupeService;
 	
 	@Value("${emargement.wsrest.photo.prefixe}")
@@ -128,9 +125,6 @@ public class PresenceService {
 	
 	@Autowired
     private MessageSource messageSource;
-	
-    @Resource
-    AppliConfigService appliConfigService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -402,8 +396,7 @@ public class PresenceService {
 	    	}
     	}
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUsers =  ldapService.getUsers(auth.getName());
-		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapUsers.get(0).getEppn(), null).getContent().get(0) : null;
+		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
 		
     	presentTagCheck.setTagChecker(tagChecker);
     	presentTagCheck.setTagDate(date);
@@ -471,8 +464,7 @@ public class PresenceService {
 			    	Person p = null;
 			    	LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 			    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			    	LdapUser authUser = ldapService.getUsersByUid(auth.getName()).get(0);
-			    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(authUser.getEppn(), null).getContent().get(0);
+			    	TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0);
 			    	if(!list.isEmpty()) {
 			    		p = list.get(0);
 			    	}else {
