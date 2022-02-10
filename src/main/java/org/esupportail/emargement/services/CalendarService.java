@@ -49,7 +49,7 @@ public class CalendarService {
 	    DateFormat hourFormat = new SimpleDateFormat("HH:mm");
 	    List<SessionEpreuve> listSe = new ArrayList<SessionEpreuve>();
 	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	    String eppn = ldapService.getEppn(auth.getName());
+	    String eppn = auth.getName();
 	    if(isAll) {
 	    	listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendar(startDate, endDate);
 	    }else {

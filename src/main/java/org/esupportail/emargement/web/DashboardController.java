@@ -66,7 +66,7 @@ public class DashboardController {
 	@GetMapping(value = "/dashboard")
 	public String list(Model model, @PageableDefault(size = 10, direction = Direction.ASC, sort = "userApp.eppn")  Pageable pageable) throws ParseException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();;
-		LdapUser ldapUser = ldapService.getUsers(auth.getName(), null).get(0);
+		LdapUser ldapUser = ldapService.getUsers(auth.getName()).get(0);
 
 		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), pageable);
 		model.addAttribute("ldapUser", ldapUser);

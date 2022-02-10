@@ -55,16 +55,12 @@ public class LdapService {
 	
 	public String getEppn(String uid) {
 		String eppn= uid + "@" + nomDomaine;
-		List<LdapUser> ldapUsers = getUsers(uid);
+		Iterable<LdapUser> users = ldapUserRepository.findAll(getUserLdapFilter(uid));
+		List<LdapUser> ldapUsers =IterableUtils.toList(users);
 		if (ldapUsers != null && !ldapUsers.isEmpty()) {
 			eppn = ldapUsers.get(0).getEppn();
 		}
 		return eppn;
-	}
-
-	public List<LdapUser> getUsers(String uid) {
-		Iterable<LdapUser> users = ldapUserRepository.findAll(getUserLdapFilter(uid));
-		return IterableUtils.toList(users);
 	}
 
     public List<LdapUser>  getAllSuperAdmins() throws InvalidNameException {
@@ -80,23 +76,18 @@ public class LdapService {
 		return !IterableUtils.isEmpty(isSuperAdmins);
     }
 	
-	public List<LdapUser> getUsers(String eppn, String uid) {
+	public List<LdapUser> getUsers(String eppn) {
 		List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
-		String identifiant = (eppn != null)? eppn : uid;
-		if(identifiant != null &&identifiant.startsWith(paramUtil.getGenericUser())) {
-			String splitIdentifiant [] = identifiant.split("_");
+		if(eppn.startsWith(paramUtil.getGenericUser())) {
+			String splitIdentifiant [] = eppn.split("_");
 			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
 			String ctx = splitIdentifiant[1];
 			LdapUser generic = new LdapUser();
-			generic.setEppn(identifiant + "@" + nomDomaine);
+			generic.setEppn(eppn);
 			generic.setPrenomNom(StringUtils.capitalize(prenom) + " " + StringUtils.capitalize(ctx));
 			ldapUsers.add(generic);
 		} else {
-			if(uid !=null) {
-				ldapUsers = getUsers(uid);
-			} else if(eppn != null) {
-				ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
-			}
+			ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
 		}
 		return ldapUsers;
 	}

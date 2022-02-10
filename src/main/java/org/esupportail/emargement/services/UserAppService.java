@@ -92,7 +92,7 @@ public class UserAppService {
 	}
 	
     public void setDateConnexion(String userName) {
-		 List<LdapUser> ldapUsers =  ldapService.getUsers(userName);
+		 List<LdapUser> ldapUsers =  ldapService.getUsersByUid(userName);
 		 if(!ldapUsers.isEmpty()) {
 			 List<UserApp> userApps =  userAppRepositoryCustom.findByEppn(ldapUsers.get(0).getEppn());
 			 if(!userApps.isEmpty()){
@@ -107,7 +107,7 @@ public class UserAppService {
 		List<UserApp> newList = new ArrayList<UserApp>();
 		if(!allUserApps.isEmpty()) {
 			for(UserApp userApp : allUserApps) {
-				List<LdapUser> ldapUser = ldapService.getUsers(userApp.getEppn(), null);
+				List<LdapUser> ldapUser = ldapService.getUsers(userApp.getEppn());
 				if(!ldapUser.isEmpty()) {
 					userApp.setNom(ldapUser.get(0).getName());
 					userApp.setPrenom(ldapUser.get(0).getPrenom());
@@ -173,7 +173,7 @@ public class UserAppService {
 				&& auth.getPrincipal() != null
 				&& auth.getPrincipal() instanceof UserDetails) {
 			if(auth.getPrincipal()!=null) {
-				eppn = ldapService.getEppn(auth.getName());
+				eppn = auth.getName();
 			}
 		}
 		return eppn;

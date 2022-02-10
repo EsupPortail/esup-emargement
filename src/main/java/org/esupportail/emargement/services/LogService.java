@@ -70,7 +70,7 @@ public class LogService {
 			eppn = wsEppn;
 		}else{
 			if(auth != null) {
-				eppn = ldapService.getEppn(auth.getName());
+				eppn = auth.getName();
 				type = TYPE.USER;
 				
 				// Switch User Par un Supervisor ?

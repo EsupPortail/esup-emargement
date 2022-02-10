@@ -28,7 +28,7 @@ public class UserService {
 	public Page<TagCheck> getTagChecks( Pageable pageable) {
 		Page<TagCheck> tcs = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUser =  ldapService.getUsers(null, auth.getName());
+		List<LdapUser> ldapUser =  ldapService.getUsers(auth.getName());
 		String eppn = (ldapUser != null)?  ldapUser.get(0).getEppn()  : "";
 		if(!eppn.isEmpty()) {
 			tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, pageable);

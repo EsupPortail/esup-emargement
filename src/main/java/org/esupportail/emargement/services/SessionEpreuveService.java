@@ -720,7 +720,7 @@ public class SessionEpreuveService {
         
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
-    	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
+    	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
 
         return newSe;
 	 }

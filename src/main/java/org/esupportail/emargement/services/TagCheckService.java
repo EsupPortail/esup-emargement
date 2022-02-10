@@ -364,7 +364,7 @@ public class TagCheckService {
 			    							}
 			    						}
 		    							Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		    							TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(ldapService.getEppn(auth.getName()), null).getContent().get(0); 
+		    							TagChecker tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0);
 		    							tc.setTypeEmargement(TypeEmargement.MANUAL);
 		    							tc.setTagDate(new Date());
 		    							tc.setTagChecker(tagChecker);
@@ -1323,7 +1323,7 @@ public class TagCheckService {
 		if (!list.isEmpty()) {
 			List<Person> persons = personRepository.findByEppn(anonymousEppn);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			String loginArchivage = ldapService.getEppn(auth.getName());
+			String loginArchivage = auth.getName();
 			Person  p = null;
 			if(!persons.isEmpty()) {
 				p = persons.get(0);
