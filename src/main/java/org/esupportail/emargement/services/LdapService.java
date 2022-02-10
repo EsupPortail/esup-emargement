@@ -56,10 +56,11 @@ public class LdapService {
 	public String getEppn(String uid) {
 		String eppn= uid + "@" + nomDomaine;
 		Iterable<LdapUser> users = ldapUserRepository.findAll(getUserLdapFilter(uid));
-		List<LdapUser> ldapUsers =IterableUtils.toList(users);
+		List<LdapUser> ldapUsers = IterableUtils.toList(users);
 		if (ldapUsers != null && !ldapUsers.isEmpty()) {
 			eppn = ldapUsers.get(0).getEppn();
 		}
+		log.info("getEppn({}) / {} -> {}", uid, String.format(userLdapFilter, uid), eppn);
 		return eppn;
 	}
 
@@ -73,7 +74,9 @@ public class LdapService {
 		String superAdminsLdapFilter = superAdminLdapFilter;
 		String isSuperAdminsLdapFilter = String.format("&(eduPersonPrincipalName=%s)(%s)", eppn, superAdminsLdapFilter);
 		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
-		return !IterableUtils.isEmpty(isSuperAdmins);
+		Boolean isSuperAdmin = !IterableUtils.isEmpty(isSuperAdmins);
+		log.info("checkIsUserInGroupSuperAdminLdap({}) / {} -> {}", eppn, isSuperAdminsLdapFilter, isSuperAdmin);
+		return isSuperAdmin;
     }
 	
 	public List<LdapUser> getUsers(String eppn) {

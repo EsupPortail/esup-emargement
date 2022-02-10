@@ -22,12 +22,16 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.LdapService;
 import org.jasig.cas.client.validation.Assertion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsService {
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	UserAppRepository userAppRepository;
 	
@@ -54,18 +58,21 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		// si eduPersonPrincipalName proposé par CAS
 		if(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName") != null) {
 			eppn = assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString();
+			log.info("Got eduPersonPrincipalName CAS attribute {} from  for cas assertion principal name {}", eppn, assertion.getPrincipal().getName());
 		} else {
 			// sinon récupération via ldap
 			String uid = assertion.getPrincipal().getName();
 			eppn = ldapService.getEppn(uid);
+			log.info("No eduPersonPrincipalName Cas attribute from CAS for cas assertion principal name {} / got eppn from ldap : {}", uid, eppn);
 		}
 
 		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
 		List<String> availableContexts = new ArrayList<String>(); 
 		Map<String, Long> availableContextIds = new HashMap<String, Long>();
 		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
-		
-		if(ldapService.checkIsUserInGroupSuperAdminLdap(eppn)) {
+
+		Boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(eppn);
+		if(isSuperAdmin) {
 			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
 			availableContexts.add("all");
 			contextAuthorities.put("all", rootAuthorities);
@@ -116,6 +123,9 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 
 		String displayName = ldapService.getUsers(eppn).get(0).getPrenomNom();
 		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, displayName, contextAuthorities, availableContexts, availableContextIds);
+
+		log.info("Authentication of {} - isSuperAdmin : {}, displayName : {}, contextAuthorities: {}",
+				eppn, isSuperAdmin, displayName, contextAuthorities);
 
 		return contextUserDetails;
 	}

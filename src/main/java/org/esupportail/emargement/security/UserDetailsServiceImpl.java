@@ -146,6 +146,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		String displayName = ldapService.getUsers(eppn).get(0).getPrenomNom();
 		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, displayName, contextAuthorities, availableContexts, availableContextIds);
 		logService.log(ACTION.SWITCH_USER, RETCODE.SUCCESS, "SU : " + eppn, eppn, null, "all", null);
+
 		return contextUserDetails;
 
 	}
