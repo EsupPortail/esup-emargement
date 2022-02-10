@@ -73,9 +73,6 @@ public class UserAppController {
 	UserAppService userAppService;
 	
 	@Resource
-	ContextService contexteService;
-	
-	@Resource
 	LogService logService;
 
 	@Resource
@@ -162,11 +159,12 @@ public class UserAppController {
     
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<LdapUser> ldapUser = ldapService.getUsers(auth.getName());
-    	if(!ldapUser.isEmpty() && ldapUser.get(0).getEppn().startsWith(paramUtil.getGenericUser())) {
+    	String eppn = auth.getName();
+    	if(eppn.startsWith(paramUtil.getGenericUser())) {
     		Context ctx = contextRepository.findByContextKey(context);
-    		UserApp test =userAppRepository.findByEppnAndContext(ldapUser.get(0).getEppn(), ctx);
+    		UserApp test = userAppRepository.findByEppnAndContext(eppn, ctx);
     		if(test == null) {
+				List<LdapUser> ldapUser = ldapService.getUsers(eppn);
     			uiModel.addAttribute("ldapUser", ldapUser.get(0));
     		}
     	}

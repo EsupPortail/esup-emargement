@@ -116,12 +116,6 @@ public class TagCheckController {
 	@Resource
 	TagCheckService tagCheckService;
 	
-	@Resource
-	PersonService personService;
-	
-	@Resource
-	GroupeService groupeService;
-	
 	@Autowired
 	PdfGenaratorUtil pdfGenaratorUtil;
 	
@@ -139,9 +133,6 @@ public class TagCheckController {
 	
 	@Resource
 	EmailService emailService;
-	
-	@Resource
-	SessionEpreuveService ssssionEpreuveService;
 	
 	private final static String ITEM = "tagCheck";
 	

@@ -50,9 +50,6 @@ public class GroupeService {
 	@Resource
 	PersonService personService;
 	
-	@Resource
-	LdapService ldapService;
-	
 	public void computeCounters(List<Groupe> groupes) {
 		for(Groupe groupe : groupes) {
 			int  count = groupe.getPersons().size();

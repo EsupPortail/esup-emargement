@@ -75,9 +75,6 @@ public class GroupeController {
 	@Resource
 	HelpService helpService;
 	
-	@Resource
-	LdapService ldapService;
-	
 	private final static String ITEM = "groupe";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());

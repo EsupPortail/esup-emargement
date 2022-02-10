@@ -21,9 +21,6 @@ public class UserService {
 	
 	@Autowired	
 	TagCheckRepository tagCheckRepository;
-	
-	@Resource
-	LdapService ldapService;
 
 	public Page<TagCheck> getTagChecks( Pageable pageable) {
 		Page<TagCheck> tcs = null;
