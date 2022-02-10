@@ -11,6 +11,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
+import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,8 @@ public class WebInterceptor implements HandlerInterceptor {
 		String context = WebUtils.getContext(request);
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String uid =(auth != null)? auth.getName() : null;
-		List<LdapUser> ldapUser = ldapService.getUsers(null, uid);
-		String name = (!ldapUser.isEmpty())?  ldapUser.get(0).getPrenomNom()  : "";
+		String eppn = (auth != null) ? auth.getName() : null;
+		String displayName =  (auth != null) ? ((ContextUserDetails)auth.getPrincipal()).getDisplayName() : "";
 
 		if(modelAndView != null) {
 			boolean isViewObject = modelAndView.getView() == null;
@@ -71,7 +71,7 @@ public class WebInterceptor implements HandlerInterceptor {
 				modelAndView.addObject("isUser", WebUtils.isUser());
 				modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
 				modelAndView.addObject("availableContexts", WebUtils.availableContexts());
-				modelAndView.addObject("name", name);
+				modelAndView.addObject("name", displayName);
 			}
 		}
 	}

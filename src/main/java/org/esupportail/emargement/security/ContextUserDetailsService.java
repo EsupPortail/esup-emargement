@@ -111,8 +111,9 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 				}
 			}
 		}
-		//
-		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, contextAuthorities, availableContexts, availableContextIds);
+
+		String displayName = ldapService.getUsers(eppn, null).get(0).getPrenomNom();
+		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, displayName, contextAuthorities, availableContexts, availableContextIds);
 
 		return contextUserDetails;
 	}

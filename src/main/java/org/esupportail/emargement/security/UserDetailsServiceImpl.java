@@ -110,7 +110,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			}
 			contextAuthorities.put(contextKey, authorities);
 			Long id = null;
-			id =contextRepository.findByContextKey(contextKey).getId();
+			id = contextRepository.findByContextKey(contextKey).getId();
 			availableContextIds.put(contextKey, id);
 		}
 
@@ -142,8 +142,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				}
 			}
 		}
-		
-		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, contextAuthorities, availableContexts, availableContextIds);
+
+		String displayName = ldapService.getUsers(eppn, null).get(0).getPrenomNom();
+		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, displayName, contextAuthorities, availableContexts, availableContextIds);
 		logService.log(ACTION.SWITCH_USER, RETCODE.SUCCESS, "SU : " + eppn, eppn, null, "all", null);
 		return contextUserDetails;
 
