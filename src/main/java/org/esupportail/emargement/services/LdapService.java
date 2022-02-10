@@ -75,7 +75,7 @@ public class LdapService {
 
 	public Boolean checkIsUserInGroupSuperAdminLdap(String eppn) {
 		String superAdminsLdapFilter = superAdminLdapFilter;
-		String isSuperAdminsLdapFilter = String.format("&" + userLdapFilter + "(%s)", eppn, superAdminsLdapFilter);
+		String isSuperAdminsLdapFilter = String.format("&(eduPersonPrincipalName=%s)(%s)", eppn, superAdminsLdapFilter);
 		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
 		return !IterableUtils.isEmpty(isSuperAdmins);
     }
