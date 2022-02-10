@@ -49,17 +49,7 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 
 	@Override
 	protected UserDetails loadUserDetails(Assertion assertion) {
-		
-		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
-		List<String> availableContexts = new ArrayList<String>(); 
-		Map<String, Long> availableContextIds = new HashMap<String, Long>();
-		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
-		
-		if(ldapService.checkIsUserInGroupSuperAdminLdap(assertion.getPrincipal().getName())) {
-			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-			availableContexts.add("all");
-			contextAuthorities.put("all", rootAuthorities);
-		}
+
 		String eppn = "";
 		// si eduPersonPrincipalName proposé par CAS
 		if(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName") != null) {
@@ -69,6 +59,18 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 			String uid = assertion.getPrincipal().getName();
 			eppn = ldapService.getEppn(uid);
 		}
+
+		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
+		List<String> availableContexts = new ArrayList<String>(); 
+		Map<String, Long> availableContextIds = new HashMap<String, Long>();
+		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
+		
+		if(ldapService.checkIsUserInGroupSuperAdminLdap(eppn)) {
+			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+			availableContexts.add("all");
+			contextAuthorities.put("all", rootAuthorities);
+		}
+
 		List<Context> allcontexts = contextRepository.findAll();
 		for(Context context: allcontexts) {
 			String contextKey = context.getKey();
