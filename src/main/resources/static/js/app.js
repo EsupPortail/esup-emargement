@@ -75,7 +75,7 @@ function getCalendar(calendarEl, urlEvents, editable) {
         locale: 'fr',
         events: urlEvents,
         contentHeight: 600,
-        themeSystem: 'bootstrap'
+        themeSystem: 'bootstrap5'
     });
 
     calendar.render();
