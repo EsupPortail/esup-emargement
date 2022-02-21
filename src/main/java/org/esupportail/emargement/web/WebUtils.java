@@ -3,6 +3,7 @@ package org.esupportail.emargement.web;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.esupportail.emargement.security.ContextUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 
 public class WebUtils {
 
@@ -69,8 +71,12 @@ public class WebUtils {
 				return auth.getAuthorities().contains(new SimpleGrantedAuthority(roleName));
 			}else {
 				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
-				Collection<SimpleGrantedAuthority> authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
-				return authorities.contains(new SimpleGrantedAuthority(roleName));
+				if("ROLE_PREVIOUS_ADMINISTRATOR".equals(roleName)) {
+					return auth.getAuthorities().toString().contains("ROLE_PREVIOUS_ADMINISTRATOR");
+				}else {
+					Collection<SimpleGrantedAuthority> authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
+					return authorities.contains(new SimpleGrantedAuthority(roleName));
+				}
 			}
 		}else {
 			return false;

@@ -93,30 +93,33 @@
 				     
 			      </ul>
 			      <div class="d-flex">
-					<form th:if="${not #lists.isEmpty(availableContexts)}" class="emargementContextForm me-2" th:action="@{/}">
-						<select name="emargementContext" id="selectContext"
-							class="form-select">
-							<optgroup label="Contextes">
-								<option th:each="c : ${availableContexts}" th:text="${c}"
-									th:selected="${c==eContext}"></option>
-							</optgroup>
-							<optgroup label="Gestion"
-								th:if="${isAdmin or isManager or isSupervisor}">
-								<option th:value="@{/{ctx}/supervisor/prefs(ctx=${eContext})}">Ordre</option>
-							</optgroup>
-						</select>
-					</form>
-					<a class="btn btn-success nav-link"
-						sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a> <a class="btn btn-outline-success greenCustom nav-link"
-						sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
-						th:href="@{/logout}">Déconnexion</a>
-					<form
-						sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
-						th:action="@{/logout/switchUser}" id="formSu" method="post">
-						<input type="submit" value="Déconnexion SU"
-							class="btn btn-outline-danger redCustom nav-link" />
-					</form>
-				</div>
+					  <form th:if="${not #lists.isEmpty(availableContexts)}" class="emargementContextForm me-2" th:action="@{/}">
+							<select name="emargementContext" id="selectContext"
+								class="form-select">
+								<optgroup label="Contextes">
+									<option th:each="c : ${availableContexts}" th:text="${c}"
+										th:selected="${c==eContext}"></option>
+								</optgroup>
+								<optgroup label="Gestion"
+									th:if="${isAdmin or isManager or isSupervisor}">
+									<option th:value="@{/{ctx}/supervisor/prefs(ctx=${eContext})}">Ordre</option>
+								</optgroup>
+							</select>
+						</form>
+						<span><a class="btn btn-success nav-link"
+							sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a></span>
+							<span><a class="btn btn-outline-success greenCustom nav-link mb-2"
+							sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+							th:href="@{/logout}">Déconnexion</a>
+							<span th:if="${!isSwitchUser}" class="form-text fw-bold" th:text="${name}"></span></span>
+						<form
+							sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+							th:action="@{/logout/switchUser}" id="formSu" method="post">
+							<input type="submit" value="Déconnexion SU"
+								class="btn btn-outline-danger redCustom nav-link mb-2" />
+								<p class="form-text fw-bold" th:text="${name}"></p>
+						</form>
+					</div>
 			    </div>
 			</div>
 		</nav>
