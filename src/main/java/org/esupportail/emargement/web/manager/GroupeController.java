@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.AppUser;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -74,9 +74,6 @@ public class GroupeController {
 	
 	@Resource
 	HelpService helpService;
-	
-	@Resource
-	LdapService ldapService;
 	
 	private final static String ITEM = "groupe";
 	
@@ -143,7 +140,7 @@ public class GroupeController {
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
         }else {
         	groupe.setDateCreation(new Date());
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	groupe.setModificateur(eppn);
         	groupe.setContext(contexteService.getcurrentContext());
             groupeRepository.save(groupe);
@@ -170,7 +167,7 @@ public class GroupeController {
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
         }else {
         	oldGroupe.setDateModification(new Date());
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	oldGroupe.setDescription(groupe.getDescription());
         	oldGroupe.setNom(groupe.getNom());
         	oldGroupe.setModificateur(eppn);
@@ -190,10 +187,10 @@ public class GroupeController {
     	try {
     		groupeService.delete(groupe);
 	        log.info("suppression groupe : " + nom);
-	        logService.log(ACTION.DELETE_GROUPE, RETCODE.SUCCESS, null, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        logService.log(ACTION.DELETE_GROUPE, RETCODE.SUCCESS, null, auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 	        log.info("suppression du groupe impossible  : " + nom, e);
-	        logService.log(ACTION.DELETE_GROUPE, RETCODE.FAILED,  null, ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	        logService.log(ACTION.DELETE_GROUPE, RETCODE.FAILED,  null, auth.getName(), null, emargementContext, null);
 		}
         return String.format("redirect:/%s/manager/groupe", emargementContext);
     }
@@ -228,8 +225,7 @@ public class GroupeController {
     		@RequestParam(value="groupes") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		String eppn = auth.getName();
     	groupeService.addMember(eppnTagCheck, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "UtILISATEUR -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
 
@@ -241,8 +237,7 @@ public class GroupeController {
     		@RequestParam(value="groupeIds") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		String eppn = auth.getName();
     	groupeService.addMembersFromSessionEpreuve(seIds, groupeIds);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "SESSION -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(groupeIds)), eppn, null, emargementContext, null);
 
@@ -266,8 +261,7 @@ public class GroupeController {
     		@RequestParam(value="groupeIds2") List<Long> gr2Ids){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<UserLdap> userLdap =  ldapService.getUserLdaps(null, auth.getName());
-		String eppn = userLdap.get(0).getEppn();
+		String eppn = auth.getName();
     	
     	groupeService.addMembersFromGroupe(gr1Ids, gr2Ids);
     	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "GROUPE -> Groupe(s) : ".concat(groupeService.getNomFromGroupes(gr1Ids)), eppn, null, emargementContext, null);
@@ -280,8 +274,7 @@ public class GroupeController {
     		@RequestParam(value="case", required = false) List<String> keys, final RedirectAttributes redirectAttributes) {
     	if(keys != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-			String eppn = userLdap.get(0).getEppn();
+			String eppn = auth.getName();
 	    	
 	    	Groupe groupe = groupeRepository.findById(id).get();
 	    	

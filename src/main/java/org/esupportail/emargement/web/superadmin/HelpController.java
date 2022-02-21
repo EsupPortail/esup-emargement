@@ -39,7 +39,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
 public class HelpController {
-	
+
+	private final static String ITEM = "help";
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	HelpRepository helpRepository;
 	
@@ -47,20 +51,10 @@ public class HelpController {
 	LogService logService;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	HelpService helpService;
-	
-	@Resource
-	ContextService contexteService;
 	
 	@Autowired
 	ToolUtil toolUtil;
-	
-	private final static String ITEM = "help";
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -114,7 +108,7 @@ public class HelpController {
         	help.setDateModification(new Date());
             helpRepository.save(help);
             log.info("Création aide : " + "Key : ".concat(help.getKey()));
-            logService.log(ACTION.AJOUT_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), ldapService.getEppn(auth.getName()), null, 
+            logService.log(ACTION.AJOUT_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), auth.getName(), null,
             		emargementContext, null);
             return String.format("redirect:/%s/superadmin/help", emargementContext);
         }
@@ -145,7 +139,7 @@ public class HelpController {
         help.setDateModification(new Date());
         helpRepository.save(help);
         log.info("Maj aide : " + "Key : ".concat(help.getKey()).concat(help.getValue()));
-        logService.log(ACTION.UPDATE_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), ldapService.getEppn(auth.getName()), null, 
+        logService.log(ACTION.UPDATE_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), auth.getName(), null,
         		emargementContext, null);
         return String.format("redirect:/%s/superadmin/help", emargementContext);
     }
@@ -157,7 +151,7 @@ public class HelpController {
     	try {
 			helpRepository.delete(help);
 			log.info("Suppression aide : " + "Key : ".concat(help.getKey()).concat(help.getValue()));
-	        logService.log(ACTION.DELETE_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), ldapService.getEppn(auth.getName()), null, 
+	        logService.log(ACTION.DELETE_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), auth.getName(), null,
 	        		emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -3,7 +3,6 @@ package org.esupportail.emargement.domain;
 import javax.naming.Name;
 
 import org.springframework.ldap.odm.annotations.Attribute;
-import org.springframework.ldap.odm.annotations.DnAttribute;
 import org.springframework.ldap.odm.annotations.Entry;
 import org.springframework.ldap.odm.annotations.Id;
 
@@ -11,12 +10,12 @@ import org.springframework.ldap.odm.annotations.Id;
  * @author jptran
  *
  */
-@Entry(base = "ou=people,dc=univ-ville,dc=fr", objectClasses  = {"inetOrgPerson" })
-public final class UserLdap {
+@Entry(base = "ou=people", objectClasses  = {"inetOrgPerson" })
+public final class LdapUser {
     @Id
     private Name id;
      
-    private @Attribute(name = "sn") String username;
+    private @Attribute(name = "sn") String name;
     private @Attribute(name = "mail") String email;
     private @Attribute(name = "eduPersonPrincipalName") String eppn;
     private @Attribute(name = "cn") String nomPrenom;
@@ -24,30 +23,21 @@ public final class UserLdap {
     private @Attribute(name = "givenName") String prenom;
     private @Attribute(name = "supannEtuId") String numEtudiant;
     private @Attribute(name = "supannCivilite") String civilite;
-    private @DnAttribute(value = "uid", index = 3) String uid;
     
 	public Name getId() {
 		return id;
 	}
-
 	public void setId(Name id) {
 		this.id = id;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getName() {
+		return name;
 	}
-	
-	public void setUsername(String username) {
-		this.username = username;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getUid() {
-		return uid;
-	}
-	public void setUid(String uid) {
-		this.uid = uid;
-	}
 	public String getEmail() {
 		return email;
 	}

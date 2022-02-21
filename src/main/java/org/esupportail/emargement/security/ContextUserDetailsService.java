@@ -15,11 +15,15 @@ import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
+import org.esupportail.emargement.services.LdapService;
 import org.jasig.cas.client.validation.Assertion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,65 +31,58 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsService {
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	UserAppRepository userAppRepository;
 	
 	ContextRepository contextRepository;
 	
-	UserLdapRepository userLdapRepository;
+	LdapService ldapService;
 	
 	PersonRepository personRepository;
 	
 	EmargementConfig config;
 	
-	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, PersonRepository personRepository){
+	public ContextUserDetailsService(EmargementConfig config, UserAppRepository userAppRepository, ContextRepository contextRepository, LdapService ldapService, PersonRepository personRepository){
 		this.config = config;
 		this.userAppRepository = userAppRepository;
 		this.contextRepository = contextRepository;
+		this.ldapService = ldapService;
 		this.personRepository = personRepository;
 	}
 
 	@Override
 	protected UserDetails loadUserDetails(Assertion assertion) {
-		
+
+		String eppn = "";
+		// si eduPersonPrincipalName proposé par CAS
+		if(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName") != null) {
+			eppn = assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString();
+			log.info("Got eduPersonPrincipalName CAS attribute {} from  for cas assertion principal name {}", eppn, assertion.getPrincipal().getName());
+		} else {
+			// sinon récupération via ldap
+			String uid = assertion.getPrincipal().getName();
+			eppn = ldapService.getEppn(uid);
+			log.info("No eduPersonPrincipalName Cas attribute from CAS for cas assertion principal name {} / got eppn from ldap : {}", uid, eppn);
+		}
+
 		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
 		List<String> availableContexts = new ArrayList<String>(); 
 		Map<String, Long> availableContextIds = new HashMap<String, Long>();
 		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
-		
-		for(String superAdminRuleKey : config.getRuleSuperAdmin().keySet()) {
-			if("uid".equals(superAdminRuleKey)) {
-				String values = config.getRuleSuperAdmin().get("uid");
-				
-				if(!values.isEmpty()) {
-					String [] splitValues = values.split(",");
-					List<String> list = Arrays.asList(splitValues);
-					list.replaceAll(String::trim);
-					if(list.contains(assertion.getPrincipal().toString())){
-						rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-						availableContexts.add("all");
-						contextAuthorities.put("all", rootAuthorities);
-						break;
-					}
-				}
-			}else {
-				for(String attributeValue : getAttrValuesAsList(assertion.getPrincipal().getAttributes().get(superAdminRuleKey))) {
-					String superAdminRuleRegex =  config.getRuleSuperAdmin().get(superAdminRuleKey);
-					if(attributeValue.matches(superAdminRuleRegex)) {
-						rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
-						availableContexts.add("all");
-						contextAuthorities.put("all", rootAuthorities);
-						break;
-					}
-				}
-			}
+
+		Boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(eppn);
+		if(isSuperAdmin) {
+			rootAuthorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+			availableContexts.add("all");
+			contextAuthorities.put("all", rootAuthorities);
 		}
+
 		List<Context> allcontexts = contextRepository.findAll();
 		for(Context context: allcontexts) {
 			String contextKey = context.getKey();
 			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
-
-			authorities.addAll(getEmargementAdditionalRoles(assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString(), context));
-			
+			authorities.addAll(getEmargementAdditionalRoles(eppn, context));
 			if(!authorities.isEmpty()) {
 				availableContexts.add(contextKey);
 			}
@@ -94,8 +91,9 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 			id =contextRepository.findByContextKey(contextKey).getId();
 			availableContextIds.put(contextKey, id);
 		}
+
+		// TODO : simplifier et factoriser le code avec UserDetailsServiceImpl.loadUserByUser
 		//contexte par défaut en premier
-		String eppn = assertion.getPrincipal().getAttributes().get("eduPersonPrincipalName").toString();
 		List<Object[]> list = contextRepository.findByEppn(eppn);
 		HashMap<String,String> map = new HashMap<String, String>();
 		for(Object[] o : list) {
@@ -122,8 +120,12 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 				}
 			}
 		}
-		//
-		ContextUserDetails contextUserDetails = new ContextUserDetails(assertion.getPrincipal().getName(), contextAuthorities, availableContexts, availableContextIds);
+
+		String displayName = ldapService.getUsers(eppn).get(0).getPrenomNom();
+		ContextUserDetails contextUserDetails = new ContextUserDetails(eppn, displayName, contextAuthorities, availableContexts, availableContextIds);
+
+		log.info("Authentication of {} - isSuperAdmin : {}, displayName : {}, contextAuthorities: {}",
+				eppn, isSuperAdmin, displayName, contextAuthorities);
 
 		return contextUserDetails;
 	}

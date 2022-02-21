@@ -15,17 +15,14 @@ import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
-import org.esupportail.emargement.services.AppliConfigService;
-import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.repositories.LdapUserRepository;
+import org.esupportail.emargement.services.*;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.services.UserService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -65,9 +62,12 @@ public class UserController {
 	@Resource
 	AppliConfigService appliConfigService;
 	
-	@Autowired	
-	UserLdapRepository userLdapRepository;
-	
+	@Autowired
+    LdapUserRepository ldapUserRepository;
+
+	@Autowired
+	LdapService ldapService;
+
 	@Autowired	
 	TagCheckRepository tagCheckRepository;
 	
@@ -92,12 +92,11 @@ public class UserController {
 			@RequestParam(value="sessionToken", required = false) String sessionToken) throws ParseException{
 		if(sessionToken!=null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
 			boolean isHourOk = false;
-			if(!userLdap.isEmpty()) {
-				String eppn = userLdap.get(0).getEppn();
+			if(auth != null) {
+				String eppn = auth.getName();
 				TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 				model.addAttribute("se", tc.getSessionEpreuve());
 				if(tc.getSessionLocationBadged()!=null) {
@@ -158,9 +157,8 @@ public class UserController {
 		
 		if(sessionToken != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-			if(!userLdap.isEmpty()) {
-				String eppn = userLdap.get(0).getEppn();
+			if(auth != null) {
+				String eppn = auth.getName();
 				if(tagCheckRepository.countTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn) == 1){
 					TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
 					//On regarde l'heure

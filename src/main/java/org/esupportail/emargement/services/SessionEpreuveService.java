@@ -34,7 +34,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -56,7 +56,6 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -68,8 +67,8 @@ public class SessionEpreuveService {
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
 	
-	@Autowired	
-	UserLdapRepository userLdapRepository;
+	@Autowired
+    LdapUserRepository ldapUserRepository;
 	
 	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
@@ -721,7 +720,7 @@ public class SessionEpreuveService {
         
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
-    	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), ldapService.getEppn(auth.getName()), null, context.getKey(), null);
+    	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
 
         return newSe;
 	 }

@@ -16,12 +16,12 @@
 								<input type="email" th:field="*{eppn}" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" >
 							</div>
 						</div>
-						<div class="row mb-3" th:if="${#ctx.containsVariable('userLdap')}">
+						<div class="row mb-3" th:if="${#ctx.containsVariable('ldapUser')}">
 							<label for="userRole" class="col-lg-2 form-label">Mon identifiant</label>
 							<div class="col-lg-10">
 								<div class="form-check">
-								      <input class="form-check-input" type="checkbox"  name="myEppn" th:value="${userLdap.eppn}" />
-								      <label class="form-check-label"  th:text="${userLdap.eppn}"></label>
+								      <input class="form-check-input" type="checkbox"  name="myEppn" th:value="${ldapUser.eppn}" />
+								      <label class="form-check-label"  th:text="${ldapUser.eppn}"></label>
 								</div>
 							</div>
 						</div>

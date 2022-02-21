@@ -1,219 +1,98 @@
 package org.esupportail.emargement.services;
 
-import static org.springframework.ldap.query.LdapQueryBuilder.query;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.naming.InvalidNameException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.ldap.LdapName;
-
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.UserLdap;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.utils.ParamUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.ldap.core.AttributesMapper;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.query.SearchScope;
+import org.springframework.ldap.query.LdapQuery;
+import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.stereotype.Service;
+
+import javax.naming.InvalidNameException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class LdapService {
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Autowired
-	private UserLdapRepository userLdapRepository;
-	
-	private static final Integer THREE_SECONDS = 3000;
-	
-	@Autowired
-    private LdapTemplate ldapTemplate;
-	
-	@Value("${ldap.groups}")
-	private String ldapGroups;
-	
-	@Value("${ldap.people}")
-	private String ldapPeople;
-	
-	@Value("${emargement.ruleSuperAdmin.memberOf}")
-	private String ruleSuperAdmin;
-	
-	@Value("${emargement.ruleSuperAdmin.uid}")
-	private String ruleSuperAdminUid;
-	
+	private LdapUserRepository ldapUserRepository;
+
+	@Value("${ldap.userFilter}")
+	private String userLdapFilter;
+
+	@Value("${ldap.superAdminFilter}")
+	private String superAdminLdapFilter;
+
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
-	
+
 	@Autowired
 	ParamUtil paramUtil;
-	
-	public void setLdapTemplate(LdapTemplate ldapTemplate) {
-	      this.ldapTemplate = ldapTemplate;
-	   }
 
-	public List<UserLdap> search(final String search) {
-		List<UserLdap> userList = null;
-		userList = userLdapRepository.findByNomPrenomContainingIgnoreCase(search);
+	LdapQuery getUserLdapFilter(String uid) {
+		return LdapQueryBuilder.query().filter(String.format(userLdapFilter, uid));
+	}
 
+	LdapQuery getSuperAdminsLdapFilter() {
+		return LdapQueryBuilder.query().filter(superAdminLdapFilter);
+	}
+
+	public List<LdapUser> search(final String search) {
+		List<LdapUser> userList = ldapUserRepository.findByNomPrenomContainingIgnoreCase(search);
 		if (userList == null) {
-			return Collections.emptyList();
+			userList = new ArrayList<LdapUser>();
 		}
-
 		return userList;
 	}
 	
 	public String getEppn(String uid) {
-		String eppn = "";
-		if( userLdapRepository.findByUid(uid) != null && !userLdapRepository.findByUid(uid).isEmpty()) {
-			eppn = userLdapRepository.findByUid(uid).get(0).getEppn();
-		}else if(uid.startsWith(paramUtil.getGenericUser())) {
-			eppn= uid + "@" + nomDomaine;
+		String eppn= uid + "@" + nomDomaine;
+		Iterable<LdapUser> users = ldapUserRepository.findAll(getUserLdapFilter(uid));
+		List<LdapUser> ldapUsers = IterableUtils.toList(users);
+		if (ldapUsers != null && !ldapUsers.isEmpty()) {
+			eppn = ldapUsers.get(0).getEppn();
 		}
+		log.info("getEppn({}) / {} -> {}", uid, String.format(userLdapFilter, uid), eppn);
 		return eppn;
 	}
-    
-    public List<String> getAllGroupNames(String searchValue) throws InvalidNameException {
-		LdapName toto = new LdapName(ldapGroups);
-		String searchfilter = (searchValue.isEmpty())? "*": "*".concat(searchValue).concat("*");
-		return ldapTemplate.search(
-				query().base(toto).searchScope(SearchScope.SUBTREE).timeLimit(THREE_SECONDS).where("cn").like(searchfilter),
-				new AttributesMapper<String>() {
-					public String mapFromAttributes(Attributes attrs) throws NamingException {
-						return attrs.get("cn").get().toString();
-					}
-				});
-    }
-    
-    public List<Map<String, List<String>>>  getAllmembers(String searchValue) throws InvalidNameException {
-    	String searchUsers = "";
-    	
-    	if(!searchValue.trim().isEmpty()) {
-    		searchUsers = "memberOf=cn=" + searchValue + "," + ldapGroups;
-    	}
 
-    	return ldapSearch(searchUsers);
+    public List<LdapUser>  getAllSuperAdmins() throws InvalidNameException {
+		String superAdminsLdapFilter = superAdminLdapFilter;
+		Iterable<LdapUser> superAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(superAdminsLdapFilter));
+		return IterableUtils.toList(superAdmins);
     }
-    
-    public List<Map<String, List<String>>>  getAllSuperAdmins() throws InvalidNameException {
-    	String searchUsers = "";
-    	
-    	if(!ruleSuperAdminUid.trim().isEmpty()) {
-    		String splitUids []= ruleSuperAdminUid.split(",");
-    		StringBuilder res = new StringBuilder();
-    		for(int i=0; i<splitUids.length; i++) {
-    			res.append("(uid=" + splitUids [i].trim() + ")");
-    		}
-    		searchUsers = "(|"+ res.toString() + ")";
-    	}
-    	else {
-    		searchUsers = "memberOf=" + ruleSuperAdmin;
-    	}
 
-    	return ldapSearch(searchUsers);
+	public Boolean checkIsUserInGroupSuperAdminLdap(String eppn) {
+		String superAdminsLdapFilter = superAdminLdapFilter;
+		String isSuperAdminsLdapFilter = String.format("&(eduPersonPrincipalName=%s)(%s)", eppn, superAdminsLdapFilter);
+		Iterable<LdapUser> isSuperAdmins = ldapUserRepository.findAll(LdapQueryBuilder.query().filter(isSuperAdminsLdapFilter));
+		Boolean isSuperAdmin = !IterableUtils.isEmpty(isSuperAdmins);
+		log.info("checkIsUserInGroupSuperAdminLdap({}) / {} -> {}", eppn, isSuperAdminsLdapFilter, isSuperAdmin);
+		return isSuperAdmin;
     }
-    
-    public List<Map<String, List<String>>> ldapSearch(String searchUsers){
-    	return  ldapTemplate.search(ldapPeople,searchUsers,
-    			new AttributesMapper<Map<String, List<String>>>() {
-    		@Override
-    		public Map<String, List<String>> mapFromAttributes(Attributes attributes) throws NamingException {
-    			Map<String, List<String>> attrsMap = new HashMap<>();
-    			NamingEnumeration<String> attrIdEnum = attributes.getIDs();
-    			while (attrIdEnum.hasMoreElements()) {
-    				// Get attribute id:
-    				String attrId = attrIdEnum.next();
-    				// Get all attribute values:
-    				Attribute attr = attributes.get(attrId);
-    				NamingEnumeration<?> attrValuesEnum = attr.getAll();
-    				while (attrValuesEnum.hasMore()) {
-    					if (!attrsMap.containsKey(attrId))
-    						attrsMap.put(attrId, new ArrayList<String>()); 
-    					attrsMap.get(attrId).add(attrValuesEnum.next().toString());
-    				}
-    			}
-    			return attrsMap;
-    		}
-    	});
-    }
-    
-    public Boolean checkIsUserInGroupSuperAdminLdap(String searchValue) throws InvalidNameException {
-    	
-    	boolean isSuperAdmin = false;
-    	
-    	if(!ruleSuperAdminUid.isEmpty()) {
-			String [] splitValues = ruleSuperAdminUid.split(",");
-			List<String> list = Arrays.asList(splitValues);
-			list.replaceAll(String::trim);
-			if(list.contains(searchValue)){
-	        	isSuperAdmin = true;
-			}
-    	}else {
-	    	List<Map<String, List<String>>>  list =  this.getAllSuperAdmins();
-	    	
-	    	if(list.size()>0) {//TO DO optimiser ....
-	    		for(Map<String, List<String>> map : list ) {
-	    			for (Map.Entry<String, List<String>> map2 : map.entrySet()) {
-	    		        if("uid".equals(map2.getKey()) && searchValue.equals(map2.getValue().get(0))) {
-	    		        	isSuperAdmin = true;
-	    		        	break;
-	    		        }
-	    		       /* if("eduPersonPrincipalName".equals(map2.getKey()) && searchValue.equals(map2.getValue())) {
-	    		        	isSuperAdmin = true;
-	    		        	break;
-	    		        }*/
-	    		    }
-	    		}
-	    	}
-    	}
-    	return isSuperAdmin;
-    }
-    
-	public Map<String,String> getMapUsersFromMapAttributes(String searchValue) throws InvalidNameException {
-  	  Map<String, String> usersMap = new HashMap<>();
-  	  
-  	  List<Map<String, List<String>>>  list =  this.getAllmembers(searchValue);
-  	  if(!list.isEmpty()){
-  		  for(Map<String, List<String>> map : list) {
-  			usersMap.put(map.get("eduPersonPrincipalName").get(0), map.get("displayName").get(0));
-  		  }
-  	  }
-  	  TreeMap<String, String> sortMap = new TreeMap<String, String>(usersMap);
-  	  return sortMap;
-  }
 	
-	public List<UserLdap> getUserLdaps(String eppn, String uid) {
-		
-		List<UserLdap> userLdaps = new ArrayList<UserLdap>();
-		String identifiant = (eppn != null)? eppn : uid;
-		
-		if(identifiant != null &&identifiant.startsWith(paramUtil.getGenericUser())) {
-			String splitIdentifiant [] = identifiant.split("_");
+	public List<LdapUser> getUsers(String eppn) {
+		List<LdapUser> ldapUsers = new ArrayList<LdapUser>();
+		if(eppn.startsWith(paramUtil.getGenericUser())) {
+			String splitIdentifiant [] = eppn.split("_");
 			String prenom = StringUtils.capitalize(paramUtil.getGenericUser());
 			String ctx = splitIdentifiant[1];
-			UserLdap generic = new UserLdap();
-			generic.setUid(identifiant);
-			generic.setEppn(identifiant + "@" + nomDomaine);
+			LdapUser generic = new LdapUser();
+			generic.setEppn(eppn);
 			generic.setPrenomNom(StringUtils.capitalize(prenom) + " " + StringUtils.capitalize(ctx));
-			userLdaps.add(generic);
-		}else {
-			if(uid !=null) {
-				userLdaps = userLdapRepository.findByUid(uid);
-			}else if(eppn != null) {
-				userLdaps = userLdapRepository.findByEppnEquals(eppn);
-			}
+			ldapUsers.add(generic);
+		} else {
+			ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
 		}
-		
-		return userLdaps;
+		return ldapUsers;
 	}
           
 }

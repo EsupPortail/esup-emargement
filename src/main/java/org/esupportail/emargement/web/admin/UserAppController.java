@@ -10,11 +10,11 @@ import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
@@ -67,13 +67,10 @@ public class UserAppController {
 	UserAppRepositoryCustom userAppRepositoryCustom;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Resource
 	UserAppService userAppService;
-	
-	@Resource
-	ContextService contexteService;
 	
 	@Resource
 	LogService logService;
@@ -162,12 +159,13 @@ public class UserAppController {
     
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-    	if(!userLdap.isEmpty() && userLdap.get(0).getEppn().startsWith(paramUtil.getGenericUser())) {
+    	String eppn = auth.getName();
+    	if(eppn.startsWith(paramUtil.getGenericUser())) {
     		Context ctx = contextRepository.findByContextKey(context);
-    		UserApp test =userAppRepository.findByEppnAndContext(userLdap.get(0).getEppn(), ctx);
+    		UserApp test = userAppRepository.findByEppnAndContext(eppn, ctx);
     		if(test == null) {
-    			uiModel.addAttribute("userLdap", userLdap.get(0));
+				List<LdapUser> ldapUser = ldapService.getUsers(eppn);
+    			uiModel.addAttribute("ldapUser", ldapUser.get(0));
     		}
     	}
     	uiModel.addAttribute("contexts", userAppService.getUserContexts());
@@ -242,10 +240,10 @@ public class UserAppController {
     
     @GetMapping("/admin/userApp/searchUsersLdap")
     @ResponseBody
-    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;

@@ -92,7 +92,7 @@ public class EventController {
     	event.setContext(contexteService.getcurrentContext());
     	eventRepository.save(event);
         log.info("Ajout évènement : " + event.getNom());
-        logService.log(ACTION.AJOUT_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        logService.log(ACTION.AJOUT_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), auth.getName(), null, emargementContext, null);
         return String.format("redirect:/%s/manager/event", emargementContext);
     }
 	
@@ -110,7 +110,7 @@ public class EventController {
     	oldEvent.setUrl(event.getUrl());
     	eventRepository.save(oldEvent);
         log.info("Modification évènement : " + event.getNom());
-        logService.log(ACTION.UPDATE_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+        logService.log(ACTION.UPDATE_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), auth.getName(), null, emargementContext, null);
         return String.format("redirect:/%s/manager/event", emargementContext);
     }
 	
@@ -135,7 +135,7 @@ public class EventController {
     	try {
     		eventRepository.delete(event);
 			log.info("Suppression de l'évènement  : " + event.getNom());
-			logService.log(ACTION.DELETE_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+			logService.log(ACTION.DELETE_EVENT, RETCODE.SUCCESS, "Evènement : ".concat(event.getNom()), auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			log.error("Erreur lors de la suppression de l'évènement " + event.getNom(), e );
 		}

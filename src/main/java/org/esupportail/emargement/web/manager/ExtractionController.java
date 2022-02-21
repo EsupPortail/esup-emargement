@@ -14,23 +14,14 @@ import javax.naming.InvalidNameException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.esupportail.emargement.domain.ApogeeBean;
-import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.*;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.services.ApogeeService;
-import org.esupportail.emargement.services.GroupeService;
-import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.ImportExportService;
-import org.esupportail.emargement.services.LdapService;
-import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.*;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.services.TagCheckService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +49,10 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class ExtractionController {
-	
-	@Resource
+
+	enum ExtractionType {apogee, ldap, csv, groupes};
+
+	@Autowired(required = false)
 	ApogeeService apogeeService;
 	
 	@Resource
@@ -70,6 +63,9 @@ public class ExtractionController {
 
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	LdapGroupService ldapGroupService;
 	
 	@Resource
 	ImportExportService importExportService;
@@ -100,31 +96,33 @@ public class ExtractionController {
 	public String getActiveMenu() {
 		return ITEM;
 	}
+
+	@ModelAttribute("apogeeAvailable")
+	public Boolean isApogeeAvailable() {
+		return apogeeService != null;
+	}
 	
 	@GetMapping(value = "/manager/extraction")
-	public String index(Model model, @RequestParam(value = "type", required = false) String type){
-		if("apogee".equals(type)) {
-			return redirectTab(model, type);
-		}else if("ldap".equals(type)) {
-			return redirectTab(model, type);
-		}else if("csv".equals(type)) {
-			return redirectTab(model, type);
-		}else if("groupes".equals(type)) {
-			return redirectTab(model, type);
-		}else {
-			return redirectTab(model, "apogee");
+	public String index(Model model, @RequestParam(value = "type", required = false) ExtractionType type){
+		if(type == null) {
+			type = apogeeService != null ? ExtractionType.apogee : ExtractionType.ldap;
 		}
+		return redirectTab(model, type);
 	}
 	
 	@RequestMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
-    public String redirectTab(Model uiModel, @PathVariable("type") String type ) {
-		uiModel.addAttribute("type", type);
+    public String redirectTab(Model uiModel, @PathVariable("type") ExtractionType type ) {
+		uiModel.addAttribute("type", type.name());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
-		if("apogee".equals(type)) {
+		if(ExtractionType.apogee.equals(type)) {
 			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
-			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
-		}else if("groupes".equals(type)) {
+			if(apogeeService != null) {
+				uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+			} else {
+				uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+			}
+		}else if(ExtractionType.groupes.equals(type)) {
 			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
 		}
 		return "manager/extraction/index";
@@ -132,6 +130,10 @@ public class ExtractionController {
 	
 	@PostMapping(value = "/manager/extraction/search")
 	public void search(@PathVariable String emargementContext,Model model, ApogeeBean apogeebean, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+		if(apogeeService == null) {
+			log.warn("Apogée non configurée");
+			return;
+		}
 		try {
 			List<ApogeeBean> inscrits = apogeeService.getListeFutursInscrits(apogeebean);
 			String filename = "users.csv";
@@ -231,10 +233,14 @@ public class ExtractionController {
 	@GetMapping("/manager/extraction/search/{param}")
     @ResponseBody
     public List<ApogeeBean> searchDiplomes(@PathVariable String param, ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<ApogeeBean> diplomes = apogeeService.searchList(param, apogeeBean);
-    	
+		List<ApogeeBean> diplomes = new ArrayList<>();
+		if(apogeeService != null) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.add("Content-Type", "application/json; charset=utf-8");
+			diplomes = apogeeService.searchList(param, apogeeBean);
+		} else {
+			log.warn("Apogée non configurée");
+		}
         return diplomes;
     }
 	
@@ -269,27 +275,28 @@ public class ExtractionController {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		int nbEtudiants = apogeeService.countAutorises(param, apogeeBean);
-    	
         return nbEtudiants;
     }
 
     @GetMapping("/manager/extraction/ldap/searchGroup")
     @ResponseBody
     public  List<String> searchGroupsLdap(@RequestParam("searchValue") String searchValue) throws InvalidNameException {
-    	
-    	 List<String> ldapGroups = ldapService.getAllGroupNames(searchValue);
-    	
+    	 List<String> ldapGroups = ldapGroupService.getAllGroupNames(searchValue);
     	return ldapGroups;
     }
     
     @GetMapping("/manager/extraction/ldap/searchUsers")
     public String searchUsersLdap(@PathVariable String emargementContext, Model uiModel,@RequestParam("searchGroup") String searchGroup) throws InvalidNameException {
-    	
-    	Map<String, String> ldapMembers = ldapService.getMapUsersFromMapAttributes(searchGroup) ;
+
+		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
     	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen());
-    	uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+		if(apogeeService != null) {
+			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
+		} else {
+			uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+		}
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("size", helpService.getValueOfKey(ITEM));

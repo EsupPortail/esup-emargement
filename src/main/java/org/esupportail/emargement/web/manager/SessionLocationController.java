@@ -157,7 +157,7 @@ public class SessionLocationController {
         sessionLocationRepository.save(sessionLocation);
         log.info("ajout d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
     	logService.log(ACTION.AJOUT_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
-    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+    					auth.getName(), null, emargementContext, null);
         return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + sessionLocation.getSessionEpreuve().getId().toString(),emargementContext);
     }
     
@@ -182,7 +182,7 @@ public class SessionLocationController {
         sessionLocationRepository.save(oldSl);
         log.info("ajout d'un lieu de session; Site" + oldSl.getSessionEpreuve().getCampus().getSite()+ " Lieu " + oldSl.getLocation().getNom());
     	logService.log(ACTION.UPDATE_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + oldSl.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + oldSl.getLocation().getNom(), 
-    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+    					auth.getName(), null, emargementContext, null);
         return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + oldSl.getSessionEpreuve().getId().toString(),emargementContext);
     }
     
@@ -195,11 +195,11 @@ public class SessionLocationController {
 			sessionLocationRepository.delete(sessionLocation);
 	    	log.info("suppression d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
 	    	logService.log(ACTION.DELETE_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
-	    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	    					auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 	    	log.error("suppression du lieu de session impossible car utilisé; Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom(),e);
 	    	logService.log(ACTION.DELETE_SESSION_LOCATION, RETCODE.FAILED, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
-	    					ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	    					auth.getName(), null, emargementContext, null);
 	    	redirectAttributes.addFlashAttribute("item", sessionLocation.getLocation().getNom());
 	    	redirectAttributes.addFlashAttribute("error", "constrainttError");
 		}

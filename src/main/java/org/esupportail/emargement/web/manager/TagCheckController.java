@@ -18,12 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionLocation;
-import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.*;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
@@ -32,9 +28,8 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
-import org.esupportail.emargement.services.ApogeeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
@@ -86,7 +81,7 @@ public class TagCheckController {
 	TagCheckRepository tagCheckRepository;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Autowired
 	GroupeRepository groupeRepository;
@@ -121,17 +116,8 @@ public class TagCheckController {
 	@Resource
 	TagCheckService tagCheckService;
 	
-	@Resource
-	PersonService personService;
-	
-	@Resource
-	GroupeService groupeService;
-	
 	@Autowired
 	PdfGenaratorUtil pdfGenaratorUtil;
-	
-	@Resource
-	ApogeeService apogeeService;
 	
 	@Resource
 	LogService logService;
@@ -147,9 +133,6 @@ public class TagCheckController {
 	
 	@Resource
 	EmailService emailService;
-	
-	@Resource
-	SessionEpreuveService ssssionEpreuveService;
 	
 	private final static String ITEM = "tagCheck";
 	
@@ -437,10 +420,10 @@ public class TagCheckController {
     
     @GetMapping("/manager/tagCheck/searchUsersLdap")
     @ResponseBody
-    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;
@@ -453,8 +436,7 @@ public class TagCheckController {
     	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
     	if(!tcs.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        	List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-        	String eppnAuth = (userLdap!=null)? userLdap.get(0).getEppn(): null;
+        	String eppnAuth = (auth!=null) ?  auth.getName() : null;
     		int nbMailEnvoye = 0;
     		int nbMailNonEnvoye = 0;
     		Boolean isSuccess = false;
@@ -470,7 +452,7 @@ public class TagCheckController {
 							if(tc.getPerson() != null) {
 								mailAdresse = tc.getPerson().getEppn();
 								eppn = tc.getPerson().getEppn();
-								UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 								nomPrenom = user.getPrenomNom();
 							}
 						}if("ext".equals(population)) {
@@ -483,7 +465,7 @@ public class TagCheckController {
 							if(tc.getPerson() != null) {
 								mailAdresse = tc.getPerson().getEppn();
 								eppn = tc.getPerson().getEppn();
-								UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 								nomPrenom = user.getPrenomNom();
 							}else if(tc.getGuest() != null) {
 								mailAdresse = tc.getGuest().getEmail();
@@ -520,7 +502,7 @@ public class TagCheckController {
 							String link = appUrl + "/" + emargementContext + "/user?sessionToken=" + token;
 							String body = appliConfigService.getLinkEmailEmarger();
 							subject = subject.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-							UserLdap user = userLdapRepository.findByEppnEquals(eppn).get(0);
+							LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 							nomPrenom = user.getPrenomNom();
 							if(tc.getSessionLocationBadged()== null) {
 								tc.setSessionToken(token);

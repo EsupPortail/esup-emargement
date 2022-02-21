@@ -49,9 +49,6 @@ public class AppliConfigController {
 	LogService logService;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	ContextService contexteService;
 	
 	@Resource
@@ -129,7 +126,7 @@ public class AppliConfigController {
         	appliConfig.setContext(contexteService.getcurrentContext());
             appliConfigRepository.save(appliConfig);
             log.info("Création config : " + "Key : ".concat(appliConfig.getKey()));
-            logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), ldapService.getEppn(auth.getName()), null, 
+            logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
             		emargementContext, null);
             return String.format("redirect:/%s/admin/appliConfig", emargementContext);
         }
@@ -148,7 +145,7 @@ public class AppliConfigController {
         original.setDescription(appliConfig.getDescription());
         appliConfigRepository.save(original);
         log.info("Maj config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
-        logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), ldapService.getEppn(auth.getName()), null, 
+        logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
         		emargementContext, null);
         return String.format("redirect:/%s/admin/appliConfig", emargementContext);
     }
@@ -160,7 +157,7 @@ public class AppliConfigController {
     	try {
 			appliConfigRepository.delete(appliConfig);
 			log.info("Suppression config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
-	        logService.log(ACTION.DELETE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), ldapService.getEppn(auth.getName()), null, 
+	        logService.log(ACTION.DELETE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
 	        		emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();

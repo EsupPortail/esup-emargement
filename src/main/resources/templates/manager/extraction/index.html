@@ -9,7 +9,7 @@
 		    	<div class="card-header" id="toto"><h2>Import/export</h2></div>
   				<div class="card-body">
   				    <ul class="nav nav-tabs" role="tablist" >
-					    <li class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
+					    <li class="nav-item" th:if="${apogeeAvailable}"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'ldap'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}">LDAP</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'csv'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/csv(ctx=${eContext})}">CSV</a></li>
 					    <li class="nav-item"><a th:classappend="${type == 'groupes'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/groupes(ctx=${eContext})}">GROUPES</a></li>
@@ -134,7 +134,7 @@
 							   				<label for="usersGroupLdap">Liste des membres du groupe <span class="form-label" th:text="${group}"></span></label>
 								    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
 										    	<span id="selectedUsers">0</span> / 
-										    	<span th:text="${#maps.size(ldapMembers)}" id="ldapMembersSize"></span>
+										    	<span th:text="${ldapMembers.size()}" id="ldapMembersSize"></span>
 										    	<span>
 											    	<button id="selectAll" type="button" class="btn btn-info btn-sm ml-2 mt-n1">Sélection</button>
 										    	</span>					    	
@@ -143,7 +143,7 @@
 									    <div class="col-lg-10">
 										    <select multiple class="form-control" id="usersGroupLdap" name="usersGroupLdap" required="required">
 												<option th:each="member : ${ldapMembers}"
-														th:value="${member.key}" th:text="${member.value}"></option>
+														th:value="${member.eppn}" th:text="${member.prenomNom}"></option>
 										    </select>
 									    </div>
 								  	</div>

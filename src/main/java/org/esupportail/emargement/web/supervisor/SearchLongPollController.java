@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
@@ -26,7 +26,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 public class SearchLongPollController {
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Resource
 	PresenceService presenceService;
@@ -44,7 +44,7 @@ public class SearchLongPollController {
 	public DeferredResult<String> searchPoll(HttpServletRequest request) {
 		final String authName;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		authName = ldapService.getEppn(auth.getName());
+		authName = auth.getName();
 		final DeferredResult<String> searchEppn = new DeferredResult<String>(null, "");
 		
 		if(this.suspendedSearchPollRequests.containsKey(authName)) {

@@ -12,7 +12,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -65,13 +65,11 @@ public class DashboardController {
 	
 	@GetMapping(value = "/dashboard")
 	public String list(Model model, @PageableDefault(size = 10, direction = Direction.ASC, sort = "userApp.eppn")  Pageable pageable) throws ParseException {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();		
-		//List<UserLdap> userLdap = (auth!=null)?  userLdapRepository.findByUid(auth.getName()) : null;
-		
-		List<UserLdap> userLdap = ldapService.getUserLdaps(null, auth.getName());
-		
-		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(userLdap.get(0).getEppn(), pageable);
-		model.addAttribute("userLdap", userLdap.get(0));
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();;
+		LdapUser ldapUser = ldapService.getUsers(auth.getName()).get(0);
+
+		Page<TagChecker> tagCheckerPage = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), pageable);
+		model.addAttribute("ldapUser", ldapUser);
 		model.addAttribute("tagCheckerPage", tagCheckerPage);
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 	    Date today = new Date();

@@ -139,11 +139,11 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                     labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numEtudiant;
                                     valueNumEtu = "//" + value.numEtudiant
                                 }
-                                if (value.username != null) {
-                                	 var labelValue = "<strong>Individu: </strong>" + value.username + " " + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
+                                if (value.name != null) {
+                                	 var labelValue = "<strong>Individu: </strong>" + value.name + " " + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                     list.push({
                                         label: labelValue,
-                                        value: value.eppn + "//" + value.username + "//" + value.prenom + valueNumEtu
+                                        value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
                                     });
                                 }
                                 if (value.numIdentifiant != null) {

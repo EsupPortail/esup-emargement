@@ -43,7 +43,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
 public class ContextController {
-	
+
+	private final static String ITEM = "context";
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	ContextRepository contextRepository;
 	
@@ -54,9 +58,6 @@ public class ContextController {
 	LogService logService;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	HelpService helpService;
 	
 	@Resource
@@ -64,10 +65,6 @@ public class ContextController {
 	
 	@Resource
 	AppliConfigService appliConfigService;
-	
-	private final static String ITEM = "context";
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -116,7 +113,7 @@ public class ContextController {
         	log.info("Erreur lors de la création, context déjà existant : " + "Key : ".concat(context.getKey()));
         	return String.format("redirect:/%s/superadmin/context?form", emargementContext);
         }else {
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	context.setCreateur(eppn);
         	context.setDateCreation(new Date());
         	contextRepository.save(context);
@@ -148,7 +145,7 @@ public class ContextController {
         	log.info("Erreur lors de la maj, context déjà existant : " + "Clé : ".concat(context.getKey()));
         	return String.format("redirect:/%s/superadmin/context/%s?form", emargementContext, id);
         }else {
-        	String eppn = ldapService.getEppn(auth.getName());
+        	String eppn = auth.getName();
         	context.setId(originaLContext.getId());
         	context.setCreateur(originaLContext.getCreateur());
         	context.setDateCreation(originaLContext.getDateCreation());
@@ -175,8 +172,8 @@ public class ContextController {
     	if(deleteContext) {
 	    	try {
 	    		contextService.deleteContext(context);
-	    		log.info("Suppression du contexte " + context.getKey()  + " par " + ldapService.getEppn(auth.getName()));
-				logService.log(ACTION.DELETE_CONTEXTE, RETCODE.SUCCESS, "Clé : ".concat(context.getKey()), ldapService.getEppn(auth.getName()), null, emargementContext, null);
+	    		log.info("Suppression du contexte " + context.getKey()  + " par " + auth.getName());
+				logService.log(ACTION.DELETE_CONTEXTE, RETCODE.SUCCESS, "Clé : ".concat(context.getKey()), auth.getName(), null, emargementContext, null);
 				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 	        	userDetails.getAvailableContexts().remove(context.getKey());
 	        	userDetails.getAvailableContextIds().remove(context.getKey(),context.getId());
@@ -186,7 +183,7 @@ public class ContextController {
 				redirectAttributes.addFlashAttribute("error", "constrainttError");
 			}
     	}else {
-    		log.info("Suppression avortée du contexte " + context.getKey()  + " par " + ldapService.getEppn(auth.getName()));
+    		log.info("Suppression avortée du contexte " + context.getKey()  + " par " + auth.getName());
     	}
     	return String.format("redirect:/%s/superadmin/context", emargementContext);
     }

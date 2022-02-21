@@ -23,6 +23,8 @@ public class ContextUserDetails implements UserDetails {
 	private static final long serialVersionUID = 1L;
 	
 	String username;
+
+	String displayName;
 	
 	Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>(); 
 	
@@ -32,8 +34,9 @@ public class ContextUserDetails implements UserDetails {
 	
 	Map<String, Long> availableContextIds = new HashMap<String, Long>();
 
-	public ContextUserDetails(String username, Map<String, Set<GrantedAuthority>> contextAuthorities, List<String> availableContexts, Map<String, Long> availableContextIds) {
+	public ContextUserDetails(String username, String displayName, Map<String, Set<GrantedAuthority>> contextAuthorities, List<String> availableContexts, Map<String, Long> availableContextIds) {
 		this.username = username;
+		this.displayName = displayName;
 		this.contextAuthorities = contextAuthorities;
 		this.availableContexts = availableContexts;
 		this.availableContextIds = availableContextIds;
@@ -75,6 +78,10 @@ public class ContextUserDetails implements UserDetails {
 	@Override
 	public String getUsername() {
 		return username;
+	}
+
+	public String getDisplayName() {
+		return displayName;
 	}
 
 	@Override

@@ -12,10 +12,10 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
-import org.esupportail.emargement.domain.UserLdap;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.UserLdapRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
@@ -63,7 +63,7 @@ public class SuperAdminController {
 	UserAppRepositoryCustom userAppRepositoryCustom;
 	
 	@Autowired
-	UserLdapRepository userLdapRepository;
+    LdapUserRepository ldapUserRepository;
 	
 	@Resource
 	UserAppService userAppService;
@@ -247,10 +247,10 @@ public class SuperAdminController {
     
     @GetMapping("/superadmin/admins/searchUsersLdap")
     @ResponseBody
-    public List<UserLdap> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<UserLdap> userAppsList = new ArrayList<UserLdap>();
+    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;
