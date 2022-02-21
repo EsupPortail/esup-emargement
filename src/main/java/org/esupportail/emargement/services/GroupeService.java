@@ -16,7 +16,6 @@ import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.PersonRepository;

@@ -1,7 +1,6 @@
 package org.esupportail.emargement.security;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,11 +14,9 @@ import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.LdapService;
 import org.jasig.cas.client.validation.Assertion;
 import org.slf4j.Logger;

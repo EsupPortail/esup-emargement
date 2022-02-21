@@ -12,17 +12,14 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.RegExUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -92,8 +89,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 		List<Context> allcontexts = new ArrayList<Context>();
 		if(eppn.startsWith(paramUtil.getGenericUser())) {
-			String context = StringUtils.substringBetween(eppn, "_", "@");
-			Context ctx = contextRepository.findByContextKey(context);
+			String ctxSplit [] = eppn.split("_");
+			Context ctx = contextRepository.findByContextKey(ctxSplit[1]);
 			allcontexts.add(ctx);
 		}else {
 			 allcontexts = contextRepository.findAll();

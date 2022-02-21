@@ -1,14 +1,11 @@
 package org.esupportail.emargement.web;
 
-import java.util.List;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.security.ContextUserDetails;

@@ -1,5 +1,10 @@
 package org.esupportail.emargement.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.naming.InvalidNameException;
+
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.LdapUser;
@@ -12,10 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.stereotype.Service;
-
-import javax.naming.InvalidNameException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class LdapService {

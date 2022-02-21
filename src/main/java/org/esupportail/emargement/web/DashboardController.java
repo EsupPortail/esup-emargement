@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;

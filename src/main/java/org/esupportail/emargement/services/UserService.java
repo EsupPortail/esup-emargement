@@ -1,12 +1,8 @@
 package org.esupportail.emargement.services;
 
-import java.util.List;
 import java.util.Random;
 
-import javax.annotation.Resource;
-
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

@@ -13,7 +13,6 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.web.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

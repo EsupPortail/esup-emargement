@@ -8,9 +8,7 @@ import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Help;
 import org.esupportail.emargement.repositories.HelpRepository;
-import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;

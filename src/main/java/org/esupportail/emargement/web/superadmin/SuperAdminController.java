@@ -10,12 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;

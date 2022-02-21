@@ -5,7 +5,6 @@ import javax.servlet.http.HttpSessionEvent;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.security.ContextCasAuthenticationProvider;
 import org.esupportail.emargement.security.ContextUserDetailsService;
 import org.esupportail.emargement.services.LdapService;

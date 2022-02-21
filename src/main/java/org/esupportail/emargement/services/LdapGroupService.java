@@ -1,5 +1,14 @@
 package org.esupportail.emargement.services;
 
+import static org.springframework.ldap.query.LdapQueryBuilder.query;
+
+import java.util.List;
+
+import javax.naming.InvalidNameException;
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
+
 import org.apache.commons.collections4.IterableUtils;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.repositories.LdapUserRepository;
@@ -11,17 +20,6 @@ import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Service;
-
-import javax.naming.InvalidNameException;
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import javax.naming.ldap.LdapName;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 @Service
 public class LdapGroupService {

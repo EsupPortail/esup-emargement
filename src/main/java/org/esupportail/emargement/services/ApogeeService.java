@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.config.DatasourceApogeeConfig;
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
