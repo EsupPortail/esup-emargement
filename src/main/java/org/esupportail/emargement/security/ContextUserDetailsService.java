@@ -79,14 +79,17 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		for(Context context: allcontexts) {
 			String contextKey = context.getKey();
 			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
-			authorities.addAll(getEmargementAdditionalRoles(eppn, context));
-			if(!authorities.isEmpty()) {
-				availableContexts.add(contextKey);
+			Set<GrantedAuthority>  extraRoles = getEmargementAdditionalRoles(eppn, context);
+			if(!extraRoles.isEmpty()) {
+				authorities.addAll(extraRoles);
+				if(!authorities.isEmpty()) {
+					availableContexts.add(contextKey);
+				}
+				contextAuthorities.put(contextKey, authorities);
+				Long id = null;
+				id =contextRepository.findByContextKey(contextKey).getId();
+				availableContextIds.put(contextKey, id);
 			}
-			contextAuthorities.put(contextKey, authorities);
-			Long id = null;
-			id =contextRepository.findByContextKey(contextKey).getId();
-			availableContextIds.put(contextKey, id);
 		}
 
 		// TODO : simplifier et factoriser le code avec UserDetailsServiceImpl.loadUserByUser
