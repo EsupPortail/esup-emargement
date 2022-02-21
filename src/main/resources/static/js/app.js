@@ -308,18 +308,19 @@ function updatePresence(url, numEtu, anchorId) {
             	var nom ="";
             	var prenom = "";
             	var eppn = "";
-                if(person!=null && person.nom != "null"){
+                if(person!=null && person.nom != null){
                 	nom = person.nom.toUpperCase();
                 	prenom = person.prenom;
-            	}else if(guest!=null && guest.nom != "null"){
+            	}else if(guest!=null && guest.nom != null){
             		nom = guest.nom.toUpperCase();
                 	prenom = guest.prenom;
             	}
                 modal.find('.modal-body #nomPresence').text(nom);
                 modal.find('.modal-body #prenomPresence').text(prenom);
-                modal.find('.modal-body #eppnPresence').text(identifiant);
+                modal.find('.modal-body #numIdentifiantPresence').text("");
                 if (person != null && person.numIdentifiant != null) {
-                    modal.find('.modal-body #numIdentifiantPresence').text('N° ' + person.numIdentifiant);
+                	modal.find('.modal-body #numIdentifiantPresence').text('N° ' + person.numIdentifiant);
+                	modal.find('.modal-body #eppnPresence').text("");
                 }
                 modal.find('.modal-body #photoPresent').prop("src", url);
                 modal.find('.modal-body #photoPresent').prop("alt", identifiant);
@@ -1618,6 +1619,8 @@ document.addEventListener('DOMContentLoaded', function() {
     	$("#eppnPresence").text(eppn);
     	$("#nomPresence").text(nom);
     	$("#prenomPresence").text(prenom);
+    	$("#numIdentifiantPresence").text("");
+    	$("#codeEtape").text("");        	
     	$('#photoModal2').modal('show');
     	if(splitField[3]!="null"){
     		$("#numIdentifiantPresence").text(splitField[3]);
