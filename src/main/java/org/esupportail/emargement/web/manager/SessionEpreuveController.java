@@ -292,20 +292,20 @@ public class SessionEpreuveController {
     						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen, 
     						@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
     	
+    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	sessionEpreuve.setDateExamen(dateExamen);
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
-    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	int compareDebutFin = 0;
     	if(!strDateFin.isEmpty()) {
     		Date dateFin =new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
     		sessionEpreuve.setDateFin(dateFin);
+    		compareDebutFin = toolUtil.compareDate(sessionEpreuve.getDateExamen(), sessionEpreuve.getDateFin(), "yyyy-MM-dd");
     	}
-    	
-    	sessionEpreuve.setDateExamen(dateExamen);
-    	
     	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0) {
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0 || compareDebutFin > 0) {
             populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
@@ -333,19 +333,20 @@ public class SessionEpreuveController {
     		@RequestParam("strDateExamen") String strDateExamen, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, Model uiModel, 
     					HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException, ParseException {
         
+    	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
+    	sessionEpreuve.setDateExamen(dateExamen);
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
-    	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
-    	Date dateFin = null;
-    	if(!strDateFin.isEmpty() && !strDateFin.equals(strDateExamen)) {
-    		dateFin = new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+    	int compareDebutFin = 0;
+    	if(!strDateFin.isEmpty()) {
+    		Date dateFin =new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+    		sessionEpreuve.setDateFin(dateFin);
+    		compareDebutFin = toolUtil.compareDate(sessionEpreuve.getDateExamen(), sessionEpreuve.getDateFin(), "yyyy-MM-dd");
     	}
-    	Date dateExamen = new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
-    	sessionEpreuve.setDateExamen(dateExamen);
-    	sessionEpreuve.setDateFin(dateFin);
     	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || (count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve()))) {
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || 
+    			(count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve())) || compareDebutFin > 0) {
             populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
