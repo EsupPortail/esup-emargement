@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.3</version>
+		<version>2.6.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
@@ -88,7 +88,7 @@
 		<dependency>
 		    <groupId>com.opencsv</groupId>
 		    <artifactId>opencsv</artifactId>
-		    <version>5.5.2</version>
+		    <version>5.6</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
@@ -104,7 +104,7 @@
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>bootstrap-icons</artifactId>
-		    <version>1.8.0</version>
+		    <version>1.8.1</version>
 		</dependency>		
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -139,7 +139,7 @@
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>slim-select</artifactId>
-		    <version>1.26.2</version>
+		    <version>1.27.1</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
@@ -192,7 +192,7 @@
 		<dependency>
 		    <groupId>com.itextpdf</groupId>
 		    <artifactId>itextpdf</artifactId>
-		    <version>5.5.13.2</version>
+		    <version>5.5.13.3</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.jpenren</groupId>
@@ -217,7 +217,7 @@
 		<dependency>
 		   <groupId>org.blazingcache</groupId>
 		   <artifactId>blazingcache-jcache</artifactId>
-		   <version>2.5.0</version>
+		   <version>2.6.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
