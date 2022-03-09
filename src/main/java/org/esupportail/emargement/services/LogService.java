@@ -8,8 +8,6 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,8 +51,6 @@ public class LogService {
 	
 	@Resource
 	LdapService ldapService;
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public void log( ACTION action, RETCODE success, String comment, String eppnCible, String ip, String emargementContext, String wsEppn) {
 

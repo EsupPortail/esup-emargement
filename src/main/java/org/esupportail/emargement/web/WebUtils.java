@@ -3,7 +3,6 @@ package org.esupportail.emargement.web;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
@@ -12,7 +11,6 @@ import org.esupportail.emargement.security.ContextUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 
 public class WebUtils {
 

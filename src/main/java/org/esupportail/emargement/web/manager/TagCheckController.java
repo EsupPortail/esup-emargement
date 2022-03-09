@@ -451,10 +451,10 @@ public class TagCheckController {
 					if("qrCode".equals(type)) {
 						if("nonext".equals(population)) {
 							if(tc.getPerson() != null) {
-								mailAdresse = tc.getPerson().getEppn();
 								eppn = tc.getPerson().getEppn();
 								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
 								nomPrenom = user.getPrenomNom();
+								mailAdresse = user.getEmail();
 							}
 						}if("ext".equals(population)) {
 							if(tc.getGuest() != null) {
@@ -464,9 +464,9 @@ public class TagCheckController {
 						}
 						else if("all".equals(population)) {
 							if(tc.getPerson() != null) {
-								mailAdresse = tc.getPerson().getEppn();
 								eppn = tc.getPerson().getEppn();
 								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
+								mailAdresse = user.getEmail();
 								nomPrenom = user.getPrenomNom();
 							}else if(tc.getGuest() != null) {
 								mailAdresse = tc.getGuest().getEmail();

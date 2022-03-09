@@ -146,19 +146,6 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		return extraRoles;
 	}
 
-	@SuppressWarnings("unchecked")
-	private List<String> getAttrValuesAsList(Object attrValues) {
-		if(attrValues == null) {
-			return new ArrayList<String>(); 
-		} else if(attrValues instanceof List) {
-			return (List<String>)attrValues;
-		} else {
-			List<String> attrs = new ArrayList<String>();
-			attrs.add((String) attrValues);
-			return attrs;
-		} 
-	}
-
 }
 
 

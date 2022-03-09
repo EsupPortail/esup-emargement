@@ -40,7 +40,6 @@ public class WebInterceptor implements HandlerInterceptor {
 		String context = WebUtils.getContext(request);
 		ContextHelper.setCurrentContext(context);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String eppn = (auth != null) ? auth.getName() : null;
 		String displayName =  (auth != null) ? ((ContextUserDetails)auth.getPrincipal()).getDisplayName() : "";
 
 		if(modelAndView != null) {

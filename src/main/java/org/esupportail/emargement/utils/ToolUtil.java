@@ -53,11 +53,11 @@ public class ToolUtil {
 	        return false;
 	    }
 	    try {
-	        long l = Long.parseLong(strNum);
+	        Long.parseLong(strNum);
+	        return true;
 	    } catch (NumberFormatException nfe) {
 	        return false;
 	    }
-	    return true;
 	}
 	
 	public String getDureeEpreuve(SessionEpreuve se) {

@@ -116,9 +116,6 @@ public class SessionEpreuveService {
 	LogService logService;
 	
 	@Resource
-	EmailService emailService;
-	
-	@Resource
 	AppliConfigService appliConfigService;
 	
 	@Value("${app.url}")

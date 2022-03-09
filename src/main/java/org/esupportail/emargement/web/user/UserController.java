@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.Date;
-import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -219,7 +218,6 @@ public class UserController {
 	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
     @ResponseBody
     public void getQrCode(@PathVariable("eppn") String eppn, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
-        List <TagCheck> tcs =  tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(id, eppn);
         String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
         InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
