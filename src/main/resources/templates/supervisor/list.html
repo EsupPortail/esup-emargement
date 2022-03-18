@@ -307,7 +307,7 @@
 											<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 										</td>
 										<td class="hiddenBlock center" th:if="${tagCheck.person != null}"  th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
-										<td class="hiddenBlock"  th:unless="${tagCheck.person != null}">Externe</td>
+										<td class="hiddenBlock center"  th:unless="${tagCheck.person != null}">Externe</td>
 										<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
 										<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
 											<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 

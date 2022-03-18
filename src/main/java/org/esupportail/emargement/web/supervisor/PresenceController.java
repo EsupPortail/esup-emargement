@@ -193,7 +193,7 @@ public class PresenceController {
 		String eppnAuth = auth.getName();
         if(sessionLocationId != null) {
     		if(sessionEpreuve.isSessionEpreuveClosed) {
-    			log.info("Aucun badgeage possible, la session " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
+    			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
     		}else {
     			totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
     			totalAll = tagCheckRepository.countBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(sessionLocationId, sessionLocationId);
@@ -306,7 +306,7 @@ public class PresenceController {
 		uiModel.addAttribute("selectAll", totalAll);
 		uiModel.addAttribute("oldSessions", Boolean.valueOf(oldSessions));
 		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
-		uiModel.addAttribute("msgError", msgError);
+		uiModel.addAttribute("msgError", ldapService.getPrenomNom(msgError));
 		uiModel.addAttribute("emails",  appliConfigService.getListeGestionnaires());
 		
         return "supervisor/list";

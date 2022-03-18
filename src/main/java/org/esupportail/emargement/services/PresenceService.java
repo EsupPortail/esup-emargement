@@ -371,6 +371,16 @@ public class PresenceService {
 					urlPresent = "&tc=" + presentTagCheck.getId();
 				}
 			}
+			Groupe gpe = sessionEpreuve.getBlackListGroupe();
+			boolean isBlackListed = groupeService.isBlackListed(gpe, esupNfcTagLog.getEppn());
+			if(isBlackListed){
+				urlPresent = "&msgError=" + esupNfcTagLog.getEppn();
+			}
+			if(BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
+				List <Long> idsGpe = new ArrayList<Long>();
+				idsGpe.add(gpe.getId());
+				groupeService.addMember(esupNfcTagLog.getEppn(),idsGpe);
+			}
 			if(realSlId != null && sessionEpreuveId != null) {
 				url =  keyContext + "/supervisor/presence?sessionEpreuve=" + sessionEpreuveId +  "&location=" + realSlId + urlPresent;
 			}

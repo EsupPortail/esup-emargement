@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
 	
 	Long countByAnneeUniv(String anneeUniv);
+	
+	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "

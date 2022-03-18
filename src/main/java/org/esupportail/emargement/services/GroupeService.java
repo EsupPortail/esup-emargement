@@ -184,6 +184,13 @@ public class GroupeService {
 	public void delete(Groupe groupe) {
 		groupe.getPersons().removeAll(groupe.getPersons());
 		groupe.getGuests().removeAll(groupe.getGuests());
+		List<SessionEpreuve> blackList = sessionEpreuveRepository.findByBlackListGroupe(groupe);
+		if(!blackList.isEmpty()) {
+			for(SessionEpreuve se : blackList) {
+				se.setBlackListGroupe(null);
+				sessionEpreuveRepository.save(se);
+			}
+		}
 		groupeRepository.delete(groupe);
 	}
 	

@@ -95,5 +95,17 @@ public class LdapService {
 		}
 		return ldapUsers;
 	}
-          
+	
+	public String getPrenomNom(String eppn) {
+		if(eppn!=null && !eppn.isEmpty()) {
+			List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
+			if(!ldapUsers.isEmpty()) {
+				return ldapUsers.get(0).getPrenomNom();
+			}else {
+				return eppn;
+			}
+		}else {
+			return eppn;
+		}
+	}
 }

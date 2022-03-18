@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -26,6 +27,7 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -107,6 +109,9 @@ public class TagCheckController {
 	
 	@Autowired
 	PersonRepository personRepository;
+	
+	@Autowired
+	GuestRepository guestRepository;
 	
 	@Resource
 	AppliConfigService appliConfigService;
@@ -334,10 +339,21 @@ public class TagCheckController {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
     		Person person = tagCheck.getPerson();
-    		tagCheckRepository.delete(tagCheck);
-    		Long count = tagCheckRepository.countTagCheckByPerson(person);
-    		if(count==0) {
-    			personRepository.delete(person);
+    		if(person!=null) {
+	    		tagCheckRepository.delete(tagCheck);
+	    		Long count = tagCheckRepository.countTagCheckByPerson(person);
+	    		if(count==0) {
+	    			personRepository.delete(person);
+	    		}
+    		}else {
+    			Guest guest = tagCheck.getGuest();
+        		if(guest!=null) {
+    	    		tagCheckRepository.delete(tagCheck);
+    	    		Long count = tagCheckRepository.countTagCheckByGuest(guest);
+    	    		if(count==0) {
+    	    			guestRepository.delete(guest);
+    	    		}
+        		}
     		}
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tagCheck.getSessionEpreuve().getId(), emargementContext);

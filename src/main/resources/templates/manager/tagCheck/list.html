@@ -113,16 +113,13 @@
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 									<td class="hiddenBlock" th:if="${tagCheck.guest != null}" th:text="Externe"></td>
-									<td  th:if="${tagCheck.person != null}">
+									<td th:if="${tagCheck.person != null}">
 										<a href="#" class="me-1 userModal" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 										<i class="fa fa-user" aria-hidden="true"></i></a>
 										<span th:text="${tagCheck.person.eppn}"></span>
 									</td>
 									<td th:unless="${tagCheck.person != null}">
-										<a href="#" class="me-1 userModal" 
-										th:attr="data-whatever=${tagCheck.guest.email + '//' + tagCheck.guest.nom + '//' + tagCheck.guest.prenom}">
-										<i class="fa fa-user" aria-hidden="true"></i></a>
 										<span th:text="${tagCheck.guest.email}"></span>
 									</td>
 									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>

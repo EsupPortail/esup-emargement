@@ -35,14 +35,14 @@ public class Groupe implements ContextSupport {
 	private Context context;
 	
 
-	@ManyToMany(cascade = { CascadeType.ALL })
+	@ManyToMany
     @JoinTable(name = "groupe_person",
             joinColumns =  @JoinColumn(name = "groupe_id") ,
             inverseJoinColumns =  @JoinColumn(name = "person_id") )
 	@JsonIgnoreProperties("groupes")
     private Set<Person> persons = new HashSet<>();
 	
-	@ManyToMany(cascade = { CascadeType.ALL })
+	@ManyToMany
     @JoinTable(name = "groupe_guest",
             joinColumns =  @JoinColumn(name = "groupe_id") ,
             inverseJoinColumns =  @JoinColumn(name = "guest_id") )
