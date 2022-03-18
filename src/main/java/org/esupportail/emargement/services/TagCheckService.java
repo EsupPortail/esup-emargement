@@ -603,7 +603,7 @@ public class TagCheckService {
 						String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 						String email = ldapUsers.get(0).getEmail();
 						if(appliConfigService.isSendEmails()){
-							emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
+							emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
 						}
 						tc.setDateEnvoiConvocation(new Date());
 						tagCheckRepository.save(tc);
@@ -628,8 +628,7 @@ public class TagCheckService {
 						null, emargementContext, null);
 				if(isSendToManager && ccArray.length>0){
 					bodyMsg = "Liste des eppn en erreur : " + StringUtils.join(errors, ",");
-					String from = appliConfigService.getNoReplyAdress();
-					emailService.sendSimpleMessage(from, ccArray[0], "Erreurs d'envoi de convocations", bodyMsg, ccArray);
+					emailService.sendSimpleMessage(ccArray[0], "Erreurs d'envoi de convocations", bodyMsg, ccArray);
 				}
 			}
 		}

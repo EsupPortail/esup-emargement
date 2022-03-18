@@ -37,9 +37,9 @@ public class AppliConfigService {
 	private static final String DELIMITER_MULTIPLE_VALUES = ";";
 
 	enum AppliConfigKey {
-		CONVOC_TYPE, CONVOC_CONSIGNES, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, 
+		CONVOC_TYPE, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, CONSIGNES_ENABLED,
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
-		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, NO_REPLY_ADRESS, QRCODE_SUJET_MAIL,
+		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, BEFORE_START_EMARGER_LINK
 	}
 	
@@ -79,11 +79,6 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
-	public String getConvocationConsignes() {
-		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_CONSIGNES);
-		return appliConfig==null ? "" : appliConfig.getValue();
-	}
-
 	public String getConvocationSujetMail() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONVOC_SUJET_MAIL);
 		return appliConfig==null ? "" : appliConfig.getValue();
@@ -154,11 +149,6 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
-	public String getNoReplyAdress() {
-		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.NO_REPLY_ADRESS);
-		return appliConfig==null ? "" : appliConfig.getValue();
-	}
-	
 	public String getQrCodeSujetMail() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.QRCODE_SUJET_MAIL);
 		return appliConfig==null ? "" : appliConfig.getValue();
@@ -193,6 +183,12 @@ public class AppliConfigService {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.BEFORE_START_EMARGER_LINK);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
+	
+	public Boolean isConsignesEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONSIGNES_ENABLED);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
 	
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
 		List <AppliConfigKey> listKey = Arrays.asList(AppliConfigKey.values());

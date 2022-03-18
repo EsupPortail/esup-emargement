@@ -10,6 +10,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
@@ -25,8 +26,14 @@ public class EmailService {
     
     @Resource
     AppliConfigService appliConfigService;
+    
+	@Value("${app.nomDomaine}")
+	private String nomDomaine;
+	
+	@Value("${app.noreply}")
+	private String noReply;
  
-    public void sendSimpleMessage(String from, String to, String subject, String text, String [] cc) {
+    public void sendSimpleMessage(String to, String subject, String text, String [] cc) {
         
         SimpleMailMessage message = new SimpleMailMessage();
         if(!appliConfigService.getTestEmail().isEmpty()) {
@@ -35,7 +42,7 @@ public class EmailService {
         message.setTo(to); 
         message.setSubject(subject); 
         message.setText(text);
-        message.setFrom(from);
+        message.setFrom(noReply.concat("@").concat(nomDomaine));
         if(cc.length>0) {
         	message.setCc(cc);
         }
@@ -43,7 +50,7 @@ public class EmailService {
        
     }
     
-    public void sendMessageWithAttachment(String from, String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
+    public void sendMessageWithAttachment(String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
     		InputStream inputStream) throws MessagingException, IOException {
          
         MimeMessage message = emailSender.createMimeMessage();
@@ -56,7 +63,7 @@ public class EmailService {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
-        helper.setFrom(from);
+        helper.setFrom(noReply.concat("@").concat(nomDomaine));
         if(cc.length>0) {
         	helper.setCc(cc);
         }

@@ -20,7 +20,7 @@
 					    		<a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
 					    		class="btn btn-primary col-auto" th:if="${!isSessionEpreuveClosed}" title="Ajouter un surveillant"><i class="fa fa-plus fa-lg"></i></a>
 					    		<a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" 
-					    			th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content)}" class="btn btn-info  col-auto  ms-2" title="Consignes"><i class="fa fa-envelope"></i></a>
+					    			th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" class="btn btn-info  col-auto  ms-2" title="Consignes"><i class="fa fa-envelope"></i></a>
 						    </div>
 						</div>		    			
 	    			</div>

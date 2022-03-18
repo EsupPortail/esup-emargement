@@ -513,7 +513,7 @@ public class PresenceController {
     			String[] ccArray = {};
     			int i = 0;
 	    		for(String email : emails) {
-	    			emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, null, fileName, ccArray, inputStream);
+	    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
 	    			i++;
 	    		}
 				bos.close();

@@ -110,6 +110,7 @@ public class TagCheckerController {
 		model.addAttribute("paramUrl", sessionEpreuve.getId());
 		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+		model.addAttribute("isConsignesEnabled", appliConfigService.isConsignesEnabled());
         return "manager/tagChecker/list";
     }
 	

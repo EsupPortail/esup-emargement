@@ -462,7 +462,6 @@ public class TagCheckController {
 					String mailAdresse =  null;
 					String eppn = "";
 					String nomPrenom = "";
-					String from = appliConfigService.getNoReplyAdress();
 					String cc [] = {};
 					if("qrCode".equals(type)) {
 						if("nonext".equals(population)) {
@@ -501,7 +500,7 @@ public class TagCheckController {
 							body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
 							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode";
 							InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
-							emailService.sendMessageWithAttachment(from ,mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
+							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
 							nbMailEnvoye++;
 						}else {
 							if( tc.getSessionLocationBadged()!= null) {
@@ -527,7 +526,7 @@ public class TagCheckController {
 								body = body.replaceAll("@@nom@@", nomPrenom);
 								body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
 								body = body.replaceAll("@@link@@", link);
-								emailService.sendSimpleMessage(from, user.getEmail(), subject, body, cc);
+								emailService.sendSimpleMessage(user.getEmail(), subject, body, cc);
 								nbMailEnvoye++;
 							}else {
 								if( tc.getSessionLocationBadged()!= null) {
