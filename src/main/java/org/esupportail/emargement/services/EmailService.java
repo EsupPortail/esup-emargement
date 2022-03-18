@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -21,10 +22,16 @@ public class EmailService {
   
     @Autowired
     public JavaMailSender emailSender;
+    
+    @Resource
+    AppliConfigService appliConfigService;
  
     public void sendSimpleMessage(String from, String to, String subject, String text, String [] cc) {
         
-        SimpleMailMessage message = new SimpleMailMessage(); 
+        SimpleMailMessage message = new SimpleMailMessage();
+        if(!appliConfigService.getTestEmail().isEmpty()) {
+			to = appliConfigService.getTestEmail();
+		}
         message.setTo(to); 
         message.setSubject(subject); 
         message.setText(text);
@@ -42,6 +49,9 @@ public class EmailService {
         MimeMessage message = emailSender.createMimeMessage();
     
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        if(!appliConfigService.getTestEmail().isEmpty()) {
+			to = appliConfigService.getTestEmail();
+		}
          
         helper.setTo(to);
         helper.setSubject(subject);

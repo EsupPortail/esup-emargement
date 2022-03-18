@@ -36,7 +36,7 @@ public class TagCheckerService {
 	EmailService emailService;
 	
 	@Resource
-    LdapUserRepository ldapUserRepository;;
+	LdapUserRepository userLdapRepository;;
 	
 	@Autowired
 	PdfGenaratorUtil pdfGenaratorUtil;
@@ -61,12 +61,12 @@ public class TagCheckerService {
 		Page<TagChecker> tagCheckers = tagCheckerRepository.findTagCheckerBySessionLocationIn(sessionLocations, pageable);
 		
 		for(TagChecker tagChecker: tagCheckers.getContent()) {
-			List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-			if(!ldapUsers.isEmpty()) {
-				tagChecker.getUserApp().setNom(ldapUsers.get(0).getName());
-				tagChecker.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
+			List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
+			if(!userLdaps.isEmpty()) {
+				tagChecker.getUserApp().setNom(userLdaps.get(0).getName());
+				tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
 			}
-			if(ldapUsers.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
+			if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 				tagChecker.getUserApp().setNom(tagChecker.getUserApp().getContext().getKey());
 				tagChecker.getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 			}
@@ -77,12 +77,12 @@ public class TagCheckerService {
 	public void setNomPrenom4TagCheckers(List<TagChecker> allTagCheckers) {		
 		if(!allTagCheckers.isEmpty()) {
 			for(TagChecker tagChecker: allTagCheckers) {
-				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-				if(!ldapUsers.isEmpty()) {
-					tagChecker.getUserApp().setNom(ldapUsers.get(0).getName());
-					tagChecker.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
+				List<LdapUser> userLdaps= userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
+				if(!userLdaps.isEmpty()) {
+					tagChecker.getUserApp().setNom(userLdaps.get(0).getName());
+					tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
 				}
-				if(ldapUsers.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
+				if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 					tagChecker.getUserApp().setNom(tagChecker.getContext().getKey());
 					tagChecker.getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 
@@ -97,10 +97,10 @@ public class TagCheckerService {
 		List<TagChecker> tcList = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
 		if(!tcList.isEmpty()) {
 			for(TagChecker tc : tcList) {
-				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getUserApp().getEppn());
+				List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tc.getUserApp().getEppn());
 				String sn = "";
-				if(!ldapUsers.isEmpty()) {
-					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getName());
+				if(!userLdaps.isEmpty()) {
+					sn = userLdaps.get(0).getPrenom().concat(" ").concat(userLdaps.get(0).getName());
 					snTagChecks.add(sn);
 				}
 				
@@ -140,17 +140,14 @@ public class TagCheckerService {
 			
 			if(!tcs.isEmpty()) {
 				for(TagChecker tc : tcs) {
-					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getUserApp().getEppn());
-					if(!ldapUsers.isEmpty()) {
+					List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tc.getUserApp().getEppn());
+					if(!userLdaps.isEmpty()) {
 						try {
-							tc.getUserApp().setNom(ldapUsers.get(0).getName());
-							tc.getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
-							tc.getUserApp().setCivilite(ldapUsers.get(0).getCivilite());
+							tc.getUserApp().setNom(userLdaps.get(0).getName());
+							tc.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
+							tc.getUserApp().setCivilite(userLdaps.get(0).getCivilite());
 							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
-							String email = ldapUsers.get(0).getEmail();
-							if(!appliConfigService.getTestEmail().isEmpty()) {
-								email = appliConfigService.getTestEmail();
-							}
+							String email = userLdaps.get(0).getEmail();
 							if(appliConfigService.isSendEmails()){
 								emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, filePath, "consignes.pdf", new String[0], null);
 							}else {

@@ -602,13 +602,9 @@ public class TagCheckService {
 						tc.getPerson().setCivilite(ldapUsers.get(0).getCivilite());
 						String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 						String email = ldapUsers.get(0).getEmail();
-						if(!appliConfigService.getTestEmail().isEmpty()) {
-							email = appliConfigService.getTestEmail();
-						}
 						if(appliConfigService.isSendEmails()){
 							emailService.sendMessageWithAttachment(appliConfigService.getNoReplyAdress(), email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
 						}
-
 						tc.setDateEnvoiConvocation(new Date());
 						tagCheckRepository.save(tc);
 						i++;
