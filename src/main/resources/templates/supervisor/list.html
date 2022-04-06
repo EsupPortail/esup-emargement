@@ -252,7 +252,7 @@
 	            </div>
 	            <div class="alert alert-danger  alert-dismissible fade show" th:if="${msgError != null}">
 	            	<span class="fw-bold"  th:text="${msgError}"></span> appartient au groupe des personnes non autorisées.
-	            	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            	<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
  				</div>
  				<p th:text="${nbEmails}"></p>
  				<div class="alert alert-danger  alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">

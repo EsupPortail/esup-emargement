@@ -681,11 +681,6 @@ public class TagCheckService {
 						}else {
 							if(!isBlackListed) {
 								saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
-								if(BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
-									List <Long> idsGpe = new ArrayList<Long>();
-									idsGpe.add(gpe.getId());
-									groupeService.addMember(eppn,idsGpe);
-								}
 							}else {
 								msgError = eppn;
 							}

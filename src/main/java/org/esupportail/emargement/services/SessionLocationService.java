@@ -1,6 +1,7 @@
 package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -164,7 +165,7 @@ public class SessionLocationService {
 			logService.log(ACTION.WSREST_LOCATIONS, RETCODE.FAILED, "Eppn : " + eppn, null, null, emargementContext, eppn);
 			e.printStackTrace();
 		}
-    	
+    	Collections.sort(locations);
     	return locations;
     }
     
