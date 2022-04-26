@@ -149,7 +149,7 @@ public class SessionEpreuveController {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
 		}
 		
-        Page<SessionEpreuve> sessionEpreuvePage = sessionEpreuveRepository.findAllByAnneeUniv(anneeUniv, pageable);
+        Page<SessionEpreuve> sessionEpreuvePage = sessionEpreuveRepository.findAllByAnneeUnivOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(anneeUniv, pageable);
         
         if(seNom!=null) {
         	sessionEpreuvePage = sessionEpreuveRepository.findByNomSessionEpreuve(seNom, pageable);

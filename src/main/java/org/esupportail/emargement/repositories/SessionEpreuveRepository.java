@@ -47,6 +47,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
 	
+	Page<SessionEpreuve> findAllByAnneeUnivOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(String anneeUniv, Pageable pageable);
+	
 	Long countByAnneeUniv(String anneeUniv);
 	
 	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
