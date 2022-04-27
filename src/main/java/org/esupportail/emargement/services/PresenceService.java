@@ -194,17 +194,16 @@ public class PresenceService {
     	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
     	tagCheckService.setNomPrenomTagChecks(list);
     	String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
-    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
-    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
+    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_");
-    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sl.getId());
-    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sl.getId());
+    	Long totalExpected = tagCheckRepository.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
+    	Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
     	
         //On créer l'objet cellule.
         String libelleSe = se.getNomSessionEpreuve().concat(" ").
         		concat(String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat(dateFin).
-        		concat(" à ").concat(sl.getLocation().getCampus().getSite()).concat(" --  ").
-        		concat(sl.getLocation().getNom()).concat(" --  nb de présents :  ").
+        		concat(" à ").concat(sl.getLocation().getCampus().getSite()).
+        		concat(" --  nb de présents :  ").
         		concat(totalPresent.toString()).concat("/").concat(totalExpected.toString())).concat(nbInconnus).concat((sl.getIsTiersTempsOnly())? " -- Temps aménagé" : "");
         		
         PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
@@ -213,15 +212,15 @@ public class PresenceService {
         table.addCell(cell);
    
         //contenu du tableau.
-        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header41 = new PdfPCell(new Phrase("Groupe")); header41.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header5 = new PdfPCell(new Phrase("Type")); header5.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header8 = new PdfPCell(new Phrase("Lieu")); header8.setBackgroundColor(BaseColor.GRAY);
-        PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.GRAY);
+        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header41 = new PdfPCell(new Phrase("Groupe")); header41.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header5 = new PdfPCell(new Phrase("Type")); header5.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header8 = new PdfPCell(new Phrase("Lieu")); header8.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.LIGHT_GRAY);
         
         table.addCell(header1);
         table.addCell(header3);
