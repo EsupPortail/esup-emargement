@@ -8,12 +8,16 @@ import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.services.ContextService;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
 public class EmargementRepositoryAspect {
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private EntityManager em;
@@ -26,7 +30,6 @@ public class EmargementRepositoryAspect {
 
 	// Attention, ne fonctionne pas sur les native query ...
 	// De même cf doc hibernate "Filters apply to entity queries, but not to direct fetching."
-
 	@Before("this(org.springframework.data.repository.Repository) || within(org.esupportail.emargement.repositories.custom..*)")
 	public void aroundExecution() throws Throwable {
 		String currentContext = ContextHelper.getCurrentContext();
@@ -37,7 +40,7 @@ public class EmargementRepositoryAspect {
 				filter.setParameter("context", id);
 				filter.validate();
 			}else {
-			//	log.error("Imossible de trouver le contexte de clé " + currentContext);
+				log.error("Imossible de trouver le contexte de clé " + currentContext);
 			}
 
 		}

@@ -33,7 +33,7 @@ public class IndexController {
 	public String getActiveMenu() {
 		return  ITEM;
 	}
-	
+
     @GetMapping("/")
     public String index(@RequestParam(required = false) String emargementContext, Model model) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

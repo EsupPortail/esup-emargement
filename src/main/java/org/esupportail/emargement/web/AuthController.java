@@ -31,7 +31,8 @@ public class AuthController {
 				.getAuthentication();
 		if(auth != null
 				&& auth.getPrincipal() != null
-				&& auth.getPrincipal() instanceof UserDetails) {
+				&& auth.getPrincipal() instanceof UserDetails
+				&& !WebUtils.isAnonymous()) {
 			String emargementContext = contextService.getDefaultContext();
 			return "redirect:/" + emargementContext;
 		}

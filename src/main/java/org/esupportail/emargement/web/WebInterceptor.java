@@ -11,6 +11,8 @@ import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -21,31 +23,30 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
 public class WebInterceptor implements HandlerInterceptor {
-	
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	@Resource
 	EmargementConfig config;
 	
 	@Autowired
 	ContextRepository contextRepository;
-	
-	@Resource
-	UserAppService userAppService;
-	
-	@Resource
-	LdapService ldapService;
 
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 			String context =  WebUtils.getContext(request);
+			ContextHelper.setCurrentContext(context);
 			String displayName = "";
 			Context configContext = null;
-			if(!context.isEmpty() && !WebUtils.isAnonymous()) {
+			if(!context.isEmpty() && !"all".equals(context) && !WebUtils.isAnonymous()) {
 				configContext = contextRepository.findByContextKey(context);
-				ContextHelper.setCurrentContext(context);
-				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-				displayName = ((ContextUserDetails) auth.getPrincipal()).getDisplayName();
-				userAppService.setDateConnexion(auth.getName());
+				if(configContext==null) {
+					log.warn("No context {} found in DB for url {}", context, request.getRequestURI());
+				} else {
+					Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+					displayName = ((ContextUserDetails) auth.getPrincipal()).getDisplayName();
+				}
 			}
 			if (modelAndView != null) {
 				boolean isViewObject = modelAndView.getView() == null;
