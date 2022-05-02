@@ -85,6 +85,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .regexMatchers("/webjars/.*", "/resources/.*", "/js/.*", "/css/.*")
             .permitAll()
             .and()
+            .authorizeRequests()
+            .regexMatchers("/wsrest/.*")
+            .hasIpAddress("127.0.0.1")
+            .and()
 	        .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
 	        .addFilterBefore(logoutFilter, LogoutFilter.class)
 	        .csrf().disable();

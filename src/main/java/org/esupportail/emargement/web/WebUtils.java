@@ -17,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class WebUtils {
 
-	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js"});
+	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js", "wsrest"});
 
 	public static String getContext(HttpServletRequest request) {
 		String path = request.getServletPath();
