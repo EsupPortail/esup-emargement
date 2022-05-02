@@ -19,6 +19,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
@@ -52,7 +53,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		 http
-			.anonymous().disable()
+            .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+            .and()
 	        .authorizeRequests()
 	        .regexMatchers("/login")
 	        .authenticated()
@@ -76,16 +78,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	        .authorizeRequests()
 	        .regexMatchers("/[^/]*/user(/.*|/?)")
 	        .hasAnyRole("ADMIN","MANAGER","SUPERVISOR","USER")
-	        .and()	        
-	        .authorizeRequests()
-	        .regexMatchers("/")
-	        .permitAll()
-	        .and()
-	        .httpBasic()
-	        .authenticationEntryPoint(authenticationEntryPoint)
 	        .and()
 	        .logout().logoutSuccessUrl("/logout")
 	        .and()
+            .authorizeRequests()
+            .regexMatchers("/webjars/.*", "/resources/.*", "/js/.*", "/css/.*")
+            .permitAll()
+            .and()
 	        .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
 	        .addFilterBefore(logoutFilter, LogoutFilter.class)
 	        .csrf().disable();

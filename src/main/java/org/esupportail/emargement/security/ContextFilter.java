@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ContextFilter  implements Filter {
-	
+
 	@Autowired
 	UserAppRepositoryCustom userAppRepositorycustom;
 	
@@ -32,14 +32,12 @@ public class ContextFilter  implements Filter {
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
 		String context = WebUtils.getContext(request);
-		if (context != null && !context.isEmpty()) {
+		if (!context.isEmpty() && !WebUtils.isAnonymous() ) {
 			ContextHelper.setCurrentContext(context);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			if(auth!=null) {
-				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
-				Map<String, Long> availableContextIds = userDetails.getAvailableContextIds();
-				ContextHelper.setCurrenyIdContext(availableContextIds.get(context));
-			}
+			ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
+			Map<String, Long> availableContextIds = userDetails.getAvailableContextIds();
+			ContextHelper.setCurrenyIdContext(availableContextIds.get(context));
 		} 
 		filterChain.doFilter(servletRequest, servletResponse);
 	}

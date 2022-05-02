@@ -1,12 +1,15 @@
 package org.esupportail.emargement.web;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,12 +17,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class WebUtils {
 
+	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js"});
+
 	public static String getContext(HttpServletRequest request) {
 		String path = request.getServletPath();
 		if("/error".equals(path)) {
 			path = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
 		}
 		String emargementContext = path.replaceFirst("/([^/]*).*", "$1");
+		if(CONTEXTS_DENIED.contains(emargementContext)) {
+			return "";
+		}
 		return emargementContext;
 	}
 	
@@ -51,6 +59,10 @@ public class WebUtils {
 	
 	public static boolean isAdmin() {
 		 return hasRole("ROLE_ADMIN");
+	}
+
+	public static boolean isAnonymous() {
+		return hasRole("ROLE_ANONYMOUS");
 	}
 	
 	public static boolean isSuperAdmin() {
