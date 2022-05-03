@@ -2,6 +2,7 @@ package org.esupportail.emargement.repositories;
 
 import javax.persistence.EntityManager;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.esupportail.emargement.security.ContextHelper;
@@ -22,17 +23,21 @@ public class EmargementRepositoryAspect {
 
 	// Attention, ne fonctionne pas sur les native query ...
 	// De même cf doc hibernate "Filters apply to entity queries, but not to direct fetching."
-	@Before("this(org.springframework.data.repository.Repository) || within(org.esupportail.emargement.repositories.custom..*)")
-	public void aroundExecution() throws Throwable {
+	@Before(
+			value="(execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))" +
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextKey(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContext(..))",
+			argNames="joinPoint")
+	public void aroundExecution(JoinPoint joinPoint) throws Throwable {
 		String currentContext = ContextHelper.getCurrentContext();
-		if(currentContext!=null && !"login".equals(currentContext) && !"all".equals(currentContext) && !"wsrest".equals(currentContext)) {
+		if(currentContext!=null && !currentContext.isEmpty() && !currentContext.equals("all")) {
 			org.hibernate.Filter filter = em.unwrap(Session.class).enableFilter("contextFilter");
 			Long id = ContextHelper.getCurrenyIdContext();
 			if(id!=null) {
 				filter.setParameter("context", id);
 				filter.validate();
-			}else {
-				log.error("Imossible de trouver le contexte de clé " + currentContext);
+			} else {
+				log.warn("Impossible de trouver le contexte de clé " + currentContext + " / joinPoint : " + joinPoint);
 			}
 
 		}

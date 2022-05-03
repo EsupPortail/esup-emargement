@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BigFileRepository extends JpaRepository<BigFile, Long>{
+public interface BigFileRepository extends JpaRepository<BigFile, Long> {
 	
 	List<BigFile> findByContext(Context context);
 
