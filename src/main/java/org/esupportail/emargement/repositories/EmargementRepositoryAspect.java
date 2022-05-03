@@ -4,9 +4,7 @@ import javax.persistence.EntityManager;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.security.ContextHelper;
-import org.esupportail.emargement.services.ContextService;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +19,6 @@ public class EmargementRepositoryAspect {
 
 	@Autowired
 	private EntityManager em;
-	
-	@Autowired
-	ContextService contextService;
-	
-	@Autowired
-	UserAppRepositoryCustom userAppRepositoryCustom;
 
 	// Attention, ne fonctionne pas sur les native query ...
 	// De même cf doc hibernate "Filters apply to entity queries, but not to direct fetching."
