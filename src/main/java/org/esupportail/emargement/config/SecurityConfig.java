@@ -1,6 +1,8 @@
 package org.esupportail.emargement.config;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -8,6 +10,7 @@ import org.esupportail.emargement.security.ContextCasAuthenticationProvider;
 import org.esupportail.emargement.security.UserDetailsServiceImpl;
 import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,6 +38,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private SingleSignOutFilter singleSignOutFilter;
 
     private LogoutFilter logoutFilter;
+    
+	@Value("${accessRestrictionWSRest}")
+	private String accessRestrictionWSRest;
     
     @Resource
     UserDetailsServiceImpl userDetailsServiceImpl;
@@ -87,7 +93,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             .authorizeRequests()
             .regexMatchers("/wsrest/.*")
-            .hasIpAddress("127.0.0.1")
+            .access(createHasIpRangeExpression())
             .and()
 	        .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
 	        .addFilterBefore(logoutFilter, LogoutFilter.class)
@@ -112,7 +118,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       filter.setAuthenticationManager(authenticationManager());
       return filter;
     }
-    
 
     @Bean
     public SwitchUserFilter switchUserFilter() {
@@ -129,5 +134,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public DefaultAuthenticationEventPublisher authenticationEventPublisher() {
         return new DefaultAuthenticationEventPublisher();
     }
-
+    
+    private String createHasIpRangeExpression() {
+        List<String> validIps = Arrays.asList(accessRestrictionWSRest.trim().split("\\s*,[,\\s]*"));
+        String hasIpRangeAccessExpresion = validIps.stream()
+          .collect(Collectors.joining("') or hasIpAddress('", "hasIpAddress('","')"));
+        return hasIpRangeAccessExpresion;
+    }
 }
