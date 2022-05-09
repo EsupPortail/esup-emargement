@@ -82,7 +82,7 @@ public class Individucontroller {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
 				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(identifiantTagCheck, p1);
-				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent());
+				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent(), false, false);
 			}else {
 				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, p1);
 			}
@@ -115,7 +115,7 @@ public class Individucontroller {
     	List<TagCheck>  tagChecksList2 = tagCheckRepositoryCustom.findAll2(searchValue, null);
     	if("tagCheck".equals(type)) {
 	    	if(!tagChecksList.isEmpty()) {
-	    		tagCheckService.setNomPrenomTagChecks(tagChecksList);
+	    		tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false);
 	    		for(TagCheck tc : tagChecksList) {
 	    			SearchBean searchBean = new SearchBean();
 	    			searchBean.setNom(tc.getPerson().getNom());

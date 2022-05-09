@@ -180,7 +180,7 @@ public class SessionEpreuveService {
 				List<TagCheck> tagCheckList = null;
 				if(alphaOrder) {
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonEppn(sessionEpreuveId);
-					tagCheckService.setNomPrenomTagChecks(tagCheckList);
+					tagCheckService.setNomPrenomTagChecks(tagCheckList, false, false);
 					List<TagCheck> sortedUsers = tagCheckList.stream()
 							  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 							  .collect(Collectors.toList());
@@ -215,7 +215,7 @@ public class SessionEpreuveService {
 				List<TagCheck> tagCheckList = null;
 				if(alphaOrder) {
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(sessionEpreuveId);
-					tagCheckService.setNomPrenomTagChecks(tagCheckList);
+					tagCheckService.setNomPrenomTagChecks(tagCheckList, false, false);
 					List<TagCheck> sortedUsers = tagCheckList.stream()
 							  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 							  .collect(Collectors.toList());
@@ -273,7 +273,7 @@ public class SessionEpreuveService {
     		List<TagCheck> tagCheckIsTiersTempsOnlyList = null;
 			if(alphaOrder) {
 				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonEppn(se.getId());
-				tagCheckService.setNomPrenomTagChecks(tagCheckIsTiersTempsOnlyList);
+				tagCheckService.setNomPrenomTagChecks(tagCheckIsTiersTempsOnlyList, false, false);
 				List<TagCheck> sortedUsers = tagCheckIsTiersTempsOnlyList.stream()
 						  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 						  .collect(Collectors.toList());
@@ -304,7 +304,7 @@ public class SessionEpreuveService {
     		List<TagCheck> tagCheckNotTiersTempsList = null;
 			if(alphaOrder) {
 				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(se.getId());
-				tagCheckService.setNomPrenomTagChecks(tagCheckNotTiersTempsList);
+				tagCheckService.setNomPrenomTagChecks(tagCheckNotTiersTempsList, false, false);
 				List<TagCheck> sortedUsers = tagCheckNotTiersTempsList.stream()
 						  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 						  .collect(Collectors.toList());
@@ -384,7 +384,7 @@ public class SessionEpreuveService {
     	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));;
     	nomFichier = nomFichier.replace(" ", "_");		
-		tagCheckService.setNomPrenomTagChecks(list);
+		tagCheckService.setNomPrenomTagChecks(list, false, false);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
 			@Override
             public int compare(TagCheck obj1, TagCheck obj2) {

@@ -318,5 +318,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null and is_session_epreuve_closed = 't' "
 			+ "and annee_univ like :anneeUniv  group by eppn) t group by event_count", nativeQuery = true)
 	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context, String anneeUniv);
+	
+	List<TagCheck> findTagCheckByContextAndSessionEpreuveId(Context context, Long id);
 }
 

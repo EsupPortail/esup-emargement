@@ -157,10 +157,10 @@ public class SessionEpreuveController {
         	model.addAttribute("collapse", "show");
         }
         sessionEpreuveService.computeCounters(sessionEpreuvePage.getContent());
+        model.addAttribute("ctxId", contexteService.getcurrentContext().getId());
         model.addAttribute("currentAnneeUniv", anneeUniv);
         model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         model.addAttribute("sessionEpreuvePage", sessionEpreuvePage);
-        model.addAttribute("paramUrl", "0");
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "manager/sessionEpreuve/list";
 	}

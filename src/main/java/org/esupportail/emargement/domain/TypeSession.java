@@ -14,6 +14,8 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
@@ -21,20 +23,26 @@ public class TypeSession {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+	@JsonIgnore
     private Long id;
 	
 	@ManyToOne
+	@JsonIgnore
 	private Context context;
 	
 	@Column(name = "key", length = 5)
+	@JsonIgnore
 	private String key;
 	
 	private String libelle;
 	
+	@JsonIgnore
 	private Boolean addByAdmin;
 	
+	@JsonIgnore
 	private String comment;
 	
+	@JsonIgnore
 	private @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm")
 	Date dateModification;
 

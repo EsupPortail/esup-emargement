@@ -226,7 +226,7 @@ public class PresenceController {
 	        }
     		currentLocation = sessionLocationId.toString();
     		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
-    		tagCheckService.setNomPrenomTagChecks(allTagChecks);
+    		tagCheckService.setNomPrenomTagChecks(allTagChecks, false, false);
     		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {
     			@Override
                 public int compare(TagCheck obj1, TagCheck obj2) {

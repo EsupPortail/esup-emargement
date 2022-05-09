@@ -21,6 +21,8 @@ import org.hibernate.annotations.ParamDef;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
@@ -28,24 +30,14 @@ public class SessionEpreuve implements ContextSupport {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+	@JsonIgnore
     private Long id;
 	
 	@ManyToOne
+	@JsonIgnore
 	private Context context;
 	
     private String nomSessionEpreuve;
-    
-    public Boolean isSessionEpreuveClosed = false;
-    
-    public Boolean isProcurationEnabled = false;
-    
-    public Boolean isSessionLibre = false;
-    
-    public Boolean isSaveInExcluded = false;
-    
-    public Boolean isGroupeDisplayed = false;
-    
-    public Integer maxBadgeageAlert = 1;
     
     @Column
     @Enumerated(EnumType.STRING)
@@ -60,6 +52,8 @@ public class SessionEpreuve implements ContextSupport {
     
     @ManyToOne
     private Campus campus;
+    
+    private String anneeUniv;
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateExamen;
@@ -79,11 +73,25 @@ public class SessionEpreuve implements ContextSupport {
     @Temporal(TemporalType.TIME)
     private Date finEpreuve;
     
-    private String anneeUniv;
+    public Boolean isSessionEpreuveClosed = false;
+    
+    public Boolean isProcurationEnabled = false;
+    
+    public Boolean isSessionLibre = false;
+    
+    @JsonIgnore
+    public Boolean isSaveInExcluded = false;
+    
+    @JsonIgnore
+    public Boolean isGroupeDisplayed = false;
+    
+    @JsonIgnore
+    public Integer maxBadgeageAlert = 1;
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateArchivage;
     
+    @JsonIgnore
     public String loginArchivage;
 
     private @Transient
@@ -117,6 +125,7 @@ public class SessionEpreuve implements ContextSupport {
     Long nbStoredFiles = Long.valueOf("0");
     
     @Transient
+    @JsonIgnore
     private List<MultipartFile> files;
     
     @ManyToOne

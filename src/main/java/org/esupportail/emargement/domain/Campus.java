@@ -11,6 +11,8 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
@@ -18,14 +20,17 @@ public class Campus implements ContextSupport {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+	@JsonIgnore
     private Long id;
 	
 	@ManyToOne
+	@JsonIgnore
 	private Context context;
 	
     private String site;
     
     @Column(columnDefinition = "TEXT")
+    @JsonIgnore
     private String description;
     
 	public Long getId() {

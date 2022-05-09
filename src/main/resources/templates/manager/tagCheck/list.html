@@ -79,6 +79,7 @@
 								<input type="hidden" id="tiersTemps" name="tempsAmenage" th:value="${tempsAmenage}" />
 				    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
 								<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
+								<a th:href="@{/wsrest/export/tagCheck/{id}(id=${sessionEpreuve.id})}" class="btn btn-primary btn-sm exportWS">WS</a>
 							</form>
 						</div>
 		    		</div>

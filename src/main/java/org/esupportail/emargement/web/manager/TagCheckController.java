@@ -168,7 +168,7 @@ public class TagCheckController {
 			size = count.intValue();
 		}
         Page<TagCheck> tagCheckPage = tagCheckService.getTagCheckPage(tempsAmenage, eppn, id, repartitionId, toolUtil.updatePageable(pageable, size));
-        int notInLdap = tagCheckService.setNomPrenomTagChecks(tagCheckPage.getContent());
+        int notInLdap = tagCheckService.setNomPrenomTagChecks(tagCheckPage.getContent(), false, false);
         
 		String collapse ="";
 		if(!eppn.isEmpty() || repartitionId !=null || !tempsAmenage.isEmpty()) {
@@ -225,7 +225,7 @@ public class TagCheckController {
     public String show(@PathVariable("id") Long id, Model uiModel) {
 		List<TagCheck> tagChecks = new ArrayList<TagCheck>();
 		tagChecks.add( tagCheckRepository.findById(id).get());
-		tagCheckService.setNomPrenomTagChecks(tagChecks);
+		tagCheckService.setNomPrenomTagChecks(tagChecks, false, false);
         uiModel.addAttribute("tagCheck", tagChecks.get(0));
         return "manager/tagCheck/show";
     }
@@ -427,7 +427,7 @@ public class TagCheckController {
     	List<Person> persons = new ArrayList<Person>();
     	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchValue, sessionId);
     	if(!tagChecksList.isEmpty()) {
-    		tagCheckService.setNomPrenomTagChecks(tagChecksList);
+    		tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false);
     		for(TagCheck tc : tagChecksList) {
     			persons.add(tc.getPerson());
     		}

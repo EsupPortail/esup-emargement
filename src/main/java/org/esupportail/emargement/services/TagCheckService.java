@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
@@ -32,6 +33,7 @@ import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
+import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
@@ -490,7 +492,7 @@ public class TagCheckService {
 		}
     }
     
-	public int setNomPrenomTagChecks(List<TagCheck> tagChecks){
+	public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy){
 		
 		int count = 0;
 		
@@ -507,6 +509,30 @@ public class TagCheckService {
 					}
 				}else if(tc.getGuest()!=null) {
 					tc.setNomPrenom(tc.getGuest().getNom().concat(tc.getGuest().getPrenom()));
+				}
+				if(setTagChecker) {
+					if(tc.getTagChecker()!=null) {
+						List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
+						if(!ldapUsers.isEmpty()) {
+							tc.getTagChecker().getUserApp().setNom(ldapUsers.get(0).getName());
+							tc.getTagChecker().getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
+						}else {
+							tc.getTagChecker().getUserApp().setNom("");
+							tc.getTagChecker().getUserApp().setPrenom("");				
+						}
+					}
+				}
+				if(setProxy) {
+					if(tc.getProxyPerson()!=null) {
+						List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getProxyPerson().getEppn());
+						if(!ldapUsers.isEmpty()) {
+							tc.getProxyPerson().setNom(ldapUsers.get(0).getName());
+							tc.getProxyPerson().setPrenom(ldapUsers.get(0).getPrenom());
+						}else {
+							tc.getProxyPerson().setNom("");
+							tc.getProxyPerson().setPrenom("");		
+						}
+					}
 				}
 			}
 		}
@@ -883,7 +909,7 @@ public class TagCheckService {
 			}
 		}
 
-		this.setNomPrenomTagChecks(list);
+		this.setNomPrenomTagChecks(list, false, false);
 		if ("PDF".equals(type)) {
 			int nnColumns = 0;
 			if(anneeUniv != null) {
@@ -969,14 +995,13 @@ public class TagCheckService {
 	        			if(numIdentifiant==null) {
 	        				numIdentifiant = tc.getPerson().getEppn();
 	        			}
-	        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
 	        		}else if(tc.getGuest() !=null ) {
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
-	        			typeIndividu = "Externe";
 	        		}
+	        		typeIndividu = getTypeIndividu(tc);
 	        		if(tc.getTypeEmargement()!=null) {
-	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
+	        			typeEmargement =  getTypeEmargement(tc);
 	        		}
 	        		BaseColor b = new BaseColor(232, 97, 97, 50);
 	        		PdfPCell dateCell = null;
@@ -1368,5 +1393,72 @@ public class TagCheckService {
 			}
 		}
 		return nbBadgeage;
+	}
+	
+	public List<TagCheckBean> getBeansFromTagChecks(List<TagCheck> tagChecks){
+		
+		List<TagCheckBean> beans = new ArrayList<TagCheckBean>();
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");  
+		
+		if(!tagChecks.isEmpty()) {
+			setNomPrenomTagChecks(tagChecks, true, true);
+			for(TagCheck tc : tagChecks) {
+				TagCheckBean bean = new TagCheckBean();
+				bean.setCodeEtape(StringUtils.defaultString(tc.getCodeEtape(), ""));
+				bean.setComentaire(StringUtils.defaultString(tc.getComment(), ""));
+				String strDateEmargment = (tc.getTagDate() != null)? dateFormat.format(tc.getTagDate()) : "";
+				String strDateConvocation = (tc.getDateEnvoiConvocation() != null)? dateFormat.format(tc.getDateEnvoiConvocation()) : "";
+				bean.setDateEmargement(strDateEmargment);
+				bean.setDateEnvoiConvocation(strDateConvocation);
+				bean.setEstExempte(BooleanUtils.toString(tc.getIsExempt(), "Oui", "Non"));
+				bean.setEstInconnu(BooleanUtils.toString(tc.getIsUnknown(), "Oui", "Non"));
+				bean.setLieuAttendu((tc.getSessionLocationExpected()!=null)? 
+						tc.getSessionLocationExpected().getLocation().getNom() :"");
+				bean.setLieuBadge((tc.getSessionLocationBadged()!=null)? tc.getSessionLocationBadged().getLocation().getNom() : "");
+				bean.setNom((tc.getPerson()!=null)? tc.getPerson().getNom() : tc.getGuest().getNom());
+				bean.setPrenom((tc.getPerson()!=null)? tc.getPerson().getPrenom() : tc.getGuest().getPrenom());
+				String procuration = "";
+				if(tc.getProxyPerson()!=null){
+					String nom = tc.getProxyPerson().getNom();
+					if(nom.isEmpty()) {
+						procuration = tc.getProxyPerson().getEppn();
+					}else {
+						procuration = tc.getProxyPerson().getPrenom().concat(" ").concat(nom);
+					}
+				}	
+				bean.setProcuration(procuration);
+				String surveillant = "";
+				if(tc.getTagChecker()!=null){
+					String nom = tc.getTagChecker().getUserApp().getNom();
+					if(nom.isEmpty()) {
+						surveillant = tc.getTagChecker().getUserApp().getEppn();
+					}else {
+						surveillant = tc.getTagChecker().getUserApp().getPrenom().concat(" ").concat(nom);
+					}
+				}
+				bean.setSurveillant(surveillant);
+				bean.setTypeEmargement(getTypeEmargement(tc));
+				bean.setTypeIndividu(getTypeIndividu(tc));
+				beans.add(bean);
+			}
+		}
+		
+		return beans;
+	}
+	
+	public String getTypeIndividu(TagCheck tc) {
+		if(tc.getPerson()!=null) {
+			return  messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
+		}else {
+			return "Externe";
+		}
+	}
+	public String getTypeEmargement(TagCheck tc) {
+		String typeEmargement = "";
+		if(tc.getTypeEmargement()!=null) {
+			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().
+					toLowerCase()), null, null);
+		}
+		return typeEmargement;
 	}
 }

@@ -192,7 +192,7 @@ public class PresenceService {
     	table.setHorizontalAlignment(Element.ALIGN_CENTER);
     	
     	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
-    	tagCheckService.setNomPrenomTagChecks(list);
+    	tagCheckService.setNomPrenomTagChecks(list, false, false);
     	String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
     	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_");
@@ -425,7 +425,7 @@ public class PresenceService {
     	tagCheckRepository.save(presentTagCheck);
     	List<TagCheck> list = new ArrayList<TagCheck>();
     	list.add(presentTagCheck);
-    	tagCheckService.setNomPrenomTagChecks(list);
+    	tagCheckService.setNomPrenomTagChecks(list, false, false);
     	if(presentTagCheck.getTagChecker() != null) {
         	List<TagChecker> tcList = new ArrayList<TagChecker>();
         	tcList.add(presentTagCheck.getTagChecker());

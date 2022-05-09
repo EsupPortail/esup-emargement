@@ -26,6 +26,7 @@
 									</div>
 								</div>
 								<div class="col-auto">
+									<a class="btn btn-warning ms-1 float-end " th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
 							    	<button class="btn btn-info ms-1 float-end " type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher une session"><i class="fas fa-search"></i></button>
 							    	<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${currentAnneeUniv},ctx=${eContext})}" class="btn btn-primary float-end" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
 							    </div>
