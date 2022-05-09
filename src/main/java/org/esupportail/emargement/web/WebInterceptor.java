@@ -58,8 +58,8 @@ public class WebInterceptor implements HandlerInterceptor {
 						modelAndView.addObject("title", configContext.getTitle());
 						modelAndView.addObject("htmlFooter", configContext.getPageFooter());
 					} else {
-						modelAndView.addObject("title", "Emargement");
-						modelAndView.addObject("htmlFooter", "Emargement");
+						modelAndView.addObject("title", "Esup-emargement");
+						modelAndView.addObject("htmlFooter", "Esup-emargement");
 					}
 					modelAndView.addObject("eContext", context);
 					modelAndView.addObject("isSuperAdmin", WebUtils.isSuperAdmin());
