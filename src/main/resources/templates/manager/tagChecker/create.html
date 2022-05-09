@@ -20,11 +20,21 @@
 						</div>
 						<div class="row mb-3">
 	                    	<label for="sessionLocation" class="col-lg-2 form-label">Lieu de Session</label>
-	                    	<div class="col-lg-10">
-								<select class="form-select" th:id="locationTagChecker" th:name="sessionLocation" required="required">
-									<option th:each="sessionLocation : ${allSessionLocations}"
-										th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
-								</select>
+	                    	<div class="col-lg-9 row">
+	                    		<div class="col-lg-1 mt-2">
+									<div class="form-check">
+									  <input class="form-check-input" type="checkbox" id="allLocations" name="allLocations">
+									  <label class="form-check-label" for="allLocations">
+									    Tous
+									  </label>
+									</div>
+								</div>
+								<div class="col-lg-11">            	
+									<select class="form-select" th:id="locationTagChecker" th:name="sessionLocation" required="required">
+										<option th:each="sessionLocation : ${allSessionLocations}"
+											th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
+									</select>
+								</div>
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -41,6 +51,8 @@
 										  <input class="form-check-input" name="users" type="checkbox" th:value="${userApp.id}" th:id="${'box' + userApp.id}">
 										  <label class="form-check-label" th:text="${userApp.nom + ' ' + userApp.prenom}">
 										  </label>
+										   <a class="contextualHelp ms-2" data-bs-toggle="tooltip" th:title="${map.get(userApp.eppn)}">
+			                    			<i class="fas fa-circle-info"></i></a>
 										</div>
 									</div>
 								</div>

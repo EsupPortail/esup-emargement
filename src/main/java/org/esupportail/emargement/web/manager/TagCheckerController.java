@@ -1,14 +1,18 @@
 package org.esupportail.emargement.web.manager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
@@ -129,6 +133,7 @@ public class TagCheckerController {
     public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
     	
     	TagChecker tagChecker = new TagChecker();
+    	Map<String, String> map = new HashMap<String, String>();
     	if(id !=null) {
     		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
@@ -137,7 +142,22 @@ public class TagCheckerController {
     		allUserApps = userAppService.setNomPrenom(allUserApps, false);
     		allUserApps.sort(Comparator.comparing(UserApp::getNom));
     		uiModel.addAttribute("allUserApps", allUserApps);
+    	   
+        	List<TagChecker>  all = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(id);
+        	List<UserApp> userApps = all.stream().map(tc -> tc.getUserApp()).distinct().collect(Collectors.toList());
+        	if(!userApps.isEmpty()) {
+	        	for(UserApp user : userApps) {
+	        		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserApp(id, user);
+	        		List<String> locations = new ArrayList<String>();
+	        		for(TagChecker tc : tcs) {
+	        			locations.add(tc.getSessionLocation().getLocation().getNom());
+	        		}
+	        		Collections.sort(locations);
+	        		map.put(user.getEppn(), StringUtils.join(locations,","));
+	        	}
+        	}
     	}
+    	uiModel.addAttribute("map", map);
     	populateEditForm(uiModel, tagChecker, id);
         return "manager/tagChecker/create";
     }
@@ -163,28 +183,46 @@ public class TagCheckerController {
     }
     
     @PostMapping("/manager/tagChecker/create")
-    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam(value="users", required = false) List<Long> users,  BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam(value="users", required = false) List<Long> users, 
+    		@RequestParam("sessionEpreuve") Long sessionEpreuve, @RequestParam(value ="allLocations", required = false) String allLocations, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
             return "manager/tagChecker/create";
         }
         uiModel.asMap().clear();
         if(users != null && !users.isEmpty()){
+        	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuve).get();
+        	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
         	for(Long id : users) {
         		UserApp userApp = userAppRepository.findById(id).get();
         		if(userApp!=null) {
-        			Long count = tagCheckerRepository.countBySessionLocationAndUserApp(tagChecker.getSessionLocation(), userApp);
-        			if(count == 0) {
-	        			TagChecker tc = new TagChecker();
-	        			tc.setUserApp(userApp);
-	        			tc.setContext(contexteService.getcurrentContext());
-	        			tc.setSessionLocation(tagChecker.getSessionLocation());
-	        			tagCheckerRepository.save(tc);
-	        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
-	        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
-        			}else {
-        				logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.FAILED, userApp.getEppn(), userApp.getEppn(), null, emargementContext, null);
-        			}
+    				if(allLocations == null){
+    					Long count = tagCheckerRepository.countBySessionLocationAndUserApp(tagChecker.getSessionLocation(), userApp);
+    					if(count == 0) {
+		        			TagChecker tc = new TagChecker();
+		        			tc.setUserApp(userApp);
+		        			tc.setContext(contexteService.getcurrentContext());
+		        			tc.setSessionLocation(tagChecker.getSessionLocation());
+		        			tagCheckerRepository.save(tc);
+		        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
+		        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
+    					}
+    				}else {
+    					if(!sls.isEmpty()) {
+    						for(SessionLocation sl : sls) {
+    							Long count = tagCheckerRepository.countBySessionLocationAndUserApp(sl, userApp);
+    							if(count == 0) {
+	    							TagChecker tc = new TagChecker();
+	    		        			tc.setUserApp(userApp);
+	    		        			tc.setContext(contexteService.getcurrentContext());
+	    		        			tc.setSessionLocation(sl);
+	    		        			tagCheckerRepository.save(tc);
+	    		        			log.info("ajout surveillant : " + tc.getUserApp().getEppn());
+	    		        			logService.log(ACTION.AJOUT_SURVEILLANT, RETCODE.SUCCESS, tc.getUserApp().getEppn(), tc.getUserApp().getEppn(), null, emargementContext, null);
+    							}
+    						}
+    					}
+    				}
         		}
         	}
         }
