@@ -11,11 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.security.ContextUserDetails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class WebUtils {
+
+	private static final Logger log = LoggerFactory.getLogger(WebUtils.class);
 
 	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js", "wsrest", "images", "favicon.ico"});
 
@@ -23,6 +27,7 @@ public class WebUtils {
 		String path = request.getServletPath();
 		if("/error".equals(path)) {
 			path = (String)request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+			log.warn("URL was /error - retrieve forward request uri to compute context : " + path);
 		}
 		String emargementContext = path.replaceFirst("/([^/]*).*", "$1");
 		if(CONTEXTS_DENIED.contains(emargementContext)) {
