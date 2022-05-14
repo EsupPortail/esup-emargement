@@ -24,6 +24,7 @@ public class ContextHelper {
 
 	public static void clear() {
 		currentContext.set(null);
+		currentContextId.set(null);
 	}
 
 }
