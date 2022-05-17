@@ -8,7 +8,7 @@
            	<div class="card">
            		<div class="card-header">
 				<div class="row">
-					<div class="col-xl-3 col-lg-3 col-md-4 col-sm-5">
+					<div class="col">
 						<h2>Emargement</h2>
 						<span
 							th:if="${sessionEpreuve.id !=null and sessionLocation !=null}"
@@ -53,9 +53,9 @@
 							href="#collapseExample" class="btn btn-sm btn-primary ml-2"><i
 							class="fa fa-plus fa-lg"></i></a>
 					</div>
-					<div class="col-xl-7 col-lg-6 col-md-7 col-sm-6">
+					<div class="col-auto">
 						<div class="row ">
-							<div class="col-lg-9 col-md-11">
+							<div class="col">
 								<div class="alert alert-info pt-0 me-2">
 									<form action="#"
 										th:action="@{/{ctx}/supervisor/presence(ctx=${eContext})}"
@@ -104,7 +104,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-xl-2 col-lg-3 col-md-1 col-sm-1">
+					<div class="col float-end">
 						<label th:if="${isQrCodeEnabled or isUserQrCodeEnabled}" class="btn btn-secondary active float-end mb-1" data-bs-toggle="buttons"> <input
 							type="checkbox" class="btn-check" id="webCamCheck"
 							th:checked="${enableWebcam}"> <i class="fas fa-video"></i>

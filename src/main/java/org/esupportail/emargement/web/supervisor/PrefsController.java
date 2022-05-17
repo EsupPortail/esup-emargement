@@ -13,8 +13,10 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.web.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -42,6 +45,9 @@ public class PrefsController {
 	
 	@Resource
 	HelpService helpService;
+	
+	@Resource
+	PreferencesService preferencesService;
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -88,5 +94,14 @@ public class PrefsController {
 		}
 		 return String.format("redirect:/%s/supervisor/prefs", emargementContext);
 	}
-
+	
+    @GetMapping("/supervisor/prefs/updatePrefs")
+    @ResponseBody
+    public void updatePrefs(@PathVariable String emargementContext, @RequestParam(value ="pref") String pref, @RequestParam(value ="value") String value) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String eppn = auth.getName();
+		preferencesService.updatePrefs(pref, value, eppn, emargementContext) ;
+    }
 }

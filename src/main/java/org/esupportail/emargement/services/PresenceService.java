@@ -20,18 +20,15 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
-import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
-import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -83,9 +80,6 @@ public class PresenceService {
 	
 	@Autowired	
 	ContextRepository contextRepository;
-	
-	@Autowired
-	PrefsRepository prefsRepository;
 	
 	@Autowired
 	UserAppRepository userAppRepository;
@@ -446,24 +440,6 @@ public class PresenceService {
     	}
     	
     	return list;
-	}
-	
-	public void updatePrefs(String nom, String value, String eppn, String key) {
-		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, nom);
-		Prefs pref = null;
-		if(!prefs.isEmpty()) {
-			pref = prefs.get(0);
-			pref.setValue(value);
-		}else {
-			Context context = contextRepository.findByContextKey(key);
-			pref = new Prefs();
-			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, context);
-			pref.setUserApp(userApp);
-			pref.setContext(context);
-			pref.setNom(nom);
-			pref.setValue(value);
-		}
-		prefsRepository.save(pref);
 	}
 	
 	public boolean saveTagCheckSessionLibre(Long slId, String eppn, String emargementContext, SessionLocation sl) {

@@ -96,7 +96,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                 request.open('GET', url + "?searchValue=" + this.value + paramurl, true);
                 request.onload = function() {
                     if (request.status >= 200 && request.status < 400) {
-                        var data = JSON.parse(this.response);
+                        var data = JSON.parse(this.response);console.log(data);
                         var list = [];
                         var labelNumEtu = "";
                         var valueNumEtu = "";
@@ -130,7 +130,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                                     frDate;
                                 list.push({
                                     label: labelValue,
-                                    value: value.nomSessionEpreuve + "//" + value.campus.site + "//" + frDate
+                                    value: value.id
                                 });
                             } else if (id == "searchGroup") {
                                 list.push(value);
@@ -1748,7 +1748,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		var value = (this.checked) ? "true" : "false";
 		var redirect = window.location.origin + window.location.pathname;
         var request = new XMLHttpRequest();
-        request.open('GET', emargementContextUrl + "/supervisor/updatePrefs?pref=seeOldSessions&value=" + value, true);
+        request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=seeOldSessions&value=" + value, true);
         request.onload = function() {
             if (request.status >= 200 && request.status < 400) {
             	window.location.href = redirect;
@@ -1774,7 +1774,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		var value = (this.checked) ? "true" : "false";
 		var redirect = window.location.origin + window.location.pathname;
         var request = new XMLHttpRequest();
-        request.open('GET', emargementContextUrl + "/supervisor/updatePrefs?pref=enableWebcam&value=" + value, true);
+        request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=enableWebcam&value=" + value, true);
         request.onload = function() {
             if (request.status >= 200 && request.status < 400) {
             	window.location.href = redirect;
@@ -1833,33 +1833,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	    }
 	}
 	
-	//liste surveillants session
-/*	var locationTagChecker = document.getElementById("locationTagChecker");
-	
-	function disabledTagCheckers(slId){
-		var request = new XMLHttpRequest();
-		request.open('GET', emargementContextUrl + "/manager/tagChecker/usedTagCheckers?location=" + slId, true);
-		request.onload = function() {
-			if (request.status >= 200 && request.status < 400) {
-				var data = JSON.parse(this.response);
-				 data.forEach(function(value, key) {
-					 $("#box" + value.userApp.id).prop("disabled", "disabled");
-				 });
-			}
-		}
-		request.send();
-	}
-	
-	if(locationTagChecker != null){
-		var slId = locationTagChecker.value;
-		disabledTagCheckers(slId)
-		addEventListener("change", function() {
-			slId = locationTagChecker.value;
-			$(".form-check-input").prop("disabled", false);
-			disabledTagCheckers(slId)
-		});
-	}
-*/
 	//Affinage reparttion
     $(".affinage").inputSpinner();
     
@@ -1923,5 +1896,17 @@ document.addEventListener('DOMContentLoaded', function() {
 			request.send();
 	    }
     });
+    if(document.getElementById("sessionSearch") != null){	
+	    $("#formSearch .form-select").on("change", function (event) {
+	    	$("#searchSessionEpreuve").val(null);
+	 	    document.getElementById("formSearch").submit();
+	    });
+	    $("#formSearch #resetSearch").on("click", function (event) {
+	    	$("#searchSessionEpreuve").val(null);
+	    	$("#statut").val("");
+	    	$("#typeSession").val("");
+	    	document.getElementById("formSearch").submit();
+	    });
+	}
 });
     
