@@ -217,15 +217,17 @@
 							</div>
 						</div>
 						<div class="row mb-3">
-							<label class="col-lg-2 form-check-label"  th:for="${isSessionEpreuveClosed}">
-						        Clôturée
+							<label class="col-lg-2 form-check-label" th:for="${statut}">
+						        Statut
 						    </label>
 							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isSessionEpreuveClosed}">
-								</div>      
-						    </div>
-						</div>                 
+								<select th:field="*{statut}" class="form-select" required="required">
+									<option value="">----Choisir----</option>
+								    <option th:each="statut : ${T(org.esupportail.emargement.domain.SessionEpreuve.Statut).values()}" 
+								        th:value="${statut}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut)}}"></option>
+								</select>
+							</div>
+						</div>
                         <div class="row">
                             <div class="col-md-6 mt-5">
                                 <input type="submit" class="btn btn-success" value="Valider">

@@ -30,7 +30,6 @@ public class SessionEpreuve implements ContextSupport {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-	@JsonIgnore
     private Long id;
 	
 	@ManyToOne
@@ -46,6 +45,17 @@ public class SessionEpreuve implements ContextSupport {
     public static enum TypeBadgeage {
        SALLE, SESSION
     };
+    
+    public static enum Statut {
+       OPENED, STANDBY, CLOSED
+     };
+     
+     //update session_epreuve set statut = 'OPENED' where is_session_epreuve_closed ='f';
+     //update session_epreuve set statut = 'CLOSED' where is_session_epreuve_closed ='t';
+
+	@Column
+	@Enumerated(EnumType.STRING)
+	public Statut statut;
     
     @ManyToOne
     private TypeSession typeSession;
@@ -73,17 +83,15 @@ public class SessionEpreuve implements ContextSupport {
     @Temporal(TemporalType.TIME)
     private Date finEpreuve;
     
-    public Boolean isSessionEpreuveClosed = false;
+    public Boolean isProcurationEnabled;
     
-    public Boolean isProcurationEnabled = false;
-    
-    public Boolean isSessionLibre = false;
+    public Boolean isSessionLibre;
     
     @JsonIgnore
-    public Boolean isSaveInExcluded = false;
+    public Boolean isSaveInExcluded;
     
     @JsonIgnore
-    public Boolean isGroupeDisplayed = false;
+    public Boolean isGroupeDisplayed;
     
     @JsonIgnore
     public Integer maxBadgeageAlert = 1;
@@ -95,34 +103,34 @@ public class SessionEpreuve implements ContextSupport {
     public String loginArchivage;
 
     private @Transient
-    String dureeEpreuve = "";
+    String dureeEpreuve;
     
     @Column(columnDefinition = "TEXT")
     private String comment;
     
     private @Transient
-    Long nbLieuxSession = Long.valueOf("0");
+    Long nbLieuxSession;
     
     private @Transient
-    Long nbInscritsSession = Long.valueOf("0");
+    Long nbInscritsSession;
     
     private @Transient
-    Long nbTagCheckerSession = Long.valueOf("0");
+    Long nbTagCheckerSession;
     
     private @Transient
-    Long nbPresentsSession = Long.valueOf("0");
+    Long nbPresentsSession;
     
     private @Transient
-    Long nbDispatchTagCheck = Long.valueOf("0");
+    Long nbDispatchTagCheck;
     
     private @Transient
-    Long nbCheckedByCardTagCheck = Long.valueOf("0");
+    Long nbCheckedByCardTagCheck;
     
     private @Transient
-    Long nbUnknown = Long.valueOf("0");
+    Long nbUnknown;
     
     private @Transient
-    Long nbStoredFiles = Long.valueOf("0");
+    Long nbStoredFiles;
     
     @Transient
     @JsonIgnore
@@ -130,6 +138,14 @@ public class SessionEpreuve implements ContextSupport {
     
     @ManyToOne
     public Groupe blackListGroupe;
+    
+    public boolean isSessionEpreuveClosed() {
+    	if(Statut.CLOSED.equals(getStatut())){
+    		return true;
+    	}else {
+    		return false;
+    	}
+    }
     
 	public Groupe getBlackListGroupe() {
 		return blackListGroupe;
@@ -177,14 +193,6 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public Boolean getIsSessionEpreuveClosed() {
-		return isSessionEpreuveClosed;
-	}
-
-	public void setIsSessionEpreuveClosed(Boolean isSessionEpreuveClosed) {
-		this.isSessionEpreuveClosed = isSessionEpreuveClosed;
 	}
 
 	public String getNomSessionEpreuve() {
@@ -385,5 +393,13 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setIsGroupeDisplayed(Boolean isGroupeDisplayed) {
 		this.isGroupeDisplayed = isGroupeDisplayed;
+	}
+
+	public Statut getStatut() {
+		return statut;
+	}
+
+	public void setStatut(Statut statut) {
+		this.statut = statut;
 	}
 }

@@ -22,6 +22,7 @@ import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
@@ -44,6 +45,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.UserService;
 import org.esupportail.emargement.utils.PdfGenaratorUtil;
@@ -115,6 +117,9 @@ public class TagCheckController {
 	
 	@Resource
 	AppliConfigService appliConfigService;
+	
+	@Resource
+	SessionEpreuveService sessionEpreuveService;
 	
 	@Resource
 	UserService userService;
@@ -197,7 +202,7 @@ public class TagCheckController {
 		}
 		model.addAttribute("isSessionLibre", se.getIsSessionLibre());
         model.addAttribute("tagCheckPage", tagCheckPage);
-        model.addAttribute("isSessionEpreuveClosed", se.isSessionEpreuveClosed);
+        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveService.isSessionEpreuveClosed(se));
         model.addAttribute("isGroupeDisplayed", se.isGroupeDisplayed);
 		model.addAttribute("paramUrl", String.valueOf(id));
 		model.addAttribute("countTagChecks", count);
@@ -318,7 +323,7 @@ public class TagCheckController {
         }
         uiModel.asMap().clear();
        
-    	if(tc.getSessionEpreuve().isSessionEpreuveClosed) {
+    	if(sessionEpreuveService.isSessionEpreuveClosed(tc.getSessionEpreuve())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
     		tc.setContext(contexteService.getcurrentContext());
@@ -335,7 +340,7 @@ public class TagCheckController {
     @PostMapping(value = "/manager/tagCheck/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
-    	if(tagCheck.getSessionEpreuve().isSessionEpreuveClosed) {
+    	if(Statut.CLOSED.equals(tagCheck.getSessionEpreuve().getStatut())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
     		Person person = tagCheck.getPerson();

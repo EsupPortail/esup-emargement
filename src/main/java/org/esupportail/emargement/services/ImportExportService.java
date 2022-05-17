@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,7 @@ public class ImportExportService {
 	public List<SessionEpreuve> getNotFreeSessionEpreuve(){
 		List<SessionEpreuve> newSe = new LinkedList<SessionEpreuve>();
 		
-		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByIsSessionEpreuveClosedFalseOrderByDateExamen();
+		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByStatutNotOrderByDateExamen(Statut.CLOSED);
 		if(!se.isEmpty()) {
 			for (SessionEpreuve item : se) {
 				newSe.add(item);

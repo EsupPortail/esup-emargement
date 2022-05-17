@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
@@ -146,16 +147,20 @@ public class SessionLocationService {
     	List<String> locations = new ArrayList<String>();
     	try {
 			List<UserApp> userApps = userAppRepositoryCustom.findByEppn(eppn);
+			log.info("Nb userApp : " + userApps.size());
 			List<TagChecker> tagCheckers = tagCheckerRepositoryCustom.findTagCheckerByUserAppIn(userApps);
+			log.info("Nb TagChecker : " + tagCheckers.size());
 			for(TagChecker tc : tagCheckers) {
 				int check =  toolUtil.compareDate(tc.getSessionEpreuve().getDateExamen(), new Date(), "yyyy-MM-dd");
+				log.debug("var check :" + check);
 				int checkIfDateFinIsOk = -1;
 				if(tc.getSessionEpreuve().getDateFin() != null) {
 					checkIfDateFinIsOk = toolUtil.compareDate(tc.getSessionEpreuve().getDateFin(), new Date(), "yyyy-MM-dd");
 				}else {
 					checkIfDateFinIsOk = check;
 				}
-				if(!tc.getSessionEpreuve().isSessionEpreuveClosed && (check==0 || checkIfDateFinIsOk>=0)) {
+				log.debug("var checkIfDateFinIsOk :" + checkIfDateFinIsOk);
+				if(!Statut.CLOSED.equals(tc.getSessionEpreuve().getStatut()) && (check==0 || checkIfDateFinIsOk>=0)) {
 					locations.add(tc.getSessionLocation().getSessionEpreuve().getNomSessionEpreuve().concat(" // ").concat(tc.getSessionLocation().getLocation().getNom()));
 				}
 			}

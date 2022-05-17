@@ -9,57 +9,67 @@
 	    		<div class="card-header">
 	    			<div  class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
 	    			<div class="row">
-			    		<div class="col">
+			    		<div class="col-auto">
 					    	<h2>Sessions</h2>
 					    </div>
 					    <div class="col">
 						    <div class="row float-end">
-							    <div class="col-auto ">
-									<div class="row ">
-										<select id="anneeUnivSelect" name="anneeUniv"
-											class="form-select pr-5 mt-1 mb-1 col-auto">
-											<option th:each="year, iStat : ${years}"
-												th:value="${#strings.substringBefore(year,'/')}"
-												th:text="${year}"
-												th:selected="${#strings.substringBefore(year,'/')==currentAnneeUniv}"></option>
-										</select>
-									</div>
+							    <div class="col-auto" id="sessionSearch">
+							    	<form action="#" id="formSearch" th:object="${sessionSearch}" th:action="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">
+										<input type="hidden" name="multiSearch" value="true" />
+										<div class="row float-end">
+											<div class="col-auto">
+												<input type="text" th:field="*{id}"
+													class="form-control" placeholder="Recherche sur  nom, site"
+													id="searchSessionEpreuve">
+											</div>										
+											<div class="col-auto"  th:if="${#maps.size(typesSession)>1}">
+												<select class="form-select" title="Tous les types" th:field="*{typeSession}">
+													<option value="">-- TYPES --</option>
+												    <option th:each="type : ${typesSession}" 
+												        th:value="${type.key}" th:text="${type.value}"></option>
+												</select>
+											</div>										
+											<div class="col-auto">
+												<select class="form-select" title="Tous les statuts" th:field="*{statut}">
+													<option value="">-- STATUTS --</option>
+												    <option th:each="statut1 : ${statuts}" 
+												        th:value="${statut1}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut1)}}"></option>
+												</select>
+											</div>
+											<div class="col-auto">
+												<select th:field="*{anneeUniv}"
+													class="form-select  col-auto">
+													<option th:each="year, iStat : ${years}"
+														th:value="${#strings.substringBefore(year,'/')}"
+														th:text="${year}"
+														></option>
+												</select>
+											</div>
+											<div class="col-auto mt-1">
+												<a title="Annuler recherche" id="resetSearch"
+													class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
+											</div>
+											<div class="col-auto">
+												<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
+									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+										    </div>
+										</div>
+									</form>
 								</div>
-								<div class="col-auto">
-									<a class="btn btn-warning ms-1 float-end " th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
-							    	<button class="btn btn-info ms-1 float-end " type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher une session"><i class="fas fa-search"></i></button>
-							    	<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${currentAnneeUniv},ctx=${eContext})}" class="btn btn-primary float-end" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
-							    </div>
+
 						    </div>
 					    </div> 
 	    			</div>
 				</div>         	
   				<div class="card-body">
-	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-							<form action="#"
-								th:action="@{|/${eContext}/manager/sessionEpreuve|}"
-								id="formSearch" class=" alert alert-dark">
-								<div class="row">
-									<div class="col-auto ">
-										<input type="text" name="seNom" th:value="${seNom}"
-											class="form-control" placeholder="Recherche"
-											id="searchSessionEpreuve">
-									</div>
-									<div class="col-auto ">
-										<a title="Annuler recherche"
-											th:href="@{|/${eContext}/manager/sessionEpreuve|}"
-											class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
-									</div>
-								</div>
-							</form>
-						</div>
 						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
 							<thead class ="center sticky-top">
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateExamen">Date</a></th>
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
-									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="isSessionEpreuveClosed">Cloturée</a></th>
+									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="statut">Statut</a></th>
 									<th scope="col"  class ="text-center hiddenBlock">Badgeage</th>
 									<th scope="col"  class ="text-center hiddenBlock">Libre</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
@@ -85,7 +95,15 @@
 									</td>
 									<td th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
-									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionEpreuveClosed} ? 'fa fa-check text-success' :''"></i></td>
+									<td class ="text-center hiddenBlock">
+										<span class="badge"  th:classappend ="
+													  ${(sessionEpreuve.statut.name() == 'STANDBY' ? 'bg-warning': '') + 
+						                                (sessionEpreuve.statut.name() == 'OPENED' ? 'bg-success': '')  + 
+						                                (sessionEpreuve.statut.name() == 'CLOSED' ? 'bg-danger': '')}"
+						                                th:text="(${sessionEpreuve.statut}==null)? '': #{'session.statut.' + 
+										${#strings.toLowerCase(sessionEpreuve.statut)}}"></span>
+									</td>
+									
 									<td class ="text-center hiddenBlock" th:text="${sessionEpreuve.typeBadgeage}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
@@ -146,8 +164,37 @@
 										        </div>
 										    </div>
 										</div>
-										<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-											onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
+										<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-statut'+${sessionEpreuve.id}" class="center ms-2" title="Modifier le statut">
+											<i class="fa fa-gear text-dark"></i></a>
+										<div class="modal fade in" th:id="modal-statut+${sessionEpreuve.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/changeStatut/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+											            <div class="modal-header">
+ 															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+											            </div>
+											            <div class="modal-body">
+															<div class="row mb-3">
+																<label class="col-lg-12 form-check-label mb-2" th:for="${statut}">
+															        Changer le statut
+															    </label>
+																<div class="col-lg-12">
+																	<select id="statut" name="statut" class="form-select" required="required">
+																		<option value="">----Choisir----</option>
+																	    <option th:each="statut : ${statuts}" 
+																	        th:value="${statut}" th:selected="${sessionEpreuve.statut}==${statut}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut)}}"></option>
+																	</select>
+																</div>
+															</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left btn-primary" data-bs-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
 										<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
 											onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
 										<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 

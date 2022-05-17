@@ -21,6 +21,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,9 @@ public class SessionLocationController {
 	SessionLocationService sessionLocationService;
 	
 	@Resource
+	SessionEpreuveService sessionEpreuveService;
+	
+	@Resource
 	LogService logService;
 
 	@Resource
@@ -88,7 +92,7 @@ public class SessionLocationController {
     		@PageableDefault(size = 20, direction = Direction.ASC, sort = {"isTiersTempsOnly", "priorite"})  Pageable pageable) {
 
         Page<SessionLocation> sessionLocationPage = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve, pageable);
-        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);
+        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get()));
         model.addAttribute("sessionLocationPage", sessionLocationPage);
         model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
 		model.addAttribute("paramUrl", sessionEpreuve.getId());

@@ -29,6 +29,7 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
@@ -669,160 +670,163 @@ public class TagCheckService {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = dateFormat.parse(dateFormat.format(new Date()));
 		String[] splitLocationNom = locationNom.split(" // "); 
-		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
-		Groupe gpe = sessionEpreuve.getBlackListGroupe();
-		boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);		
-		Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
-		if("isTagable".equals(action)) {
-			log.info("isTagable pour l'eppn : " + eppn);
-			boolean isUnknown = false;
-			Long tc =  null;
-			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-				tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn,  date, splitLocationNom[0]);
-			}else {
-				tc = tagCheckRepository.checkIsTagableWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
-			}
-			SessionLocation sessionLocationBadged =  null;
-			TagChecker tagChecker = null;
-			Context ctx = sessionEpreuve.getContext();
-			if(sessionEpreuve.getIsSessionLibre()) {
-				isSessionLibre = true;
-				sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), splitLocationNom[1]);
-				tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(esupNfcTagLog.getEppnInit(), null).getContent().get(0);
-			}
-			
-			if (tc ==1 || isSessionLibre) {
-				Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected (sessionLocationBadged);
-				String msgError = "";				
-				if(isSessionLibre) {
-					try {
-						if(totalPresent >= sessionLocationBadged.getCapacite()) {
-							TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
-							if(tagCheck != null) {
-								saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
-								isOk = true;
-							}else {
-								isOk = false;
-							}
-						}else {
-							if(!isBlackListed) {
-								saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
-							}else {
-								msgError = eppn;
-							}
-							isOk = true;
-							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), msgError);
-						}
-					} catch (Exception e) {
-						log.error("Session libre, problème de carte pour l'eppn : "  + eppn, e);
-					}
-				}else{
-					isOk = true;
+		List<SessionEpreuve> ses = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent();
+		if(ses != null && !ses.isEmpty()) {
+			SessionEpreuve sessionEpreuve =  ses.get(0);
+			Groupe gpe = sessionEpreuve.getBlackListGroupe();
+			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);		
+			Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
+			if("isTagable".equals(action)) {
+				log.info("isTagable pour l'eppn : " + eppn);
+				boolean isUnknown = false;
+				Long tc =  null;
+				if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+					tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn,  date, splitLocationNom[0]);
+				}else {
+					tc = tagCheckRepository.checkIsTagableWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
 				}
-			}else {
-				try {
-					String comment = "";
-					String eppnInit = esupNfcTagLog.getEppnInit();
-					tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnInit, null).getContent().get(0);
+				SessionLocation sessionLocationBadged =  null;
+				TagChecker tagChecker = null;
+				Context ctx = sessionEpreuve.getContext();
+				if(sessionEpreuve.getIsSessionLibre()) {
+					isSessionLibre = true;
 					sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), splitLocationNom[1]);
-					//on regarde si la personne est dans une autre salle de la session
-					Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
-					Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
-					SessionLocation sl = null;
-					Long seId = null;
-					if(sessionLocationId != null) {
-						if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
-							sl = sessionLocationRepository.findById(sessionLocationId).get();
-							comment = "Inconnu dans cette salle, Salle attendue : " +  sl.getLocation().getNom();
-						}else {
-							isOk = true;
-						}
-					}
-					else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
-						LocalTime now = LocalTime.now();
-						seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
-						String lieu = " Autre session dans la journée";
-						if(seId != null) {
-							SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-							lieu = " --> Session : "+ otherSe.getNomSessionEpreuve();
-							List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-							if(!list.isEmpty()) {
-								if(list.get(0).getSessionLocationExpected() !=null) {
-									String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
-									lieu = lieu.concat(" , lieu : ").concat(location);
+					tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(esupNfcTagLog.getEppnInit(), null).getContent().get(0);
+				}
+				
+				if (tc ==1 || isSessionLibre) {
+					Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected (sessionLocationBadged);
+					String msgError = "";				
+					if(isSessionLibre) {
+						try {
+							if(totalPresent >= sessionLocationBadged.getCapacite()) {
+								TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
+								if(tagCheck != null) {
+									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
+									isOk = true;
+								}else {
+									isOk = false;
 								}
+							}else {
+								if(!isBlackListed) {
+									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
+								}else {
+									msgError = eppn;
+								}
+								isOk = true;
+								dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), msgError);
 							}
-							comment = "Inconnu dans cette session " + lieu;
-						}else {
-							comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
+						} catch (Exception e) {
+							log.error("Session libre, problème de carte pour l'eppn : "  + eppn, e);
+						}
+					}else{
+						isOk = true;
+					}
+				}else {
+					try {
+						String comment = "";
+						String eppnInit = esupNfcTagLog.getEppnInit();
+						tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnInit, null).getContent().get(0);
+						sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), splitLocationNom[1]);
+						//on regarde si la personne est dans une autre salle de la session
+						Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
+						Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
+						SessionLocation sl = null;
+						Long seId = null;
+						if(sessionLocationId != null) {
+							if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
+								sl = sessionLocationRepository.findById(sessionLocationId).get();
+								comment = "Inconnu dans cette salle, Salle attendue : " +  sl.getLocation().getNom();
+							}else {
+								isOk = true;
+							}
+						}
+						else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
+							LocalTime now = LocalTime.now();
+							seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
+							String lieu = " Autre session dans la journée";
+							if(seId != null) {
+								SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
+								lieu = " --> Session : "+ otherSe.getNomSessionEpreuve();
+								List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
+								if(!list.isEmpty()) {
+									if(list.get(0).getSessionLocationExpected() !=null) {
+										String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
+										lieu = lieu.concat(" , lieu : ").concat(location);
+									}
+								}
+								comment = "Inconnu dans cette session " + lieu;
+							}else {
+								comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
+								isUnknown = true;
+							}
+						}else { //Il est vraiment inconnu!!!
+							comment = "Inconnu";
 							isUnknown = true;
 						}
-					}else { //Il est vraiment inconnu!!!
-						comment = "Inconnu";
-						isUnknown = true;
+						log.info("On enregistre l'inconnu dans la session : " +  eppn);
+						if(sl != null || seId != null || isUnknown) {
+							saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, null);
+							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), "");
+						}
+					} catch (Exception e) {
+						log.error("Problème de carte pour l'eppn : "  + eppn, e);
 					}
-					log.info("On enregistre l'inconnu dans la session : " +  eppn);
-					if(sl != null || seId != null || isUnknown) {
-						saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, null);
-						dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), "");
-					}
-				} catch (Exception e) {
-					log.error("Problème de carte pour l'eppn : "  + eppn, e);
 				}
-			}
-		}else if("validateTag".equals(action)) {
-			log.info("validateTag pour l'eppn : " + eppn);
-			Long realSlId = null;
-			log.info("Eppn : " + eppn + " Date " + date);
-			Long sessionLocationId =  null;
-			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-				sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
-			}else {
-				sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
-			}
-			log.info("SessionLocationId : " + sessionLocationId);
-			TagCheck presentTagCheck = null;
-			if(sessionLocationId!=null) {
-				realSlId = sessionLocationId;
-				presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, eppn);
-			}else {
-				Long slId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], date, splitLocationNom[0]);
-				realSlId = slId;
-				if(slId!=null) {
-					SessionLocation sl = sessionLocationRepository.findById(slId).get();
-					presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());
-				}
-			}
-			String msgError = "";
-			SessionLocation sl = sessionLocationRepository.findById(realSlId).get();
-			if(presentTagCheck!=null) {
-				if(!isBlackListed) {
-			    	presentTagCheck.setTagDate(new Date());
-			    	presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
-					TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
-			    	presentTagCheck.setTagChecker(tagChecker);
-			    	presentTagCheck.setSessionLocationBadged(sl);
-			    	presentTagCheck.setNbBadgeage(this.getNbBadgeage(presentTagCheck, true));
-			    	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
-			    	sl.setNbPresentsSessionLocation(countPresent);
-			    	List<TagChecker> tcList = new ArrayList<TagChecker>();
-		        	tcList.add(presentTagCheck.getTagChecker());
-			    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
-			    	tagCheckRepository.save(presentTagCheck);
-			    	isOk = true;					
+			}else if("validateTag".equals(action)) {
+				log.info("validateTag pour l'eppn : " + eppn);
+				Long realSlId = null;
+				log.info("Eppn : " + eppn + " Date " + date);
+				Long sessionLocationId =  null;
+				if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
+					sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
 				}else {
-					msgError = eppn;
+					sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
 				}
-
-		    	//On prend l'id du sl expected
-		    	Long slExpected = presentTagCheck.getSessionLocationExpected().getId();
-		    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(slExpected);
-		    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(slExpected);
-		    	float percent = 0;
-		    	if(totalExpected!=0) {
-		    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
-		    	}
-		    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sl, msgError);
+				log.info("SessionLocationId : " + sessionLocationId);
+				TagCheck presentTagCheck = null;
+				if(sessionLocationId!=null) {
+					realSlId = sessionLocationId;
+					presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, eppn);
+				}else {
+					Long slId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], date, splitLocationNom[0]);
+					realSlId = slId;
+					if(slId!=null) {
+						SessionLocation sl = sessionLocationRepository.findById(slId).get();
+						presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());
+					}
+				}
+				String msgError = "";
+				SessionLocation sl = sessionLocationRepository.findById(realSlId).get();
+				if(presentTagCheck!=null) {
+					if(!isBlackListed) {
+				    	presentTagCheck.setTagDate(new Date());
+				    	presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
+						TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
+				    	presentTagCheck.setTagChecker(tagChecker);
+				    	presentTagCheck.setSessionLocationBadged(sl);
+				    	presentTagCheck.setNbBadgeage(this.getNbBadgeage(presentTagCheck, true));
+				    	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
+				    	sl.setNbPresentsSessionLocation(countPresent);
+				    	List<TagChecker> tcList = new ArrayList<TagChecker>();
+			        	tcList.add(presentTagCheck.getTagChecker());
+				    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
+				    	tagCheckRepository.save(presentTagCheck);
+				    	isOk = true;					
+					}else {
+						msgError = eppn;
+					}
+	
+			    	//On prend l'id du sl expected
+			    	Long slExpected = presentTagCheck.getSessionLocationExpected().getId();
+			    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(slExpected);
+			    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(slExpected);
+			    	float percent = 0;
+			    	if(totalExpected!=0) {
+			    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
+			    	}
+			    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sl, msgError);
+				}
 			}
 		}
 		return isOk;
@@ -1367,7 +1371,7 @@ public class TagCheckService {
 				tc.setPerson(p);
 				tc.getSessionEpreuve().setDateArchivage(new Date());
 				tc.getSessionEpreuve().setLoginArchivage(loginArchivage);
-				tc.getSessionEpreuve().setIsSessionEpreuveClosed(true);
+				tc.getSessionEpreuve().setStatut(Statut.CLOSED);;
 				tagCheckRepository.save(tc);
 			}
 		}

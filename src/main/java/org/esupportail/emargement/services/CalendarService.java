@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.CalendarDTO;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
@@ -68,7 +69,14 @@ public class CalendarService {
 		    		c.setStart(strStart);
 		    		String strSEnd = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
 		    		c.setEnd(strSEnd);
-		    		String color = (se.isSessionEpreuveClosed)? "#e54c14" : "#0d9314";
+		    		String color = "#0b5ed7";
+		    		if(Statut.OPENED.equals(se.getStatut())) {
+		    			color = "#0d9314";
+		    		}else if(Statut.CLOSED.equals(se.getStatut())) {
+		    			color = "#e54c14";
+		    		}else if(Statut.STANDBY.equals(se.getStatut())) {
+		    			color = "#ffca2c";
+		    		}
 		    		c.setColor(color);
 		    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
 		    		c.setUrl(url);
@@ -86,7 +94,14 @@ public class CalendarService {
 			    		c.setStart(strStart);
 			    		String strSEnd = dateFormat.format(date).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
 			    		c.setEnd(strSEnd);
-			    		String color = (se.isSessionEpreuveClosed)? "#e54c14" : "#0d9314";
+			    		String color = "#0b5ed7";
+			    		if(Statut.OPENED.equals(se.getStatut())) {
+			    			color = "#0d9314";
+			    		}else if(Statut.CLOSED.equals(se.getStatut())) {
+			    			color = "#e54c14";
+			    		}else if(Statut.STANDBY.equals(se.getStatut())) {
+			    			color = "#ffca2c";
+			    		}
 			    		c.setColor(color);
 			    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
 			    		c.setUrl(url);

@@ -44,6 +44,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -123,6 +124,9 @@ public class PresenceController {
 	
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	PreferencesService preferencesService;
 	
 	@Resource
 	LogService logService;
@@ -192,7 +196,7 @@ public class PresenceController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = auth.getName();
         if(sessionLocationId != null) {
-    		if(sessionEpreuve.isSessionEpreuveClosed) {
+    		if(sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuve)) {
     			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
     		}else {
     			totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
@@ -280,7 +284,7 @@ public class PresenceController {
 	    	uiModel.addAttribute("maxProxyPerson", appliConfigService.getMaxProcurations());
 		}
 		if(sessionEpreuve != null ) {
-			isSessionLibre = sessionEpreuve.getIsSessionLibre();
+			isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
 		}
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
 		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
@@ -403,7 +407,7 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
-    
+    /*
     @GetMapping("/supervisor/updatePrefs")
     @ResponseBody
     public void updatePrefs(@PathVariable String emargementContext, @RequestParam(value ="pref") String pref, @RequestParam(value ="value") String value) {
@@ -411,9 +415,9 @@ public class PresenceController {
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
-        presenceService.updatePrefs(pref, value, eppn, emargementContext) ;
+		preferencesService.updatePrefs(pref, value, eppn, emargementContext) ;
     }
-    
+    */
     @GetMapping("/supervisor/searchUsersLdap")
     @ResponseBody
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
@@ -453,7 +457,7 @@ public class PresenceController {
     public Boolean delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	boolean isOk = false;
-    	if(tagCheck.getSessionEpreuve().isSessionEpreuveClosed) {
+    	if(sessionEpreuveService.isSessionEpreuveClosed(tagCheck.getSessionEpreuve())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
     		Person person = tagCheck.getPerson();

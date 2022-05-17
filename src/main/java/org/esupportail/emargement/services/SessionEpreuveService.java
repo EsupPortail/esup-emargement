@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
@@ -543,7 +545,7 @@ public class SessionEpreuveService {
 					for(SessionEpreuve se : list) {
 						int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
 						if(check<0) {
-							se.setIsSessionEpreuveClosed(true);
+							se.setStatut(Statut.CLOSED);
 							sessionEpreuveRepository.save(se);
 							logService.log(ACTION.CLOSE_SESSION, RETCODE.SUCCESS, "Session : " + se.getNomSessionEpreuve() , null, null, se.getContext().getKey(), null);
 							log.info("cloture utomatique de session " + se.getNomSessionEpreuve());
@@ -565,7 +567,7 @@ public class SessionEpreuveService {
 		List<SessionEpreuve> newList = new ArrayList<SessionEpreuve>();
 		for (TagChecker tc :  tagCheckerList.getContent()) {
 			SessionEpreuve se = tc.getSessionLocation().getSessionEpreuve();
-			if(!newList.contains(se) && !se.getIsSessionEpreuveClosed()) {
+			if(!newList.contains(se) && !Statut.CLOSED.equals(se.getStatut())) {
 				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
 					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
 					int checkIfDateFinIsOk = -1;
@@ -639,13 +641,14 @@ public class SessionEpreuveService {
         newSe.setDateExamen(new Date());
         newSe.setFinEpreuve(originalSe.getFinEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
-        newSe.setIsSessionEpreuveClosed(false);
+        newSe.setStatut(null);
         newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
         newSe.setComment(originalSe.getComment());
         newSe.setTypeBadgeage(originalSe.getTypeBadgeage());
         newSe.setIsSessionLibre(originalSe.isSessionLibre);
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
+        newSe.setStatut(originalSe.getStatut());
         String newNomEpreuve = "";
         int  x = 0 ;
         Long count = new Long(0);
@@ -737,4 +740,22 @@ public class SessionEpreuveService {
 				session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId()));
 			}
 	 }
+	 
+	 public boolean isSessionEpreuveClosed(SessionEpreuve se) {
+		 if(Statut.CLOSED.equals(se.getStatut())) {
+			 return true;
+		 }else {
+			 return false;
+		 }
+	 }
+	 public HashMap<String,String> getTypesSession(Long ctxId){
+		 
+		 HashMap<String,String> map = new HashMap<String, String>();
+		 List<Object[]> list = sessionEpreuveRepository.findDistinctTypeSession(ctxId);
+		 for(Object obj[] : list) {
+			 map.put(obj[0].toString(), obj[1].toString());
+		 }
+		 return map;
+	 }
+
 }

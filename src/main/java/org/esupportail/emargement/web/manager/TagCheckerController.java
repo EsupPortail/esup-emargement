@@ -28,6 +28,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckerService;
 import org.esupportail.emargement.services.UserAppService;
@@ -80,6 +81,9 @@ public class TagCheckerController {
 	SessionLocationService sessionLocationService;
 	
 	@Resource
+	SessionEpreuveService sessionEpreuveService;
+	
+	@Resource
 	AppliConfigService appliConfigService;
 	
 	@Resource
@@ -109,7 +113,7 @@ public class TagCheckerController {
     		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable) {
 
 		Page<TagChecker> tagCheckerPage = tagCheckerService.getListTagCheckerBySessionEpreuve(sessionEpreuve, pageable);
-		model.addAttribute("isSessionEpreuveClosed", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().isSessionEpreuveClosed);
+		model.addAttribute("isSessionEpreuveClosed", sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get()));
         model.addAttribute("tagCheckerPage", tagCheckerPage);
 		model.addAttribute("paramUrl", sessionEpreuve.getId());
 		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
@@ -234,7 +238,7 @@ public class TagCheckerController {
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
     	TagChecker tagChecker = tagCheckerRepository.findById(id).get();
     	String seId = tagChecker.getSessionEpreuve().getId().toString();
-    	if(tagChecker.getSessionEpreuve().isSessionEpreuveClosed) {
+    	if(sessionEpreuveService.isSessionEpreuveClosed(tagChecker.getSessionEpreuve())) {
 	        log.info("suppression du surveillant impossible car la session est cloturée : " + tagChecker.getUserApp().getEppn());
 	        logService.log(ACTION.DELETE_SURVEILLANT, RETCODE.FAILED, tagChecker.getUserApp().getEppn(), tagChecker.getUserApp().getEppn(), null, emargementContext, null);			
     	}else {

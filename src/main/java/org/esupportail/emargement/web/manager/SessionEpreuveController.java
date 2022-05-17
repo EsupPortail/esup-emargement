@@ -17,15 +17,20 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Event;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.CampusRepository;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EventRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
@@ -39,6 +44,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -46,8 +52,13 @@ import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
@@ -99,8 +110,14 @@ public class SessionEpreuveController {
 	@Autowired
 	TagCheckRepository tagCheckRepository;
 	
+	@Autowired	
+	ContextRepository contextRepository;
+	
     @Resource
     SessionEpreuveService sessionEpreuveService;
+    
+    @Resource 
+    PreferencesService preferencesService;
     
     @Resource
     SessionLocationService sessionLocationService;
@@ -129,7 +146,13 @@ public class SessionEpreuveController {
 	@Autowired
 	EventRepository eventRepository;
 	
+	@Autowired
+	PrefsRepository prefsRepository;
+	
 	private final static String ITEM = "sessionEpreuve";
+	
+	private final static String SESSIONS_SORTBYSTATUT = "sessionsSortByStatut";
+	private final static String SESSIONS_SORTBYTYPE = "sessionsSortByType";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -139,29 +162,64 @@ public class SessionEpreuveController {
 	}
 
 	@GetMapping(value = "/manager/sessionEpreuve")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "dateExamen")  Pageable pageable, @RequestParam(value="seNom", required = false) String seNom, 
-			@RequestParam(value="anneeUniv", required = false) String anneeUniv){
+	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
+			@RequestParam(value="seNom", required = false) String seNom, @RequestParam(value="multiSearch", required = false) String multiSearch,
+			SessionEpreuve sessionSearch) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Context ctx = contextRepository.findByKey(emargementContext);
+		ExampleMatcher matcher = ExampleMatcher.matching()
+		.withIgnorePaths("maxBadgeageAlert")
+		.withIgnoreNullValues()
+		.withMatcher("statut", ExampleMatcher.GenericPropertyMatchers.exact())
+		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact());
 		
+		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
+		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
 		
-		if(model.getAttribute("currentAnneeUniv") != null) {
-			anneeUniv = (String) model.getAttribute("currentAnneeUniv");
-		}else if(anneeUniv==null) {
-			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
+		if(multiSearch == null) {
+			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
+			sessionSearch.setStatut((selectedStatut.isEmpty())? null : Statut.valueOf(selectedStatut));
+			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();
+			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
+		}else{
+			if(sessionSearch.getId()==null) {
+				String prefStatutValue = (sessionSearch.getStatut() == null)? "" : sessionSearch.getStatut().name();
+				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext) ;
+				String prefTypeValue = (sessionSearch.getTypeSession() == null)? "" : sessionSearch.getTypeSession().getId().toString();
+				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext) ;	
+			}
+		}
+		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);
+		Sort sort = pageable.getSort();
+		if(sort.equals(Sort.unsorted())) {
+			sort = Sort.by(Sort.Order.desc("dateExamen"),Sort.Order.asc("heureEpreuve"), Sort.Order.asc("finEpreuve"));
 		}
 		
-        Page<SessionEpreuve> sessionEpreuvePage = sessionEpreuveRepository.findAllByAnneeUnivOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(anneeUniv, pageable);
-        
-        if(seNom!=null) {
-        	sessionEpreuvePage = sessionEpreuveRepository.findByNomSessionEpreuve(seNom, pageable);
-        	model.addAttribute("seNom", seNom);
-        	model.addAttribute("collapse", "show");
-        }
+		Page<SessionEpreuve> sessionEpreuvePage = null;
+		
+		if(sessionSearch.getId()!=null) {
+			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
+			List<SessionEpreuve> ses = new ArrayList<SessionEpreuve>();
+			ses.add(se);
+			sessionEpreuvePage = new PageImpl<>(ses);
+			sessionSearch.setStatut(se.getStatut());
+			sessionSearch.setTypeSession(se.getTypeSession());
+			sessionSearch.setAnneeUniv(se.getAnneeUniv());
+			sessionSearch.setId(null);			
+		}else {
+			PageRequest newPageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+			sessionEpreuvePage = sessionEpreuveRepository.findAll(sessionQuery, newPageRequest);
+		}
+		
         sessionEpreuveService.computeCounters(sessionEpreuvePage.getContent());
         model.addAttribute("ctxId", contexteService.getcurrentContext().getId());
-        model.addAttribute("currentAnneeUniv", anneeUniv);
         model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         model.addAttribute("sessionEpreuvePage", sessionEpreuvePage);
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
+        model.addAttribute("sessionSearch", sessionSearch);
+        model.addAttribute("statuts", Statut.values());
+        model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
 		return "manager/sessionEpreuve/list";
 	}
 	
@@ -201,7 +259,7 @@ public class SessionEpreuveController {
 		
 		boolean isOver = sessionEpreuveService.executeRepartition(id, alphaOrder);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
-		if(sessionEpreuve.isSessionEpreuveClosed) {
+		if(Statut.CLOSED.equals(sessionEpreuve.getStatut())){
 			isOver = true;
 			log.info("Pas de répartition possible , la session " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
 		}
@@ -423,23 +481,20 @@ public class SessionEpreuveController {
     	
     }
     
-    @GetMapping("/manager/sessionEpreuve/close/{id}")
-    public String closeSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) throws IOException {
+    @PostMapping("/manager/sessionEpreuve/changeStatut/{id}")
+    public String chngeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    		@RequestParam("statut") Statut statut, final RedirectAttributes redirectAttributes) throws IOException {
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	boolean isClosed = (sessionEpreuve.getIsSessionEpreuveClosed())? false : true;
-    	String  msg = (sessionEpreuve.getIsSessionEpreuveClosed())?  "Réouverture" : "Clôture";
-    	sessionEpreuve.setIsSessionEpreuveClosed(isClosed);
+    	sessionEpreuve.setStatut(statut);
     	sessionEpreuveRepository.save(sessionEpreuve);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	
     	redirectAttributes.addFlashAttribute("currentAnneeUniv", sessionEpreuve.getAnneeUniv());
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + msg, auth.getName(), null, emargementContext, null);
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + "changement statut " + statut.name(), auth.getName(), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
-    	
     }
-    
     
     @GetMapping("/manager/sessionEpreuve/storedFiles/{id}")
     @ResponseBody
