@@ -4,6 +4,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -35,11 +36,10 @@ public class WebInterceptor implements HandlerInterceptor {
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-			String context =  WebUtils.getContext(request);
-			ContextHelper.setCurrentContext(context);
+			String context =  ContextHelper.getCurrentContext();
 			String displayName = "";
 			Context configContext = null;
-			if(!context.isEmpty() && !"all".equals(context) && !WebUtils.isAnonymous()) {
+			if(!StringUtils.isEmpty(context) && !"all".equals(context) && !WebUtils.isAnonymous()) {
 				configContext = contextRepository.findByContextKey(context);
 				if(configContext==null) {
 					log.warn("No context {} found in DB for url {}", context, request.getRequestURI());

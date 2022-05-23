@@ -40,6 +40,7 @@ public class ContextFilter  implements Filter {
 			ContextHelper.setCurrenyIdContext(availableContextIds.get(context));
 		} 
 		filterChain.doFilter(servletRequest, servletResponse);
+		ContextHelper.clear();
 	}
 
 	@Override
