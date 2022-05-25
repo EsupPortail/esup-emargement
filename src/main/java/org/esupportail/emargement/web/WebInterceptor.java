@@ -10,13 +10,10 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.security.ContextUserDetails;
-import org.esupportail.emargement.services.LdapService;
-import org.esupportail.emargement.services.UserAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -36,7 +33,7 @@ public class WebInterceptor implements HandlerInterceptor {
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-			String context =  ContextHelper.getCurrentContext();
+			String context = ContextHelper.getCurrentContext();
 			String displayName = "";
 			Context configContext = null;
 			if(!StringUtils.isEmpty(context) && !"all".equals(context) && !WebUtils.isAnonymous()) {
@@ -45,7 +42,9 @@ public class WebInterceptor implements HandlerInterceptor {
 					log.warn("No context {} found in DB for url {}", context, request.getRequestURI());
 				} else {
 					Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-					displayName = ((ContextUserDetails) auth.getPrincipal()).getDisplayName();
+					if(auth != null) {
+						displayName = ((ContextUserDetails) auth.getPrincipal()).getDisplayName();
+					}
 				}
 			}
 			if (modelAndView != null) {
