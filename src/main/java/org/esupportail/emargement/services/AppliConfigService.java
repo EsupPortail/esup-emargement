@@ -34,7 +34,7 @@ public class AppliConfigService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private static final String DELIMITER_MULTIPLE_VALUES = ";";
+	private static final String DELIMITER_MULTIPLE_VALUES = ",";
 
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, CONSIGNES_ENABLED,
