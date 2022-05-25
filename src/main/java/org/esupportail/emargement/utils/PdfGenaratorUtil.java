@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
@@ -24,7 +24,7 @@ public class PdfGenaratorUtil {
 		String htmlString = htmlStart + htmltemplate + htmlEnd;
 		String finalHtml = "";
 
-		boolean valid = Jsoup.isValid(htmlString, Whitelist.basic());
+		boolean valid = Jsoup.isValid(htmlString, Safelist.basic());
 
 		if (!valid) {
 			Document dirtyDoc = Jsoup.parse(htmlString);
