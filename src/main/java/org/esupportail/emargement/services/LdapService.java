@@ -1,7 +1,11 @@
 package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 
@@ -52,6 +56,26 @@ public class LdapService {
 			userList = new ArrayList<LdapUser>();
 		}
 		return userList;
+	}
+	
+	public List<Map<String,String>> searchEmails(String query) {
+		List<LdapUser> userList = ldapUserRepository.findByEmailContainingIgnoreCase(query);
+		List<String> emails = new ArrayList<String>();
+		
+		if (!userList.isEmpty()) {
+			emails  = userList.stream()
+                    .map(LdapUser::getEmail)
+                    .collect(Collectors.toList());
+		}
+		Collections.sort(emails);
+		List<Map<String,String>> temp = new ArrayList<Map<String,String>>();
+		for(String mail : emails) {
+			HashMap<String, String> map = new HashMap<String, String>();
+			map.put("label", mail);
+			map.put("value", mail);
+			temp.add(map);
+		}
+		return temp;
 	}
 	
 	public String getEppn(String uid) {

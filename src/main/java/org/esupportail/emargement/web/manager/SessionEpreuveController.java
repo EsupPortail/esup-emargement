@@ -168,7 +168,7 @@ public class SessionEpreuveController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Context ctx = contextRepository.findByKey(emargementContext);
 		ExampleMatcher matcher = ExampleMatcher.matching()
-		.withIgnorePaths("maxBadgeageAlert")
+		.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded", "isGroupeDisplayed")
 		.withIgnoreNullValues()
 		.withMatcher("statut", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact());

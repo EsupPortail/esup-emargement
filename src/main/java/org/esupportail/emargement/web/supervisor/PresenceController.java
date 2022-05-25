@@ -20,6 +20,8 @@ import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
@@ -27,6 +29,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -90,6 +93,8 @@ import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import flexjson.JSONSerializer;
+
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor()")
@@ -97,6 +102,9 @@ public class PresenceController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired	
+	AppliConfigRepository appliConfigRepository;
 	
 	@Autowired	
 	AppliConfigService appliConfigService;
@@ -173,6 +181,8 @@ public class PresenceController {
 	
 	@Value("${emargement.wsrest.photo.suffixe}")
 	private String photoSuffixe;
+
+	private Object AppliConfigKey;
 
     @GetMapping("/supervisor/presence")
     public String getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
@@ -407,17 +417,7 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
-    /*
-    @GetMapping("/supervisor/updatePrefs")
-    @ResponseBody
-    public void updatePrefs(@PathVariable String emargementContext, @RequestParam(value ="pref") String pref, @RequestParam(value ="value") String value) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String eppn = auth.getName();
-		preferencesService.updatePrefs(pref, value, eppn, emargementContext) ;
-    }
-    */
+
     @GetMapping("/supervisor/searchUsersLdap")
     @ResponseBody
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
@@ -426,6 +426,17 @@ public class PresenceController {
     	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
     	userAppsList = ldapService.search(searchValue);
         return userAppsList;
+    }
+    
+    @GetMapping("/supervisor/searchEmails")
+    @ResponseBody
+    public String searchEmails(@RequestParam(value="query", required = false) String query){
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+		JSONSerializer serializer = new JSONSerializer();
+		String flexJsonString = "";
+		flexJsonString = serializer.deepSerialize(ldapService.searchEmails(query));
+        return flexJsonString;
     }
     
     @PostMapping("/supervisor/add")
@@ -486,8 +497,8 @@ public class PresenceController {
     @Transactional
     @PostMapping("/supervisor/senEmailPdf")
     public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
-    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("emails") List<String> emails, String comment, 
-    		 HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
+    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("emails") List<String> emails, @RequestParam(value="courriels", required = false) 
+    		String courriels, String comment, HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
     	
     	if(!emails.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -520,6 +531,19 @@ public class PresenceController {
 	    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
 	    			i++;
 	    		}
+	    		if(courriels!=null) {
+	    			List<String> configsEmail = new ArrayList<>(appliConfigService.getListeGestionnaires());
+	    			String [] splitCourriels = courriels.split(",");
+	    			for(int k=0; k<splitCourriels.length; k++) {
+	    				if(!configsEmail.contains(splitCourriels[k])){
+	    					configsEmail.add(splitCourriels[k]);
+
+	    				}
+	    				emailService.sendMessageWithAttachment(splitCourriels[k], subject, bodyMsg, null, fileName, ccArray, inputStream);
+	    			}
+					AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("LISTE_GESTIONNAIRES").get(0);
+					appliConfig.setValue(StringUtils.join(configsEmail,","));
+	    		}
 				bos.close();
 	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
 	        	log.info("Envoi Pdf export " + se.getNomSessionEpreuve());
@@ -532,4 +556,5 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sessionEpreuveId, sessionLocationId);
     }
+    
 }

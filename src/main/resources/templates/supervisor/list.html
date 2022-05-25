@@ -194,6 +194,13 @@
 											  </label>
 											</div>
 										</div>
+										<select class="form-select" id="validationTagsJson"
+											name="courriels" multiple data-allow-new="false"
+											th:attr="data-server=${'/' + eContext + '/supervisor/searchEmails'}"
+											data-live-server="1" data-max="30"
+											data-suggestionsThreshold='4' data-allow-clear="true">
+											<option disabled value="">Ajouter des adresses</option>
+										</select>
 									</div>
 									<div class="modal-footer">
 										<button type="submit" class="btn btn-success">Envoyer</button>

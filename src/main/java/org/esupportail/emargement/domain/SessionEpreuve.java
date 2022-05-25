@@ -83,15 +83,15 @@ public class SessionEpreuve implements ContextSupport {
     @Temporal(TemporalType.TIME)
     private Date finEpreuve;
     
-    public Boolean isProcurationEnabled;
+    public Boolean isProcurationEnabled = false;
     
-    public Boolean isSessionLibre;
-    
-    @JsonIgnore
-    public Boolean isSaveInExcluded;
+    public Boolean isSessionLibre = false;
     
     @JsonIgnore
-    public Boolean isGroupeDisplayed;
+    public Boolean isSaveInExcluded = false;
+    
+    @JsonIgnore
+    public Boolean isGroupeDisplayed = false;
     
     @JsonIgnore
     public Integer maxBadgeageAlert = 1;
