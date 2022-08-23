@@ -325,35 +325,34 @@ public class PresenceService {
 		
 		if (person != null) {
 			String locationNom = esupNfcTagLog.getLocation();
-			String[] splitLocationNom = locationNom.split(" // ");
-			String nomSessionEpreuve = splitLocationNom[0];
-			String nomLocation = splitLocationNom[1];
+			String[] splitLocationNom = locationNom.split(" // "); 
+			String nomSalle = splitLocationNom[2];
+			String idSession = splitLocationNom[3];
+			Long id = Long.valueOf(idSession);
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			Date date = dateFormat.parse(dateFormat.format(new Date()));
 			TagCheck presentTagCheck = null;
 			Long realSlId = null;
 			Long sessionLocationId =  null;
-			SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+			SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
 			Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
 			if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-				sessionLocationId = tagCheckRepository.getSessionLocationId(nomLocation, esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
+				sessionLocationId = tagCheckRepository.getSessionLocationId(nomSalle, esupNfcTagLog.getEppn(), date, id);
 			}else {
-				sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(nomLocation, esupNfcTagLog.getEppn(), date, dateFin, nomSessionEpreuve);
+				sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(nomSalle, esupNfcTagLog.getEppn(), date, dateFin, id);
 			}
-			SessionEpreuve se = sessionEpreuveRepository.findByNomSessionEpreuve(nomSessionEpreuve, null).getContent().get(0);
-			Long sessionEpreuveId = se.getId();
 			String urlPresent = "";
 			if(sessionLocationId!=null) {
 				realSlId = sessionLocationId;
 				presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, esupNfcTagLog.getEppn());
 				urlPresent = "&tc=" + presentTagCheck.getId();
 			}else {
-				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date, nomSessionEpreuve);
+				Long slId = tagCheckRepository.getSessionLocationIdExpected(esupNfcTagLog.getEppn(), date, id);
 				SessionLocation sl = sessionLocationRepository.findById(slId).get();
 				Long count = tagCheckerRepository.countBySessionLocationIdAndUserAppEppn(sl.getId(), esupNfcTagLog.getEppnInit());
 				//on regrde si le surveillant à accès à la salle pour la vue...
 				if(count == 0) {
-					List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveNomSessionEpreuveAndUserAppEppn(nomLocation, nomSessionEpreuve, esupNfcTagLog.getEppnInit());
+					List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveIdAndUserAppEppn(nomSalle, id, esupNfcTagLog.getEppnInit());
 					if(!tcs.isEmpty()) {
 						realSlId = tcs.get(0).getSessionLocation().getId();
 					}
@@ -374,8 +373,8 @@ public class PresenceService {
 				idsGpe.add(gpe.getId());
 				groupeService.addMember(esupNfcTagLog.getEppn(),idsGpe);
 			}
-			if(realSlId != null && sessionEpreuveId != null) {
-				url =  keyContext + "/supervisor/presence?sessionEpreuve=" + sessionEpreuveId +  "&location=" + realSlId + urlPresent;
+			if(realSlId != null && id != null) {
+				url =  keyContext + "/supervisor/presence?sessionEpreuve=" + id +  "&location=" + realSlId + urlPresent;
 			}
 		}
 		
@@ -492,8 +491,10 @@ public class PresenceService {
 	public String getBase64Photo(EsupNfcTagLog taglog) {
 		String photo64 = null;
 		String locationNom = taglog.getLocation();
-		String[] splitLocationNom = locationNom.split(" // "); 
-		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+		String[] splitLocationNom = locationNom.split(" // ");
+		String idSession = splitLocationNom[3];
+		Long id = Long.valueOf(idSession);
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
 		Context ctx = sessionEpreuve.getContext();
 		List<AppliConfig> list = appliConfigRepository.findAppliConfigByKeyAndContext(AppliConfigKey.ENABLE_PHOTO_ESUPNFCTAG.name(), ctx);
 		log.info(list.get(0).getValue());

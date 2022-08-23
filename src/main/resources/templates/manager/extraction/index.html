@@ -5,7 +5,7 @@
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid" id="extractionPage">
-           	<div class="card">
+			<div class="card">
 		    	<div class="card-header" id="toto"><h2>Import/export</h2></div>
   				<div class="card-body">
   				    <ul class="nav nav-tabs" role="tablist" >
@@ -91,7 +91,7 @@
 												<select name="sessionEpreuve"  id="sessionEpreuve" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
@@ -141,20 +141,20 @@
 									    	</div>
 									    </div>
 									    <div class="col-lg-10">
-										    <select multiple class="form-control" id="usersGroupLdap" name="usersGroupLdap" required="required">
+										    <select multiple class="form-select" id="usersGroupLdap" name="usersGroupLdap" required="required">
 												<option th:each="member : ${ldapMembers}"
 														th:value="${member.eppn}" th:text="${member.prenomNom}"></option>
 										    </select>
 									    </div>
 								  	</div>
-								  	<div id="formImportCascadingLdap">
+								  	<div id="formImportCascadingLdap mt-3">
 					                    <div class="row mb-3">
 					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session « d’émargement »</label>
 					                    	<div class="col-lg-10">	
 												<select name="sessionEpreuveLdap"  id="sessionEpreuveLdap" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
@@ -166,7 +166,7 @@
 												</select>
 											</div>
 										</div>
-									</div>									
+									</div>		
 			                        <div class="row">
 			                            <div class="col-lg-12 mt-5">
 			                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
@@ -196,7 +196,7 @@
 												<select name="sessionEpreuveCsv"  id="sessionEpreuveCsv" class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>
@@ -239,7 +239,7 @@
 												<select name="sessionEpreuveGroupe"  id="sessionEpreuveGroupe"  class="step1Import">
 													<option value ="">-----choisir----</option>
 													<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
+														th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 										</div>

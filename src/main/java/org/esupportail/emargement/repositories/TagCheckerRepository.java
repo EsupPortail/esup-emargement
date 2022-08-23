@@ -29,8 +29,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(Long id, String eppn);
 	
-	List<TagChecker> findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveNomSessionEpreuveAndUserAppEppn(String nomLocation, String nomSe, String eppn);
-
+	List<TagChecker> findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveIdAndUserAppEppn(String nomLocation, Long id, String eppn);
+	
 	Page<TagChecker> findTagCheckerBySessionLocationIn(List<SessionLocation> sessionLocations, Pageable pageable);
 	
 	List<TagChecker> findTagCheckerByContext(Context context);

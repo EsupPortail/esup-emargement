@@ -71,6 +71,9 @@ public class SessionEpreuve implements ContextSupport {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateFin;
     
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateCreation;
+    
     @DateTimeFormat(pattern = "HH:mm")
     @Temporal(TemporalType.TIME)
     private Date heureConvocation;
@@ -138,6 +141,8 @@ public class SessionEpreuve implements ContextSupport {
     
     @ManyToOne
     public Groupe blackListGroupe;
+    
+    private Long adeEventId;
     
     public boolean isSessionEpreuveClosed() {
     	if(Statut.CLOSED.equals(getStatut())){
@@ -401,5 +406,21 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setStatut(Statut statut) {
 		this.statut = statut;
+	}
+
+	public Long getAdeEventId() {
+		return adeEventId;
+	}
+
+	public void setAdeEventId(Long adeEventId) {
+		this.adeEventId = adeEventId;
+	}
+
+	public Date getDateCreation() {
+		return dateCreation;
+	}
+
+	public void setDateCreation(Date dateCreation) {
+		this.dateCreation = dateCreation;
 	}
 }

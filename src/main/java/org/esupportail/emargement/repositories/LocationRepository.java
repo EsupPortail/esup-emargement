@@ -20,7 +20,11 @@ public interface LocationRepository extends JpaRepository<Location, Long>{
 	
 	List<Location> findLocationByCampus(Campus campus);
 	
+	List<Location> findByAdeClassRoomId(Long id);
+	
 	List<Location> findLocationByContext(Context context);
+	
+	Long countByAdeClassRoomId(Long id);
 	
 	//STATS
 	@Query(value = "select key, count(*) as count from location, context where location.context_id=context.id group by key order by key, count desc", nativeQuery = true)

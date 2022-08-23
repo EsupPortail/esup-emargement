@@ -1,6 +1,11 @@
 package org.esupportail.emargement.services;
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -8,6 +13,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -132,7 +138,6 @@ public class SessionEpreuveService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public void computeCounters(List<SessionEpreuve> sessionEpreuveList) {
-
 		for(SessionEpreuve session : sessionEpreuveList) {
 			session.setNbLieuxSession(sessionLocationRepository.countBySessionEpreuveId(session.getId()));
 			Long nbTagCheckerSession = Long.valueOf("0");
@@ -654,7 +659,6 @@ public class SessionEpreuveService {
         Long count = new Long(0);
         do {
           x++;
-          count = sessionEpreuveRepository.countExistingNomSessionEpreuve(originalSe.getNomSessionEpreuve() + "(" + x + ")");
         } while (count!=0);
         newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
         newSe.setNomSessionEpreuve(newNomEpreuve);
@@ -757,5 +761,38 @@ public class SessionEpreuveService {
 		 }
 		 return map;
 	 }
-
+	 
+	 public Date setDateSessionEpreuve(String typeDate, String choice) {
+		 Date date =null;
+		 LocalDate now = LocalDate.now();
+		 
+		 switch(choice){
+	       case "day": 
+	    	   date = new Date();
+	           break;
+	   
+	       case "week":
+	    	   DayOfWeek firstDayOfWeek = WeekFields.of(Locale.getDefault()).getFirstDayOfWeek();
+	    	   if("dateDebut".equals(typeDate)) {
+		           LocalDate startOfCurrentWeek = now.with(TemporalAdjusters.previousOrSame(firstDayOfWeek));
+	    		   date = Date.from(startOfCurrentWeek.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	    	   }else {
+	    		   DayOfWeek lastDayOfWeek = firstDayOfWeek.plus(6); // or minus(1)
+		           LocalDate endOfWeek = now.with(TemporalAdjusters.nextOrSame(lastDayOfWeek));
+		           date = Date.from(endOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	    	   }
+	           break;
+	   
+	       case "month":
+	    	   if("dateDebut".equals(typeDate)) {
+	    		   LocalDate firstDay = now.with(TemporalAdjusters.firstDayOfMonth());
+	    		   date = Date.from(firstDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	    	   }else {
+	    		   LocalDate lastDay = now.with(TemporalAdjusters.lastDayOfMonth());
+		           date = Date.from(lastDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	    	   }
+	           break;
+	   }
+		 return date;
+	 }
 }

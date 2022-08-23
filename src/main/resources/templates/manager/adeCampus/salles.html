@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header">
+	    			<div class="row">
+			    		<div class="col-4">
+					    	<h2>Ade Campus<small class="h5"> - salles</small></h2>
+					    </div>
+					    <div class="col-8">
+						    <div class="row float-end">
+								<div class="col-auto">
+									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
+								</div>						    
+								<div class="col-auto">
+									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
+								</div>
+						    </div>
+					    </div> 
+	    			</div>
+		    	</div>
+	 			<div class="card-body" id="gridSalles">
+	 				<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
+		 				Vous n'avez pas de projet de défini dans les paramètres.
+		 			</div>
+	 				<div th:unless="${valueProject eq ''}">
+		 				<div th:if="${#lists.isEmpty(valuesSalles)}" class="alert alert-warning" >
+							Veuillez choisir les salles de la liste dans l'onglet "Paramètres"</div>
+						<div th:unless="${#lists.isEmpty(valuesSalles)}">
+							<form th:action="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext},type=${type})}" id="displaySalles" class="float-start ">
+								<div class="row">
+									<div class="col-auto">
+										<select class="form-select form-select-sm" id="codeSalleSelect" name="codeSalle">
+											<option value="">----Choisir----</option>
+											<option th:each="value : ${valuesSalles}"
+													th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
+													th:selected="${#strings.substringAfter(value,'@@') eq codeSalle}"></option>											
+										</select>
+									</div>
+								</div>
+							</form>
+							<form th:action="@{/{ctx}/manager/adeCampus/importClassrooms(ctx=${eContext})}" method="post">
+								<input type="hidden" name="codeSalle" th:value="${codeSalle}" />
+								<div id="toolbar float-start">
+									<div class="row">
+										<div class="col-auto">
+											<label class="col-form-label col-form-label-sm ms-2">Site d'import:</label>
+										</div>
+										<div class="col-auto">
+											<select class="form-select form-select-sm" id="campus"
+												name="campus" required>
+												<option th:each="campus : ${campuses}" th:value="${campus.id}"
+													th:text="${campus.site}"></option>
+											</select>
+										</div>
+										<div class="col-auto">
+											<input type="submit" class="btn btn-success btn-sm"
+												value="import" />
+										</div>
+									</div>
+								</div>
+	
+								<table data-toggle="table" data-pageSize="10" data-pagination="true" data-search="true"
+											data-search-accent-neutralise="true" data-search-highlight="true" data-show-search-clear-button="true" 
+											data-sort-name="date" data-sort-order="desc" data-click-to-select="true" data-toolbar="#toolbar"
+											 data-buttons="buttons"  data-id-field="id"  class="table table-bordered table-striped caption-top">
+										<thead>
+										<tr>
+											<th data-checkbox="true">Id</th>
+											<th data-sortable="true" data-field="id">Id</th>
+											<th>Maj</th>
+											<th>Nom</th>
+											<th>Type</th>
+											<th>Capacité</th>
+											<th>Chemin</th>
+										</tr>
+										</thead>
+										<tbody>
+									    <tr th:each="element : ${listeSalles}" th:class="${element.isAlreadyimport}? table-success : table-light">
+									        <td></td>
+									        <td th:text="${element.idClassRoom}"></td>
+									        <td th:text="${#dates.format(element.lastUpdate,'dd-MM-yyyy HH:mm')}" ></td>
+											<td th:text="${element.nom}"></td>
+											<td th:text="${element.type}"></td>
+											<td th:text="${element.size}"></td>
+											<td th:text="${element.chemin}"></td>
+									    </tr>
+									    </tbody>
+									</table>
+							</form>
+						</div>
+		 			</div>
+	 			</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header">
+	    			<div class="row">
+			    		<div class="col-4">
+					    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
+					    </div>
+					    <div class="col-8">
+						    <div class="row float-end">
+								<div class="col">
+									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
+								</div>
+								<div class="col">
+									<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
+										class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
+								</div>
+						    </div>
+					    </div> 
+	    			</div>
+		    	</div>
+	 			<div class="card-body">
+	 				<div class="row">
+			 			<div class="col">
+			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+			 					<input type="hidden" name="type" value="adeStoredProjet"/>
+								<table class="table table-bordered table-striped caption-top" id="projetsTable">
+								<caption><span class="fw-bold h4">Projets</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+									<thead>
+									<tr>
+										<th data-radio="true"></th>
+										<th>Libellé</th>
+									</tr>
+									</thead>
+								    <tr th:each="element : ${mapProjets}" class="selected">
+								    	<td><input name="btSelectItem" type="radio" th:value="${element.key}" 
+								    	th:checked="${valueProject != null and 
+											#strings.contains(valueProject, element.key)}"/></td>
+								    	<td th:text="${element.value}"></td>
+								    </tr>
+								</table>
+							</form>
+						</div>
+						<div class="col">
+							<table class="table table-bordered table-striped caption-top" id="apiTable">
+								<caption><span class="fw-bold h4">WEB-APi</span> 
+								<button class="btn btn-success btn-sm float-end" type="button" data-bs-toggle="modal" 
+								data-bs-target="#apiModal">Modifier</button></caption>
+								<thead>
+								<tr>
+									<th>Ressource</th>
+									<th>Catégorie</th>
+									<th>Description</th>
+								</tr>
+								</thead>
+							    <tr>
+							    	<td>trainee</td>
+							    	<td>Groupes</td>
+							    	<td>Groupes d'étudiants ADE venat d'une autre source (Apogée) ou non.</td>
+							    </tr>
+							    <tr>
+							    	<td>instructor</td>
+							    	<td>Enseignants</td>
+							    	<td>enseignant lié à l'évènement</td>
+							    </tr>
+							    <tr>
+									<td>classroom</td>
+							    	<td>Salles</td>
+							    	<td>Salles renseignées dans ADE</td>
+							    </tr>
+							    <tr>
+							    	<td>
+							    		<span th:text="${categories[0]}"></span> 
+									</td>
+							    	<td>Etudiants</td>
+							    	<td>Liste des étudiants</td>									    	
+							    </tr>									    
+							    <tr>
+							    	<td>
+									  <span th:text="${categories[1]}"></span> 
+									</td>
+							    	<td>Formations</td>
+							    	<td>Liste des formations</td>									    	
+							    </tr>
+							</table>
+							<div class="modal fade" id="apiModal">
+							  <div class="modal-dialog">
+							    <div class="modal-content">
+							      <div class="modal-header">
+							        <h5 class="modal-title">Définir les catégories</h5>
+							        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							      </div>
+							      <form th:action="@{/{ctx}/manager/adeCampus/saveConfig(ctx=${eContext})}" method="post">
+								      <div class="modal-body">
+								      	<div class="alert alert-info text-center">
+								      		Ces modifications seropnt valables pour tout le contexte.
+								      	</div>
+						        		<label class="col-form-label col-form-label-sm ms-2">Etudiants</label> 
+						        		<select class="form-select" id="selectEtudiants" name="catEtu">
+						        			<option th:each="cat : ${rootCategories}" th:value="${cat}"
+												th:text="${cat}" th:selected="${cat eq categories[0]}"></option>
+										</select>
+						        		<label class="col-form-label col-form-label-sm ms-2">Formations</label> 
+						        		<select class="form-select" id="selectFormatons" name="catForm">
+											<option th:each="cat : ${rootCategories}" th:value="${cat}"
+												th:text="${cat}" th:selected="${cat eq categories[1]}"></option>
+										</select>											
+								      </div>
+								      <div class="modal-footer">
+								        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+								        <button type="submit" class="btn btn-primary">Enregistrer</button>
+								      </div>
+							      </form>
+							    </div>
+							  </div>
+							</div>
+						</div>
+			 			<div class="col">
+			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+			 					<input type="hidden" name="type" value="adeStoredComposante"/>
+								<table class="table table-bordered table-striped caption-top" id="composantesTable">
+									<caption><span class="fw-bold h4">Composantes</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+									<thead>
+									<tr>
+										<th></th>
+										<th>Libellé</th>
+									</tr>
+									</thead>
+								    <tr th:each="element : ${mapComposantes}" class="selected">
+								    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+								    	th:checked="${valuesComposantes != null and #strings.contains(valuesComposantes, element.key)}"/></td>
+								        <td class="d-none"></td>
+										<td th:text="${element.value}"></td>
+								    </tr>
+								</table>
+							</form>
+							<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
+				 				Vous n'avez pas de projet de défini.
+				 			</div>
+						</div>
+			 			<div class="col">
+			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+			 					<input type="hidden" name="type" value="adeStoredSalle"/>
+								<table class="table table-bordered table-striped caption-top" id="composantesTable">
+									<caption><span class="fw-bold h4">Salles</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>								
+									<thead>
+									<tr>
+										<th></th>
+										<th>Libellé</th>
+									</tr>
+									</thead>
+								    <tr th:each="element : ${mapSalles}">
+								    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+								    	th:checked="${valuesSalles!=null and #strings.contains(valuesSalles, element.key)}"/></td>
+								    	<td th:text="${element.value}"></td>
+								    </tr>
+								</table>
+							</form>
+							<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
+				 				Vous n'avez pas de projet de défini.
+				 			</div>
+						</div>
+	 				</div>
+	 			</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

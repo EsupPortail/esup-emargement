@@ -267,3 +267,12 @@ dl dd:after {
     background-color: transparent;
     opacity : .8 !important;
 }
+#gridEvents .bootstrap-table.bootstrap5, #gridSalles .bootstrap-table.bootstrap5{
+	margin-top: -2em!important;
+}
+#usersGroupLdap{
+	display: block!important;
+}
+#importUsersLdapform .dropdown{
+	display: none;
+}

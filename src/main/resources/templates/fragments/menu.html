@@ -10,7 +10,6 @@
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 			      <span class="navbar-toggler-icon"></span>
 			    </button>
-		
 			    <div class="collapse navbar-collapse" id="navbarSupportedContent">
 			      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager}">
@@ -32,13 +31,14 @@
 				        		th:classappend="${active == 'tagChecker' or active == 'tagCheck' or active == 'stats'  or active == 'calendrier' 
 				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' or active == 'event' 
 				        						or active == 'extraction' or active == 'person'
-				        						or active == 'groupe'} ? 'active font-weight-bold' : ''" 
+				        						or active == 'groupe' or active == 'adeCampus'} ? 'active font-weight-bold' : ''" 
 				        		href="#" id="navbarDropdown" role="button" 
 				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
 				          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.manager}__')}"></span>
 				        </a>			      
 				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
+				          <li><a th:if="${isAdeCampusEnabled}" class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Individus</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>
@@ -92,6 +92,7 @@
 				      <a class="nav-link" href="#collapseHelp" role="button" data-bs-toggle="collapse"><i class="fas fa-question-circle"></i></a></li>
 				     
 			      </ul>
+			       <span class="navbar-text text-info me-auto" id="nbImportSession"></span>
 			      <div class="d-flex">
 					  <form th:if="${not #lists.isEmpty(availableContexts)}" class="emargementContextForm me-2" th:action="@{/}">
 							<select name="emargementContext" id="selectContext"

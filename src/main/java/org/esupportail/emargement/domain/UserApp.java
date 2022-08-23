@@ -53,6 +53,8 @@ public class UserApp {
     
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm")
     private Date dateCreation;
+    
+    private Long adeInstructorId;
 
     public Long getId() {
 		return id;
@@ -134,4 +136,11 @@ public class UserApp {
 		this.civilite = civilite;
 	}
 
+	public Long getAdeInstructorId() {
+		return adeInstructorId;
+	}
+
+	public void setAdeInstructorId(Long adeInstructorId) {
+		this.adeInstructorId = adeInstructorId;
+	}
 }

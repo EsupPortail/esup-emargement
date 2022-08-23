@@ -40,7 +40,8 @@ public class AppliConfigService {
 		CONVOC_TYPE, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, CONSIGNES_ENABLED,
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
-		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, BEFORE_START_EMARGER_LINK
+		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, BEFORE_START_EMARGER_LINK,
+		ADE_CATEGORIES, ADE_ENABLED
 	}
 	
 	public List<String> getTypes() {
@@ -189,7 +190,16 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	public Boolean isAdeCampusEnabled() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_ENABLED);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
 	
+	public  List<String> getCategoriesAde() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_CATEGORIES);
+		return splitConfigValues(appliConfig);
+	}
+
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
 		List <AppliConfigKey> listKey = Arrays.asList(AppliConfigKey.values());
 		List <AppliConfig> list = appliConfigRepository.findAppliConfigByContext(context);

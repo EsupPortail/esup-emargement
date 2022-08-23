@@ -2,6 +2,7 @@ package org.esupportail.emargement.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 @PropertySource("classpath:/security.properties")
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 @EnableScheduling
+@EnableAsync
 public class EmargementConfig {
 
 }

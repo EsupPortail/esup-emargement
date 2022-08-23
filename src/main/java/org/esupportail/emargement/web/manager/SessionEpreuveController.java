@@ -153,6 +153,7 @@ public class SessionEpreuveController {
 	
 	private final static String SESSIONS_SORTBYSTATUT = "sessionsSortByStatut";
 	private final static String SESSIONS_SORTBYTYPE = "sessionsSortByType";
+	private final static String SESSIONS_SORTBYPERIOD = "sessionsSortByPeriod";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -164,18 +165,22 @@ public class SessionEpreuveController {
 	@GetMapping(value = "/manager/sessionEpreuve")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
 			@RequestParam(value="seNom", required = false) String seNom, @RequestParam(value="multiSearch", required = false) String multiSearch,
-			SessionEpreuve sessionSearch) {
+			SessionEpreuve sessionSearch,  @RequestParam(value="dateSessions", required = false) String dateSessions) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Context ctx = contextRepository.findByKey(emargementContext);
 		ExampleMatcher matcher = ExampleMatcher.matching()
 		.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded", "isGroupeDisplayed")
 		.withIgnoreNullValues()
 		.withMatcher("statut", ExampleMatcher.GenericPropertyMatchers.exact())
+		.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact());
 		
 		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
 		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
-		
+		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYPERIOD);
+		if(dateSessions == null) {
+			dateSessions = (prefsPeriod.isEmpty())? "all" : prefsPeriod.get(0).getValue();
+		}
 		if(multiSearch == null) {
 			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
 			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
@@ -187,7 +192,9 @@ public class SessionEpreuveController {
 				String prefStatutValue = (sessionSearch.getStatut() == null)? "" : sessionSearch.getStatut().name();
 				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext) ;
 				String prefTypeValue = (sessionSearch.getTypeSession() == null)? "" : sessionSearch.getTypeSession().getId().toString();
-				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext) ;	
+				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext) ;
+				String prefPeriodValue = (dateSessions == null)? "all" : dateSessions;
+				preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, prefPeriodValue, auth.getName(), emargementContext) ;
 			}
 		}
 		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);
@@ -209,7 +216,10 @@ public class SessionEpreuveController {
 			sessionSearch.setId(null);			
 		}else {
 			PageRequest newPageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-			sessionEpreuvePage = sessionEpreuveRepository.findAll(sessionQuery, newPageRequest);
+			Date dateDebut = sessionEpreuveService.setDateSessionEpreuve("dateDebut", dateSessions);
+			Date dateFin = sessionEpreuveService.setDateSessionEpreuve("dateFin", dateSessions);
+			sessionEpreuvePage= sessionEpreuveRepository.findAll(
+					sessionEpreuveRepositoryCustom.getSpecFromDatesAndExample(dateDebut, dateFin, sessionQuery), newPageRequest);
 		}
 		
         sessionEpreuveService.computeCounters(sessionEpreuvePage.getContent());
@@ -220,9 +230,11 @@ public class SessionEpreuveController {
         model.addAttribute("sessionSearch", sessionSearch);
         model.addAttribute("statuts", Statut.values());
         model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
+        model.addAttribute("dateSessions", dateSessions);
+        
 		return "manager/sessionEpreuve/list";
 	}
-	
+
 	@GetMapping(value = "/manager/sessionEpreuve/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
@@ -360,10 +372,8 @@ public class SessionEpreuveController {
     		sessionEpreuve.setDateFin(dateFin);
     		compareDebutFin = toolUtil.compareDate(sessionEpreuve.getDateExamen(), sessionEpreuve.getDateFin(), "yyyy-MM-dd");
     	}
-    	//Pour éviter toute confusion lors du badgeage dans les requêtes de badgeage, le nom d'une session doit être unique me hors contexte !
-    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
     	
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 ||	count > 0 || compareDebutFin > 0) {
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || compareDebutFin > 0) {
             populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
@@ -401,31 +411,21 @@ public class SessionEpreuveController {
     		sessionEpreuve.setDateFin(dateFin);
     		compareDebutFin = toolUtil.compareDate(sessionEpreuve.getDateExamen(), sessionEpreuve.getDateFin(), "yyyy-MM-dd");
     	}
-    	Long count = sessionEpreuveRepository.countExistingNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve());
-    	SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
-    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || 
-    			(count > 0 && !originalSe.getNomSessionEpreuve().equals(sessionEpreuve.getNomSessionEpreuve())) || compareDebutFin > 0) {
+ 
+    	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || compareDebutFin > 0) {
             populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
-            uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
             return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
         }
         uiModel.asMap().clear();
-        if(sessionEpreuveRepository.countByNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve())>0 && 
-        			!sessionEpreuve.getNomSessionEpreuve().equalsIgnoreCase(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get().getNomSessionEpreuve())) {
-        	redirectAttributes.addFlashAttribute("nom", sessionEpreuve.getNomSessionEpreuve());
-        	redirectAttributes.addFlashAttribute("error", "constrainttError");
-        	log.info("Erreur lors de la maj, session  déjà existante : " + sessionEpreuve.getNomSessionEpreuve());
-        	return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext, sessionEpreuve.getId());
-        }else {
-        	sessionEpreuve.setContext(contexteService.getcurrentContext());
-        	sessionEpreuveService.save(sessionEpreuve, emargementContext);
-        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-        	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
-        	return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
-        }        
+    	sessionEpreuve.setContext(contexteService.getcurrentContext());
+    	sessionEpreuveService.save(sessionEpreuve, emargementContext);
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
+    	return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
+ 
     }
     
     @PostMapping(value = "/manager/sessionEpreuve/{id}")
@@ -519,7 +519,6 @@ public class SessionEpreuveController {
 		String flexJsonString = serializer.deepSerialize("zezez");
 		return flexJsonString;
     }
-    
 	
 	@Transactional
 	@RequestMapping(value = "/manager/sessionEpreuve/{id}/photo")

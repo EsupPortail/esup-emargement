@@ -34,6 +34,8 @@ public class Location implements ContextSupport {
     
     @Column(columnDefinition = "TEXT")
     private String adresse;
+    
+    private Long adeClassRoomId;
 
 	public Long getId() {
 		return id;
@@ -80,5 +82,13 @@ public class Location implements ContextSupport {
 
 	public void setContext(Context context) {
 		this.context = context;
+	}
+
+	public Long getAdeClassRoomId() {
+		return adeClassRoomId;
+	}
+
+	public void setAdeClassRoomId(Long adeClassRoomId) {
+		this.adeClassRoomId = adeClassRoomId;
 	}
 }

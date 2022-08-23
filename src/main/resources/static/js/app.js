@@ -968,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var sessionEpreuve = document.getElementById('sessionEpreuve');
             if (sessionEpreuve.value == "") {
                 e.preventDefault();
-                alert("Vous devez choisr une Session!");
+                alert("Vous devez choisir une Session!");
             } else {
                 $(".statusExport").show();
                 submitExport.submit();
@@ -1440,7 +1440,6 @@ document.addEventListener('DOMContentLoaded', function() {
             $("#" + tagCheck.id).prop("class", (isPresent) ? "table-success" : "table-danger");
             $("#" + tagCheck.id + " .presenceCheck").prop("checked", (isPresent) ? true : false);
             $("#" + tagCheck.id + " .procuration").hide();
-            console.log( $("#" + tagCheck.id));
             var typeEmargement = '';
             if(tagCheck.typeEmargement != null){
             	if(tagCheck.typeEmargement == 'MANUAL'){
@@ -1907,6 +1906,24 @@ document.addEventListener('DOMContentLoaded', function() {
 	    	$("#typeSession").val("");
 	    	document.getElementById("formSearch").submit();
 	    });
+	    $("#sessionSearch .btn-check").on("change", function (event) {
+	    	document.getElementById("formSearch").submit();
+	    });
 	}
+    
+    //Import event ADE
+    $("#existingSe").on("change", function (event) {
+    	document.getElementById("displayEvents").submit();
+    });
+    $("#codeSalleSelect").on("change", function (event) {
+    	document.getElementById("displaySalles").submit();
+    });
+    
+    const uuid = ID();
+    const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
+	eventSource.addEventListener('nbImportSession', response => {
+         var total = response.data;
+         $("#nbImportSession").text("Imports ADE : " + total);
+    }, false);
 });
     

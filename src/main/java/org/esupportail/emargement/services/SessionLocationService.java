@@ -1,5 +1,7 @@
 package org.esupportail.emargement.services;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -161,7 +163,13 @@ public class SessionLocationService {
 				}
 				log.debug("var checkIfDateFinIsOk :" + checkIfDateFinIsOk);
 				if(!Statut.CLOSED.equals(tc.getSessionEpreuve().getStatut()) && (check==0 || checkIfDateFinIsOk>=0)) {
-					locations.add(tc.getSessionLocation().getSessionEpreuve().getNomSessionEpreuve().concat(" // ").concat(tc.getSessionLocation().getLocation().getNom()));
+					SessionLocation sl = tc.getSessionLocation();
+					SessionEpreuve se = sl.getSessionEpreuve();
+					DateFormat df = new SimpleDateFormat("HH:mm");
+					String  heure = df.format(se.getHeureEpreuve());
+					// location --> heureDebut//nomSession//nomSalle//idSession
+					locations.add(heure.concat(" // ").concat(se.getNomSessionEpreuve()).concat(" // ").
+							concat(sl.getLocation().getNom().concat(" // ").concat(se.getId().toString())));
 				}
 			}
 			log.info("Récupération des lieux de session (" + StringUtils.join(locations, "'") + ") des Ws Rest pour l'eppn : " + eppn );

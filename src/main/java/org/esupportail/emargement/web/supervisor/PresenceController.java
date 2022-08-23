@@ -182,8 +182,6 @@ public class PresenceController {
 	@Value("${emargement.wsrest.photo.suffixe}")
 	private String photoSuffixe;
 
-	private Object AppliConfigKey;
-
     @GetMapping("/supervisor/presence")
     public String getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
@@ -322,7 +320,7 @@ public class PresenceController {
 		uiModel.addAttribute("enableWebcam", Boolean.valueOf(enableWebCam));
 		uiModel.addAttribute("msgError", ldapService.getPrenomNom(msgError));
 		uiModel.addAttribute("emails",  appliConfigService.getListeGestionnaires());
-		
+		uiModel.addAttribute("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
         return "supervisor/list";
     }
     

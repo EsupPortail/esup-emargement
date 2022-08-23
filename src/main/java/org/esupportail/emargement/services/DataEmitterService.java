@@ -27,5 +27,9 @@ public class DataEmitterService {
 		this.eventPublisher.publishEvent(SseEvent.of("refresh", refresh));
 		this.eventPublisher.publishEvent(SseEvent.of("customMsg", customMsg));
 	}
+	
+	public void sendDataImport(String nbImportSession) {
+		this.eventPublisher.publishEvent(SseEvent.of("nbImportSession", nbImportSession));
+	}
 
 }

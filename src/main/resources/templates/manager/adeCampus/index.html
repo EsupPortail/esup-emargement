@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header">
+	    			<div class="row">
+			    		<div class="col-4">
+					    	<h2>Ade Campus<small class="h5"> - évènements</small></h2>
+					    </div>
+					    <div class="col-8">
+						    <div class="row float-end">
+								<div class="col-auto">
+									<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
+										class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
+								</div>						    
+								<div class="col-auto">
+									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
+								</div>
+						    </div>
+					    </div> 
+	    			</div>
+		    	</div>
+	 			<div class="card-body" id="gridEvents">
+		 			<div th:if="${#ctx.containsVariable('noProject')}" class="alert alert-warning fw-bold" >
+		 			Vous devez choisir un projet dans les paramètres pour pouvoir continuer
+		 			</div>
+		 			<div th:unless="${#ctx.containsVariable('noProject')}">
+		 				<div th:if="${#lists.isEmpty(values)}" class="alert alert-warning">
+							Veuillez choisir les composantes de la liste dans l'onglet "Paramètres"</div>
+						<div th:unless="${#lists.isEmpty(values)}">
+	 						<form th:action="@{/{ctx}/manager/adeCampus(ctx=${eContext})}" id="displayEvents" class="float-start">
+	 							<div id="toolbar float-start">
+									<div class="row">
+										<div class="col-auto">
+											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date min</label>
+										</div>
+										<div class="col-auto">
+											<input type="date" name="strDateMin"
+												class="form-control datetimepicker-input"
+												th:value="${strDateMin}">
+										</div>
+										<div class="col-auto">
+											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date max</label>
+										</div>
+										<div class="col-auto">
+											<input type="date" name="strDateMax"
+												class="form-control datetimepicker-input"
+												th:value="${strDateMax}">
+										</div>
+										<div class="col-auto">
+											<div class="form-check">
+											  <input class="form-check-input mt-2" type="checkbox" value="true" id="existingSe" name="existingSe" th:checked="${existingSe} ? 'checked'">
+											  <label class="col-form-label col-form-label-sm form-check-label ms-2 mt-1" for="existingSe">
+											    Déjà importés
+											  </label>
+											</div>
+										</div>
+										<div class="col-auto">
+											<select class="form-select" id="codeComposante"
+												name="codeComposante" >
+												<option value="">----Composantes----</option>
+												<option value="myEvents" th:selected="${codeComposante eq 'myEvents'}">Mes évènements</option>
+												<option th:each="value : ${values}"
+													th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
+													th:selected="${#strings.substringAfter(value,'@@') eq codeComposante}"></option>
+											</select>
+										</div>
+										<div class="col-auto">
+											<input type="submit" class="btn btn-success btn-sm mt-1 me-3" value="Rechercher"/>
+										</div>
+									</div>
+								</div>
+							</form>
+							<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post">
+								<input type="hidden" name="strDateMin" th:value="${strDateMin}">
+								<input type="hidden" name="strDateMax" th:value="${strDateMax}">
+								<input type="hidden" name="codeComposante" th:value="${codeComposante}" />
+								<div id="toolbar float-start">
+								 <button class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+								</div>
+								<table id="grid" class="table-striped" data-toggle="table" data-pageSize="10" data-pagination="true" data-search="true"
+									data-search-accent-neutralise="true" data-search-highlight="true" data-show-search-clear-button="true" 
+									data-sort-name="date" data-sort-order="desc" data-click-to-select="true" data-toolbar="#toolbar"
+									 data-buttons="buttons"  data-id-field="id">
+									<thead>
+									<tr>
+										<th data-checkbox="true">Id</th>
+										<th data-sortable="true" data-field="id">Id</th>
+										<th data-sortable="true">Maj</th>
+										<th data-sortable="true">Import</th>
+										<th data-sortable="true" class="table-warning">Type</th>
+										<th data-sortable="true">Nom</th>
+										<th data-sortable="true" data-field="date">Date</th>
+										<th data-sortable="true">Début</th>
+										<th data-sortable="true">Fin</th>
+										<th data-sortable="true">Groupe</th>
+										<th data-sortable="true" data-field="instructor">Enseignants</th>
+										<th data-sortable="true" class="table-warning">Site</th>
+										<th data-sortable="true">Salles</th>
+										<th data-sortable="true">Formation</th>
+									</tr>
+									</thead>
+								    <tr th:each="event : ${listEvents}" th:class="${event.isAlreadyimport}? table-success : table-light">
+								    	<td></td>
+								    	<td th:text="${event.eventId}"></td>
+								    	<td th:text="${#dates.format(event.lastUpdate,'dd-MM-yyyy HH:mm')}" ></td>
+								    	<td th:text="${#dates.format(event.sessionEpreuve.dateCreation,'dd-MM-yyyy HH:mm')}" ></td>
+								    	<td>
+								    		<span th:if="${event.isAlreadyimport}" th:text="${event.sessionEpreuve.typeSession.libelle}"></span>
+									    	<select th:unless="${event.isAlreadyimport}" class="form-select form-select-sm" id="typeSession" name="typesSession">
+												<option th:each="type : ${typesSessions}"
+													th:value="${event.eventId + '@@' + type.id}" th:text="${type.libelle}" th:selected="${type.key == event.sessionEpreuve.typeSession.key}"></option>
+											</select>
+								    	</td>
+								        <td th:text="${event.sessionEpreuve.nomSessionEpreuve}"></td>
+										<td th:text="${#dates.format(event.sessionEpreuve.dateExamen,'dd-MM-yyyy')}" ></td>
+										<td th:text="${#dates.format(event.sessionEpreuve.heureEpreuve,'HH:mm')}" ></td>
+										<td th:text="${#dates.format(event.sessionEpreuve.finEpreuve,'HH:mm')}" ></td>
+										<td>
+											<span th:each="element : ${event.trainees}">
+										         <span th:each="entry: ${element}">
+											        <span th:text="${'[' + entry.value + ']'}"></span> 
+											    </span>
+										    </span>
+										</td>										
+										<td>
+											<span th:each="element : ${event.instructors}">
+										         <span th:each="entry: ${element}">
+											        <span th:text="${'[' + entry.value + ']'}"></span> 
+											    </span>
+										    </span>
+										</td>										
+								    	<td>
+								    		<span th:if="${event.isAlreadyimport}" th:text="${event.sessionEpreuve.campus.site}"></span>
+									    	<select th:unless="${event.isAlreadyimport}" class="form-select form-select-sm" id="campuses" name="campuses" required>
+												<option th:each="campus : ${campuses}"
+													th:value="${event.eventId + '@@' + campus.id}" th:text="${campus.site}" th:selected="${campus.site == event.sessionEpreuve.campus.site}"></option>
+											</select>
+								    	</td>
+										<td>
+											<span th:each="element : ${event.classrooms}">
+										         <span th:each="entry: ${element}">
+											        <span th:text="${'[' + entry.value + ']'}"></span> 
+											    </span>
+										    </span>
+										</td>
+										<td>
+											<span th:each="element : ${event.category6}">
+										         <span th:each="entry: ${element}">
+											        <span th:text="${'[' + entry.value + ']'}"></span> 
+											    </span>
+										    </span>
+										</td>								
+								    </tr>
+								</table>
+							</form>
+						</div>
+					</div> 						
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

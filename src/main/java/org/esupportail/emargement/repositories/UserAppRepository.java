@@ -26,6 +26,8 @@ public interface UserAppRepository extends JpaRepository<UserApp, Long>{
 	
 	List<UserApp> findByContext(Context context);
 	
+	List<UserApp> findByAdeInstructorIdAndContext(Long id, Context context);
+	
 	@Query(value = "select * from user_app where eppn=:eppn and context_id=:contexId", nativeQuery = true)
 	UserApp findByEppnContext(String eppn, Long contexId);
 	

@@ -69,7 +69,7 @@
 													<option th:each="se : ${allSessionEpreuves}"
 														th:selected="(${se.id == sessionEpreuve.id})"
 														th:value="${se.id}"
-														th:text="${#dates.format(se.dateExamen, 'dd-MM-yyyy') + ' || ' + se.campus.site + ' || ' + se.nomSessionEpreuve}"></option>
+														th:text="${#dates.format(se.heureEpreuve, 'HH:mm') + ' || ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' || ' + se.campus.site + ' || ' + se.nomSessionEpreuve}"></option>
 												</select>
 											</div>
 											<div class="col-auto">

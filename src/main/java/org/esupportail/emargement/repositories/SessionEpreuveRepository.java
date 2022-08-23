@@ -13,13 +13,18 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, Long>{
+public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, Long>,JpaSpecificationExecutor<SessionEpreuve>{
 
 	Long countByNomSessionEpreuve(String nomSessionEpreuve);
+	
+	Long countByAdeEventId(Long id);
+	
+	List<SessionEpreuve> findByAdeEventId(Long id);
 	
 	Page<SessionEpreuve> findByNomSessionEpreuve(String nomSessionEpreuve, Pageable pageable);
 	
@@ -128,10 +133,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	@Query(value = "select distinct annee_univ from session_epreuve order by annee_univ", nativeQuery = true)
 	List<String> findDistinctAnneeUnivAll();
-	
-	@Query(value = "select count(*) from session_epreuve where nom_session_epreuve=:nom", nativeQuery = true)
-	Long countExistingNomSessionEpreuve(String nom);
-	
+		
 	//STATS
 	@Query(value = "select site, count(*) as count from session_epreuve, campus where "
 			+ "session_epreuve.campus_id=campus.id and session_epreuve.context_id=:context "

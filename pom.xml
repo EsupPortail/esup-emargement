@@ -162,6 +162,11 @@
 		  <version>1.4.24</version>
 		</dependency>
 		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>bootstrap-table</artifactId>
+		    <version>1.20.2</version>
+		</dependency>		
+		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
 		</dependency>	

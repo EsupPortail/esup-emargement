@@ -23,6 +23,7 @@ public final class LdapUser {
     private @Attribute(name = "givenName") String prenom;
     private @Attribute(name = "supannEtuId") String numEtudiant;
     private @Attribute(name = "supannCivilite") String civilite;
+    private @Attribute(name = "supannEmpId") String numPersonnel;
     
 	public Name getId() {
 		return id;
@@ -79,5 +80,11 @@ public final class LdapUser {
 	}
 	public void setCivilite(String civilite) {
 		this.civilite = civilite;
+	}
+	public String getNumPersonnel() {
+		return numPersonnel;
+	}
+	public void setNumPersonnel(String numPersonnel) {
+		this.numPersonnel = numPersonnel;
 	}
 }

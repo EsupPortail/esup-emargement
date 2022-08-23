@@ -669,10 +669,13 @@ public class TagCheckService {
 		String locationNom = esupNfcTagLog.getLocation();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = dateFormat.parse(dateFormat.format(new Date()));
+		// location --> heureDebut//nomSession//nomSalle//idSession
 		String[] splitLocationNom = locationNom.split(" // "); 
-		List<SessionEpreuve> ses = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent();
-		if(ses != null && !ses.isEmpty()) {
-			SessionEpreuve sessionEpreuve =  ses.get(0);
+		String nomSalle = splitLocationNom[2];
+		String idSession = splitLocationNom[3];
+		Long id = Long.valueOf(idSession);
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
+		if(sessionEpreuve != null) {
 			Groupe gpe = sessionEpreuve.getBlackListGroupe();
 			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);		
 			Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
@@ -681,16 +684,16 @@ public class TagCheckService {
 				boolean isUnknown = false;
 				Long tc =  null;
 				if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-					tc = tagCheckRepository.checkIsTagable(splitLocationNom[1], eppn,  date, splitLocationNom[0]);
+					tc = tagCheckRepository.checkIsTagable(nomSalle, eppn,  date, id);
 				}else {
-					tc = tagCheckRepository.checkIsTagableWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+					tc = tagCheckRepository.checkIsTagableWithDateFin(nomSalle, eppn, date, dateFin, id);
 				}
 				SessionLocation sessionLocationBadged =  null;
 				TagChecker tagChecker = null;
 				Context ctx = sessionEpreuve.getContext();
 				if(sessionEpreuve.getIsSessionLibre()) {
 					isSessionLibre = true;
-					sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), splitLocationNom[1]);
+					sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
 					tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(esupNfcTagLog.getEppnInit(), null).getContent().get(0);
 				}
 				
@@ -702,14 +705,14 @@ public class TagCheckService {
 							if(totalPresent >= sessionLocationBadged.getCapacite()) {
 								TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
 								if(tagCheck != null) {
-									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
+									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
 									isOk = true;
 								}else {
 									isOk = false;
 								}
 							}else {
 								if(!isBlackListed) {
-									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, splitLocationNom[0]);
+									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
 								}else {
 									msgError = eppn;
 								}
@@ -727,9 +730,9 @@ public class TagCheckService {
 						String comment = "";
 						String eppnInit = esupNfcTagLog.getEppnInit();
 						tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnInit, null).getContent().get(0);
-						sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), splitLocationNom[1]);
+						sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
 						//on regarde si la personne est dans une autre salle de la session
-						Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
+						Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, id);
 						Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
 						SessionLocation sl = null;
 						Long seId = null;
@@ -766,7 +769,7 @@ public class TagCheckService {
 						}
 						log.info("On enregistre l'inconnu dans la session : " +  eppn);
 						if(sl != null || seId != null || isUnknown) {
-							saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, null);
+							saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre);
 							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), "");
 						}
 					} catch (Exception e) {
@@ -779,9 +782,9 @@ public class TagCheckService {
 				log.info("Eppn : " + eppn + " Date " + date);
 				Long sessionLocationId =  null;
 				if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-					sessionLocationId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
+					sessionLocationId = tagCheckRepository.getSessionLocationId(nomSalle, eppn, date, id);
 				}else {
-					sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+					sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(nomSalle, eppn, date, dateFin, id);
 				}
 				log.info("SessionLocationId : " + sessionLocationId);
 				TagCheck presentTagCheck = null;
@@ -789,7 +792,7 @@ public class TagCheckService {
 					realSlId = sessionLocationId;
 					presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, eppn);
 				}else {
-					Long slId = tagCheckRepository.getSessionLocationId(splitLocationNom[1], date, splitLocationNom[0]);
+					Long slId = tagCheckRepository.getSessionLocationId(nomSalle, date, id);
 					realSlId = slId;
 					if(slId!=null) {
 						SessionLocation sl = sessionLocationRepository.findById(slId).get();
@@ -833,11 +836,11 @@ public class TagCheckService {
 	}
 	
 	public void saveUnknownTagCheck(String comment, Context ctx, String eppn, SessionEpreuve sessionEpreuve, SessionLocation sessionLocationBadged, 
-				TagChecker tagChecker, boolean isSessionLibre, String locationNom) {
+				TagChecker tagChecker, boolean isSessionLibre) {
 		TagCheck unknownTc = null;
 		List<TagCheck> badgedTcs = new ArrayList<TagCheck>();
 		if(isSessionLibre) {
-			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, sessionEpreuve.getDateExamen(), locationNom);
+			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, sessionEpreuve.getDateExamen(),sessionEpreuve.getId());
 			if(sessionLocationId != null) {
 				badgedTcs = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn);
 			}
@@ -1188,17 +1191,20 @@ public class TagCheckService {
 		Date date = dateFormat.parse(dateFormat.format(new Date()));
 		String locationNom = esupNfcTagLog.getLocation();
 		String[] splitLocationNom = locationNom.split(" // ");
+		String nomSalle = splitLocationNom[2];
+		String idSession = splitLocationNom[3];
+		Long id = Long.valueOf(idSession);
 		String eppn = esupNfcTagLog.getEppn();
-		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findByNomSessionEpreuve(splitLocationNom[0], null).getContent().get(0);
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
 		Date dateFin = (sessionEpreuve.getDateFin()!=null)?  dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
 		if(dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)){
-			key = tagCheckRepository.getContextId(splitLocationNom[1], eppn, date, splitLocationNom[0]);
+			key = tagCheckRepository.getContextId(nomSalle, eppn, date, id);
 		}else {
-			key = tagCheckRepository.getContextIdWithDateFin(splitLocationNom[1], eppn, date, dateFin, splitLocationNom[0]);
+			key = tagCheckRepository.getContextIdWithDateFin(nomSalle, eppn, date, dateFin, id);
 		}
 		
 		if(key == null) {
-			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, splitLocationNom[0]);
+			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, id);
 			SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
 			
 			key = tagCheckRepository.getContextIdBySeId(sl.getSessionEpreuve().getId(), eppn, date);
