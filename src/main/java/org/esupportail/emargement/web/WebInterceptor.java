@@ -10,6 +10,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.security.ContextUserDetails;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class WebInterceptor implements HandlerInterceptor {
 	
 	@Autowired
 	ContextRepository contextRepository;
+	
+	@Resource
+	AppliConfigService appliConfigService;
 
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
@@ -67,6 +71,7 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isSupervisor", WebUtils.isSupervisor());
 					modelAndView.addObject("isUser", WebUtils.isUser());
 					modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
+					modelAndView.addObject("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
 					modelAndView.addObject("name", displayName);
 				}
