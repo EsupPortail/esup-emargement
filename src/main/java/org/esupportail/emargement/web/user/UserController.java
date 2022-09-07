@@ -148,7 +148,6 @@ public class UserController {
 		}
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
-		model.addAttribute("today", new Date());
 		model.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
 		return "user/list";
 	}
@@ -212,6 +211,7 @@ public class UserController {
     public String show(@PathVariable("id") Long id, Model uiModel) {
         uiModel.addAttribute("tc",  tagCheckRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         return "user/show";
     }
 	
@@ -225,5 +225,4 @@ public class UserController {
 
         IOUtils.copy(inputStream, response.getOutputStream());
     }
-	
 }

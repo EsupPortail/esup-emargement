@@ -9,16 +9,16 @@
 		    	<div class="card-header"><h2>Participant</h2></div>
 	 				<div class="card-body">
 					<dl class="row">
-						<dt class="col-sm-2">Date <button th:if="${tc.sessionLocationExpected != null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
+						<dt class="col-sm-2">Date <button class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" 
+							data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}"  
+							 th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
+									or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin))
+									or (tc.sessionEpreuve.dateFin!=null
+                                        and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
+                                        and #dates.createToday().before(tc.sessionEpreuve.dateFin))
+								 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
 							<i class="fas fa-qrcode"></i></button></dt>
-						<dd class="col-sm-10" th:if="${(#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy')) and 
-							tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-							<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
-							<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
-							
-
-						</dd>
-						<dd class="col-sm-10" th:unless="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy') and tc.sessionLocationBadged == null and isUserQrCodeEnabled}" >
+						<dd class="col-sm-10" >
 							<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
 							<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
 						</dd>

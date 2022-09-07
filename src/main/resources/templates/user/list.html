@@ -22,7 +22,7 @@
 					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					      </div>
 					      <div class="modal-body">
-								<div class="alert alert-danger text-center font-weight-bold" th:if="${!isAlReadybadged and !isSessionExpired}">
+						  		<div class="alert alert-danger text-center font-weight-bold" th:if="${!isAlReadybadged and !isSessionExpired}">
 									<p>
 										Je confirme être présent à la session : <br />
 										<span class="bg bg-warning p-1" th:text="${se.nomSessionEpreuve}"></span><br />
@@ -74,29 +74,32 @@
 							</thead>
 							<tbody class ="center">
 								<tr th:each="tc : ${tagChecksPage}" th:classappend="${tc.sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${tc.sessionEpreuve.id}" >
-									<td th:if="${(#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy')) and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
-										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
-										<button th:if="${tc.sessionLocationExpected != null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
-										<i class="fas fa-qrcode"></i></button>
-										<div class="modal" th:attr="id=${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog">
-											<div class="modal-dialog" role="document">
-												<div class="modal-content">
-													<div class="modal-header">
-														<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
-														<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-													</div>
-													<div class="modal-body">
-														<img th:if="${tc.sessionLocationExpected != null}" th:src="@{${'/' + tc.context.key  + '/user/qrCode/' + tc.person.eppn + '/' + tc.sessionLocationExpected.id}}" />
+									<td>
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
+										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>						
+										<div th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
+													or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin))
+													or (tc.sessionEpreuve.dateFin!=null
+	                                                  and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
+	                                                  and #dates.createToday().before(tc.sessionEpreuve.dateFin))
+												 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
+											<button th:if="${tc.sessionLocationExpected != null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
+											<i class="fas fa-qrcode"></i></button>
+											<div class="modal" th:attr="id=${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog">
+												<div class="modal-dialog" role="document">
+													<div class="modal-content">
+														<div class="modal-header">
+															<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
+															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+														</div>
+														<div class="modal-body">
+															<img th:if="${tc.sessionLocationExpected != null}" th:src="@{${'/' + tc.context.key  + '/user/qrCode/' + tc.person.eppn + '/' + tc.sessionLocationExpected.id}}" />
+														</div>
 													</div>
 												</div>
-											</div>
+											</div>									
 										</div>
-									</td>
-									<td th:unless="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy') == #dates.format(today, 'dd-MM-yyyy') and tc.sessionLocationBadged == null and isUserQrCodeEnabled}" >
-										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
-										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
-									</td>
+									</td>	
 									<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></td>
 									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
