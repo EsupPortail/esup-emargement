@@ -98,9 +98,9 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                     if (request.status >= 200 && request.status < 400) {
                         var data = JSON.parse(this.response);console.log(data);
                         var list = [];
-                        var labelNumEtu = "";
-                        var valueNumEtu = "";
                         data.forEach(function(value, key) {
+                            var labelNumEtu = "";
+                            var valueNumEtu = "";
                             if (id == "searchTagCheck" || id == "searchUserApp") {
                                 var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
                                 list.push({
