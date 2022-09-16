@@ -17,8 +17,8 @@
 			            <dd class="col-sm-10" th:text="${userApp.prenom}"></dd>
 			            <dt class="col-sm-2">Rôle</dt>
 			            <dd class="col-sm-10" th:text="${userApp.userRole}"></dd>
-			           	<dt class="col-sm-2" th:if="${eContext=='all'}">Contexte</dt>
-			            <dd class="col-sm-10" th:text="${userApp.context.key}" th:if="${eContext=='all'}"></dd>
+			            <dt class="col-sm-2" th:if="${isAdeCampusEnabled}">Ade</dt>
+			            <dd class="col-sm-10" th:if="${isAdeCampusEnabled}"><span th:if="${userApp.adeInstructorId != null}"><i class="fa fa-check text-success"></i></span></dd>			            
 			            <dt class="col-sm-2">Date de création</dt>
 			            <dd class="col-sm-10" th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}"></dd>   
 			            <dt class="col-sm-2">Dernière connexion</dt>

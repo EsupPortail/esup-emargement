@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Resource;
+import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -511,8 +512,8 @@ public class AdeService {
 	
 	public Document getDocument(String url) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
-		URLConnection urlConnection = urlConnect.openConnection();
-		InputStream inputStream = urlConnection.getInputStream();
+		HttpsURLConnection con = (HttpsURLConnection)urlConnect.openConnection();
+		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.parse(inputStream);
@@ -748,13 +749,14 @@ public class AdeService {
 					for (Entry<Long, String> entry : map.entrySet()) {
 						List<AdeInstructorBean> adeInstructorBeans = getListInstructors(sessionId, fatherIdInstructor, entry.getKey().toString());
 						for(AdeInstructorBean bean : adeInstructorBeans) {
-							UserApp userApp = null;
 							Long adeInstructorId = bean.getIdInstructor();
-							if(!userAppRepository.findByAdeInstructorIdAndContext(adeInstructorId, ctx).isEmpty()) {
-								userApp = userAppRepository.findByAdeInstructorIdAndContext(adeInstructorId, ctx).get(0);
-							}else {
-								List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
-								if(!ldapUsers.isEmpty()) {
+							UserApp userApp = null;
+							List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
+							if(!ldapUsers.isEmpty()) {
+								userApp = userAppRepository.findByEppnAndContext(ldapUsers.get(0).getEppn(), ctx);
+								if(userApp != null) {
+									userApp.setAdeInstructorId(adeInstructorId);
+								}else {
 									userApp = new UserApp();
 									userApp.setContext(ctx);
 									userApp.setAdeInstructorId(adeInstructorId);
@@ -762,8 +764,8 @@ public class AdeService {
 									userApp.setContextPriority(0);
 									userApp.setEppn(ldapUsers.get(0).getEppn());
 									userApp.setUserRole(Role.MANAGER);
-									userAppRepository.save(userApp);
 								}
+								userAppRepository.save(userApp);
 							}
 							//On associe à un surveillant
 							if(!sls.isEmpty()) {

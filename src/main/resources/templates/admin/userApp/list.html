@@ -42,8 +42,7 @@
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
-									<th scope="col" th:if="${eContext=='all'}"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
-									<th scope="col" th:if="${eContext=='all'}"><a class="sorted" sd:pagination-sort="contextPriority">Ordre Contexte</a></th>
+									<th th:if="${isAdeCampusEnabled}" scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="context">Ade</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
 									<th scope="col" class="center">Actions</th>
@@ -55,8 +54,7 @@
 									<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
 									<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
 									<td th:text="${userApp.userRole}">Rôle</td>
-									<th th:text="${userApp.context.key}" th:if="${eContext=='all'}">Contexte</th>
-									<th th:text="${userApp.contextPriority}" th:if="${eContext=='all'}">Contexte</th>
+									<th class="center" th:if="${isAdeCampusEnabled}"><span th:if="${userApp.adeInstructorId != null}"><i class="fa fa-check text-success"></i></span></th>
 									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
 									<td class="center"><a th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
