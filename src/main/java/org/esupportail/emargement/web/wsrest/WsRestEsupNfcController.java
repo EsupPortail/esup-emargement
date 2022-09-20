@@ -128,8 +128,14 @@ public class WsRestEsupNfcController {
 
 		try {
 			if(photo64 != null) {
-				image= "<h1>" + taglog.getFirstname() + " " + taglog.getLastname() + "</h1><p><img width='225' height='282' class='img-fluid img-thumbnail' alt='...' "
-			    		+ "src = 'data:image/jpeg;base64, " + photo64 + "' /></p>";
+				String close = "<script>$('#displayModal').on('show.bs.modal', function(){ var myModal = $(this);" +
+				        "clearTimeout(myModal.data('hideInterval'));" +
+				        "myModal.data('hideInterval', setTimeout(function(){ " +
+				         "myModal.modal('hide');"+
+				        "}, 1750));});</script>";
+					
+					image= "<h1>" + taglog.getFirstname() + " " + taglog.getLastname() + "</h1><p><img width='225' height='282' class='img-fluid img-thumbnail' alt='...' "
+				    		+ "src = 'data:image/jpeg;base64, " + photo64 + "' /></p>" + close;
 			}
 		} catch (Exception e) {
 			log.info("Pas d'affichage d'image");
