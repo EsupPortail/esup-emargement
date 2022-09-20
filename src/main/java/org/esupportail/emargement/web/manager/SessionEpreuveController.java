@@ -205,7 +205,7 @@ public class SessionEpreuveController {
 		
 		Page<SessionEpreuve> sessionEpreuvePage = null;
 		
-		if(sessionSearch.getId()!=null) {
+		if(sessionSearch.getId()!=null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent() ) {
 			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
 			List<SessionEpreuve> ses = new ArrayList<SessionEpreuve>();
 			ses.add(se);

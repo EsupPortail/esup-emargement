@@ -19,9 +19,9 @@
 										<input type="hidden" name="multiSearch" value="true" />
 										<div class="row float-end">
 											<div class="col-auto">
-												<input type="text" th:field="*{id}"
+												<input type="text" th:field="*{id}" pattern="[0-9.]+"
 													class="form-control" placeholder="Recherche sur  nom, site"
-													id="searchSessionEpreuve">
+													id="searchSessionEpreuve" >
 											</div>
 											<div class="col-auto">											
 												<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
