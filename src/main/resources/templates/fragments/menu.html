@@ -107,9 +107,9 @@
 								</optgroup>
 							</select>
 						</form>
-						<span><a class="btn btn-success nav-link fw-bold text-white"
+						<span><a class="btn btn-success nav-link fw-bold text-white px-3 py-2"
 							sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a></span>
-							<span><a class="btn btn-outline-success greenCustom nav-link mb-2"
+							<span><a class="btn btn-outline-success greenCustom nav-link mb-2 px-3 py-2"
 							sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
 							th:href="@{/logout}">Déconnexion</a>
 							<span th:if="${!isSwitchUser}" class="form-text fw-bold" th:text="${name}"></span></span>
@@ -117,7 +117,7 @@
 							sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
 							th:action="@{/logout/switchUser}" id="formSu" method="post">
 							<input type="submit" value="Déconnexion SU"
-								class="btn btn-outline-danger redCustom nav-link mb-2" />
+								class="btn btn-outline-danger redCustom nav-link mb-2 px-3 py-2" />
 								<p class="form-text fw-bold" th:text="${name}"></p>
 						</form>
 					</div>
