@@ -397,7 +397,6 @@ public class PresenceService {
 		    		typeEmargement = TypeEmargement.MANUAL;
 		    	}
 	    	}
-	    	System.out.println(splitPresence);
 	    	String eppn = splitPresence[1].trim();
 	    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
 	    	Date date = (isPresent)? new Date() : null;

@@ -101,10 +101,15 @@
 							</form>
 						</div>
 		    		</div>
-		    		<div class="alert alert-danger text-center font-weight-bold" th:if="${#ctx.containsVariable('isNotTagchecker') and !#ctx.containsVariable('isSuccess')}">
-		    		Vous n'êtes pas surveillant de cette salle, vous ne pouvez pas envoyer de lien d'émargement.</div>
-		    		<div class="alert alert-success" th:if="${#ctx.containsVariable('isSuccess') and !#ctx.containsVariable('isNotTagchecker')}"><span th:if="${(isSuccess)}">Mails envoyés avec succès</span></div>
-		    		<div class="alert alert-danger" th:if="${#ctx.containsVariable('isSuccess') and !#ctx.containsVariable('isNotTagchecker')}"><span th:if="${(!isSuccess)}">Problème avec l'envoi des mails</span></div>
+		    		<div th:if="${#ctx.containsVariable('isSuccess')}">
+			    		<div class="alert alert-success alert-dismissible fade show" th:if="${isSuccess}">Mails envoyés avec succès
+			    			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+			    		<div class="alert alert-danger text-center font-weight-bold alert-dismissible fade show"  th:unless="${isSuccess}">
+				    		Problème avec l'envoi des mails<span th:if="${#ctx.containsVariable('isNotTagchecker')}">
+				    		Vous n'êtes pas surveillant de cette salle, vous ne pouvez pas envoyer de lien d'émargement.</span>
+				    		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			    		</div>
+		    		</div>
 						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
 							<thead class="sticky-top">
 								<tr>

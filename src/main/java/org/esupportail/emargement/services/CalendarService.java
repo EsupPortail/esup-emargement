@@ -83,7 +83,6 @@ public class CalendarService {
 		    		l.add(c);
     			}else {
     				 List<LocalDate> getDatesInPeriod = getDatesInPeriod(se.getDateExamen(), se.getDateFin()) ;
-    				 System.out.println(getDatesInPeriod);
     				 for(int i= 0; i<getDatesInPeriod.size();i++) {
     					CalendarDTO c = new CalendarDTO();
 			    		c.setId(se.getId());

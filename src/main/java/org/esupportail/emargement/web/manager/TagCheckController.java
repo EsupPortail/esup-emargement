@@ -461,7 +461,7 @@ public class TagCheckController {
         	String eppnAuth = (auth!=null) ?  auth.getName() : null;
     		int nbMailEnvoye = 0;
     		int nbMailNonEnvoye = 0;
-    		Boolean isSuccess = false;
+    		Boolean isSuccess = true;
     		try {
 				for(TagCheck tc : tcs) {
 					String mailAdresse =  null;
@@ -542,6 +542,7 @@ public class TagCheckController {
 								}
 							}else {
 								redirectAttributes.addFlashAttribute("isNotTagchecker", "isNotTagchecker");
+								isSuccess = false;
 							}
 						}
 					}
@@ -554,8 +555,9 @@ public class TagCheckController {
 					 log.info("envoi du lien de téléchargement réussi");
 					 logService.log(ACTION.SEND_LINK, RETCODE.SUCCESS, " Nombre " + nbMailEnvoye, "", null, emargementContext, null);
 				}
-				isSuccess = true;
+				
 			} catch (WriterException e) {
+				isSuccess = false;
 				if("qrCode".equals(type)) {
 					logService.log(ACTION.SEND_QRCODE, RETCODE.FAILED, "Nb envoyé : " + nbMailEnvoye +  " - Nb non envoyé : " + nbMailNonEnvoye , null,
 							null, emargementContext, null);
