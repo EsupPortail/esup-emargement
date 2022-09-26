@@ -83,6 +83,9 @@ public class TagCheck implements ContextSupport {
     @Transient
     private String nomPrenom;
     
+    @Transient 
+    private Boolean isBlacklisted;
+    
     private Integer nbBadgeage;
 
 	public Long getId() {
@@ -259,5 +262,13 @@ public class TagCheck implements ContextSupport {
 
 	public void setNbBadgeage(Integer nbBadgeage) {
 		this.nbBadgeage = nbBadgeage;
+	}
+
+	public Boolean getIsBlacklisted() {
+		return isBlacklisted;
+	}
+
+	public void setIsBlacklisted(Boolean isBlacklisted) {
+		this.isBlacklisted = isBlacklisted;
 	}
 }

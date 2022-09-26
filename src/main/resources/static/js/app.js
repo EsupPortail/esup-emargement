@@ -18,6 +18,11 @@ function remove(id) {
     }
 }
 
+function backToTop() {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+}
+
 //Convertion rgb-->hex
 function rgb2hex(rgb){
 	 rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
@@ -63,6 +68,34 @@ function displayAffinage(classes, isTiers){
     tempCapacite.text(realTotal);
 }
 
+function displayToast(){
+	$(".userToast").on("click", function (event) {
+		const toastLiveExample = document.getElementById('liveToast')
+		const toast = new bootstrap.Toast(toastLiveExample)
+    	var splitField = this.getAttribute("data-whatever").split("//");
+    	$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
+    	var nom ="";
+    	var prenom = "";
+    	var eppn = "";
+    	if(splitField[1]!= "null"){
+			nom = splitField[1];
+			prenom = splitField[2];
+    	}else{
+    		eppn = splitField[0];
+    	}
+    	$("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
+    	$("#nomPresence").text(nom);
+    	$("#prenomPresence").text(prenom);
+    	if(splitField[3]!="null"){
+    		$("#numIdentifiantPresence").text(splitField[3]);
+    	}
+    	if(splitField[4]!="null"){
+    		$("#codeEtape").text(splitField[4]);
+    	}
+	    toast.show()
+	});
+}
+
 function getCalendar(calendarEl, urlEvents, editable) {
     var calendar = new FullCalendar.Calendar(calendarEl, {
         headerToolbar: {
@@ -96,7 +129,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
                 request.open('GET', url + "?searchValue=" + this.value + paramurl, true);
                 request.onload = function() {
                     if (request.status >= 200 && request.status < 400) {
-                        var data = JSON.parse(this.response);console.log(data);
+                        var data = JSON.parse(this.response);
                         var list = [];
                         data.forEach(function(value, key) {
                             var labelNumEtu = "";
@@ -204,7 +237,6 @@ function changeSelectSessionEpreuve2(id, id2, url, change) {
 	                    selectToPopulate.appendChild(option);
 	                });
 	                if(change && data.length == 1){
-	                	console.log(data[0].id);
 	                	var redirect = "?sessionEpreuve=" +selectOrigin.value + "&location=" + data[0].id;
 	                	window.location.href = redirect;
 	                }
@@ -268,29 +300,15 @@ function deleteParam(urlLocation, name) {
     return url;
 }
 
-function updatePresence(url, numEtu, anchorId) {
-    var tagDate = document.getElementById("tagDate");
-	var anchor = "";
-	if(anchorId != null){
-		anchor = anchorId;
-	}    
+function updatePresence(url, numEtu) {
     var request = new XMLHttpRequest();
     request.open('GET', url + "?presence=" + numEtu, true);
     request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
             var data = JSON.parse(this.response);
             var redirect = deleteParam(window.location.href, "tc");
+            var displayedIdentity = $("#displayedIdentity");
             if (numEtu.startsWith("true")) {
-                const options = {
-                    year: "2-digit",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour12: false,
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
-                }
-                var date = new Date().toLocaleTimeString("fr-FR", options);
                 var person = data[0].person;;
                 var guest = data[0].guest;
                 var identifiant = "";
@@ -303,8 +321,6 @@ function updatePresence(url, numEtu, anchorId) {
                 	varUrl = "inconnu";
                 }
                 var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
-                var modal = $('#photoModal2');
-                modal.find('.modal-title').text(date);
             	var nom ="";
             	var prenom = "";
             	var eppn = "";
@@ -315,36 +331,10 @@ function updatePresence(url, numEtu, anchorId) {
             		nom = guest.nom.toUpperCase();
                 	prenom = guest.prenom;
             	}
-                modal.find('.modal-body #nomPresence').text(nom);
-                modal.find('.modal-body #prenomPresence').text(prenom);
-                modal.find('.modal-body #eppnPresence').text(identifiant);
-                if (person != null && person.numIdentifiant != null) {
-                    modal.find('.modal-body #numIdentifiantPresence').text('N° ' + person.numIdentifiant);
-                }
-                modal.find('.modal-body #photoPresent').prop("src", url);
-                modal.find('.modal-body #photoPresent').prop("alt", identifiant);
-                modal.modal('show');
             }
             setTimeout(function() {
-            	if (typeof modal != "undefined") {
-            		modal.modal('hide');
-            	}
-            	var splitlRedirect = redirect.split("#");
-            	if(splitlRedirect.length>0){
-            		window.location.href = splitlRedirect[0]  + anchor;
-            		if (typeof modal == "undefined") {
-            			window.location.reload(true);
-            		}
-            	}else{
-            		window.location.href = redirect + anchor;
-            		if (typeof modal == "undefined") {
-            			window.location.reload(true);
-            		}
-            	}
-            	$('html,body').animate({
-            		scrollTop: ($(anchor).position().top + $(anchor).height())
-            	}, 1000);
-            }, 1750);
+            	displayedIdentity.addClass("d-none");
+            }, 2000);
         } else {
             console.log("erreur du serveur!");
         }
@@ -876,13 +866,13 @@ document.addEventListener('DOMContentLoaded', function() {
         editor2 = createSunEditor('emailArea');
     }
 
+
     //Click events
     document.addEventListener('click', function(event) {
-        if (event.target.matches('.presenceCheck')) {
+    	if (event.target.matches('.presenceCheck')) {
             var isPresent = event.target.checked;
             var isPresentValue = isPresent + ',' + event.target.value;
-            var anchorId = event.target.parentElement.id;
-            updatePresence(emargementContextUrl + "/supervisor/updatePresents", isPresentValue, anchorId);
+            updatePresence(emargementContextUrl + "/supervisor/updatePresents", isPresentValue);
         }
         if (event.target.matches('#pdfPreview')) {
             var htmltemplate = document.getElementById("htmltemplate");
@@ -1167,6 +1157,8 @@ document.addEventListener('DOMContentLoaded', function() {
             request.onerror = function() {
                 // Plus de session (et redirection CAS) ou erreur autre ... on stoppe pour ne pas boucler
                 console.log("searchLongPoll stoppé ");
+                location. reload();
+                console.log("reload page");
             };
             request.send();
         }
@@ -1198,20 +1190,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //Recherches
     if (document.getElementById("searchTagCheck") != null) {
-        var sessionId = document.getElementById("sessionId");
-        submitSearchForm("searchTagCheck", emargementContextUrl + "/manager/tagCheck/searchTagCheck", "&sessionId=" + sessionId.value);
+   //     var sessionId = document.getElementById("sessionId");
+     //   submitSearchForm("searchTagCheck", emargementContextUrl + "/manager/tagCheck/searchTagCheck", "&sessionId=" + sessionId.value);
     } else if (document.getElementById("searchUserApp") != null) {
         submitSearchForm("searchUserApp", emargementContextUrl + "/admin/userApp/search", "");
     } else if (document.getElementById("searchLocation") != null) {
         submitSearchForm("searchLocation", emargementContextUrl + "/admin/location/search", "");
-    } else if (document.getElementById("searchSessionEpreuve") != null) {
+    } else if (document.getElementById("searchSessionEpreuve") != null) {console.log("ttt");
         submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
     } else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null) {
         submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
         submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
     }else if (document.getElementById("searchIndividu") != null) {
     	searchUsersAutocomplete("searchIndividu", emargementContextUrl + "/manager/individu/search", "&type=tagCheck", 100);
-    	searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {console.log(this);
+    	searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {
              var splitResult = this.value.split("//");
              searchIndividu.value = splitResult[0].toString().trim();
              $("#tcIdentity").html(splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
@@ -1224,26 +1216,6 @@ document.addEventListener('DOMContentLoaded', function() {
         submitSearchForm("searchLdap", emargementContextUrl + "/supervisor/searchUsersLdap", "");
     }
     
-    //Affiche modal present
-    var photoModal = document.getElementById('photoModal');
-    if (photoModal != null) {
-    	var id = $("[id^='header']")[0].id.replace("header", "");
-    	$([document.documentElement, document.body]).animate({
-    	    scrollTop: ($("#" + id).position().top + $("#" + id).height())
-    	}, 1000);
-        if (photoModal != "") {
-            $('#photoModal').fadeIn(100, function() {
-                $('#photoModal').modal('show');
-            });
-            setTimeout(function() {
-                $('#photoModal').fadeOut(2000, function() {
-                    $('#photoModal').modal('hide');
-                });
-            }, 2000);
-        }
-    }
-
-
     var helpForm = document.getElementById('helpForm');
     if (helpForm != null) {
         var areaEditor = document.getElementById("areaEditor");
@@ -1432,31 +1404,60 @@ document.addEventListener('DOMContentLoaded', function() {
         const uuid = ID();
         const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
         eventSource.addEventListener('tc', response => {
-
-            var tagCheck = JSON.parse(response.data);
-            var isPresent = (tagCheck.tagDate == null) ? false : true;
-
-            $("#" + tagCheck.id + " #tagDate").html(isPresent ? moment(tagCheck.tagDate).format('HH:mm:ss') : "");
-            $("#" + tagCheck.id).prop("class", (isPresent) ? "table-success" : "table-danger");
-            $("#" + tagCheck.id + " .presenceCheck").prop("checked", (isPresent) ? true : false);
-            $("#" + tagCheck.id + " .procuration").hide();
-            var typeEmargement = '';
-            if(tagCheck.typeEmargement != null){
-            	if(tagCheck.typeEmargement == 'MANUAL'){
-            		typeEmargement = "<i class='fas fa-check-square text-success' ></i>";
-            	}else if(tagCheck.typeEmargement == 'CARD'){
-            		typeEmargement = "<i class='fas fa-id-card text-primary h4' ></i>";
-            	}else if(tagCheck.typeEmargement == 'LINK'){
-            		typeEmargement = "<i class='fas fa-link text-info' ></i>";
-            	}else if(tagCheck.typeEmargement == 'QRCODE'){
-            		typeEmargement = "<i class='fas fa-qrcode text-secondary' ></i>";
-            	}
-            }
-            $("#" + tagCheck.id + " .checkedByCard").html(isPresent ? typeEmargement : "");
-            var sessionLocationBadged = (tagCheck.sessionLocationBadged != null) ? tagCheck.sessionLocationBadged.location.nom : '';
-            $("#" + tagCheck.id + " .sessionLocationBadged").html(isPresent ? sessionLocationBadged : "");
-            var tagChecker = (tagCheck.tagChecker != null) ? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : '';
-            $("#" + tagCheck.id + " .tagChecker").html(isPresent ? tagChecker : '');
+        	var tagCheck = JSON.parse(response.data);
+        	if(!tagCheck.isBlacklisted){
+	            var person = tagCheck.person;;
+	            var guest = tagCheck.guest;
+	            var identifiant = "";
+	            var varUrl = "";
+	            if(person != null){
+	            	identifiant = person.eppn ;
+	            	varUrl = person.eppn ;
+	            }else if (guest != null){
+	            	identifiant = guest.email;
+	            	varUrl = "inconnu";
+	            }
+	            var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
+	        	var nom ="";
+	        	var prenom = "";
+	        	var eppn = "";
+	        	if(person!=null && person.nom != null){
+	            	nom = person.nom.toUpperCase();
+	            	prenom = person.prenom;
+	        	}else if(guest!=null && guest.nom != null){
+	        		nom = guest.nom.toUpperCase();
+	            	prenom = guest.prenom;
+	        	}
+	        	var displayedIdentity2  = $("#displayedIdentity2");
+	            displayedIdentity2.removeClass("d-none");
+	            displayedIdentity2.find("img").prop("src", url);
+	            displayedIdentity2.find("img").prop("alt", identifiant);
+	            displayedIdentity2.find('#prenomPresence3').text(prenom);
+	            displayedIdentity2.find('#nomPresence3').text(nom);
+	            if (person != null && person.numIdentifiant != null) {
+	            	displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+	            }
+	            const toastLiveExample = document.getElementById('displayedIdentity2');
+                const toast = new bootstrap.Toast(toastLiveExample, {'delay' : 2000})
+                toast.show();
+                $("body").scrollTop();
+                
+	            var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + tagCheck.sessionEpreuve.id + 
+	            			"&location=" + tagCheck.sessionLocationExpected.id + "&update=true";
+	            $("#resultsBlock").load(url,function(responseText, textStatus, XMLHttpRequest){
+	            	backToTop();
+	            	displayToast();
+	            });
+	        	setTimeout(function() {
+	                if(!$("#collapseTable").hasClass("d-none")){
+	                	var id = $("#collapseTable tr")[0].id;
+	                	if(tagCheck.id == id){
+	                		$("#collapseTable table tbody").empty();
+	                		 $("#" + id).clone().appendTo("#collapseTable table tbody");
+	                	}
+	                }
+	            }, 500);
+        	}
         }, false);
         
         eventSource.addEventListener('sl', response => {
@@ -1476,23 +1477,15 @@ document.addEventListener('DOMContentLoaded', function() {
             $("#totalPresent" + splitData1[0]).text(splitData1[1]);
         }, false);
         
-        eventSource.addEventListener('refresh', response => {
-            var refresh = response.data;
-            if (refresh > 0) {
-                var redirect = deleteParam(window.location.href, "tc");
-                redirect = deleteParam(window.location.href, "msgError");
-                eventSource.addEventListener('customMsg', response => {
-                	var customMsg = response.data;;
-                	if(customMsg != ""){
-                		redirect = redirect + "&msgError=" + customMsg;
-                	}
-                    setTimeout(function() {
-                    	window.location.href = redirect;
-                    }, 1750);
-                }, false);
+        eventSource.addEventListener('customMsg', response => { 
+            var customMsg = response.data;
+            if (customMsg != "") {
+            	$("#customMsg").removeClass("d-none").addClass("show");
+            	setTimeout(function() {
+            		$("#customMsg").addClass("d-none");
+	            }, 2000);
             }
         }, false);
-        
         
        if (document.getElementById('searchTagCheck') != null) {
 	       var selectPresence =  new SlimSelect({
@@ -1514,7 +1507,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	       }); 
        }
        $("#searchTagCheck").change(function() {
-    	  $("#formSearch").submit();
+    	   $("#collapseTable").removeClass("d-none");
+    	   $("#collapseTable table tbody").empty();
+    	   $("#" + this.value).clone().appendTo("#collapseTable table tbody");
        });
     }
 
@@ -1599,36 +1594,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
     }
-
-    //affiche modal photo
-    $('.userModal').on("click", function(event) {
-    	var splitField = this.getAttribute("data-whatever").split("//");
-    	$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
-    	var nom ="";
-    	var prenom = "";
-    	var eppn = "";
-    	if(splitField[1]!= "null"){
-			nom = splitField[1];
-			prenom = splitField[2];
-    	}else{
-    		eppn = splitField[0];
-    	}
-    	$("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
-    	$("#eppnPresence").text(eppn);
-    	$("#nomPresence").text(nom);
-    	$("#prenomPresence").text(prenom);
-    	$('#photoModal2').modal('show');
-    	if(splitField[3]!="null"){
-    		$("#numIdentifiantPresence").text(splitField[3]);
-    	}
-    	if(splitField[4]!="null"){
-    		$("#codeEtape").text(splitField[4]);
-    	}
-    });
-    $('#photoModal2').on('hidden.bs.modal', function (e) {
-    	$("#photoPresent").prop("src", "");
-    	$("#photoPresent").prop("alt", "");
-    })
     
     //Changement année univ
     $("#anneeUnivSelect").on("change",  function (e) {
@@ -1637,7 +1602,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     //procuration
-    $(".proxyPersonCheck").click(function(e) {
+    $(document).on('click','.proxyPersonCheck', function(e) {
     	e.preventDefault();
     	var splitProxy = null;
 
@@ -1649,14 +1614,20 @@ document.addEventListener('DOMContentLoaded', function() {
     		let el = document.querySelector('#substituteId');
     		$("#substituteId option[value='" + splitProxy[2] + "']").prop("selected","selected");
     	}
-    	var select = new SlimSelect({
-            select: '#substituteId'
-        })
+
       	$("#procurationPerson").text(splitProxy[1]);
     	$("#tcId").val(splitProxy[0]);
-    	$("#procurationModal").modal('show');
-    	
+
+    	const offcanvasElementList = document.getElementById('offcanvasExample')
+    	const offcanvasList = new bootstrap.Offcanvas(offcanvasElementList);
+    	offcanvasList.show();
     });
+    
+	if(document.getElementById('substituteId')!=null){
+    	var select = new SlimSelect({
+    		select: '#substituteId'
+    	})
+    }
     
     var fileInput = document.querySelector('#files');
     
@@ -1759,15 +1730,12 @@ document.addEventListener('DOMContentLoaded', function() {
 	$("#presencePage #location").on( "change", function() {
 		$("#presenceForm").submit();
 	});
-	$("#searchTagCheck").on( "change", function() {
-		$("#formSearchTc").submit();
-	});
 	
 	 var dialogMsg = document.querySelector('#modalUser');
      if (dialogMsg != null) {
          $('#modalUser').modal('show');
      }
-	
+
 	//Activation webcam
 	$(document).on('change', '#webCamCheck', function() {
 		var value = (this.checked) ? "true" : "false";
@@ -1821,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        });
 	        if (code) {
 	          console.log("Found QR code", code.data);
-	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data, null);
+	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data);
 	          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
 	          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
 	          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
@@ -1925,5 +1893,8 @@ document.addEventListener('DOMContentLoaded', function() {
          var total = response.data;
          $("#nbImportSession").text("Imports ADE : " + total);
     }, false);
+	
+	//affiche photo
+	displayToast();
 });
     

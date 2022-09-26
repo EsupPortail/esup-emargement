@@ -517,27 +517,31 @@ public class TagCheckController {
 					}else if("link".equals(type)) {
 						if(tc.getPerson() != null) {
 							TagChecker tcer = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(tc.getSessionLocationExpected(), eppnAuth);
-							eppn = tc.getPerson().getEppn();
-							String token =  userService.generateSessionToken(tcer.getId().toString());
-							String subject = appliConfigService.getLinkSujetEmailEmarger();
-							String link = appUrl + "/" + emargementContext + "/user?sessionToken=" + token;
-							String body = appliConfigService.getLinkEmailEmarger();
-							subject = subject.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-							LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
-							nomPrenom = user.getPrenomNom();
-							if(tc.getSessionLocationBadged()== null) {
-								tc.setSessionToken(token);
-								tagCheckRepository.save(tc);
-								body = body.replaceAll("@@nom@@", nomPrenom);
-								body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-								body = body.replaceAll("@@link@@", link);
-								emailService.sendSimpleMessage(user.getEmail(), subject, body, cc);
-								nbMailEnvoye++;
-							}else {
-								if( tc.getSessionLocationBadged()!= null) {
-									log.info("lien non envoyé car ... a déjà badgé");
+							if(tcer !=null) {
+								eppn = tc.getPerson().getEppn();
+								String token =  userService.generateSessionToken(tcer.getId().toString());
+								String subject = appliConfigService.getLinkSujetEmailEmarger();
+								String link = appUrl + "/" + emargementContext + "/user?sessionToken=" + token;
+								String body = appliConfigService.getLinkEmailEmarger();
+								subject = subject.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
+								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
+								nomPrenom = user.getPrenomNom();
+								if(tc.getSessionLocationBadged()== null) {
+									tc.setSessionToken(token);
+									tagCheckRepository.save(tc);
+									body = body.replaceAll("@@nom@@", nomPrenom);
+									body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
+									body = body.replaceAll("@@link@@", link);
+									emailService.sendSimpleMessage(user.getEmail(), subject, body, cc);
+									nbMailEnvoye++;
+								}else {
+									if( tc.getSessionLocationBadged()!= null) {
+										log.info("lien non envoyé car ... a déjà badgé");
+									}
+									nbMailNonEnvoye++;
 								}
-								nbMailNonEnvoye++;
+							}else {
+								redirectAttributes.addFlashAttribute("isNotTagchecker", "isNotTagchecker");
 							}
 						}
 					}

@@ -6,7 +6,25 @@
 		<div th:replace="fragments/help :: help"></div>
 		<nav th:replace="fragments/modalMsg :: modalMsg"></nav>
 		<div class="container-fluid">
+		
            	<div class="card">
+				<div class="d-flex justify-content-center align-items-center w-100 pb-2">
+					<div class="toast-container  position-fixed top-0 start-0 p-3">
+					  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+					    <div class="toast-header">
+					      <p class="h4 text-center me-auto"><span id="prenomPresence"></span>
+					         <span id="nomPresence" class="fw-bold"></span></p>
+					      <p id="codeEtape" class="h5 text-center"></p>
+					      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+					    </div>
+					    <div class="toast-body">
+					      <div class="d-flex">
+					          <img id="photoPresent" src="" alt="" class="rounded mx-auto d-block" width="160" height="200" />
+					        </div>
+					    </div>
+					  </div>
+					</div>
+				</div>
 	    		<div class="card-header">
 	    			<div class="row">
 		    			<div class="col">
@@ -83,8 +101,10 @@
 							</form>
 						</div>
 		    		</div>
-		    		<div class="alert alert-success"  th:if="${#ctx.containsVariable('isSuccess')}"><span th:if="${(isSuccess)}">Mails envoyés avec succès</span></div>
-		    		<div class="alert alert-danger"  th:if="${#ctx.containsVariable('isSuccess')}"><span th:if="${(!isSuccess)}">Problème avec l'envoi des mails</span></div>
+		    		<div class="alert alert-danger text-center font-weight-bold" th:if="${#ctx.containsVariable('isNotTagchecker') and !#ctx.containsVariable('isSuccess')}">
+		    		Vous n'êtes pas surveillant de cette salle, vous ne pouvez pas envoyer de lien d'émargement.</div>
+		    		<div class="alert alert-success" th:if="${#ctx.containsVariable('isSuccess') and !#ctx.containsVariable('isNotTagchecker')}"><span th:if="${(isSuccess)}">Mails envoyés avec succès</span></div>
+		    		<div class="alert alert-danger" th:if="${#ctx.containsVariable('isSuccess') and !#ctx.containsVariable('isNotTagchecker')}"><span th:if="${(!isSuccess)}">Problème avec l'envoi des mails</span></div>
 						<table class="table table-hover table-striped table-bordered" th:if="${not #lists.isEmpty(tagCheckPage)}" id="tableTagChecks">
 							<thead class="sticky-top">
 								<tr>
@@ -115,9 +135,9 @@
 									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 									<td class="hiddenBlock" th:if="${tagCheck.guest != null}" th:text="Externe"></td>
 									<td th:if="${tagCheck.person != null}">
-										<a href="#" class="me-1 userModal" 
+										<button type="button" data-bs-dismiss="toast" class="btn btn-sm btn-primary me-1 userToast" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
-										<i class="fa fa-user" aria-hidden="true"></i></a>
+										<i class="fa fa-user" aria-hidden="true"></i></button>
 										<span th:text="${tagCheck.person.eppn}"></span>
 									</td>
 									<td th:unless="${tagCheck.person != null}">
@@ -229,104 +249,79 @@
 		        </div>
 		    </div>
 		</div>
-		<div class="modal" id="photoModal2" tabindex="-1" role="dialog" >
-		  <div class="modal-dialog" role="document">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title"></h5>
-		        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		      </div>
-		      <div class="modal-body">
-				<div class="d-flex">
-				  <img id="photoPresent"  src=""  alt="" width="160" height="200" />
-				  <div class="flex-grow-1 ms-2">
-				    <h5 class="mt-0 text-primary font-weight-bold" id="nomPrenom"></h5>
-						<div class="alert alert-info col-lg-12 pt-3 pb-3 pl-1 pr-1 custom-alert">
-							<p class="h2 text-center"><span id="prenomPresence"></span><br/>
-							<span id="nomPresence" class="font-weight-bold"></span></p>
-							<p id="eppnPresence" class="h4 text-center font-weight-bold"></p>
-							<p id="numIdentifiantPresence" class="h3 text-center"></p>
-							<p id="codeEtape" class="h5 text-center"></p>
-						</div>
+		<div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">QR Code</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
-				</div>   
-		      </div>
-		    </div>
-		  </div>
-		</div>
-	<div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">QR Code</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<div class="d-flex">
-						<div class="media-body ms-2">
-							<div class="alert alert-danger text-center">
-								<strong>Envoyer un mail avec qrCode de participation pour les individus :</strong> <br />
-								<form id="command"
-									th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
-									method="POST">
-									<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
-									<input type="hidden" name="type" value="qrCode" />
-									<div class="alert alert-warning text-center mt-2">
-										<div class="form-check form-check-inline">
-											<input class="form-check-input" type="radio" name="population"
-												id="sendQrCode1" value="all"> <label
-												class="form-check-label" for="inlineRadio1">Tous</label>
+					<div class="modal-body">
+						<div class="d-flex">
+							<div class="media-body ms-2">
+								<div class="alert alert-danger text-center">
+									<strong>Envoyer un mail avec qrCode de participation pour les individus :</strong> <br />
+									<form id="command"
+										th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+										method="POST">
+										<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+										<input type="hidden" name="type" value="qrCode" />
+										<div class="alert alert-warning text-center mt-2">
+											<div class="form-check form-check-inline">
+												<input class="form-check-input" type="radio" name="population"
+													id="sendQrCode1" value="all"> <label
+													class="form-check-label" for="inlineRadio1">Tous</label>
+											</div>
+											<div class="form-check form-check-inline">
+												<input class="form-check-input" type="radio" name="population"
+													id="sendQrCode2" value="ext" checked="checked"> <label
+													class="form-check-label" for="inlineRadio2">
+													Externes</label>
+											</div>
+											<div class="form-check form-check-inline">
+												<input class="form-check-input" type="radio" name="population"
+													id="sendQrCode3" value="nonext"> <label
+													class="form-check-label" for="inlineRadio2">
+													Internes
+												</label>
+											</div>
 										</div>
-										<div class="form-check form-check-inline">
-											<input class="form-check-input" type="radio" name="population"
-												id="sendQrCode2" value="ext" checked="checked"> <label
-												class="form-check-label" for="inlineRadio2">
-												Externes</label>
-										</div>
-										<div class="form-check form-check-inline">
-											<input class="form-check-input" type="radio" name="population"
-												id="sendQrCode3" value="nonext"> <label
-												class="form-check-label" for="inlineRadio2">
-												Internes
-											</label>
-										</div>
-									</div>
-									<button type="submit"
-										class="btn btn-outline pull-left btn-success">Valider</button>
-								</form>
+										<button type="submit"
+											class="btn btn-outline pull-left btn-success">Valider</button>
+									</form>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-	<div class="modal" id="lienParticipationModal" tabindex="-1" role="dialog">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">Lien de participation</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<div class="media">
-						<div class="media-body ms-2">
-							<div class="alert alert-danger text-center">
-								<strong>Envoyer un mail avec lien de participation (interne)</strong><br /><br />
-								<form id="command"
-									th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
-									method="POST">
-									<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
-									<input type="hidden" name="type" value="link" />
-									<button type="submit"
-										class="btn btn-outline pull-left btn-success">Valider</button>
-								</form>
+		<div class="modal" id="lienParticipationModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Lien de participation</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="media">
+							<div class="media-body ms-2">
+								<div class="alert alert-danger text-center">
+									<strong>Envoyer un mail avec lien de participation (interne)</strong><br /><br />
+									<form id="command"
+										th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+										method="POST">
+										<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+										<input type="hidden" name="type" value="link" />
+										<button type="submit"
+											class="btn btn-outline pull-left btn-success">Valider</button>
+									</form>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>	
 </body>
 </html>

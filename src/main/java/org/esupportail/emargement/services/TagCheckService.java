@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -699,7 +700,9 @@ public class TagCheckService {
 				
 				if (tc ==1 || isSessionLibre) {
 					Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected (sessionLocationBadged);
-					String msgError = "";				
+					String msgError = "";
+					TagCheck newTagCheck = new TagCheck();
+					Long count = new Long(0);
 					if(isSessionLibre) {
 						try {
 							if(totalPresent >= sessionLocationBadged.getCapacite()) {
@@ -712,12 +715,14 @@ public class TagCheckService {
 								}
 							}else {
 								if(!isBlackListed) {
-									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
+									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
+									newTagCheck.setIsBlacklisted(false);
+									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadged.getId());
 								}else {
 									msgError = eppn;
 								}
 								isOk = true;
-								dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), msgError);
+								dataEmitterService.sendData(newTagCheck, new Float(0), count, new SessionLocation(), msgError);
 							}
 						} catch (Exception e) {
 							log.error("Session libre, problème de carte pour l'eppn : "  + eppn, e);
@@ -769,8 +774,8 @@ public class TagCheckService {
 						}
 						log.info("On enregistre l'inconnu dans la session : " +  eppn);
 						if(sl != null || seId != null || isUnknown) {
-							saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre);
-							dataEmitterService.sendData(new TagCheck(), new Float(0), new Long(0), 1, new SessionLocation(), "");
+							TagCheck newTc = saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre);
+							dataEmitterService.sendData(newTc, new Float(0), new Long(0), new SessionLocation(), "");
 						}
 					} catch (Exception e) {
 						log.error("Problème de carte pour l'eppn : "  + eppn, e);
@@ -802,7 +807,9 @@ public class TagCheckService {
 				String msgError = "";
 				SessionLocation sl = sessionLocationRepository.findById(realSlId).get();
 				if(presentTagCheck!=null) {
+					boolean isBlacklisted = true;
 					if(!isBlackListed) {
+						isBlacklisted = false;
 				    	presentTagCheck.setTagDate(new Date());
 				    	presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
 						TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
@@ -814,6 +821,9 @@ public class TagCheckService {
 				    	List<TagChecker> tcList = new ArrayList<TagChecker>();
 			        	tcList.add(presentTagCheck.getTagChecker());
 				    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
+				    	List<TagCheck> tagCheckList = new ArrayList<TagCheck>();
+				    	tagCheckList.add(presentTagCheck);
+				    	setNomPrenomTagChecks(tagCheckList, false, false);
 				    	tagCheckRepository.save(presentTagCheck);
 				    	isOk = true;					
 					}else {
@@ -828,14 +838,15 @@ public class TagCheckService {
 			    	if(totalExpected!=0) {
 			    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
 			    	}
-			    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sl, msgError);
+			    	presentTagCheck.setIsBlacklisted(isBlacklisted);
+			    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sl, msgError);
 				}
 			}
 		}
 		return isOk;
 	}
 	
-	public void saveUnknownTagCheck(String comment, Context ctx, String eppn, SessionEpreuve sessionEpreuve, SessionLocation sessionLocationBadged, 
+	public TagCheck saveUnknownTagCheck(String comment, Context ctx, String eppn, SessionEpreuve sessionEpreuve, SessionLocation sessionLocationBadged, 
 				TagChecker tagChecker, boolean isSessionLibre) {
 		TagCheck unknownTc = null;
 		List<TagCheck> badgedTcs = new ArrayList<TagCheck>();
@@ -876,7 +887,8 @@ public class TagCheckService {
 			unknownTc.setTagDate(new Date());
 			unknownTc.setTypeEmargement(TypeEmargement.CARD);
 		}
-		tagCheckRepository.save(unknownTc);	
+		TagCheck tc =tagCheckRepository.save(unknownTc);
+		return tc;
 	}
 	
 	public void save(TagCheck tagCheck, String emargementContext) {
@@ -1396,7 +1408,19 @@ public class TagCheckService {
 		int previousNb = (tc.getNbBadgeage() == null)? 0 : tc.getNbBadgeage();
 		int nbBadgeage = 0;
 		if(isPresent) {
-			nbBadgeage = previousNb + 1;
+			if(TypeEmargement.QRCODE.equals(tc.getTypeEmargement())) {
+				if(tc.getTagDate() == null) {
+					nbBadgeage = previousNb + 1;
+				}else {
+					Date newDate = new Date();
+					Long seconds = ChronoUnit.SECONDS.between(tc.getTagDate().toInstant(), newDate.toInstant());
+					if(seconds>60) {
+						nbBadgeage = previousNb + 1;
+					}
+				}
+			}else {
+				nbBadgeage = previousNb + 1;
+			}
 		}else {
 			if(previousNb > 0) {
 				nbBadgeage = previousNb - 1;

@@ -384,60 +384,66 @@ public class PresenceService {
 	public List<TagCheck> updatePresents(String presence) {
 		
 		String [] splitPresence = presence.split(",");
-		boolean isPresent = Boolean.valueOf(splitPresence[0].trim());
-    	String eppn = splitPresence[1].trim();
-    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
-    	Date date = (isPresent)? new Date() : null;
-    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
-    	String email = (splitPresence.length >3)? splitPresence[3] : "";
-    	TagCheck presentTagCheck = null;
-    	if(!eppn.isEmpty()) {
-    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
-    	}else if(!email.isEmpty()) {
-    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
-    	}
-    	TypeEmargement typeEmargement = null;
-    	if(isPresent) {
-    		if(splitPresence.length >4) {
-	    		if("qrcode".equals(splitPresence[4].trim())){
-	    			typeEmargement = TypeEmargement.QRCODE;
-	    		}
-	    	}else {
-	    		typeEmargement = TypeEmargement.MANUAL;
+		List<TagCheck> list = new ArrayList<TagCheck>();
+		if(splitPresence.length>0) {
+			TypeEmargement typeEmargement = null;
+			boolean isPresent = Boolean.valueOf(splitPresence[0].trim());
+	    	if(isPresent) {
+	    		if(splitPresence.length >4) {
+		    		if("qrcode".equals(splitPresence[4].trim())){
+		    			typeEmargement = TypeEmargement.QRCODE;
+		    		}
+		    	}else {
+		    		typeEmargement = TypeEmargement.MANUAL;
+		    	}
 	    	}
-    	}
-    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
-		
-    	presentTagCheck.setTagChecker(tagChecker);
-    	presentTagCheck.setTagDate(date);
-    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
-    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
-    	presentTagCheck.setContext(contextService.getcurrentContext());
-    	presentTagCheck.setTypeEmargement(typeEmargement);
-    	tagCheckRepository.save(presentTagCheck);
-    	List<TagCheck> list = new ArrayList<TagCheck>();
-    	list.add(presentTagCheck);
-    	tagCheckService.setNomPrenomTagChecks(list, false, false);
-    	if(presentTagCheck.getTagChecker() != null) {
-        	List<TagChecker> tcList = new ArrayList<TagChecker>();
-        	tcList.add(presentTagCheck.getTagChecker());
-	    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
-	    	presentTagCheck.setTagChecker(tcList.get(0));
-    	}
-    	
-    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
-    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
-    	float percent = 0;
-    	if(totalExpected!=0) {
-    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
-    	}
-    	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
-    	if(sessionLocationBadged != null) {
-    		sessionLocationBadged.setNbPresentsSessionLocation(countPresent);
-    		dataEmitterService.sendData(presentTagCheck, percent, totalPresent, 0, sessionLocationBadged, "");
-    	}
-    	
+	    	System.out.println(splitPresence);
+	    	String eppn = splitPresence[1].trim();
+	    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
+	    	Date date = (isPresent)? new Date() : null;
+	    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
+	    	String email = (splitPresence.length >3)? splitPresence[3] : "";
+	    	TagCheck presentTagCheck = null;
+	    	if(!eppn.isEmpty()) {
+	    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
+	    	}else if(!email.isEmpty()) {
+	    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
+	    	}
+	    	presentTagCheck.setTypeEmargement(typeEmargement);
+	    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
+	    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
+			if(!isPresent) {
+				presentTagCheck.setProxyPerson(null);
+			}
+	    	presentTagCheck.setTagChecker(tagChecker);
+	    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
+	    	
+	    	presentTagCheck.setTagDate(date);
+	    	presentTagCheck.setContext(contextService.getcurrentContext());
+	    	tagCheckRepository.save(presentTagCheck);
+	    	
+	    	list.add(presentTagCheck);
+	    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+	    	if(presentTagCheck.getTagChecker() != null) {
+	        	List<TagChecker> tcList = new ArrayList<TagChecker>();
+	        	tcList.add(presentTagCheck.getTagChecker());
+		    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
+		    	presentTagCheck.setTagChecker(tcList.get(0));
+	    	}
+	    	
+	    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
+	    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
+	    	float percent = 0;
+	    	if(totalExpected!=0) {
+	    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
+	    	}
+	    	//Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
+	        if(sessionLocationBadged != null) {
+	    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
+	    	}
+	        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, "");
+		}
     	return list;
 	}
 	

@@ -1,6 +1,5 @@
 package org.esupportail.emargement.web.supervisor;
 
-import java.text.ParseException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.PresenceService;
-import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,13 +62,5 @@ public class SearchLongPollController {
 		
 		// log.info("this.suspendedSearchPollRequests.size : " + this.suspendedSearchPollRequests.size());
 		return searchEppn;
-	}
-
-	public void handleCard(EsupNfcTagLog esupNfcTagLog, String keyContext) throws ParseException {
-		log.debug("handleCard : " + " for " + esupNfcTagLog.getEppn());
-		if(this.suspendedSearchPollRequests.containsKey(esupNfcTagLog.getEppnInit())) {
-			String result = presenceService.getHandleRedirectUrl(esupNfcTagLog, keyContext);
-			this.suspendedSearchPollRequests.get(esupNfcTagLog.getEppnInit()).setResult(result);
-		}
 	}
 }

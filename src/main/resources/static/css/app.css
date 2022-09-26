@@ -276,3 +276,10 @@ dl dd:after {
 #importUsersLdapform .dropdown{
 	display: none;
 }
+.sticky-md-top{
+	top: 140px;
+	z-index: 999;
+}
+.ss-content.ss-open{
+	z-index : 5000;
+}
