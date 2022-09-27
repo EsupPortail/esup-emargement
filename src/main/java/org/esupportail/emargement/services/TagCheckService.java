@@ -549,10 +549,14 @@ public class TagCheckService {
 		if(!tagCheckIds.isEmpty()) {
 			for(Long id : tagCheckIds) {
 				TagCheck tc =tagCheckRepository.findById(id).get();
-				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
 				String sn = "";
-				if(!ldapUsers.isEmpty()) {
-					sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getName());
+				if(tc.getPerson()!=null) {
+					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
+					if(!ldapUsers.isEmpty()) {
+						sn = ldapUsers.get(0).getPrenom().concat(" ").concat(ldapUsers.get(0).getName());
+					}
+				}else if(tc.getGuest()!=null){
+					sn = tc.getGuest().getPrenom().concat(" ").concat(tc.getGuest().getNom());
 				}
 				snTagChecks.add(sn);
 			}
@@ -589,9 +593,12 @@ public class TagCheckService {
 		
 		String wrapChar = "@";
 		String finalString= "";
-		finalString = htmltemplate.replace(wrapChar.concat("civilite").concat(wrapChar), tc.getPerson().getCivilite());
-		finalString = finalString.replace(wrapChar.concat("prenom").concat(wrapChar), tc.getPerson().getPrenom());
-		finalString = finalString.replace(wrapChar.concat("nom").concat(wrapChar), tc.getPerson().getNom());
+		String civilite = (tc.getPerson() != null)? tc.getPerson().getCivilite() : "";
+		String nom = (tc.getPerson() != null)? tc.getPerson().getNom() : tc.getGuest().getNom();
+		String prenom = (tc.getPerson() != null)? tc.getPerson().getPrenom() : tc.getGuest().getPrenom();
+		finalString = htmltemplate.replace(wrapChar.concat("civilite").concat(wrapChar), civilite);
+		finalString = finalString.replace(wrapChar.concat("prenom").concat(wrapChar), prenom);
+		finalString = finalString.replace(wrapChar.concat("nom").concat(wrapChar), nom);
 		finalString = finalString.replace(wrapChar.concat("nomSession").concat(wrapChar), tc.getSessionEpreuve().getNomSessionEpreuve());
 		finalString = finalString.replace(wrapChar.concat("dateExamen").concat(wrapChar), String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen()));
 		finalString = finalString.replace(wrapChar.concat("heureConvocation").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getHeureConvocation()));
@@ -622,25 +629,31 @@ public class TagCheckService {
 			
 			for(Long id : listeIds) {
 				TagCheck tc = tagCheckRepository.findById(id).get();
-				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
-				if(!ldapUsers.isEmpty()) {
-					try {
-						tc.getPerson().setNom(ldapUsers.get(0).getName());
-						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
-						tc.getPerson().setCivilite(ldapUsers.get(0).getCivilite());
-						String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
-						String email = ldapUsers.get(0).getEmail();
-						if(appliConfigService.isSendEmails()){
-							emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
+				String email =  "";
+				try {
+					if(tc.getPerson() != null){
+						List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
+						if(!ldapUsers.isEmpty()) {
+							tc.getPerson().setNom(ldapUsers.get(0).getName());
+							tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
+							tc.getPerson().setCivilite(ldapUsers.get(0).getCivilite());
+							email = ldapUsers.get(0).getEmail();
 						}
-						tc.setDateEnvoiConvocation(new Date());
-						tagCheckRepository.save(tc);
-						i++;
-					} catch (Exception e) {
-						errors.add(ldapUsers.get(0).getEppn());
-						e.printStackTrace();
-						j++;
+					}else if(tc.getGuest() != null){
+						email = tc.getGuest().getEmail();
 					}
+
+					String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
+					if(appliConfigService.isSendEmails()){
+						emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
+					}
+					tc.setDateEnvoiConvocation(new Date());
+					tagCheckRepository.save(tc);
+					i++;
+				} catch (Exception e) {
+					errors.add(email);
+					e.printStackTrace();
+					j++;
 				}
 			}
 			if(appliConfigService.isSendEmails()){
