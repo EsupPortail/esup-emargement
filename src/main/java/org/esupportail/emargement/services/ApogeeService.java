@@ -96,7 +96,7 @@ public class ApogeeService {
 			
 			String [] splitCodetEtp  = apogeeBean.getCodEtp().split("-");
 			matieres = apogeeJdbcTemplate.queryForList(query, new Object[] {apogeeBean.getCodAnu(), splitCodetEtp[0], apogeeBean.getCodAnu(), 
-																			apogeeBean.getCodEtp(), apogeeBean.getCodAnu(), apogeeBean.getCodEtp()});
+					splitCodetEtp[0], apogeeBean.getCodAnu(), splitCodetEtp[0]});
 			for(Map<String, Object> so : matieres) {
 				ApogeeBean ab = new ApogeeBean();
 				ab.setCodElp((so.get("COD_ELP")!=null)? so.get("COD_ELP").toString(): "");
