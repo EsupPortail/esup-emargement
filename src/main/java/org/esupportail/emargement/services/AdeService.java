@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -11,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -20,9 +22,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -144,9 +147,15 @@ public class AdeService {
     
     @Resource    
     DataEmitterService dataEmitterService;
+
+    @Resource
+    AppliConfigService appliConfigService;
     
 	@Resource
 	LogService logService;
+	
+    @Resource 
+    LdapService ldapService;
     
     public String getFatherIdResource(String sessionId, String idItem, String category, String tree) throws IOException {
 		String fatherId = "0";
@@ -439,7 +448,9 @@ public class AdeService {
 								se.setFinEpreuve(formatter1.parse(element.getAttribute("endHour")));
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
 								//pour l'instant
-								se.setCampus(campusRepository.findAll().get(0));
+								if(!campusRepository.findAll().isEmpty()) {
+									se.setCampus(campusRepository.findAll().get(0));
+								}
 								adeResourceBean.setSessionEpreuve(se);
 								if(isAlreadyimport) {
 									SessionEpreuve seOld = sessionEpreuveRepository.findByAdeEventId(eventId).get(0);
@@ -463,7 +474,7 @@ public class AdeService {
 											if (node3.getParentNode().equals(node2)) {
 												Element element3 = (Element) node3; 
 												String category = element3.getAttribute("category");
-												if("category6".equals(category)){
+												if(appliConfigService.getCategoriesAde().get(1).equals(category)){
 													List<Map<Long,String>> category6 = (adeResourceBean.getCategory6() == null)? 
 															new ArrayList<>() : adeResourceBean.getCategory6();
 															HashMap<Long, String> mapCategory6= new HashMap<>();
@@ -512,7 +523,7 @@ public class AdeService {
 	
 	public Document getDocument(String url) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
-		HttpsURLConnection con = (HttpsURLConnection)urlConnect.openConnection();
+		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
@@ -770,11 +781,16 @@ public class AdeService {
 							//On associe à un surveillant
 							if(!sls.isEmpty()) {
 								for(SessionLocation sl : sls) {
-									TagChecker tc =  new TagChecker();
-									tc.setContext(ctx);
-									tc.setUserApp(userApp);
-									tc.setSessionLocation(sl);
-									tagCheckerRepository.save(tc);
+									if(userApp != null) {
+										TagChecker tc =  new TagChecker();
+										tc.setContext(ctx);
+										tc.setUserApp(userApp);
+										tc.setSessionLocation(sl);
+										tagCheckerRepository.save(tc);
+									}else {
+										log.info("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
+												", n'est pas dans le ldap "  );
+									}
 								}
 							}
 						}
@@ -786,4 +802,34 @@ public class AdeService {
 		}
 		logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
 	}
+	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, String codeComposante) throws IOException, ParserConfigurationException, SAXException, ParseException{
+        List<AdeResourceBean> adeResourceBeans = new ArrayList<>();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<LdapUser> ldapUsers = ldapService.getUsers(auth.getName());
+		if("myEvents".equals(codeComposante)) {
+			if(!ldapUsers.isEmpty()) {
+				String supannEmpId = ldapUsers.get(0).getNumPersonnel();
+				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
+				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe);
+			}	
+		}else if(codeComposante != null) {
+			
+	        String fatherId1 = getIdComposante(sessionId, codeComposante, "trainee", false);
+	        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, fatherId1, strDateMin, strDateMax, idEvents, existingSe);
+	        adeResourceBeans.addAll(beansTrainee);
+	        String fatherId2 = getIdComposante(sessionId, codeComposante, appliConfigService.getCategoriesAde().get(1), false);
+	        if(fatherId2 != null && !fatherId2.isEmpty()) {
+		        List<AdeResourceBean> beansCategory6 = getEventsFromXml(sessionId, fatherId2, strDateMin, strDateMax, idEvents, existingSe);
+		        adeResourceBeans.addAll(beansCategory6);
+		        Collection<AdeResourceBean> uniqueEvents = adeResourceBeans.stream()
+		                .collect(Collectors.toMap(AdeResourceBean::getEventId, Function.identity(),
+		                        (bean1, bean2) -> bean1))
+		                .values();
+		        adeResourceBeans.clear();
+		        adeResourceBeans.addAll(uniqueEvents);
+	        }
+		}
+
+        return adeResourceBeans; 
+    } 
 }

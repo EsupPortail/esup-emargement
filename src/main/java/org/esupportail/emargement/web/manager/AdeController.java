@@ -17,7 +17,6 @@ import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
@@ -147,7 +146,6 @@ public class AdeController {
 			@RequestParam(value="strDateMax", required = false) String strDateMax) throws ParseException{
 	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUsers = ldapService.getUsers(auth.getName());
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext);
 			List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET);
@@ -168,24 +166,14 @@ public class AdeController {
 					log.info("Récupération du projet Ade " + idProject);
 				}
 				uiModel.addAttribute("currentComposante", codeComposante);
-					String fatherId = "";
-					if("myEvents".equals(codeComposante)) {
-						if(!ldapUsers.isEmpty()) {
-							String supannEmpId = ldapUsers.get(0).getNumPersonnel();
-							fatherId = adeService.getIdComposante(sessionId, supannEmpId, "instructor", true);
-						}	
-					}else if(codeComposante != null) {
-						fatherId = adeService.getIdComposante(sessionId, codeComposante, "trainee", false);
-					}
-					uiModel.addAttribute("listEvents", adeService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, null, existingSe));
-					uiModel.addAttribute("strDateMin", strDateMin);
-					uiModel.addAttribute("strDateMax", strDateMax);
-					uiModel.addAttribute("fatherId", fatherId);
-					uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
-					uiModel.addAttribute("codeComposante", codeComposante);
-					uiModel.addAttribute("typesSessions", typeSessionRepository.findAll());
-					uiModel.addAttribute("campuses", campusRepository.findAll());
-					uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante));
+				uiModel.addAttribute("strDateMin", strDateMin);
+				uiModel.addAttribute("strDateMax", strDateMax);
+				uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
+				uiModel.addAttribute("codeComposante", codeComposante);
+				uiModel.addAttribute("typesSessions", typeSessionRepository.findAll());
+				uiModel.addAttribute("campuses", campusRepository.findAll());
+				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 			}
 	
 		} catch (Exception e) {
@@ -238,8 +226,7 @@ public class AdeController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			String fatherId = adeService.getIdComposante(sessionId, codeComposante, "trainee", false);
-			List<AdeResourceBean> beans = adeService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe);
+			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante);
 			
 			if(!beans.isEmpty()) {
 				adeService.saveEvents(beans, sessionId, emargementContext, typesSession, campuses, auth.getName());
