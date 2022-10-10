@@ -1408,6 +1408,8 @@ document.addEventListener('DOMContentLoaded', function() {
         	if(!tagCheck.isBlacklisted){
 	            var person = tagCheck.person;;
 	            var guest = tagCheck.guest;
+	            var sessionId = tagCheck.sessionEpreuve.id;
+	            var sessionLocationExpected = tagCheck.sessionLocationExpected.id;
 	            var identifiant = "";
 	            var varUrl = "";
 	            if(person != null){
@@ -1428,7 +1430,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	        		nom = guest.nom.toUpperCase();
 	            	prenom = guest.prenom;
 	        	}
-	        	var displayedIdentity2  = $("#displayedIdentity2");
+	        	var displayedIdentity  = sessionLocationExpected  + "_displayedIdentity2";
+	        	var displayedIdentity2  = $("#" + displayedIdentity);
 	            displayedIdentity2.removeClass("d-none");
 	            displayedIdentity2.find("img").prop("src", url);
 	            displayedIdentity2.find("img").prop("alt", identifiant);
@@ -1437,13 +1440,13 @@ document.addEventListener('DOMContentLoaded', function() {
 	            if (person != null && person.numIdentifiant != null) {
 	            	displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
 	            }
-	            const toastLiveExample = document.getElementById('displayedIdentity2');
+	            const toastLiveExample = document.getElementById(displayedIdentity);
                 const toast = new bootstrap.Toast(toastLiveExample, {'delay' : 2000})
                 toast.show();
                 $("body").scrollTop();
                 
-	            var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + tagCheck.sessionEpreuve.id + 
-	            			"&location=" + tagCheck.sessionLocationExpected.id + "&update=true";
+	            var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId + 
+	            			"&location=" + sessionLocationExpected + "&update=true";
 	            $("#resultsBlock").load(url,function(responseText, textStatus, XMLHttpRequest){
 	            	backToTop();
 	            	displayToast();
