@@ -504,7 +504,8 @@ public class TagCheckController {
 							body = body.replaceAll("@@nom@@", nomPrenom);
 							body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
 							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode";
-							InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
+							String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
+							InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
 							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
 							nbMailEnvoye++;
 						}else {

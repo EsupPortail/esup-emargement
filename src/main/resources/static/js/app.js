@@ -1791,7 +1791,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	          inversionAttempts: "dontInvert",
 	        });
 	        if (code) {
-	          console.log("Found QR code", code.data);
 	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data);
 	          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
 	          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");

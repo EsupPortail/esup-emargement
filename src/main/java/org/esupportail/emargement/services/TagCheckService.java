@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,6 +22,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
@@ -69,6 +71,7 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -942,7 +945,85 @@ public class TagCheckService {
 		}
 
 		this.setNomPrenomTagChecks(list, false, false);
-		if ("PDF".equals(type)) {
+		if ("QRC".equals(type)) {
+			PdfPTable table = new PdfPTable(3);
+			table.setWidthPercentage(100);
+	    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
+	        //On créer l'objet cellule.
+	    	String libelleSe = null;
+	    	if(anneeUniv != null) {
+	    		libelleSe = "Année universitaire " + anneeUniv;
+	    	}else {
+		    	TagCheck tch = list.get(0);
+		    	libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
+		    			concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen()))).concat(fin);
+	    	}
+	        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
+	        cell.setBackgroundColor(BaseColor.GREEN);
+	        cell.setColspan(3);
+	        table.addCell(cell);
+
+	        PdfPCell header1 = new PdfPCell(new Phrase("Personne")); header1.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header2 = new PdfPCell(new Phrase("Type")); header2.setBackgroundColor(BaseColor.GRAY);
+	        PdfPCell header3 = new PdfPCell(new Phrase("QR Code")); header3.setBackgroundColor(BaseColor.GRAY);
+	        table.addCell(header1);
+	        table.addCell(header2);
+	        table.addCell(header3);
+	        list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
+	        if(!list.isEmpty()) {
+	        	for(TagCheck tc : list) {
+	        		PdfPCell dateCell = null;
+	        		String nom = (tc.getPerson()!=null) ? tc.getPerson().getNom() : tc.getGuest().getNom();
+	        		String prenom = (tc.getPerson()!=null) ? tc.getPerson().getPrenom() : tc.getGuest().getPrenom();
+	        		dateCell = new PdfPCell(new Paragraph(nom.concat(" ").concat(prenom)));
+	                table.addCell(dateCell);
+	                String typeInd = (tc.getPerson()!=null) ? tc.getPerson().getType() : "ext";
+	                typeInd = messageSource.getMessage("person.type.".concat(typeInd.toLowerCase()), null, null);
+	                dateCell = new PdfPCell(new Paragraph(typeInd));
+	                table.addCell(dateCell);
+	                String identifiant = (tc.getPerson()!=null) ? tc.getPerson().getEppn() : tc.getGuest().getEmail();
+	                try {
+						String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode";
+						String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
+						InputStream is = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 5, 5);
+						byte[] bytes = IOUtils.toByteArray(is);
+						Image image1 = Image.getInstance(bytes);
+						dateCell = new PdfPCell(image1, true);
+						dateCell.setFixedHeight(60f);
+						table.addCell(dateCell);
+					} catch (Exception e) {
+						log.error("Impossible de générer un QR code pour l'identifiant " + identifiant);
+					}                
+	        	}		
+	        }
+	        Document document = new Document();
+	        document.setMargins(10, 10, 10, 10);
+	        try 
+	        {
+	          response.setContentType("application/pdf");
+	          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+	          PdfWriter.getInstance(document,  response.getOutputStream());
+	         
+	          document.open();
+
+	          document.add(table);
+	          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+						null, emargementContext, null);
+
+	        } catch (DocumentException de) {
+	          de.printStackTrace();
+	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+						null, emargementContext, null);
+	        } catch (IOException de) {
+	          de.printStackTrace();
+	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+						null, emargementContext, null);
+	        }
+	       
+	        document.close();
+			
+		}    
+		else if ("PDF".equals(type)) {
 			int nnColumns = 0;
 			if(anneeUniv != null) {
 				nnColumns = 10;

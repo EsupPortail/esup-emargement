@@ -219,7 +219,8 @@ public class UserController {
     @ResponseBody
     public void getQrCode(@PathVariable("eppn") String eppn, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
         String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
-        InputStream inputStream = toolUtil.generateQRCodeImage(qrCodeString, 350, 350);
+		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
+		InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         IOUtils.copy(inputStream, response.getOutputStream());
 

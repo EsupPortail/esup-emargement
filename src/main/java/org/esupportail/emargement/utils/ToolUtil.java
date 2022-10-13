@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
@@ -82,5 +83,15 @@ public class ToolUtil {
 		}
 		
 		return duree;
+	}
+	
+	public static String encodeToBase64(String message) {
+	  return Base64.getEncoder().encodeToString(message.getBytes());
+	}
+
+	public static String decodeFromBase64(String encodedMessage) {
+	  byte[] decodedBytes = Base64.getDecoder().decode(encodedMessage);
+	  String decodedString = new String(decodedBytes);
+	  return decodedString;
 	}
 }

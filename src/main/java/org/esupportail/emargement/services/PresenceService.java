@@ -38,6 +38,7 @@ import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,6 +120,9 @@ public class PresenceService {
 	
 	@Resource
 	GroupeService groupeService;
+	
+	@Autowired
+	ToolUtil toolUtil;
 	
 	@Value("${emargement.wsrest.photo.prefixe}")
 	private String photoPrefixe;
@@ -383,6 +387,9 @@ public class PresenceService {
 	
 	public List<TagCheck> updatePresents(String presence) {
 		
+		if(presence.startsWith("qrcode")) {
+			presence = toolUtil.decodeFromBase64(presence.replace("qrcode", ""));
+		}
 		String [] splitPresence = presence.split(",");
 		List<TagCheck> list = new ArrayList<TagCheck>();
 		if(splitPresence.length>0) {
