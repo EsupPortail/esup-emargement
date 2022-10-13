@@ -100,6 +100,9 @@ public class AdeService {
 	@Value("${emargement.ade.api.password}")
 	private String passwordAde;
 	
+	@Value("${emargement.ade.api.url.encrypted}")
+	private String encryptedUrl;
+
 	@Autowired
 	ToolUtil toolUtil;
 	
@@ -612,7 +615,12 @@ public class AdeService {
 		if(!prefsAdeSession.isEmpty() && !forceNewId){
 			sessionId = prefsAdeSession.get(0).getValue();
 		}else {
-			String urlConnexion = urlAde + "?function=connect&login=" + loginAde  + "&password=" + passwordAde;
+			String urlConnexion = "";
+			if(!encryptedUrl.isEmpty()) {
+				urlConnexion = urlAde + "?data=" + encryptedUrl;
+			}else {
+				urlConnexion = urlAde + "?function=connect&login=" + loginAde  + "&password=" + passwordAde;
+			}
 			Document doc = getDocument(urlConnexion);
 			log.debug("Root Element connect :" + doc.getDocumentElement().getNodeName());
 			sessionId = doc.getDocumentElement().getAttribute("id");
