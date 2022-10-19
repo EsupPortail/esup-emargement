@@ -64,7 +64,7 @@ public class TypeSessionService {
 	
 	@Transactional
 	public int updateTypeSession(String emargementcontext) {
-		List <String> list =  checkTypeSession();
+		List <String> list = getTypeSessionCategories();
 		int nb= 0;
 		if(!list.isEmpty()) {
 			for(String key : list) {
