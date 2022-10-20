@@ -612,7 +612,7 @@ public class AdeService {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		List<Prefs> prefsAdeSession = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_SESSION);
 		String sessionId = "";
-		if(!prefsAdeSession.isEmpty() && !forceNewId){
+		if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty() && !forceNewId){
 			sessionId = prefsAdeSession.get(0).getValue();
 		}else {
 			String urlConnexion = "";
