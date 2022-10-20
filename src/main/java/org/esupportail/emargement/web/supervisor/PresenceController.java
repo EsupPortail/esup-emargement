@@ -505,10 +505,10 @@ public class PresenceController {
     @Transactional
     @PostMapping("/supervisor/senEmailPdf")
     public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
-    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("emails") List<String> emails, @RequestParam(value="courriels", required = false) 
+    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam(value="emails", required = false) List<String> emails, @RequestParam(value="courriels", required = false) 
     		String courriels, String comment, HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
     	
-    	if(!emails.isEmpty()) {
+    	if(emails!= null && !emails.isEmpty() || courriels !=null) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
             SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
@@ -535,10 +535,12 @@ public class PresenceController {
     			String fileName = se.getNomSessionEpreuve() + ".pdf";
     			String[] ccArray = {};
     			int i = 0;
-	    		for(String email : emails) {
-	    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
-	    			i++;
-	    		}
+    			if(emails!= null && !emails.isEmpty()){
+		    		for(String email : emails) {
+		    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
+		    			i++;
+		    		}
+    			}
 	    		if(courriels!=null) {
 	    			List<String> configsEmail = new ArrayList<>(appliConfigService.getListeGestionnaires());
 	    			String [] splitCourriels = courriels.split(",");
@@ -551,6 +553,7 @@ public class PresenceController {
 	    			}
 					AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("LISTE_GESTIONNAIRES").get(0);
 					appliConfig.setValue(StringUtils.join(configsEmail,","));
+					appliConfigRepository.save(appliConfig);
 	    		}
 				bos.close();
 	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
