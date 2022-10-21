@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.4</version>
+		<version>2.7.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
@@ -76,6 +76,10 @@
 		 <artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
@@ -99,7 +103,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>5.2.0</version>
+			<version>5.2.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
@@ -134,7 +138,7 @@
 		<dependency>
 		    <groupId>org.webjars</groupId>
 		    <artifactId>font-awesome</artifactId>
-		    <version>6.1.2</version>
+		    <version>6.2.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
@@ -149,7 +153,7 @@
 		<dependency>
 		    <groupId>org.webjars.bower</groupId>
 		    <artifactId>bootstrap-fileinput</artifactId>
-		    <version>5.2.5</version>
+		    <version>5.2.8</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
