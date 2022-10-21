@@ -43,6 +43,7 @@ import org.esupportail.emargement.services.SessionEpreuveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,10 +74,18 @@ public class AdeController {
 	private final static String ITEM = "adeCampus";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	@Value("${emargement.ade.home.url}")
+	private String urlHomeAde;
     
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return ITEM;
+	}
+	
+	@ModelAttribute("adeHomeUrl")
+	public String getAdeHomeUrl() {
+		return urlHomeAde;
 	}
 	
 	@Resource
@@ -135,7 +144,7 @@ public class AdeController {
     
     @Resource 
     LdapService ldapService;
-	
+    
 	//TO DO : spinner + logs + duplication nom
 	
 	@GetMapping(value = "/manager/adeCampus")
@@ -240,10 +249,16 @@ public class AdeController {
 	
 	@PostMapping(value = "/manager/adeCampus/savePref")
 	public String savePref(@PathVariable String emargementContext,String sessionId, @RequestParam("type") String type, 
-			@RequestParam(value="btSelectItem", required = false) List<String> codeAde)  {
+			@RequestParam(value="btSelectItem", required = false) List<String> codeAde) throws IOException, ParserConfigurationException, SAXException  {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
 		preferencesService.updatePrefs(type, StringUtils.join(codeAde, ";;"), eppn, emargementContext);
+		if(ADE_STORED_PROJET.equals(type)){
+			if(sessionId == null) {
+				sessionId= adeService.getSessionId(true, emargementContext);
+			}
+			adeService.getConnectionProject(codeAde.get(0), sessionId);
+		}
 		return String.format("redirect:/%s/manager/adeCampus/params", emargementContext);
 	}
 	
@@ -307,5 +322,11 @@ public class AdeController {
 	
 	public List<String> getRootCategories(){
 		return Arrays.asList(catArray);
+	}
+	
+	@GetMapping(value = "/manager/adeCampus/disconnect")
+	public String disconnect(@PathVariable String emargementContext) {
+		adeService.disconnectSession();
+		return String.format("redirect:/%s/manager/adeCampus", emargementContext);
 	}
 }

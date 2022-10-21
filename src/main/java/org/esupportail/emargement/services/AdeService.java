@@ -839,5 +839,23 @@ public class AdeService {
 		}
 
         return adeResourceBeans; 
-    } 
+    }
+	
+	public void disconnectSession() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<Prefs> prefsAdeSession = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_SESSION);
+		if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty()){
+			try {
+				String url = urlAde + "?sessionId=" + prefsAdeSession.get(0).getValue() + "&function=disconnect";			
+				URL urlConnect = new URL(url);
+				HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
+				con.connect();
+				prefsRepository.delete(prefsAdeSession.get(0));
+			} catch (Exception e) {
+				log.error("impossible de se déconnecter de la session pour l'utilsateur : " + auth.getName(),e);
+			}
+		}else {
+			log.info("Impossible de se déconnecter car aucune session enregistrée pour l'utilsateur : " + auth.getName());
+		}
+	}
 }
