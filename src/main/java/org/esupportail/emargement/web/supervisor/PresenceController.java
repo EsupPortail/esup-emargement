@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
@@ -189,11 +190,23 @@ public class PresenceController {
     public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId, @RequestParam(value ="tc", required = false) Long tc,
-    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) String update,
+    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update,
     		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
     	ModelAndView uiModel= new ModelAndView("supervisor/list"); 
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
+    		TagCheck tagCheck = tagCheckRepository.findById(update).get();
+	    	Groupe gpe = sessionEpreuve.getBlackListGroupe();
+	    	String eppn = (tagCheck.getPerson()!=null)? tagCheck.getPerson().getEppn() : tagCheck.getGuest().getEmail();
+			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
+			if(isBlackListed) {
+				msgError = eppn;
+			}
+			if(!isBlackListed && BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
+				List <Long> idsGpe = new ArrayList<Long>();
+				idsGpe.add(gpe.getId());
+				groupeService.addMember(eppn,idsGpe);
+			}
     	}
    //     uiModel.asMap().clear();
         boolean isSessionLibre = false;

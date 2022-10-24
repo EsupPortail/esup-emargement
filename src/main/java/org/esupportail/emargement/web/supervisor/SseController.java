@@ -1,9 +1,7 @@
 package org.esupportail.emargement.web.supervisor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-import org.esupportail.emargement.services.DataEmitterService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +22,6 @@ public class SseController {
 	public SseController(SseEventBus eventBus) {
 		this.eventBus = eventBus;
 	}
-	
-	@Resource
-	DataEmitterService dataEmitterService;
 
     @GetMapping("/supervisor/register/{id}")
     public SseEmitter register(@PathVariable("id") String id, HttpServletResponse response) {

@@ -1446,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 $("body").scrollTop();
                 
 	            var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId + 
-	            			"&location=" + sessionLocationExpected + "&update=true";
+	            			"&location=" + sessionLocationExpected + "&update=" + tagCheck.id;
 	            $("#resultsBlock").load(url,function(responseText, textStatus, XMLHttpRequest){
 	            	backToTop();
 	            	displayToast();

@@ -393,6 +393,7 @@ public class PresenceService {
 		String [] splitPresence = presence.split(",");
 		List<TagCheck> list = new ArrayList<TagCheck>();
 		if(splitPresence.length>0) {
+			String msgError = "";
 			TypeEmargement typeEmargement = null;
 			boolean isPresent = Boolean.valueOf(splitPresence[0].trim());
 	    	if(isPresent) {
@@ -408,47 +409,58 @@ public class PresenceService {
 	    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
 	    	Date date = (isPresent)? new Date() : null;
 	    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
-	    	String email = (splitPresence.length >3)? splitPresence[3] : "";
-	    	TagCheck presentTagCheck = null;
-	    	if(!eppn.isEmpty()) {
-	    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
-	    	}else if(!email.isEmpty()) {
-	    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
-	    	}
-	    	presentTagCheck.setTypeEmargement(typeEmargement);
-	    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
-	    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
-			if(!isPresent) {
-				presentTagCheck.setProxyPerson(null);
-			}
-	    	presentTagCheck.setTagChecker(tagChecker);
-	    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
 	    	
-	    	presentTagCheck.setTagDate(date);
-	    	presentTagCheck.setContext(contextService.getcurrentContext());
-	    	tagCheckRepository.save(presentTagCheck);
-	    	
-	    	list.add(presentTagCheck);
-	    	tagCheckService.setNomPrenomTagChecks(list, false, false);
-	    	if(presentTagCheck.getTagChecker() != null) {
-	        	List<TagChecker> tcList = new ArrayList<TagChecker>();
-	        	tcList.add(presentTagCheck.getTagChecker());
-		    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
-		    	presentTagCheck.setTagChecker(tcList.get(0));
-	    	}
-	    	
-	    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
-	    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
-	    	float percent = 0;
-	    	if(totalExpected!=0) {
-	    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
-	    	}
-	    	//Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
-	        if(sessionLocationBadged != null) {
-	    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
-	    	}
-	        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, "");
+	    	if(sessionLocationRepository.findById(sessionLocationId).get() != null) {
+		    	SessionEpreuve se = sessionLocationRepository.findById(sessionLocationId).get().getSessionEpreuve();
+		    	Groupe gpe = se.getBlackListGroupe();
+				boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
+		    	String email = (splitPresence.length >3)? splitPresence[3] : "";
+		    	TagCheck presentTagCheck = null;
+		    	if(!eppn.isEmpty()) {
+		    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
+		    	}else if(!email.isEmpty()) {
+		    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
+		    	}
+		    	presentTagCheck.setSessionEpreuve(se);
+		    	presentTagCheck.setTypeEmargement(typeEmargement);
+		    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
+		    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+				TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
+				if(!isPresent) {
+					presentTagCheck.setProxyPerson(null);
+				}
+		    	presentTagCheck.setTagChecker(tagChecker);
+		    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
+		    	
+		    	presentTagCheck.setTagDate(date);
+		    	presentTagCheck.setContext(contextService.getcurrentContext());
+		    	if(!isBlackListed && isPresent || !isBlackListed && !isPresent || isBlackListed && !isPresent) {
+		    		tagCheckRepository.save(presentTagCheck);
+		    	}
+		    	
+		    	list.add(presentTagCheck);
+		    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+		    	if(presentTagCheck.getTagChecker() != null) {
+		        	List<TagChecker> tcList = new ArrayList<TagChecker>();
+		        	tcList.add(presentTagCheck.getTagChecker());
+			    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
+			    	presentTagCheck.setTagChecker(tcList.get(0));
+		    	}
+				if(isBlackListed) {
+					msgError = presentTagCheck.getNomPrenom();
+				}
+		    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
+		    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
+		    	float percent = 0;
+		    	if(totalExpected!=0) {
+		    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
+		    	}
+		    	//Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
+		        if(sessionLocationBadged != null) {
+		    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
+		    	}
+		        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, msgError);
+    		}
 		}
     	return list;
 	}

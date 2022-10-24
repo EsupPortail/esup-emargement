@@ -1,5 +1,6 @@
 package org.esupportail.emargement.services;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -734,6 +735,7 @@ public class TagCheckService {
 									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
 									newTagCheck.setIsBlacklisted(false);
 									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadged.getId());
+									newTagCheck.setNbBadgeage(1);
 								}else {
 									msgError = eppn;
 								}
@@ -918,8 +920,9 @@ public class TagCheckService {
 				null, emargementContext, null);
 	}
 	
-	public void exportTagChecks(String type, Long id, String tempsAmenage, HttpServletResponse response, String emargementContext, String anneeUniv) {
+	public byte[] exportTagChecks(String type, Long id, HttpServletResponse response, String emargementContext, String anneeUniv, boolean signature) {
 		List<TagCheck> list = null;
+		byte[] pdfBytes = null;
         Long count = new Long(0);
         Long presentTotal = new Long(0);
         Long inconnuTotal = new Long(0);
@@ -1183,11 +1186,16 @@ public class TagCheckService {
 	        
 	        Document document = new Document();
 	        document.setMargins(10, 10, 10, 10);
+	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 	        try 
 	        {
-	          response.setContentType("application/pdf");
-	          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
-	          PdfWriter.getInstance(document,  response.getOutputStream());
+	          if(signature) {
+	        	  PdfWriter.getInstance(document, byteArrayOutputStream);  
+	          }else {
+		          response.setContentType("application/pdf");
+		          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+		          PdfWriter.getInstance(document,  response.getOutputStream());
+	          }
 	         
 	          document.open();
 
@@ -1204,10 +1212,12 @@ public class TagCheckService {
 	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 						null, emargementContext, null);
 	        }
-	       
+	        
 	        document.close();
-			
-			
+	        if(signature) {
+	        	pdfBytes = byteArrayOutputStream.toByteArray();
+	        }
+	       
 		}else if("CSV".equals(type)){
 			try {
 				
@@ -1289,6 +1299,8 @@ public class TagCheckService {
 				e.printStackTrace();
 			}
 		}
+		
+		return pdfBytes;
 	}
 	
 	public String getContextWs(EsupNfcTagLog esupNfcTagLog) throws ParseException {

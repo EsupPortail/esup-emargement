@@ -151,10 +151,10 @@
 					</ul>
 			    </div>
 			
-            <div class="alert alert-danger  fade d-none" id="customMsg">
-            	<span class="fw-bold"></span> Cette personne appartient au groupe des individus non autorisés.
+            <div th:classappend ="${msgError == null} ? 'd-none' : ''" class="alert alert-danger alert-dismissible mt-2" id="customMsg">
+            	<span class="fw-bold" th:if="${msgError != null}" th:text="${msgError + ' : '}"></span> Cette personne appartient au groupe des individus non autorisés.
 			</div>
-			<div class="alert alert-danger  alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">
+			<div class="alert alert-danger alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">
 	           	<span class="fw-bold"  th:text="${nbEmails}"></span> mail(s envoyé(s)
 	           	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
