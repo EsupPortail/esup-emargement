@@ -707,10 +707,14 @@ public class AdeService {
 							person = new Person();
 							person.setContext(ctx);
 							List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
-							person.setEppn(ldapUsers.get(0).getEppn());
-							person.setNumIdentifiant(code);
-							person.setType("student");
-							personRepository.save(person);
+							if(!ldapUsers.isEmpty()) {
+								person.setEppn(ldapUsers.get(0).getEppn());
+								person.setNumIdentifiant(code);
+								person.setType("student");
+								personRepository.save(person);
+							}else {
+								log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+							}
 						}
 						TagCheck tc = new TagCheck();
 						//A voir 
