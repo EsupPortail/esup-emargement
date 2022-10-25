@@ -167,9 +167,7 @@ public class AdeService {
 		String url = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree="+ tree + "&detail=" + detail + 
 				"&category=" + category + idParam;
 		log.debug("Fatherid  " + category + " : " + url);
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(url);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("category");
@@ -195,9 +193,7 @@ public class AdeService {
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom&fatherIds=" + fatherId + idParam;
 		List<AdeClassroomBean> adeBeans = new ArrayList<AdeClassroomBean>();
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlClassroom);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("rooms");
@@ -247,9 +243,7 @@ public class AdeService {
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlInstructors = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=instructor&fatherIds=" + fatherId + idParam;
 		List<AdeInstructorBean> adeBeans = new ArrayList<AdeInstructorBean>();
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlInstructors);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("instructors");
@@ -286,9 +280,7 @@ public class AdeService {
 		HashMap<String, String> mapClassrooms = new HashMap<String, String>();
 		String detail = "8";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" +detail + "&category=classroom";
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlClassroom);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("category");
@@ -320,10 +312,8 @@ public class AdeService {
 	public List<String>  getMembersOfEvent(String sessionId, String idResource, String target) {
 		String detail = "13";
 		String urlMembers = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&id=" + idResource + "&detail=" + detail;
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		List<String> listMembers = new ArrayList<String>();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlMembers);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("resources");
@@ -369,10 +359,8 @@ public class AdeService {
 	public Map<String, String> getMapComposantes(String sessionId) throws IOException, ParserConfigurationException, SAXException {
 		String detail = "12";
 		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false&category=trainee&path=1&detail=" +detail;
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		HashMap<String, String> mapComposantes = new HashMap<String, String>();
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlAllResources);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("category");
@@ -418,13 +406,11 @@ public class AdeService {
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		String detail = "8";
 		String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&resources=" + resourceId + "&detail=" +detail;
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		List<AdeResourceBean> adeBeans = new ArrayList<AdeResourceBean>();
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		Date dateMin = (strDateMin !=null && !strDateMin.isEmpty())? new SimpleDateFormat("yyyy-MM-dd").parse(strDateMin) : new Date();
 		Date dateMax = (strDateMax !=null && !strDateMax.isEmpty())? new SimpleDateFormat("yyyy-MM-dd").parse(strDateMax) : null;
 		try {
-			dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			Document doc = getDocument(urlEvents);
 			doc.getDocumentElement().normalize();
 			NodeList list = doc.getElementsByTagName("event");
@@ -529,6 +515,7 @@ public class AdeService {
 		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.parse(inputStream);
 		inputStream.close();
@@ -688,7 +675,7 @@ public class AdeService {
 				List<String> allMembers = new ArrayList<String>();
 				for(Map<Long, String> map : listAdeTrainees) {
 					for (Entry<Long, String> entry : map.entrySet()) {
-						allMembers = getMembersOfEvent(sessionId, entry.getKey().toString(), "members") ;
+						allMembers.addAll(getMembersOfEvent(sessionId, entry.getKey().toString(), "members"));
 					}
 				}
 				List <String> allCodes = new ArrayList<String>();
