@@ -34,6 +34,7 @@ import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
+import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -73,6 +74,9 @@ public class AdeController {
 	
 	private final static String ITEM = "adeCampus";
 	
+	@Resource
+	HelpService helpService;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Value("${emargement.ade.home.url}")
@@ -81,6 +85,11 @@ public class AdeController {
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return ITEM;
+	}
+	
+	@ModelAttribute("help")
+	public String getHelp() {
+		return helpService.getValueOfKey(ITEM);
 	}
 	
 	@ModelAttribute("adeHomeUrl")
