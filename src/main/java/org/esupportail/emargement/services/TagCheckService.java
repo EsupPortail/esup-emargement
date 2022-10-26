@@ -920,7 +920,7 @@ public class TagCheckService {
 				null, emargementContext, null);
 	}
 	
-	public byte[] exportTagChecks(String type, Long id, HttpServletResponse response, String emargementContext, String anneeUniv, boolean signature) {
+	public byte[] exportTagChecks(String type, Long id,  String tempsAmenage, HttpServletResponse response, String emargementContext, String anneeUniv) {
 		List<TagCheck> list = null;
 		byte[] pdfBytes = null;
         Long count = new Long(0);
@@ -1189,13 +1189,10 @@ public class TagCheckService {
 	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 	        try 
 	        {
-	          if(signature) {
-	        	  PdfWriter.getInstance(document, byteArrayOutputStream);  
-	          }else {
-		          response.setContentType("application/pdf");
-		          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
-		          PdfWriter.getInstance(document,  response.getOutputStream());
-	          }
+        	  PdfWriter.getInstance(document, byteArrayOutputStream);  
+	          response.setContentType("application/pdf");
+	          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+	          PdfWriter.getInstance(document,  response.getOutputStream());
 	         
 	          document.open();
 
@@ -1214,9 +1211,7 @@ public class TagCheckService {
 	        }
 	        
 	        document.close();
-	        if(signature) {
-	        	pdfBytes = byteArrayOutputStream.toByteArray();
-	        }
+	        pdfBytes = byteArrayOutputStream.toByteArray();
 	       
 		}else if("CSV".equals(type)){
 			try {
