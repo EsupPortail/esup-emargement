@@ -685,31 +685,40 @@ public class AdeService {
 					}
 				}
 				if(!allCodes.isEmpty()) {
+					List<String> errors = new ArrayList<String>();
 					for (String code : allCodes) {
 						List<Person> persons = personRepository.findByNumIdentifiant(code);
 						Person person = null;
 						if(!persons.isEmpty()) {
 							person = persons.get(0);
 						}else {
-							person = new Person();
-							person.setContext(ctx);
 							List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
 							if(!ldapUsers.isEmpty()) {
+								person = new Person();
+								person.setContext(ctx);
 								person.setEppn(ldapUsers.get(0).getEppn());
 								person.setNumIdentifiant(code);
 								person.setType("student");
 								personRepository.save(person);
-							}else {
-								log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
 							}
 						}
-						TagCheck tc = new TagCheck();
-						//A voir 
-						//tc.setCodeEtape(codeEtape);
-						tc.setContext(ctx);
-						tc.setPerson(person);
-						tc.setSessionEpreuve(se);
-						tagCheckRepository.save(tc);
+						if(person != null) {
+							TagCheck tc = new TagCheck();
+							//A voir 
+							//tc.setCodeEtape(codeEtape);
+							tc.setContext(ctx);
+							tc.setPerson(person);
+							tc.setSessionEpreuve(se);
+							tagCheckRepository.save(tc);
+						}else {
+							errors.add(code);
+							log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+						}
+					}
+					if(!errors.isEmpty()) {
+						SimpleDateFormat dt1 = new SimpleDateFormat("dd-MM-yy");
+						logService.log(ACTION.ADE_IMPORT, RETCODE.FAILED, se.getNomSessionEpreuve() + " - "  + dt1.format(ade.getSessionEpreuve().getDateExamen()) +
+								" - étudiants non importés : "  + StringUtils.join(errors, ","), eppn, null, emargementContext, eppn);
 					}
 				}
 			}
