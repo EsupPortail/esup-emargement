@@ -405,11 +405,10 @@ public class AdeService {
 	
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		String detail = "8";
-		String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&resources=" + resourceId + "&detail=" +detail;
+		String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ formatDate(strDateMin) + 
+				"&endDate=" + formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
 		List<AdeResourceBean> adeBeans = new ArrayList<AdeResourceBean>();
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-		Date dateMin = (strDateMin !=null && !strDateMin.isEmpty())? new SimpleDateFormat("yyyy-MM-dd").parse(strDateMin) : new Date();
-		Date dateMax = (strDateMax !=null && !strDateMax.isEmpty())? new SimpleDateFormat("yyyy-MM-dd").parse(strDateMax) : null;
 		try {
 			Document doc = getDocument(urlEvents);
 			doc.getDocumentElement().normalize();
@@ -424,80 +423,76 @@ public class AdeService {
 						Element element = (Element) node;
 						if((idEvents != null && !idEvents.isEmpty() && idEvents.contains(Long.valueOf(element.getAttribute("id")))) || idEvents == null ){
 							AdeResourceBean adeResourceBean = new AdeResourceBean();
-							int compareMax = (dateMax == null)? 0 : toolUtil.compareDate(formatter.parse(element.getAttribute("date")), dateMax, "yyyy-MM-dd");
-							int compare = toolUtil.compareDate(formatter.parse(element.getAttribute("date")), dateMin, "yyyy-MM-dd");
-							if(compare >=0 && compareMax < 1){
-								Long eventId = Long.valueOf(element.getAttribute("id"));
-								boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventId(eventId) >0)? true : false;
-								if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)){
-								SessionEpreuve se = new SessionEpreuve();
-								se.setNomSessionEpreuve( element.getAttribute("name"));
-								se.setDateExamen(formatter.parse(element.getAttribute("date")));
-								se.setHeureEpreuve(formatter1.parse(element.getAttribute("startHour")));
-								se.setFinEpreuve(formatter1.parse(element.getAttribute("endHour")));
-								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
-								//pour l'instant
-								if(!campusRepository.findAll().isEmpty()) {
-									se.setCampus(campusRepository.findAll().get(0));
-								}
-								adeResourceBean.setSessionEpreuve(se);
-								if(isAlreadyimport) {
-									SessionEpreuve seOld = sessionEpreuveRepository.findByAdeEventId(eventId).get(0);
-									se.setTypeSession(seOld.getTypeSession());
-									se.setDateCreation(seOld.getDateCreation());
-								}else {
-									se.setTypeSession(getTypeSession(element.getAttribute("name")));
-								}
-								adeResourceBean.setAlreadyimport(isAlreadyimport);
-								adeResourceBean.setEventId(eventId);
-								Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element.getAttribute("lastUpdate"));  
-								adeResourceBean.setLastUpdate(lastUpdate);
-								NodeList branches = element.getElementsByTagName("resources");
-								for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-									Node node2 = branches.item(temp2);
-									if (node2.getParentNode().equals(node)) {
-										NodeList resource = element.getElementsByTagName("resource");
-	
-										for (int temp3 = 0; temp3 < resource.getLength(); temp3++) {
-											Node node3 = resource.item(temp3);
-											if (node3.getParentNode().equals(node2)) {
-												Element element3 = (Element) node3; 
-												String category = element3.getAttribute("category");
-												if(appliConfigService.getCategoriesAde().get(1).equals(category)){
-													List<Map<Long,String>> category6 = (adeResourceBean.getCategory6() == null)? 
-															new ArrayList<>() : adeResourceBean.getCategory6();
-															HashMap<Long, String> mapCategory6= new HashMap<>();
-															mapCategory6.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															category6.add(mapCategory6);
-															adeResourceBean.setCategory6(category6);
-												}else if("trainee".equals(category)){
-													List<Map<Long,String>> trainees = (adeResourceBean.getTrainees() == null)? 
-															new ArrayList<>() : adeResourceBean.getTrainees();
-															HashMap<Long, String> maptrainees= new HashMap<>();
-															maptrainees.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															trainees.add(maptrainees);
-															adeResourceBean.setTrainees(trainees);	
-												}else if("instructor".equals(category)){
-													List<Map<Long,String>> instructors = (adeResourceBean.getInstructors() == null)? 
-															new ArrayList<>() : adeResourceBean.getInstructors();
-															HashMap<Long, String> mapInstructors= new HashMap<>();
-															mapInstructors.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															instructors.add(mapInstructors);
-															adeResourceBean.setInstructors(instructors);
-												}else if("classroom".equals(category)){
-													List<Map<Long,String>>  classrooms = (adeResourceBean.getClassrooms() == null)? 
-															new ArrayList<>() : adeResourceBean.getClassrooms();
-															HashMap<Long, String> mapClassrooms= new HashMap<>();
-															mapClassrooms.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															classrooms.add(mapClassrooms);
-															adeResourceBean.setClassrooms(classrooms);	  
-												}
+							Long eventId = Long.valueOf(element.getAttribute("id"));
+							boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventId(eventId) >0)? true : false;
+							if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)){
+							SessionEpreuve se = new SessionEpreuve();
+							se.setNomSessionEpreuve( element.getAttribute("name"));
+							se.setDateExamen(formatter.parse(element.getAttribute("date")));
+							se.setHeureEpreuve(formatter1.parse(element.getAttribute("startHour")));
+							se.setFinEpreuve(formatter1.parse(element.getAttribute("endHour")));
+							se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
+							//pour l'instant
+							if(!campusRepository.findAll().isEmpty()) {
+								se.setCampus(campusRepository.findAll().get(0));
+							}
+							adeResourceBean.setSessionEpreuve(se);
+							if(isAlreadyimport) {
+								SessionEpreuve seOld = sessionEpreuveRepository.findByAdeEventId(eventId).get(0);
+								se.setTypeSession(seOld.getTypeSession());
+								se.setDateCreation(seOld.getDateCreation());
+							}else {
+								se.setTypeSession(getTypeSession(element.getAttribute("name")));
+							}
+							adeResourceBean.setAlreadyimport(isAlreadyimport);
+							adeResourceBean.setEventId(eventId);
+							Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element.getAttribute("lastUpdate"));  
+							adeResourceBean.setLastUpdate(lastUpdate);
+							NodeList branches = element.getElementsByTagName("resources");
+							for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
+								Node node2 = branches.item(temp2);
+								if (node2.getParentNode().equals(node)) {
+									NodeList resource = element.getElementsByTagName("resource");
+
+									for (int temp3 = 0; temp3 < resource.getLength(); temp3++) {
+										Node node3 = resource.item(temp3);
+										if (node3.getParentNode().equals(node2)) {
+											Element element3 = (Element) node3; 
+											String category = element3.getAttribute("category");
+											if(appliConfigService.getCategoriesAde().get(1).equals(category)){
+												List<Map<Long,String>> category6 = (adeResourceBean.getCategory6() == null)? 
+														new ArrayList<>() : adeResourceBean.getCategory6();
+														HashMap<Long, String> mapCategory6= new HashMap<>();
+														mapCategory6.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
+														category6.add(mapCategory6);
+														adeResourceBean.setCategory6(category6);
+											}else if("trainee".equals(category)){
+												List<Map<Long,String>> trainees = (adeResourceBean.getTrainees() == null)? 
+														new ArrayList<>() : adeResourceBean.getTrainees();
+														HashMap<Long, String> maptrainees= new HashMap<>();
+														maptrainees.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
+														trainees.add(maptrainees);
+														adeResourceBean.setTrainees(trainees);	
+											}else if("instructor".equals(category)){
+												List<Map<Long,String>> instructors = (adeResourceBean.getInstructors() == null)? 
+														new ArrayList<>() : adeResourceBean.getInstructors();
+														HashMap<Long, String> mapInstructors= new HashMap<>();
+														mapInstructors.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
+														instructors.add(mapInstructors);
+														adeResourceBean.setInstructors(instructors);
+											}else if("classroom".equals(category)){
+												List<Map<Long,String>>  classrooms = (adeResourceBean.getClassrooms() == null)? 
+														new ArrayList<>() : adeResourceBean.getClassrooms();
+														HashMap<Long, String> mapClassrooms= new HashMap<>();
+														mapClassrooms.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
+														classrooms.add(mapClassrooms);
+														adeResourceBean.setClassrooms(classrooms);	  
 											}
 										}
 									}
 								}
-								adeBeans.add(adeResourceBean);
-								}
+							}
+							adeBeans.add(adeResourceBean);
 							}
 						}
 					}
@@ -685,40 +680,31 @@ public class AdeService {
 					}
 				}
 				if(!allCodes.isEmpty()) {
-					List<String> errors = new ArrayList<String>();
 					for (String code : allCodes) {
 						List<Person> persons = personRepository.findByNumIdentifiant(code);
 						Person person = null;
 						if(!persons.isEmpty()) {
 							person = persons.get(0);
 						}else {
+							person = new Person();
+							person.setContext(ctx);
 							List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
 							if(!ldapUsers.isEmpty()) {
-								person = new Person();
-								person.setContext(ctx);
 								person.setEppn(ldapUsers.get(0).getEppn());
 								person.setNumIdentifiant(code);
 								person.setType("student");
 								personRepository.save(person);
+							}else {
+								log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
 							}
 						}
-						if(person != null) {
-							TagCheck tc = new TagCheck();
-							//A voir 
-							//tc.setCodeEtape(codeEtape);
-							tc.setContext(ctx);
-							tc.setPerson(person);
-							tc.setSessionEpreuve(se);
-							tagCheckRepository.save(tc);
-						}else {
-							errors.add(code);
-							log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
-						}
-					}
-					if(!errors.isEmpty()) {
-						SimpleDateFormat dt1 = new SimpleDateFormat("dd-MM-yy");
-						logService.log(ACTION.ADE_IMPORT, RETCODE.FAILED, se.getNomSessionEpreuve() + " - "  + dt1.format(ade.getSessionEpreuve().getDateExamen()) +
-								" - étudiants non importés : "  + StringUtils.join(errors, ","), eppn, null, emargementContext, eppn);
+						TagCheck tc = new TagCheck();
+						//A voir 
+						//tc.setCodeEtape(codeEtape);
+						tc.setContext(ctx);
+						tc.setPerson(person);
+						tc.setSessionEpreuve(se);
+						tagCheckRepository.save(tc);
 					}
 				}
 			}
@@ -857,5 +843,11 @@ public class AdeService {
 		}else {
 			log.info("Impossible de se déconnecter car aucune session enregistrée pour l'utilsateur : " + auth.getName());
 		}
+	}
+	
+	public String formatDate(String date) {
+		
+		String [] splitDate = date.split("-");
+		return splitDate[1].concat("/").concat(splitDate[2]).concat("/").concat(splitDate[0]);
 	}
 }
