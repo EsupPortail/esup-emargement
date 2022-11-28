@@ -183,14 +183,7 @@ public class SessionLocationService {
     }
     
     public void deleteAllTLocationsBySessionEpreuveId(Long id) {
-    	
     	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuveId(id);
-    	
-    	if(!sls.isEmpty()) {
-    		for(SessionLocation sl : sls) {
-    			sessionLocationRepository.delete(sl);;
-    		}
-    	}
-    	
+    	sessionLocationRepository.deleteAll(sls);;
     }
 }

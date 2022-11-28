@@ -40,14 +40,9 @@ public class StoredFileService {
 		return storedFile;
 	}
 	
-	@Transactional
+
 	public void deleteAllStoredFiles(SessionEpreuve se) {
 		List<StoredFile> sfs = storedFileRepository.findBySessionEpreuve(se);
-		
-		if(!sfs.isEmpty()) {
-			for(StoredFile sf : sfs) {
-				storedFileRepository.delete(sf);
-			}
-		}
+		storedFileRepository.deleteAll(sfs);
 	}
 }
