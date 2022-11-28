@@ -346,18 +346,10 @@ public class TagCheckController {
     		Person person = tagCheck.getPerson();
     		if(person!=null) {
 	    		tagCheckRepository.delete(tagCheck);
-	    		Long count = tagCheckRepository.countTagCheckByPerson(person);
-	    		if(count==0) {
-	    			personRepository.delete(person);
-	    		}
     		}else {
     			Guest guest = tagCheck.getGuest();
         		if(guest!=null) {
     	    		tagCheckRepository.delete(tagCheck);
-    	    		Long count = tagCheckRepository.countTagCheckByGuest(guest);
-    	    		if(count==0) {
-    	    			guestRepository.delete(guest);
-    	    		}
         		}
     		}
     	}

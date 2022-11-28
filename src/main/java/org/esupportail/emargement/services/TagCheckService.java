@@ -473,27 +473,6 @@ public class TagCheckService {
 		if(!tagChecks.isEmpty()) {
 			for(TagCheck tc : tagChecks){
 				tagCheckRepository.deleteById(tc.getId());
-				Long count = null;
-				Long countGroupe = null;
-				Person person = tc.getPerson();
-				Guest guest = tc.getGuest();
-				if(person != null) {
-					count = tagCheckRepository.countTagCheckByPerson(person);
-					List<Person> persons = new ArrayList<Person>();
-					persons.add(person);
-					countGroupe = groupeRepository.countByPersonsIn(persons);
-					if(count==0 && countGroupe==0) {
-		    			personRepository.delete(person);
-		    		}
-				}else if(guest != null) {
-					count = tagCheckRepository.countTagCheckByGuest(guest);
-					List<Guest> guests = new ArrayList<Guest>();
-					guests.add(guest);
-					countGroupe = groupeRepository.countByGuestsIn(guests);
-					if(count==0 && countGroupe==0){
-		    			guestRepository.delete(guest);
-		    		}
-				}
 			}
 		}
     }
