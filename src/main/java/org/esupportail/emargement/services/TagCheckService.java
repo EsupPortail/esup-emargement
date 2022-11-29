@@ -470,7 +470,7 @@ public class TagCheckService {
     
     public void deleteAllTagChecksBySessionEpreuveId(Long sessionEpreuveId) {
 		List<TagCheck> tagChecks =  tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
-		tagCheckRepository.deleteByAll(tagChecks);
+		tagCheckRepository.deleteAll(tagChecks);
     }
     
 	public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy){

@@ -20,7 +20,7 @@ public interface LocationRepository extends JpaRepository<Location, Long>{
 	
 	List<Location> findLocationByCampus(Campus campus);
 	
-	List<Location> findByAdeClassRoomId(Long id);
+	List<Location> findByAdeClassRoomIdAndContext(Long id, Context context);
 	
 	List<Location> findLocationByContext(Context context);
 	

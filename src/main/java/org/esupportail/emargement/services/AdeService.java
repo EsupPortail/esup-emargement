@@ -720,8 +720,8 @@ public class AdeService {
 							for(AdeClassroomBean bean : adeClassroomBeans) {
 								Location location = null;
 								Long adeClassRoomId = bean.getIdClassRoom();
-								if(!locationRepository.findByAdeClassRoomId(adeClassRoomId).isEmpty()){
-									location = locationRepository.findByAdeClassRoomId(adeClassRoomId).get(0);
+								if(!locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).isEmpty()){
+									location = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).get(0);
 								}else {
 									location = new Location();
 									location.setAdeClassRoomId(adeClassRoomId);
