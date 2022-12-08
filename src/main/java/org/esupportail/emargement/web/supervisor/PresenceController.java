@@ -516,7 +516,7 @@ public class PresenceController {
     }
     
     @Transactional
-    @PostMapping("/supervisor/senEmailPdf")
+    @PostMapping("/supervisor/sendEmailPdf")
     public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
     		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam(value="emails", required = false) List<String> emails, @RequestParam(value="courriels", required = false) 
     		String courriels, String comment, HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
@@ -527,20 +527,7 @@ public class PresenceController {
             SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
 			try 
 			{
-				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				PdfPTable table = presenceService.getTablePdf(response, sl, se, emargementContext);
-				Document document = new Document();
-				document.setMargins(10, 10, 10, 10);
-				PdfWriter.getInstance(document, bos);
-				document.open();
-				document.add(table);
-				Paragraph paragraph = new Paragraph(se.getComment());
-				paragraph.setSpacingBefore(10f);
-				document.add(paragraph);
-				document.close();
-				byte[] bytes = bos.toByteArray();
-				InputStream inputStream = new ByteArrayInputStream(bytes);
-    		    DateFormat dateFormat = new SimpleDateFormat("mm-dd-yyyy");  
+    		    DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");  
     		    String strDate = dateFormat.format(se.getDateExamen());  
     		    String strDateFin = (se.getDateFin() != null)? " / ".concat(dateFormat.format(se.getDateFin())) : "";  
     			String subject = "Emargement : " + se.getNomSessionEpreuve() + " - " + strDate + strDateFin; 
@@ -548,27 +535,44 @@ public class PresenceController {
     			String fileName = se.getNomSessionEpreuve() + ".pdf";
     			String[] ccArray = {};
     			int i = 0;
-    			if(emails!= null && !emails.isEmpty()){
-		    		for(String email : emails) {
-		    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
-		    			i++;
-		    		}
-    			}
+    			String [] splitCourriels =  null;
 	    		if(courriels!=null) {
 	    			List<String> configsEmail = new ArrayList<>(appliConfigService.getListeGestionnaires());
-	    			String [] splitCourriels = courriels.split(",");
+	    			splitCourriels = courriels.split(",");
 	    			for(int k=0; k<splitCourriels.length; k++) {
 	    				if(!configsEmail.contains(splitCourriels[k])){
 	    					configsEmail.add(splitCourriels[k]);
-
 	    				}
-	    				emailService.sendMessageWithAttachment(splitCourriels[k], subject, bodyMsg, null, fileName, ccArray, inputStream);
+	    				//emailService.sendMessageWithAttachment(splitCourriels[k], subject, bodyMsg, null, fileName, ccArray, inputStream);
 	    			}
 					AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("LISTE_GESTIONNAIRES").get(0);
 					appliConfig.setValue(StringUtils.join(configsEmail,","));
 					appliConfigRepository.save(appliConfig);
 	    		}
-				bos.close();
+    			if(emails!= null && !emails.isEmpty()){
+    				if(courriels!=null) {
+    					emails.addAll(Arrays.asList(splitCourriels));
+    				}
+		    		for(String email : emails) {
+						ByteArrayOutputStream bos = new ByteArrayOutputStream();
+						PdfPTable table = presenceService.getTablePdf(response, sl, se, emargementContext);
+						Document document = new Document();
+						document.setMargins(10, 10, 10, 10);
+						PdfWriter.getInstance(document, bos);
+						document.open();
+						document.add(table);
+						Paragraph paragraph = new Paragraph(se.getComment());
+						paragraph.setSpacingBefore(10f);
+						document.add(paragraph);
+						document.close();
+						byte[] bytes = bos.toByteArray();
+						InputStream inputStream = new ByteArrayInputStream(bytes);
+		    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
+		    			i++;
+		    			bos.close();
+		    		}
+    			}
+				
 	        	logService.log(ACTION.SEND_PDF_EXPORT, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
 	        	log.info("Envoi Pdf export " + se.getNomSessionEpreuve());
 	        	redirectAttributes.addAttribute("nbEmails", i);
