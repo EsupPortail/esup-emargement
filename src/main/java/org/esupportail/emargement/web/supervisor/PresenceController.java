@@ -196,6 +196,7 @@ public class PresenceController {
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
     		TagCheck tagCheck = tagCheckRepository.findById(update).get();
+    		uiModel.addObject("tagCheck", tagCheck);
 	    	Groupe gpe = sessionEpreuve.getBlackListGroupe();
 	    	String eppn = (tagCheck.getPerson()!=null)? tagCheck.getPerson().getEppn() : tagCheck.getGuest().getEmail();
 			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
