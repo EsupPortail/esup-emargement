@@ -710,7 +710,6 @@ public class TagCheckService {
 									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
 									newTagCheck.setIsBlacklisted(false);
 									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadged.getId());
-									newTagCheck.setNbBadgeage(1);
 								}else {
 									msgError = eppn;
 								}
