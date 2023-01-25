@@ -5,12 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -23,6 +26,8 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 @Component
 public class ToolUtil {
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public int compareDate(Date date1, Date date2, String pattern) {
 		int i = -1;
