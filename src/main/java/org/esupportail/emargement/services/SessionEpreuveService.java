@@ -549,7 +549,13 @@ public class SessionEpreuveService {
 				if(!list.isEmpty()) {
 					for(SessionEpreuve se : list) {
 						int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
-						if(check<0) {
+						int checkIfDateFinIsOk = -1;
+						if(se.getDateFin() != null) {
+							checkIfDateFinIsOk = toolUtil.compareDate(se.getDateFin(), new Date(), "yyyy-MM-dd");
+						}else {
+							checkIfDateFinIsOk = check;
+						}
+						if(check<0 && checkIfDateFinIsOk < 0) {
 							se.setStatut(Statut.CLOSED);
 							sessionEpreuveRepository.save(se);
 							logService.log(ACTION.CLOSE_SESSION, RETCODE.SUCCESS, "Session : " + se.getNomSessionEpreuve() , null, null, se.getContext().getKey(), null);

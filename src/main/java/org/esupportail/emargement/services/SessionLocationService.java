@@ -162,7 +162,7 @@ public class SessionLocationService {
 					checkIfDateFinIsOk = check;
 				}
 				log.debug("var checkIfDateFinIsOk :" + checkIfDateFinIsOk);
-				if(!Statut.CLOSED.equals(tc.getSessionEpreuve().getStatut()) && (check==0 || checkIfDateFinIsOk>=0)) {
+				if(!Statut.CLOSED.equals(tc.getSessionEpreuve().getStatut()) && (check==0 || check<=0 && checkIfDateFinIsOk>=0)) {
 					SessionLocation sl = tc.getSessionLocation();
 					SessionEpreuve se = sl.getSessionEpreuve();
 					DateFormat df = new SimpleDateFormat("HH:mm");

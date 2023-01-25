@@ -25,11 +25,21 @@ import com.google.zxing.qrcode.QRCodeWriter;
 public class ToolUtil {
 	
 	public int compareDate(Date date1, Date date2, String pattern) {
+		int i = -1;
 		DateFormat dateFormat = new SimpleDateFormat(pattern);  
-        String strDate1= dateFormat.format(date1);
+        String strDate1 = dateFormat.format(date1);
         String strDate2 =  dateFormat.format(date2);
-		
-        return strDate1.compareTo(strDate2);
+
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        try {
+			Date date10 = sdf.parse(strDate1);
+			Date date20 = sdf.parse(strDate2);
+			i = date10.compareTo(date20);
+		} catch (ParseException e) {
+			log.error("Erreur lors du trairement de la date ", e);
+		}
+
+        return i;
 	}
 	
 	public Pageable updatePageable(final Pageable source, final int size)
