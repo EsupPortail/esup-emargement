@@ -1889,6 +1889,10 @@ document.addEventListener('DOMContentLoaded', function() {
     	document.getElementById("displaySalles").submit();
     });
     
+	$("#strDateMin").on("change", function (event){
+		$("#strDateMax").val($("#strDateMin").val());
+	});
+    
     const uuid = ID();
     const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
 	eventSource.addEventListener('nbImportSession', response => {

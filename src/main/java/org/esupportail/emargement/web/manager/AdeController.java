@@ -189,7 +189,6 @@ public class AdeController {
 				uiModel.addAttribute("strDateMax", strDateMax);
 				uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
 				uiModel.addAttribute("codeComposante", codeComposante);
-				uiModel.addAttribute("typesSessions", typeSessionRepository.findAll());
 				uiModel.addAttribute("campuses", campusRepository.findAll());
 				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 			}
@@ -231,7 +230,7 @@ public class AdeController {
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/importEvents")
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
-			@RequestParam(value="typesSession", required = false) List<String> typesSession, @RequestParam(value="campuses", required = false) List<String> campuses,
+			@RequestParam(value="campuses", required = false) List<String> campuses,
 			@RequestParam(value="codeComposante") String codeComposante, @RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="existingSe", required = false) String existingSe,
 			@RequestParam(value="strDateMax", required = false) String strDateMax) throws IOException, ParserConfigurationException, SAXException, ParseException {
@@ -247,7 +246,7 @@ public class AdeController {
 			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante);
 			
 			if(!beans.isEmpty()) {
-				adeService.saveEvents(beans, sessionId, emargementContext, typesSession, campuses, auth.getName());
+				adeService.saveEvents(beans, sessionId, emargementContext, campuses, auth.getName(), false, null);
 			}else {
 				log.info("Aucun évènement à importer");
 			}

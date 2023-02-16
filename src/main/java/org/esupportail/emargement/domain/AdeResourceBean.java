@@ -22,6 +22,8 @@ public class AdeResourceBean {
 	
 	public Date lastUpdate;
 	
+	public String typeEvent;
+	
 	public Long getEventId() {
 		return eventId;
 	}
@@ -85,5 +87,12 @@ public class AdeResourceBean {
 	public void setLastUpdate(Date lastUpdate) {
 		this.lastUpdate = lastUpdate;
 	}
-	
+
+	public String getTypeEvent() {
+		return typeEvent;
+	}
+
+	public void setTypeEvent(String typeEvent) {
+		this.typeEvent = typeEvent;
+	}
 }

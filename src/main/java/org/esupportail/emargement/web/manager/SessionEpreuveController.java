@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.Context;
@@ -37,6 +38,7 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
+import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EventService;
 import org.esupportail.emargement.services.HelpService;
@@ -77,6 +79,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.xml.sax.SAXException;
 
 import flexjson.JSONSerializer;
 import net.fortuna.ical4j.data.ParserException;
@@ -139,6 +142,9 @@ public class SessionEpreuveController {
 	
 	@Resource
 	HelpService helpService;
+	
+	@Resource
+	AdeService adeService;
 	
 	@Autowired
 	ToolUtil toolUtil;
@@ -535,5 +541,13 @@ public class SessionEpreuveController {
 		}
 	}
 	
-	
+	@Transactional
+    @PostMapping("/manager/sessionEpreuve/updateAde/{id}")
+	public String  updateSessionAde(@PathVariable String emargementContext, @PathVariable("id") List<SessionEpreuve> listSe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+		if(listSe != null) {
+			adeService.updateSessionEpreuve(listSe, emargementContext, "manual");
+		}
+		
+		return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+	}
 }

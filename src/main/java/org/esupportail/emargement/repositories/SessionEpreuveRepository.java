@@ -34,6 +34,10 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
+	List<SessionEpreuve>  findByContextAndDateExamenGreaterThanEqual(Context context, Date today);
+	
+	List<SessionEpreuve>  findByContextAndDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Context context, Date today, Date endDate);
+	
 	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Date startDate, Date endDate);
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate, Date endDate, Date startDateFin, Date endDateFin);

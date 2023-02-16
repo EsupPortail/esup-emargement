@@ -91,6 +91,7 @@
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="statut">Statut</a></th>
 									<th scope="col"  class ="text-center hiddenBlock">Badgeage</th>
 									<th scope="col"  class ="text-center hiddenBlock">Libre</th>
+									<th scope="col" class ="text-center hiddenBlock" th:if="${isAdeCampusEnabled}">ADE</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Surveillants</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >Inscrits</th>
@@ -112,7 +113,7 @@
 										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
 										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
 									</td>
-									<td th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+									<td th:if="${sessionEpreuve.typeSession != null}" th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
 									<td class ="text-center hiddenBlock">
 										<span class="badge"  th:classappend ="
@@ -125,6 +126,7 @@
 									
 									<td class ="text-center hiddenBlock" th:text="${sessionEpreuve.typeBadgeage}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
+									<td th:if="${isAdeCampusEnabled}"><i th:class="${sessionEpreuve.adeEventId != null} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
@@ -215,9 +217,19 @@
 										    </div>
 										</div>
 										<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-											onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
+											onclick="confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
 										<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-											onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
+											onclick="confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
+										<form th:if="${!sessionEpreuve.isSessionEpreuveClosed and isAdeCampusEnabled and sessionEpreuve.adeEventId != null and 
+												(#dates.createToday().equals(sessionEpreuve.dateExamen)
+												or (sessionEpreuve.dateFin!=null and #dates.createToday().equals(sessionEpreuve.dateFin))
+												or (#dates.createToday().before(sessionEpreuve.dateExamen))
+												or (sessionEpreuve.dateFin!=null
+	                                                  and #dates.createToday().after(sessionEpreuve.dateExamen)
+	                                                  and #dates.createToday().before(sessionEpreuve.dateFin)))  }"  method="post" 
+										th:action="@{/{ctx}/manager/sessionEpreuve/updateAde/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" >
+											<button type="submit" class="btn center ms-2" title="Resynchroniser avec ADE campus"><i class="fa fa-refresh text-primary"></i></button>
+										</form>
 									</td>
 								</tr>
 							</tbody>

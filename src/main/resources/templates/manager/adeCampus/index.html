@@ -48,7 +48,7 @@
 											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date min</label>
 										</div>
 										<div class="col-auto">
-											<input type="date" name="strDateMin"
+											<input type="date" id="strDateMin" name="strDateMin"
 												class="form-control datetimepicker-input"
 												th:value="${strDateMin}">
 										</div>
@@ -56,7 +56,7 @@
 											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date max</label>
 										</div>
 										<div class="col-auto">
-											<input type="date" name="strDateMax"
+											<input type="date" id="strDateMax" name="strDateMax"
 												class="form-control datetimepicker-input"
 												th:value="${strDateMax}">
 										</div>
@@ -101,7 +101,7 @@
 										<th data-sortable="true" data-field="id">Id</th>
 										<th data-sortable="true">Maj</th>
 										<th data-sortable="true">Import</th>
-										<th data-sortable="true" class="table-warning">Type</th>
+										<th data-sortable="true">Type</th>
 										<th data-sortable="true">Nom</th>
 										<th data-sortable="true" data-field="date">Date</th>
 										<th data-sortable="true">Début</th>
@@ -119,11 +119,7 @@
 								    	<td th:text="${#dates.format(event.lastUpdate,'dd-MM-yyyy HH:mm')}" ></td>
 								    	<td th:text="${#dates.format(event.sessionEpreuve.dateCreation,'dd-MM-yyyy HH:mm')}" ></td>
 								    	<td>
-								    		<span th:if="${event.isAlreadyimport}" th:text="${event.sessionEpreuve.typeSession.libelle}"></span>
-									    	<select th:unless="${event.isAlreadyimport}" class="form-select form-select-sm" id="typeSession" name="typesSession">
-												<option th:each="type : ${typesSessions}"
-													th:value="${event.eventId + '@@' + type.id}" th:text="${type.libelle}" th:selected="${type.key == event.sessionEpreuve.typeSession.key}"></option>
-											</select>
+								    		<span th:text="${event.typeEvent}"></span>
 								    	</td>
 								        <td th:text="${event.sessionEpreuve.nomSessionEpreuve}"></td>
 										<td th:text="${#dates.format(event.sessionEpreuve.dateExamen,'dd-MM-yyyy')}" ></td>

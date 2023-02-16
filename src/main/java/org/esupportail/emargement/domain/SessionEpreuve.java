@@ -50,9 +50,6 @@ public class SessionEpreuve implements ContextSupport {
        OPENED, STANDBY, CLOSED
      };
      
-     //update session_epreuve set statut = 'OPENED' where is_session_epreuve_closed ='f';
-     //update session_epreuve set statut = 'CLOSED' where is_session_epreuve_closed ='t';
-
 	@Column
 	@Enumerated(EnumType.STRING)
 	public Statut statut;
@@ -73,6 +70,9 @@ public class SessionEpreuve implements ContextSupport {
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateCreation;
+    
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateImport;
     
     @DateTimeFormat(pattern = "HH:mm")
     @Temporal(TemporalType.TIME)
@@ -143,6 +143,8 @@ public class SessionEpreuve implements ContextSupport {
     public Groupe blackListGroupe;
     
     private Long adeEventId;
+    
+    private Long adeProjectId;
     
     public boolean isSessionEpreuveClosed() {
     	if(Statut.CLOSED.equals(getStatut())){
@@ -423,4 +425,21 @@ public class SessionEpreuve implements ContextSupport {
 	public void setDateCreation(Date dateCreation) {
 		this.dateCreation = dateCreation;
 	}
+
+	public Date getDateImport() {
+		return dateImport;
+	}
+
+	public void setDateImport(Date dateImport) {
+		this.dateImport = dateImport;
+	}
+
+	public Long getAdeProjectId() {
+		return adeProjectId;
+	}
+
+	public void setAdeProjectId(Long adeProjectId) {
+		this.adeProjectId = adeProjectId;
+	}
+
 }
