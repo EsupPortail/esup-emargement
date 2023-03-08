@@ -311,9 +311,13 @@ public class AdeService {
 		return sortByValue(mapClassrooms);
 	}
 	
-    public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId) throws IOException {
-
-    	String url = urlAde + "?sessionId=" + sessionId + "&function=getActivities&resources="+ resourceId + "&detail=9";
+    public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId, String activityId) throws IOException {
+    	String url = null;
+    	if(activityId != null) {
+    		url = urlAde + "?sessionId=" + sessionId + "&function=getActivities&id="+ activityId + "&detail=9";
+    	}else {
+    		url = urlAde + "?sessionId=" + sessionId + "&function=getActivities&resources="+ resourceId + "&detail=9";
+    	}
     	Map<String, AdeResourceBean> mapActivities = new HashMap<String, AdeResourceBean>();
 		try {
 			Document doc;
@@ -441,7 +445,7 @@ public class AdeService {
 	}
 	
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update) throws ParseException, IOException {
-		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId);
+		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		try {
 			Document doc = getDocument(url);
@@ -463,8 +467,17 @@ public class AdeService {
 							if(update) {
 								List<SessionEpreuve> ses = sessionEpreuveRepository.findByAdeEventId(eventId);
 								se = (ses != null) ? ses.get(0) :  null;
+								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, element.getAttribute("activityId"));
+								AdeResourceBean beanActivity2 = activities2.get(element.getAttribute("activityId"));
+								if(beanActivity2!= null) {
+									adeResourceBean.setTypeEvent(beanActivity2.getTypeEvent());
+								}
 							}else {
 								se = new SessionEpreuve();
+								AdeResourceBean beanActivity = activities.get(element.getAttribute("activityId"));
+								if(beanActivity!= null) {
+									adeResourceBean.setTypeEvent(beanActivity.getTypeEvent());
+								}
 							}
 							if(se!=null) {
 								se.setNomSessionEpreuve( element.getAttribute("name"));
@@ -480,10 +493,6 @@ public class AdeService {
 								if(isAlreadyimport) {
 									SessionEpreuve seOld = sessionEpreuveRepository.findByAdeEventId(eventId).get(0);
 									se.setDateCreation(seOld.getDateCreation());
-								}
-								AdeResourceBean beanActivity = activities.get(element.getAttribute("activityId"));
-								if(beanActivity!= null) {
-									adeResourceBean.setTypeEvent(beanActivity.getTypeEvent());
 								}
 								adeResourceBean.setAlreadyimport(isAlreadyimport);
 								adeResourceBean.setEventId(eventId);
