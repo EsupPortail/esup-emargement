@@ -34,6 +34,11 @@
 	    			</div>
 		    	</div>
 	 			<div class="card-body" id="gridEvents">
+					<div class="d-flex d-none justify-content-center mb-4" id="spinnerLoad">
+					  <div class="spinner-border" role="status">
+					    <span class="sr-only">Loading...</span>
+					  </div>
+					</div>		 			
 		 			<div th:if="${#ctx.containsVariable('noProject')}" class="alert alert-warning fw-bold" >
 		 			Vous devez choisir un projet dans les paramètres pour pouvoir continuer
 		 			</div>
@@ -99,11 +104,11 @@
 									<tr>
 										<th data-checkbox="true">Id</th>
 										<th data-sortable="true" data-field="id">Id</th>
-										<th data-sortable="true">Maj</th>
+										<th data-sortable="true" data-sorter="datesSorter2">Maj</th>
 										<th data-sortable="true">Import</th>
 										<th data-sortable="true">Type</th>
 										<th data-sortable="true">Nom</th>
-										<th data-sortable="true" data-field="date">Date</th>
+										<th data-sortable="true" data-field="date" data-sorter="datesSorter">Date</th>
 										<th data-sortable="true">Début</th>
 										<th data-sortable="true">Fin</th>
 										<th data-sortable="true">Groupe</th>

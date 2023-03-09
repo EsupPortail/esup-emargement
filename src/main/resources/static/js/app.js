@@ -769,6 +769,34 @@ function getLocations(type){
            }
       }); 	
 }
+//Tri date ade Campus
+function datesSorter(a, b) {
+	var splitDate1 = a.split("-");
+	var splitDate2 = b.split("-");
+	var date1 = new Date(splitDate1[2], splitDate1[1], splitDate1[0]);
+	var date2 = new Date(splitDate2[2], splitDate2[1], splitDate2[0]);
+	if (date1 > date2) return 1;
+	if (date1< date2) return -1;
+	return 0;
+}
+
+function getDateFromStringDateTime(str){
+	var splitTime = str.split(" ");
+	var splitDate = splitTime[0].split("-");
+	temp = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
+	return new Date(temp + "T" + splitTime[1]);
+}
+
+function datesSorter2(a, b) {
+	var noDate = '1970-01-01T00:00';
+	var date1 = (a == "")? new Date(noDate) : getDateFromStringDateTime(a);
+	var date2 = (b == "")? new Date(noDate) : getDateFromStringDateTime(b);
+	if (date1 > date2) return 1;
+	if (date1< date2) return -1;
+		
+	return 0;
+}
+
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
     //Autocomplete
@@ -1889,8 +1917,24 @@ document.addEventListener('DOMContentLoaded', function() {
     	document.getElementById("displaySalles").submit();
     });
     
-	$("#strDateMin").on("change", function (event){
-		$("#strDateMax").val($("#strDateMin").val());
+    $("#codeComposante").on("change", function() {
+		if($("#strDateMin").val() == "" || $("#strDateMax").val() == ""){
+			alert("Vous devez sélectionner une date de début et une date de fin");
+		}else{
+			$("#spinnerLoad").removeClass("d-none");
+			document.getElementById("displayEvents").submit();
+		}
+    });
+    
+    $("#displayEvents").on("submit", function (event) {
+    	$("#spinnerLoad").removeClass("d-none");
+    });
+    
+	//Import event ADE
+	$("#strDateMin").on("change", function (){
+		if($("#strDateMax").val() == ""){
+			$("#strDateMax").val($("#strDateMin").val());
+		}
 	});
     
     const uuid = ID();
