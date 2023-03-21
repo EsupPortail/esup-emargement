@@ -27,6 +27,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
@@ -40,6 +41,7 @@ import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
+import org.esupportail.emargement.services.EsupSignatureService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -115,6 +117,9 @@ public class TagCheckController {
 	@Autowired
 	GuestRepository guestRepository;
 	
+	@Autowired
+	EsupSignatureRepository esupSignatureRepository;
+	
 	@Resource
 	AppliConfigService appliConfigService;
 	
@@ -144,6 +149,9 @@ public class TagCheckController {
 	
 	@Resource
 	EmailService emailService;
+	
+	@Resource
+	EsupSignatureService esupSignatureService;
 	
 	private final static String ITEM = "tagCheck";
 	
@@ -223,6 +231,7 @@ public class TagCheckController {
 		model.addAttribute("selectAll", count);
 		model.addAttribute("notInLdap", notInLdap);
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
+		model.addAttribute("countsignedPdf", esupSignatureRepository.countBySessionEpreuve(se));
         return "manager/tagCheck/list";
     }
 	
@@ -397,7 +406,7 @@ public class TagCheckController {
     public void exportTagChecks(@PathVariable String emargementContext,@RequestParam("type") String type, @RequestParam("sessionId") Long id, 
     		@RequestParam("tempsAmenage") String tempsAmenage, HttpServletResponse response){
     	
-    	tagCheckService.exportTagChecks(type, id, tempsAmenage, response, emargementContext, null);
+    	tagCheckService.exportTagChecks(type, id, response, emargementContext, null, false);
     }
     
 	@Transactional
@@ -564,4 +573,10 @@ public class TagCheckController {
     	}
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + seId.toString(), emargementContext);
     }
+    
+	@GetMapping(value = "/manager/tagCheck/esupsignature/{id}", produces = "text/html")
+    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, Model uiModel, @PathVariable String emargementContext, HttpServletResponse response) {
+		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response);
+		return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, id);
+	}
 }

@@ -95,6 +95,12 @@
 								<input type="hidden" id="sessionId" name="sessionId" th:value="${sessionEpreuve.id}" />
 								<input type="hidden" id="tiersTemps" name="tempsAmenage" th:value="${tempsAmenage}" />
 				    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
+				    			<span th:if="${isEsupSignatureEnabled}"> 
+									<a th:if="${countsignedPdf > 0}" th:href="@{/{ctx}/manager/esupsignature/sessionEpreuve/{id}(ctx=${eContext},id=${sessionEpreuve.id})}" 
+					    				class="btn btn-outline-success btn-sm exportWS">PDF signés</a>
+					    			<a th:href="@{/{ctx}/manager/tagCheck/esupsignature/{id}(ctx=${eContext},id=${sessionEpreuve.id})}" 
+					    				class="btn btn-outline-danger btn-sm exportWS">Signer PDF</a>
+				    			</span> 
 								<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
 								<input th:if="${countRepartition eq 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" type="submit" class="btn btn-info btn-sm exportInscrits" name='type' value="QRC" />
 								<a th:href="@{/wsrest/export/tagCheck/{id}(id=${sessionEpreuve.id})}" class="btn btn-primary btn-sm exportWS">WS</a>

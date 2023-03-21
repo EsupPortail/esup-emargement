@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sd="http://www.thymeleaf.org/spring-data" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+				<div class="card-header">
+					<div class="row">
+						<div class="col">
+							<h2>Esup-signature</h2>
+						</div>
+						<div class="col">
+							<div class="row float-end">
+								<div class="col-auto">
+									<a th:href="${urlEsupSignature}" target="_blank" class="btn btn-primary">Esup-signature</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+	 			<div class="card-body">
+	 				<div class="alert alert-info mt-2">Documents en cours de signature ou non téléchargé dans esup-emargement.</div>
+						<table class="table table-hover table-sm table-bordered" id="tableSessionEpreuve">
+							<thead class ="center sticky-top">
+								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date Session</a></th>
+									<th scope="col">Début</th>
+									<th scope="col">Fin</th>									
+									<th scope="col" class=""><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="statutSignature">Statut</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="dateModification">Date statut</a></th>
+									<th scope="col">Actions</th>
+								</tr>
+							</thead>
+							<tbody class ="center">
+								<tr th:each="signature : ${esupsignaturePage}" >
+									<td>
+										<span th:text="${#dates.format(signature.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
+										<span th:if="${signature.sessionEpreuve.dateFin != null}" th:text="${#dates.format(signature.sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+									</td>
+									<td th:text="${#dates.format(signature.sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
+									<td th:text="${#dates.format(signature.sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
+									<td th:text="${signature.sessionEpreuve.typeSession.libelle}"></td>
+									<td th:text="${signature.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:text="#{'signature.' + ${signature.statutSignature} }"></td>
+									<td th:text="${#dates.format(signature.dateModification, 'dd-MM-yyyy HH:mm')}">xc</td>
+									<td>
+										<a th:if="${signature.StatutSignature ne 'ENDED'}" th:href="@{/{ctx}/manager/esupsignature/status/{signId}(signId=${signature.signRequestId},ctx=${eContext})}">
+											<i class="fa fa-refresh text-primary ms-2"></i></a>
+										<a th:if="${signature.storedFileId != null}" target="_blank" th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${signature.storedFileId},ctx=${eContext})}">
+											<i class="fa-solid fa-file-pdf text-danger ms-2"></i></a>
+										<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${signature.id }"  class="center ms-2" title="Supprimer"><i class="fa fa-trash text-dark"></i></a>
+									</td>
+									<div class="modal fade in" th:id="modal-warning+${signature.id}" >
+									    <div class="modal-dialog">
+									        <div class="modal-content">
+									        	<form th:if="${signature.storedFileId != null}"  id="command" 
+													th:action="@{/{ctx}/manager/esupsignature/delete/{id}(id=${signature.id},ctx=${eContext})}" method="POST">
+										        	<input type="hidden" name="_method" value="delete" />
+										            <div class="modal-header">
+														<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										            </div>
+										            <div class="modal-body">
+										                <div class="alert alert-danger text-center">la suppression de cette demande de signature et de son fichier associé</div>
+										            </div>
+										            <div class="modal-footer">
+										                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+										                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+										            </div>
+									            </form>
+									        </div>
+									    </div>
+									</div>
+								</tr>								
+							</tbody>
+						</table>
+					</div>
+	  			</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -51,7 +51,7 @@ public class ArchiveController {
 	@PostMapping("/admin/archives/export")
     public void exportTagChecks(@PathVariable String emargementContext, @RequestParam("anneeUniv") String anneeUniv, @RequestParam("type") String type, HttpServletResponse response){
     	
-    	tagCheckService.exportTagChecks(type, null, null, response, emargementContext, anneeUniv);
+    	tagCheckService.exportTagChecks(type, null, response, emargementContext, anneeUniv, false);
     }
 	
 	@PostMapping("/admin/archives/anonymize")

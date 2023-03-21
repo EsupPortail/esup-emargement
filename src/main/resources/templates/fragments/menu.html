@@ -30,7 +30,7 @@
 				     	<a class="nav-link dropdown-toggle" 
 				        		th:classappend="${active == 'tagChecker' or active == 'tagCheck' or active == 'stats'  or active == 'calendrier' 
 				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' or active == 'event' 
-				        						or active == 'extraction' or active == 'person'
+				        						or active == 'extraction' or active == 'person' or active == 'esupsignature' 
 				        						or active == 'groupe' or active == 'adeCampus'} ? 'active font-weight-bold' : ''" 
 				        		href="#" id="navbarDropdown" role="button" 
 				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
@@ -38,13 +38,14 @@
 				        </a>			      
 				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
-				          <li><a th:if="${isAdeCampusEnabled}" class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
+				          <li th:if="${isAdeCampusEnabled}"><a class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Individus</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'event'} ? 'active' : ''" th:href="@{/{ctx}/manager/event(ctx=${eContext})}">Evènements</a></li>
+				          <li th:if="${isEsupSignatureEnabled}"><a class="dropdown-item" th:classappend="${active == 'esupsignature'} ? 'active' : ''" th:href="@{/{ctx}/manager/esupsignature(ctx=${eContext})}">Esup-signature</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'stats'} ? 'active' : ''" th:href="@{/{ctx}/manager/stats(ctx=${eContext})}">Statistiques</a></li>
 				        </ul>			        
 				     </li>

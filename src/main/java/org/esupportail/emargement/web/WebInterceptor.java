@@ -72,6 +72,7 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isUser", WebUtils.isUser());
 					modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
 					modelAndView.addObject("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
+					modelAndView.addObject("isEsupSignatureEnabled", appliConfigService.isEsupSignatureEnabled());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
 					modelAndView.addObject("name", displayName);
 				}
