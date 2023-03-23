@@ -92,6 +92,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.zxing.WriterException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -185,6 +186,9 @@ public class PresenceController {
 	
 	@Value("${emargement.wsrest.photo.suffixe}")
 	private String photoSuffixe;
+	
+	@Value("${app.url}")
+	private String appUrl;
 
     @GetMapping("/supervisor/presence")
     public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
@@ -334,6 +338,7 @@ public class PresenceController {
         uiModel.addObject("isGroupeDisplayed", sessionEpreuve.isGroupeDisplayed);
         uiModel.addObject("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
         uiModel.addObject("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
+        uiModel.addObject("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
         uiModel.addObject("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addObject("active", ITEM);
 		uiModel.addObject("help", helpService.getValueOfKey(ITEM));
@@ -584,5 +589,25 @@ public class PresenceController {
 
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sessionEpreuveId, sessionLocationId);
+    }
+    
+	@RequestMapping(value = "/supervisor/qrCode/{id}")
+    @ResponseBody
+    public void getQrCode(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
+		String eppn ="dummy";
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
+		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
+		String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
+		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+
+        IOUtils.copy(inputStream, response.getOutputStream());
+    }
+	
+    @GetMapping("/supervisor/qrCodeSession")
+    public void getQrCodesession(@PathVariable String emargementContext,HttpServletResponse response, 
+    		@RequestParam(value ="sessionLocation", required = false) Long sessionLocationId) throws Exception {
+
+    	presenceService.getQrCodeSession(response, sessionLocationId, emargementContext, appUrl);
     }
 }

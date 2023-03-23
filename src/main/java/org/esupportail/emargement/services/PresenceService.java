@@ -1,6 +1,7 @@
 package org.esupportail.emargement.services;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -60,10 +62,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.zxing.WriterException;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -386,8 +392,15 @@ public class PresenceService {
 	}
 	
 	public List<TagCheck> updatePresents(String presence) {
-		
+		String eppn = null;
+		boolean isTagCheckerNeeded = true;
 		if(presence.startsWith("qrcode")) {
+			if(presence.contains("@@@")) {
+				isTagCheckerNeeded = false;
+				String splitPresence [] = presence.split("@@@");
+				presence = splitPresence[0];
+				eppn = toolUtil.decodeFromBase64(splitPresence[1]);
+			}
 			presence = toolUtil.decodeFromBase64(presence.replace("qrcode", ""));
 		}
 		String [] splitPresence = presence.split(",");
@@ -405,7 +418,9 @@ public class PresenceService {
 		    		typeEmargement = TypeEmargement.MANUAL;
 		    	}
 	    	}
-	    	String eppn = splitPresence[1].trim();
+	    	if(eppn == null) {
+	    		eppn = splitPresence[1].trim();
+	    	}
 	    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
 	    	Date date = (isPresent)? new Date() : null;
 	    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
@@ -425,11 +440,13 @@ public class PresenceService {
 		    	presentTagCheck.setTypeEmargement(typeEmargement);
 		    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
 		    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-				TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
+			    if(isTagCheckerNeeded) {
+					TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
+					presentTagCheck.setTagChecker(tagChecker);
+		    	}
 				if(!isPresent) {
 					presentTagCheck.setProxyPerson(null);
 				}
-		    	presentTagCheck.setTagChecker(tagChecker);
 		    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
 		    	
 		    	presentTagCheck.setTagDate(date);
@@ -552,4 +569,55 @@ public class PresenceService {
 		}
 		return photo64;
 	}
+	
+	public void getQrCodeSession(HttpServletResponse response,  Long sessionLocationId,  String emargementContext, String appUrl) {
+
+        Document document = new Document();
+        document.setMargins(10, 10, 10, 10);
+        
+        SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+        SessionEpreuve se = sl.getSessionEpreuve();
+        String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+        String nomFichier = "QrCodeSession_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
+    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
+        String title1 = String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()) + " // " + String.format("%1$tH:%1$tM", (se.getHeureEpreuve())) + "-" +
+        	 String.format("%1$tH:%1$tM", (se.getFinEpreuve()));
+        String title2 = se.getNomSessionEpreuve();
+        if(se.typeBadgeage.equals(TypeBadgeage.SALLE)){
+        	title2 = title2 + "-" + sl.getLocation().getNom();
+        }
+        
+		try {
+			response.setContentType("application/pdf");
+			response.setHeader("Content-Disposition", "attachment; filename=".concat(nomFichier));
+			PdfWriter.getInstance(document, response.getOutputStream());
+			String eppn = "dummy";
+			String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
+			String qrCodeString = "true," + eppn + "," + sessionLocationId + "," + eppn + ",qrcode";
+			String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
+			InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);
+			byte[] bytes = IOUtils.toByteArray(inputStream);
+			Image image = Image.getInstance(bytes);
+			image.setAlignment(Image.MIDDLE);
+			float x = (PageSize.A4.getWidth() - image.getScaledWidth()) / 2;
+			float y = (PageSize.A4.getHeight() - image.getScaledHeight()) / 2;
+			image.setAbsolutePosition(x, y);
+			document.open();
+			Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18,
+		            Font.BOLD);
+			Paragraph para1 = new Paragraph(title1, catFont);
+			Paragraph para2 = new Paragraph(title2, catFont);
+			document.add(para1);
+			document.add(para2);
+			document.add(image);
+
+			logService.log(ACTION.GET_QRCODESESSION, RETCODE.SUCCESS, "Session : " + se.getNomSessionEpreuve(), null,
+					null, emargementContext, null);
+		} catch (Exception e) {
+			logService.log(ACTION.GET_QRCODESESSION, RETCODE.FAILED, "Session : " + se.getNomSessionEpreuve(), null,
+					null, emargementContext, null);
+		}
+
+		document.close();
+    }
 }

@@ -1224,7 +1224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitSearchForm("searchUserApp", emargementContextUrl + "/admin/userApp/search", "");
     } else if (document.getElementById("searchLocation") != null) {
         submitSearchForm("searchLocation", emargementContextUrl + "/admin/location/search", "");
-    } else if (document.getElementById("searchSessionEpreuve") != null) {console.log("ttt");
+    } else if (document.getElementById("searchSessionEpreuve") != null) {
         submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
     } else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null) {
         submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
@@ -1819,11 +1819,22 @@ document.addEventListener('DOMContentLoaded', function() {
 	          inversionAttempts: "dontInvert",
 	        });
 	        if (code) {
-	    	  updatePresence(emargementContextUrl + "/supervisor/updatePresents", code.data);
-	          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-	          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-	          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-	          drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+				var value = code.data;
+				var sessionData = qrCodeCam.getAttribute("data-qrcode");
+				if (sessionData != null) {
+					var splitCode = value.split("value=");
+					value = splitCode[1] + "@@@" + sessionData;
+				}
+				updatePresence(emargementContextUrl + "/supervisor/updatePresents", value);
+				if (sessionData != null) {
+					 setTimeout(function() {
+		            	window.location.reload();
+		            }, 750);
+				}
+				drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+				drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+				drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+				drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
 	        }
 	      }
 	      requestAnimationFrame(tick);

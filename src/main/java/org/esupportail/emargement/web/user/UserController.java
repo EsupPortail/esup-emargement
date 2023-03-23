@@ -91,9 +91,9 @@ public class UserController {
 
 	@GetMapping(value = "/user")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
-			@RequestParam(value="sessionToken", required = false) String sessionToken) throws ParseException{
+			@RequestParam(value="sessionToken", required = false) String sessionToken, @RequestParam(value="scanClass", required = false, defaultValue = "") String scanClass) throws ParseException{
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(sessionToken!=null) {
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
 			boolean isHourOk = false;
@@ -149,6 +149,9 @@ public class UserController {
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
 		model.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
+		model.addAttribute("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
+		model.addAttribute("eppn64", toolUtil.encodeToBase64(auth.getName()));
+		model.addAttribute("scanClass", scanClass);
 		return "user/list";
 	}
 	
@@ -222,8 +225,6 @@ public class UserController {
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 		InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-        IOUtils.copy(inputStream, response.getOutputStream());
-
         IOUtils.copy(inputStream, response.getOutputStream());
     }
 }
