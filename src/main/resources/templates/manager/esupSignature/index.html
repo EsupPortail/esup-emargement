@@ -53,8 +53,7 @@
 										<a th:if="${signature.storedFileId != null}" target="_blank" th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${signature.storedFileId},ctx=${eContext})}">
 											<i class="fa-solid fa-file-pdf text-danger ms-2"></i></a>
 										<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${signature.id }"  class="center ms-2" title="Supprimer"><i class="fa fa-trash text-dark"></i></a>
-									</td>
-									<div class="modal fade in" th:id="modal-warning+${signature.id}" >
+																		<div class="modal fade in" th:id="modal-warning+${signature.id}" >
 									    <div class="modal-dialog">
 									        <div class="modal-content">
 									        	<form th:if="${signature.storedFileId != null}"  id="command" 
@@ -74,6 +73,8 @@
 									        </div>
 									    </div>
 									</div>
+									</td>
+
 								</tr>								
 							</tbody>
 						</table>
