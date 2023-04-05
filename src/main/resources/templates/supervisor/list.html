@@ -35,7 +35,6 @@
 							<span th:if="${notInLdap > 0}" class="text-info fw-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
 						</div>
 						<div class="col float-end">
-
 							<form th:if="${sessionEpreuve !=null and sessionLocation !=null}"
 								th:action="@{/{ctx}/supervisor/emargementPdf(ctx=${eContext})}"
 								method="post" id="modalFormChoixExport" class="float-end ms-2">
@@ -66,6 +65,7 @@
 									title="Liste d'émargement">
 									<i class="fas fa-file-signature"></i>
 								</button>
+								<a th:if="${isSessionQrCodeEnabled}" data-bs-toggle="modal" data-bs-target="#qrCodeModal" class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
 								<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 									th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
 									class="btn btn-danger mb-1 " title="Exporter les émargements"><i
@@ -76,6 +76,30 @@
 								</label>									
 							</form>
 						</div>
+						<div th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
+							<div class="modal-dialog modal-lg" role="document">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 class="modal-title">
+											<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' // ' + 
+											#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' +  
+											#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></span><br />
+											<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
+											<span th:if="${sessionEpreuve.typeBadgeage.name() eq 'SALLE'}" th:text="${sessionLocation.location.nom}">
+											</span>
+										</h5>
+										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									</div>
+									<div class="modal-body">
+											<img th:src="@{|/${eContext}/supervisor/qrCode/${currentLocation}|}" class="mx-auto d-block"></img>
+									</div>
+						            <div class="modal-footer">
+										<a th:href="@{|/${eContext}/supervisor/qrCodeSession?sessionLocation=${currentLocation}|}" class="btn btn-danger pull-left">PDF</a>
+						                <button type="button" class="btn btn-secondary pull-left" data-bs-dismiss="modal">Fermer</button>
+						            </div>									
+								</div>
+							</div>
+						</div>						
 						<div class="modal fade" id="commentModal" tabindex="-1"
 							aria-hidden="true" th:if="${sessionLocation !=null}">
 							<div class="modal-dialog">
@@ -99,7 +123,6 @@
 										<div class="modal-footer">
 											<button type="submit" class="btn btn-success">Sauvegarder</button>
 										</div>
-	
 									</div>
 								</form>
 							</div>
@@ -306,7 +329,7 @@
 								<div th:if="${#ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
 								  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
 								  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-								</div>	
+								</div>
 								<table class="table table-hover table-striped table-bordered table-sm"  data-sticky-header-offset-y="true" id="tablePresence">
 									<thead class="sticky-top">
 										<tr>
