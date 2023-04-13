@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -195,6 +196,10 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	TagCheck findTagCheckBysessionTokenEqualsAndPersonEppnEquals(String token, String eppn);
 	
+	List <TagCheck> findByPersonGroupesIn(List<Groupe> groupes);
+	
+	List <TagCheck> findByPersonIdIn(List<Long> test);
+	
 	@Query(value = "select count(*) from tag_check where session_epreuve_id = :id and type_emargement= :type and context_id = :ctxId", nativeQuery = true)
 	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id, String type, Long ctxId);
 	
@@ -275,7 +280,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long getSessionLocationId(String nomLocation, Date date, Long id);
 	
 	
-	@Query(value = "select session_location.id from tag_check, session_location, person, location, session_epreuve "
+	@Query(value = "select distinct session_location.id from tag_check, session_location, person, location, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_location.id = tag_check.session_location_expected_id "
 			+ "and location.id= session_location.location_id "

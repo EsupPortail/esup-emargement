@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 @Controller
@@ -90,7 +91,8 @@ public class EsupSignatureController {
 	//http://localhost:8080/Ctx-test/manager/esupsignature/status/12993
 	@GetMapping(value = "/manager/esupsignature/status/{signId}")
 	@Transactional
-	public String getStatutPdf(@PathVariable String emargementContext, @PathVariable("signId") Long signId, HttpServletResponse response) {
+	public String getStatutPdf(@PathVariable String emargementContext, @PathVariable("signId") Long signId, 
+			@RequestParam(value="from", required = false) String from, HttpServletResponse response) {
 		
 		RestTemplate restTemplate = new RestTemplate();
 		String urlStatus = String.format("%s/ws/signrequests/status/%s", urlEsupsignature, signId);
@@ -108,8 +110,11 @@ public class EsupSignatureController {
 			esupsignature.setDateModification(new Date());
 			esupSignatureRepository.save(esupsignature);
 		}
-
-		return String.format("redirect:/%s/manager/esupsignature", emargementContext);
+		if(from!=null) {
+			return String.format("redirect:/%s/manager/individu?eppnTagCheck=%s&idGroupe=&eppnTagChecker=", emargementContext, from);
+		}else {
+			return String.format("redirect:/%s/manager/esupsignature", emargementContext);
+		}
 	}
 
 	//http://localhost:8080/Ctx-test/manager/esupsignature/delete/293/12993

@@ -11,6 +11,8 @@ public class SearchBean {
 	String typeObject;
 	
 	Long id;
+	
+	Groupe groupe;
 
 	public String getNom() {
 		return nom;
@@ -50,5 +52,13 @@ public class SearchBean {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Groupe getGroupe() {
+		return groupe;
+	}
+
+	public void setGroupe(Groupe groupe) {
+		this.groupe = groupe;
 	}
 }

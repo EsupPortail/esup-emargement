@@ -1,9 +1,11 @@
 package org.esupportail.emargement.services;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -15,7 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -40,6 +41,7 @@ import org.esupportail.emargement.repositories.custom.PersonRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.utils.PdfGenaratorUtil;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.esupportail.emargement.web.wsrest.EsupNfcTagLog;
 import org.slf4j.Logger;
@@ -62,16 +64,13 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.zxing.WriterException;
-import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -130,6 +129,9 @@ public class PresenceService {
 	@Autowired
 	ToolUtil toolUtil;
 	
+	@Autowired	
+	PdfGenaratorUtil pdfGenaratorUtil;
+	
 	@Value("${emargement.wsrest.photo.prefixe}")
 	private String photoPrefixe;
 	
@@ -141,28 +143,170 @@ public class PresenceService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	public void getPdfPresence(HttpServletResponse response,  Long sessionLocationId, Long sessionEpreuveId, String emargementContext) {
-
-        Document document = new Document();
+	public void getPdfPresence(Document document, HttpServletResponse response,  Long sessionLocationId, String emargementContext, ByteArrayOutputStream bos) {
         document.setMargins(10, 10, 10, 10);
-        SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+       
         SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
-        List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(sessionEpreuveId, null).getContent();
-        String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+        SessionEpreuve se = sl.getSessionEpreuve();
+        List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
+    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+        String dateFin = (se.getDateFin()!=null)? "" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
+        String date = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
         String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
-        PdfPTable table = getTablePdf(response, sl, se, emargementContext);
+        String heures = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - " + String.format("%1$tH:%1$tM", se.getFinEpreuve());
+        Long totalExpected = tagCheckRepository.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
+    	Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
+    	String total = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
+    	String title = se.getNomSessionEpreuve() + " // " + sl.getLocation().getNom();
+    	List<TagChecker> tagCheckers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
+    	tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+    	String surveillants = tagCheckers.stream()
+                .map(t-> (t.getUserApp().getPrenom()+ "-" + t.getUserApp().getNom())).distinct()
+                .collect(Collectors.joining(","));
         try 
         {
-          response.setContentType("application/pdf");
-          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
-          PdfWriter.getInstance(document,  response.getOutputStream());
-          document.open();
-          document.add(table);
-          Paragraph paragraph = new Paragraph(se.getComment());
-          paragraph.setSpacingBefore(10f);
-          document.add(paragraph);
-          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+			
+			PdfWriter writer =   null;
+			if(bos != null) {
+				writer = PdfWriter.getInstance(document, bos);
+			}else {
+				response.setContentType("application/pdf");
+				response.setHeader("Content-Disposition", "attachment; filename=".concat(nomFichier));
+				writer = PdfWriter.getInstance(document, response.getOutputStream());
+			}
+			
+			Image image = Image.getInstance(PresenceService.class.getResource("/static/images/logo.jpg"));
+			image.scaleAbsolute(150f, 50f);//image width,height 
+
+			PdfPTable headerTable = new PdfPTable(3);
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(total)); 
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(date)); 	
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(heures));	
+			
+			Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+			Paragraph name = new Paragraph(title, font);
+			name.setSpacingBefore(2f);
+
+			PdfPTable tagCheckerTable = new PdfPTable(1);
+			tagCheckerTable.setWidthPercentage(100);
+			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell("Surveillants :"));
+			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
+			PdfPCell summaryL = new PdfPCell (tagCheckerTable);
+			summaryL.setColspan (4);
+			summaryL.setPadding (1.0f);	                   
+			
+			PdfPTable remarques = new PdfPTable(1);
+			remarques.setWidthPercentage(100);
+			remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
+			PdfPCell summaryR = new PdfPCell (remarques);
+			summaryR.setColspan (3);         
+
+			PdfPTable describer = new PdfPTable(1);
+			describer.setWidthPercentage(100);
+			describer.addCell(pdfGenaratorUtil.getDescCell(" "));
+			describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));	
+
+			document.open();
+			
+			headerTable.setTotalWidth(300f);
+			headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),writer.getDirectContent());
+			
+			PdfPTable mainTable = new PdfPTable(7); 
+			mainTable.setWidthPercentage(100);
+			mainTable.setWidths(new float[] { 0.7f,1.5f,1.5f,2,0.8f,1.5f,1.4f});
+			mainTable.setSpacingBefore(20.0f);
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+			document.add(image);
+			document.add(name);
+			
+	        if(!list.isEmpty()) {
+	        	int i =0;int j =1;
+	        	for(TagCheck tc : list) {
+	        		String dateEmargement  = "";
+	        		String nom = "";
+	        		String prenom = "";
+	        		String identifiant = "";
+	        		String typeemargement = "";
+	        		String typeIndividu = "";
+	        		if(tc.getPerson() !=null ) {
+	        			nom = tc.getPerson().getNom();
+	        			prenom = tc.getPerson().getPrenom();
+	        			identifiant = tc.getPerson().getNumIdentifiant();
+	        			if(identifiant == null) {
+	        				identifiant = tc.getPerson().getEppn();
+	        			}
+	        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null).substring(0,1);
+	        		}else if(tc.getGuest() !=null ) {
+	        			nom = tc.getGuest().getNom();
+	        			prenom = tc.getGuest().getPrenom();
+	        			identifiant = tc.getGuest().getEmail();
+	        			typeIndividu = "Ex";
+	        		}
+	        		if(BooleanUtils.isTrue(tc.getIsExempt())) {
+        				dateEmargement = "Exempt";
+	        		}else if(tc.getTagDate() != null) {
+	        			dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
+	        			if(tc.getIsUnknown()) {
+	        				dateEmargement = "Inconnu";
+	        			}
+	        		}
+	        		if(tc.getIsTiersTemps()) {
+	        			dateEmargement += " \nTemps aménagé";
+	        		}
+	        		if(tc.getTypeEmargement()!=null) {
+	        			typeemargement = messageSource.getMessage("typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
+	        		}
+	        		typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeIndividu));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(dateEmargement));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
+					i++;
+					if (i == 18) {
+						mainTable.addCell(summaryL);
+						mainTable.addCell(summaryR);
+						document.add(mainTable);
+						document.add(describer);
+						document.newPage();
+						document.add(image);
+						headerTable.setTotalWidth(300f);
+						headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
+								writer.getDirectContent());
+						document.add(name);
+						mainTable = new PdfPTable(7);
+						mainTable.setWidthPercentage(100);
+						mainTable.setWidths(new float[] { 0.7f,1.5f,1.5f,2,0.8f,1.5f,1.4f});
+						mainTable.setSpacingBefore(20.0f);
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+						i=0;
+					}
+					j++;
+	        	}
+	        }
+			mainTable.addCell(summaryL);
+			mainTable.addCell(summaryR);
+			document.add(mainTable);
+			document.add(describer);
+			logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
 					null, emargementContext, null);
         } catch (DocumentException de) {
           de.printStackTrace();
@@ -173,160 +317,8 @@ public class PresenceService {
           logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 					null, emargementContext, null);
         }
-       
-        document.close();
     }
-	
-	public PdfPTable getTablePdf(HttpServletResponse response, SessionLocation sl, SessionEpreuve se, String emargementContext) {
-		
-		Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(se.getId());
-		int nbColumn = (countProxyPerson>0)? 8 : 7;
-		if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
-			nbColumn = nbColumn + 1;
-		}
-    	PdfPTable table = new PdfPTable(nbColumn);
-    	String nbInconnus = "";
-    	Long inconnuTotal = new Long(0);
-    	inconnuTotal = tagCheckRepository.countBySessionEpreuveIdAndIsUnknownTrue(se.getId());
-		if(inconnuTotal>0) {
-			nbInconnus = " --  nb d'inconnus :  " + inconnuTotal;
-		}
-    	
-    	table.setWidthPercentage(100);
-    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
-    	
-    	List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
-    	tagCheckService.setNomPrenomTagChecks(list, false, false);
-    	String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
-    	String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
-    	nomFichier = nomFichier.replace(" ", "_");
-    	Long totalExpected = tagCheckRepository.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
-    	Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
-    	
-        //On créer l'objet cellule.
-        String libelleSe = se.getNomSessionEpreuve().concat(" ").
-        		concat(String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat(dateFin).
-        		concat(" à ").concat(sl.getLocation().getCampus().getSite()).
-        		concat(" --  nb de présents :  ").
-        		concat(totalPresent.toString()).concat("/").concat(totalExpected.toString())).concat(nbInconnus).concat((sl.getIsTiersTempsOnly())? " -- Temps aménagé" : "");
-        		
-        PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
-        cell.setBackgroundColor(BaseColor.GREEN);
-        cell.setColspan(nbColumn);
-        table.addCell(cell);
-   
-        //contenu du tableau.
-        PdfPCell header1 = new PdfPCell(new Phrase("Identifiant")); header1.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header3 = new PdfPCell(new Phrase("Nom")); header3.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header4 = new PdfPCell(new Phrase("Prénom")); header4.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header41 = new PdfPCell(new Phrase("Groupe")); header41.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header5 = new PdfPCell(new Phrase("Type")); header5.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header6 = new PdfPCell(new Phrase("Emargement")); header6.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header7 = new PdfPCell(new Phrase("Mode")); header7.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header8 = new PdfPCell(new Phrase("Lieu")); header8.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        PdfPCell header9 = new PdfPCell(new Phrase("Procuration")); header9.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        
-        table.addCell(header1);
-        table.addCell(header3);
-        table.addCell(header4);
-        if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
-        	table.addCell(header41);
-        }        
-        table.addCell(header5);
-        table.addCell(header6);
-        table.addCell(header7);
-        table.addCell(header8);        
-        if(countProxyPerson>0) {
-        	table.addCell(header9);
-        }
-        
-        if(!list.isEmpty()) {
-        	for(TagCheck tc : list) {
-        		String date  = "";
-        		PdfPCell dateCell = null;
-        		String badged  = "";
-        		BaseColor b = new BaseColor(232, 97, 97, 50);
-        		String nom = "";
-        		String prenom = "";
-        		String identifiant = "";
-        		String typeemargement = "";
-        		String typeIndividu = "";
-        		String groupe = "";
-        		if(tc.getPerson() !=null ) {
-        			nom = tc.getPerson().getNom();
-        			prenom = tc.getPerson().getPrenom();
-        			identifiant = tc.getPerson().getNumIdentifiant();
-        			if(identifiant == null) {
-        				identifiant = tc.getPerson().getEppn();
-        			}
-        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
-        			if(tc.getPerson().getGroupes() != null) {
-	        			List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-	        			groupe = StringUtils.join(groupes,",");
-        			}
-        		}else if(tc.getGuest() !=null ) {
-        			nom = tc.getGuest().getNom();
-        			prenom = tc.getGuest().getPrenom();
-        			identifiant = tc.getGuest().getEmail();
-        			typeIndividu = "Externe";
-        			if(tc.getGuest().getGroupes() != null) {
-	        			List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-	        			groupe = StringUtils.join(groupes,",");
-        			}
-        		}
-        		if(tc.getTagDate() != null) {
-        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
-        			b = new BaseColor(19, 232, 148, 50);
-        			if(tc.getIsUnknown()) {
-        				b = new BaseColor(237, 223, 14, 50);
-        			}
-        		}
-        		if(BooleanUtils.isTrue(tc.getIsExempt())) {
-        		}
-        		String type = "";
-        		if(tc.getTypeEmargement()!=null) {
-        			type = tc.getTypeEmargement().name();
-        			typeemargement = messageSource.getMessage("typeEmargement.".concat(type.toLowerCase()), null, null);
-        		}
-        		if(tc.getSessionLocationBadged()!=null) {
-        			badged = tc.getSessionLocationBadged().getLocation().getNom();
-        		}
-        		dateCell = new PdfPCell(new Paragraph(identifiant));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(nom));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(prenom));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		if(BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
-	        		dateCell = new PdfPCell(new Paragraph(groupe));
-	        		dateCell.setBackgroundColor(b);
-	        		table.addCell(dateCell);
-        		}
-         		dateCell = new PdfPCell(new Paragraph(typeIndividu));
-        		dateCell.setBackgroundColor(b);
-        		table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(date));
-        		dateCell.setBackgroundColor(b);
-                table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(typeemargement));
-        		dateCell.setBackgroundColor(b);
-                table.addCell(dateCell);
-        		dateCell = new PdfPCell(new Paragraph(badged));
-        		dateCell.setBackgroundColor(b);
-                table.addCell(dateCell);
-                if(countProxyPerson>0) {
-	        		dateCell = new PdfPCell(new Paragraph((tc.getProxyPerson()!=null)? tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): ""));
-	        		dateCell.setBackgroundColor(b);
-	                table.addCell(dateCell);
-                }
-        	}
-        }
-		return table;
-	}
-	
+
 	public String getHandleRedirectUrl(EsupNfcTagLog esupNfcTagLog, String keyContext) throws ParseException {
 		
 		String url = "";

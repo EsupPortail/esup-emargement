@@ -41,7 +41,7 @@ public class AppliConfigService {
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, BEFORE_START_EMARGER_LINK,
-		ADE_CATEGORIES, ADE_ENABLED, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS
+		ADE_CATEGORIES, ADE_ENABLED, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, ATTESTATION_TEXTE
 	}
 	
 	public List<String> getTypes() {
@@ -213,6 +213,11 @@ public class AppliConfigService {
 	public  List<String> getEsupSignatureEmails() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ESUPSIGNATURE_EMAILS);
 		return splitConfigValues(appliConfig);
+	}
+	
+	public String getAttestationTexte() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ATTESTATION_TEXTE);
+		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

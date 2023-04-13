@@ -15,6 +15,10 @@
 									class="form-control form-control-underlined border-primary" id="searchIndividuTagCheck" >
 							</div>
 							<div class="col">
+								<input type="text" placeholder="Recherche Groupe" name="idGroupe" value="" 
+									class="form-control form-control-underlined border-primary" id="searchIndividuGroupe" >
+							</div>							
+							<div class="col">
 								<input type="text" placeholder="Recherche Surveillant" name="eppnTagChecker" value="" 
 									class="form-control form-control-underlined border-primary" id="searchIndividuTagChecker" >
 							</div>
@@ -27,10 +31,39 @@
 							<span th:if="${individu.guest !=null }"  th:text="${ ' ' + individu.guest.prenom + ' ' + individu.guest.nom + ', ' + individu.guest.email}"></span>
 							<span th:if="${individu.person !=null && individu.person.numIdentifiant!=null}" th:text="${' -- N°' + individu.person.numIdentifiant}"></span>
 						</div>
+						<div class="alert alert-light">
+							<strong>Assiduité : </strong>
+							<table class="table table-hover table-striped table-bordered" id="tableAssiduite">
+								<thead class="sticky-top">
+									<tr>
+										<th scope="col">Année</th>
+										<th scope="col" class="text-center">Total Sessions</th>
+										<th scope="col" class="text-center">Présence Totale</th>
+										<th scope="col" class="text-center">Taux présence</th>
+										<th scope="col" class="text-center">Détail présence</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="assiduite : ${assiduiteList}">
+										<td th:text="${assiduite.anneeUniv}"></td>
+										<td class="text-center" th:text="${assiduite.totalSession}"></td>
+										<td class="text-center" th:text="${assiduite.nbPresent}"></td>
+										<td class="text-center">
+											<span  th:text="${assiduite.percentPresent + ' %'}"></span>
+										</td>
+										<td class="text-center">
+											<span th:text="${assiduite.detailPerence}"></span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
 						<table class="table table-hover table-striped table-bordered" id="tableTagChecks">
 							<thead class="sticky-top">
 								<tr>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.anneeUniv">Année</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Session</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
 									<th scope="col">Groupe</th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
 									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
@@ -45,7 +78,9 @@
 							</thead>
 							<tbody>
 								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}">
+									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
 									<td th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>
 									<td>
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
@@ -67,7 +102,25 @@
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
-									<td class="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+									<td class="center">
+										<a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir individu">
+											<i class="fa fa-eye text-primary"></i></a>
+										<a th:if="${tagCheck.tagDate != null}" 
+										  	th:href="@{/{ctx}/manager/individu/attestation/preview/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir l'attestation">
+											<i class="fa-solid fa-file-pdf text-info ms-2" ></i></a>
+										<a th:if="${isEsupSignatureEnabled and tagCheck.tagDate != null and mapTc.get(tagCheck.id) ==null}" 
+											th:href="@{/{ctx}/manager/individu/attestation/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Signer attestation">
+											<i class="fa-solid fa-file-pdf text-danger ms-2" ></i></a>											
+										<a th:if="${isEsupSignatureEnabled and mapTc.get(tagCheck.id) !=null and 
+												mapTc.get(tagCheck.id).statutSignature.name() ne 'ENDED' }" 
+											th:href="@{/{ctx}/manager/esupsignature/status/{signId}?from={eppn}
+												(signId=${mapTc.get(tagCheck.id).signRequestId},ctx=${eContext}, eppn=${tagCheck.person.eppn})}"
+											title ="Récupérer d'esup-signature">
+											<i class="fa fa-refresh text-primary ms-2"></i></a>
+										<a th:if="${mapTc.get(tagCheck.id)!=null and mapTc.get(tagCheck.id).storedFileId != null}" target="_blank" 
+										th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${mapTc.get(tagCheck.id).storedFileId},ctx=${eContext})}">
+											<i class="fa-solid fa-file-pdf text-success ms-2" title ="Voir attestation signée"></i></a>
+									</td>
 								</tr>
 							</tbody>
 						</table>
@@ -101,6 +154,51 @@
 								</tr>
 							</tbody>
 						</table>
+					</div>
+					<div th:if="${not #lists.isEmpty(usersGroupePage)}">
+						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
+							<div class="col"><strong>Groupe : </strong>
+							<span th:text="${groupe.nom}"></span></div>
+							<select id="anneeUnivSelect" name="anneeUniv" class="form-select col"> 
+					    		<option value="all" th:selected="${annee == 'all'}">Toutes</option>
+								<option th:each="year, iStat : ${years}"
+									th:value="@{/{ctx}/manager/individu?eppnTagCheck=&amp;idGroupe={groupe}&amp;eppnTagChecker=&amp;annee={annee}(groupe=${groupe.id}, 
+									annee=${#strings.substringBefore(year,'/')},ctx=${eContext})}" th:text="${year}"  th:selected="${#strings.substringBefore(year,'/') eq annee}"></option>
+							</select>
+						</div>
+						<table class="table table-hover table-striped table-bordered" id="tableTagChecks" data-toggle="table" data-pageSize="10" 
+						 data-search="true" data-sort-name="nom" >
+							<thead>
+								<tr>
+									<th data-sortable="true" scope="col" data-field="nom">Nom</th>
+									<th data-sortable="true" scope="col">Prénom</th>
+									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">N° étudiant</th>									
+									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Type</th>
+									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Total Sessions</th>
+									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Présence Totale</th>
+									<th data-sortable="true" scope="col" class="text-center">Taux présence</th>
+									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell ">Détail présence</th>
+									<th data-sortable="true" scope="col" class="text-center">Voir</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="assiduite: ${assiduiteMap}" > 
+									<td  th:text="${assiduite.key.nom}"></td>
+									<td th:text="${assiduite.key.prenom}"></td>
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${assiduite.key.numIdentifiant}"></td>
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="#{person.type  + '.' + ${assiduite.key.type}}"></td>
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="${assiduite.value.totalSession}"></td>
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="${assiduite.value.nbPresent}"></td>
+									<td class="text-center">
+										<span  th:text="${assiduite.value.percentPresent + ' %'}"></span>
+									</td>
+									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
+										<span th:text="${assiduite.value.detailPerence}"></span>
+									</td>
+									<td class="text-center"><a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}&amp;idGroupe=&amp;eppnTagChecker=(eppn=${assiduite.key.eppn},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+								</tr>
+							</tbody>
+						</table>						
 					</div>
 				</div>
   			</div>

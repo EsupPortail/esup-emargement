@@ -22,7 +22,7 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	Long countBySessionLocationIdAndUserAppEppn(Long id, String eppn);
 	
 	List<TagChecker> findBySessionLocation(SessionLocation sl);
-
+	
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveId(Long id);
 	
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveIdAndUserApp(Long id, UserApp userApp);

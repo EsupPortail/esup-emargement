@@ -94,9 +94,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.zxing.WriterException;
 import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
 
 import flexjson.JSONSerializer;
 
@@ -383,8 +380,9 @@ public class PresenceController {
     @GetMapping("/supervisor/exportPdf")
     public void exportPdf(@PathVariable String emargementContext,HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) Long sessionLocationId, 
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId) throws Exception {
-
-    	presenceService.getPdfPresence(response, sessionLocationId, sessionEpreuveId, emargementContext);
+    	Document document = new Document();
+    	presenceService.getPdfPresence(document, response, sessionLocationId, emargementContext, null);
+    	document.close();
     }
     
 	@RequestMapping(value = "/supervisor/{eppn}/photo")
@@ -530,7 +528,6 @@ public class PresenceController {
     	if(emails!= null && !emails.isEmpty() || courriels !=null) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
-            SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
 			try 
 			{
     		    DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");  
@@ -561,15 +558,8 @@ public class PresenceController {
     				}
 		    		for(String email : emails) {
 						ByteArrayOutputStream bos = new ByteArrayOutputStream();
-						PdfPTable table = presenceService.getTablePdf(response, sl, se, emargementContext);
 						Document document = new Document();
-						document.setMargins(10, 10, 10, 10);
-						PdfWriter.getInstance(document, bos);
-						document.open();
-						document.add(table);
-						Paragraph paragraph = new Paragraph(se.getComment());
-						paragraph.setSpacingBefore(10f);
-						document.add(paragraph);
+						presenceService.getPdfPresence(document, response, sessionLocationId, emargementContext, bos);
 						document.close();
 						byte[] bytes = bos.toByteArray();
 						InputStream inputStream = new ByteArrayInputStream(bytes);

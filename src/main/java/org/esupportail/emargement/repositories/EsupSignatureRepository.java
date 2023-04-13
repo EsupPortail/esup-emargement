@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.SessionEpreuve;
+import org.esupportail.emargement.domain.TagCheck;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Repository;
 public interface EsupSignatureRepository extends JpaRepository<EsupSignature, Long>{
 
 	List<EsupSignature> findBySignRequestId(Long signRequestId);
+	
+	List<EsupSignature> findByTagCheckIn(List<TagCheck> list);
 	
 	Long countBySessionEpreuve(SessionEpreuve sessionEpreuve);
 	

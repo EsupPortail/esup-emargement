@@ -41,7 +41,7 @@ public class EsupSignature {
 
     @Column
     @Enumerated(EnumType.STRING)
-    public TypeSignature TypeSignature;
+    public TypeSignature typeSignature;
     
     @Column
     @Enumerated(EnumType.STRING)
@@ -52,6 +52,9 @@ public class EsupSignature {
 	
     @ManyToOne
     private SessionEpreuve sessionEpreuve;
+    
+    @ManyToOne
+    private TagCheck tagCheck;
     
 	@Column	
 	public Long storedFileId;
@@ -108,11 +111,11 @@ public class EsupSignature {
 	}
 
 	public TypeSignature getTypeSignature() {
-		return TypeSignature;
+		return typeSignature;
 	}
 
 	public void setTypeSignature(TypeSignature typeSignature) {
-		TypeSignature = typeSignature;
+		this.typeSignature = typeSignature;
 	}
 
 	public StatutSignature getStatutSignature() {
@@ -121,6 +124,14 @@ public class EsupSignature {
 
 	public void setStatutSignature(StatutSignature statutSignature) {
 		this.statutSignature = statutSignature;
+	}
+
+	public TagCheck getTagCheck() {
+		return tagCheck;
+	}
+
+	public void setTagCheck(TagCheck tagCheck) {
+		this.tagCheck = tagCheck;
 	}
 
 }

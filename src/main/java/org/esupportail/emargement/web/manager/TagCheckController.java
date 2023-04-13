@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
@@ -576,7 +577,7 @@ public class TagCheckController {
     
 	@GetMapping(value = "/manager/tagCheck/esupsignature/{id}", produces = "text/html")
     public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, Model uiModel, @PathVariable String emargementContext, HttpServletResponse response) {
-		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response);
+		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response, TypeSignature.SESSION);
 		return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, id);
 	}
 }

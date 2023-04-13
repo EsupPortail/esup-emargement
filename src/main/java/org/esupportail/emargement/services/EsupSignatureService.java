@@ -11,12 +11,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.StatutSignature;
+import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
+import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
+import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,9 @@ public class EsupSignatureService {
 	@Autowired
 	ContextRepository contextRepository;
 	
+	@Autowired
+	TagCheckRepository tagCheckRepository;
+	
 	@Autowired	
 	EsupSignatureRepository esupSignatureRepository;
 	
@@ -65,34 +71,58 @@ public class EsupSignatureService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());	
 	
-	public void sendPdfToEsupToWorkflow(String emargementContext, Long id, HttpServletResponse response) {
-		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-		byte[] pdfBytes = tagCheckService.exportTagChecks("PDF", id, response, emargementContext, null, true);
+	private String nomFichier;
+	
+	public String  sendPdfToEsupToWorkflow(String emargementContext, Long id, HttpServletResponse response, TypeSignature typeSignature) {
+		
+		byte[] pdfBytes = null;
+		SessionEpreuve se = null;
+		String title = "";
+		String signRequestId = null;
+		TagCheck tc = null;
+		if(TypeSignature.SESSION.equals(typeSignature)) {
+			 se = sessionEpreuveRepository.findById(id).get();
+			 pdfBytes = tagCheckService.exportTagChecks("PDF", id, response, emargementContext, null, true);
+			 nomFichier = setNomFichierFromSessionEpreuve(se, "");
+			 title =  se.getNomSessionEpreuve();
+		}else {
+			 pdfBytes = tagCheckService.getAttestationPresence(id, response, emargementContext, true);
+			 tc = tagCheckRepository.findById(id).get();
+			 se = tc.getSessionEpreuve();
+			 List<TagCheck> list = new ArrayList<>();
+			 list.add(tc);
+			 tagCheckService.setNomPrenomTagChecks(list, false, false);
+			 title = "attestion de présence de " + tc.getPerson().getPrenom() + tc.getPerson().getNom();
+			 nomFichier = setNomFichierFromSessionEpreuve(se, title.replace(" ", "_"));
+			 
+		}
 		LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
 		map.add("createByEppn", "system");
-		map.add("filename", setNomFichierFromSessionEpreuve(se));
+		map.add("filename", nomFichier);
 	    ByteArrayResource contentsAsResource = new ByteArrayResource(pdfBytes) {
 	        @Override
 	        public String getFilename() {
-	            return setNomFichierFromSessionEpreuve(se);
+	        	return nomFichier;
 	        }
 	    };
 		map.add("multipartFiles", contentsAsResource);
 		map.add("recipientEmails", getRecipientEmails());
-		map.add("title", se.getNomSessionEpreuve());
+		map.add("title", title);
 		HttpHeaders headers = new HttpHeaders();
 		HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<>(map, headers);
 		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 		RestTemplate restTemplate = new RestTemplate();
-		String signRequestId;
+		
 		try {
 			String urlPostWorkflow = String.format("%s/ws/workflows/%s/new", urlEsupsignature, workflowId);
 			signRequestId = restTemplate.postForObject(urlPostWorkflow, requestEntity, String.class);
 			if(signRequestId != null) {
 				EsupSignature esupSignature = new EsupSignature();
 				esupSignature.setSessionEpreuve(se);
+				esupSignature.setTagCheck(tc);
 				esupSignature.setDateModification(new Date());
 				esupSignature.setSignRequestId(Long.valueOf(signRequestId));
+				esupSignature.setTypeSignature(typeSignature);
 				Context context = contextRepository.findByContextKey(emargementContext);
 				esupSignature.setContext(context);
 				esupSignatureRepository.save(esupSignature);
@@ -101,6 +131,7 @@ public class EsupSignatureService {
 		} catch (RestClientException e) {
 			log.error("Erreur lors de l'envoi du Pdf à esup-signature", e);
 		}
+		return signRequestId;
 	}
 	
 	public void getLastPdf(String emargementContext, EsupSignature esupsignature,  Long signId, HttpServletResponse response) {
@@ -111,8 +142,8 @@ public class EsupSignatureService {
 		byte[] pdf = bytes.getBody();
 		StoredFile sf = new StoredFile();
 		SessionEpreuve se = esupsignature.getSessionEpreuve();
-		String name = setNomFichierFromSessionEpreuve(se);
-		String originalFileName = setNomFichierFromSessionEpreuve(se);
+		String name = setNomFichierFromSessionEpreuve(se, "");
+		String originalFileName = setNomFichierFromSessionEpreuve(se, "");
 		String contentType = "application/pdf";
 
 		MultipartFile file = new MockMultipartFile(name,
@@ -133,10 +164,10 @@ public class EsupSignatureService {
 		}
 	}
 	
-	public String setNomFichierFromSessionEpreuve(SessionEpreuve se) {
+	public String setNomFichierFromSessionEpreuve(SessionEpreuve se, String attestation) {
 		Date dateFin = se.getDateFin();
     	String fin = (dateFin != null)? "_" + String.format("%1$td-%1$tm-%1$tY", dateFin) : "" ;
-		String nomFichier = "signed_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen())).concat(fin).concat(".pdf");
+		String nomFichier = "signed_" + attestation + "_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen())).concat(fin).concat(".pdf");
 		return  nomFichier;
 	}
 	

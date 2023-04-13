@@ -32,6 +32,7 @@
 									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="statutSignature">Statut</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateModification">Date statut</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="typeSignature">Cible</a></th>
 									<th scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -48,36 +49,41 @@
 									<td th:text="#{'signature.' + ${signature.statutSignature} }"></td>
 									<td th:text="${#dates.format(signature.dateModification, 'dd-MM-yyyy HH:mm')}">xc</td>
 									<td>
-										<a th:if="${signature.StatutSignature ne 'ENDED'}" th:href="@{/{ctx}/manager/esupsignature/status/{signId}(signId=${signature.signRequestId},ctx=${eContext})}">
+										<span th:if="${signature.tagCheck ==null}"  th:text="${signature.typeSignature}"></span>
+										<span th:if="${signature.tagCheck !=null}" th:text="${signature.tagCheck.person.eppn}"></span>
+									</td>
+									<td>
+										<a th:if="${signature.StatutSignature ne 'ENDED' and signature.storedFileId == null}" th:href="@{/{ctx}/manager/esupsignature/status/{signId}(signId=${signature.signRequestId},ctx=${eContext})}">
 											<i class="fa fa-refresh text-primary ms-2"></i></a>
 										<a th:if="${signature.storedFileId != null}" target="_blank" th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${signature.storedFileId},ctx=${eContext})}">
 											<i class="fa-solid fa-file-pdf text-danger ms-2"></i></a>
-										<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${signature.id }"  class="center ms-2" title="Supprimer"><i class="fa fa-trash text-dark"></i></a>
-																		<div class="modal fade in" th:id="modal-warning+${signature.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form th:if="${signature.storedFileId != null}"  id="command" 
-													th:action="@{/{ctx}/manager/esupsignature/delete/{id}(id=${signature.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-														<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-										            <div class="modal-body">
-										                <div class="alert alert-danger text-center">la suppression de cette demande de signature et de son fichier associé</div>
-										            </div>
-										            <div class="modal-footer">
-										                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-										                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
-										            </div>
-									            </form>
-									        </div>
-									    </div>
-									</div>
+										<a th:if="${signature.storedFileId != null}" data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${signature.id}"  class="center ms-2" title="Supprimer">
+										<i class="fa fa-trash text-dark"></i></a>
+										<div class="modal fade in" th:id="modal-warning+${signature.id}" >
+										    <div class="modal-dialog">
+										        <div class="modal-content">
+										        	<form th:if="${signature.storedFileId != null}"  id="command" 
+														th:action="@{/{ctx}/manager/esupsignature/delete/{id}(id=${signature.id},ctx=${eContext})}" method="POST">
+											        	<input type="hidden" name="_method" value="delete" />
+											            <div class="modal-header">
+															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+											            </div>
+											            <div class="modal-body">
+											                <div class="alert alert-danger text-center">la suppression de cette demande de signature et de son fichier associé</div>
+											            </div>
+											            <div class="modal-footer">
+											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+											                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+											            </div>
+										            </form>
+										        </div>
+										    </div>
+										</div>
 									</td>
-
 								</tr>								
 							</tbody>
 						</table>
+						<nav th:replace="fragments/pagination :: pagination"></nav>
 					</div>
 	  			</div>
 			</div>
