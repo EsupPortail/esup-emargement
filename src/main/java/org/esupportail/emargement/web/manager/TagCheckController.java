@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
@@ -353,6 +354,10 @@ public class TagCheckController {
     	if(Statut.CLOSED.equals(tagCheck.getSessionEpreuve().getStatut())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
+    		List<EsupSignature> list = esupSignatureRepository.findByTagCheck(tagCheck);
+    		if(!list.isEmpty()) {
+    			esupSignatureRepository.deleteAll(list);
+    		}    		
     		Person person = tagCheck.getPerson();
     		if(person!=null) {
 	    		tagCheckRepository.delete(tagCheck);

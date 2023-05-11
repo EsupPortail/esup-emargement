@@ -31,6 +31,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AssiduiteBean;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
@@ -45,6 +46,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
@@ -164,6 +166,9 @@ public class TagCheckService {
 	
 	@Autowired
 	ToolUtil toolUtil;
+	
+	@Autowired
+	EsupSignatureRepository esupSignatureRepository;
 	
 	@Value("${app.nomDomaine}")
 	private String nomDomaine;
@@ -477,6 +482,10 @@ public class TagCheckService {
     
     public void deleteAllTagChecksBySessionEpreuveId(Long sessionEpreuveId) {
 		List<TagCheck> tagChecks =  tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
+		List<EsupSignature> list = esupSignatureRepository.findByTagCheckIn(tagChecks);
+		if(!list.isEmpty()) {
+			esupSignatureRepository.deleteAll(list);
+		}
 		tagCheckRepository.deleteAll(tagChecks);
     }
     

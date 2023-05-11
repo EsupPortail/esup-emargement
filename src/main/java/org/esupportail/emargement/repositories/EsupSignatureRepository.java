@@ -17,6 +17,8 @@ public interface EsupSignatureRepository extends JpaRepository<EsupSignature, Lo
 	
 	List<EsupSignature> findByTagCheckIn(List<TagCheck> list);
 	
+	List<EsupSignature> findByTagCheck(TagCheck tc);
+	
 	Long countBySessionEpreuve(SessionEpreuve sessionEpreuve);
 	
 	Page<EsupSignature> findBySessionEpreuve(SessionEpreuve sessionEpreuve, Pageable pageable);
