@@ -21,41 +21,38 @@
    		 /*]]>*/
 		</script>
 		
-		<script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}"></script>
-		<script th:src="@{/webjars/awesomplete/1.1.4/awesomplete.min.js}"></script>
+		<script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+		<script th:src="@{/webjars/awesomplete/awesomplete.min.js}"></script>
 		<script th:src="@{/js/popper.min.js}"></script>
-		<script th:src="@{/webjars/bootstrap/5.2.3/js/bootstrap.min.js}"></script>
-		<script th:src="@{/webjars/chartjs/3.9.1/dist/chart.min.js}"></script>
-		<script th:src="@{/webjars/fullcalendar/5.11.3/main.min.js}"></script>
-		<script th:src="@{/webjars/fullcalendar/5.11.3/locales/fr.js}"></script>
-		<script th:src="@{/webjars/momentjs/2.29.4/min/moment.min.js}"></script>
-		<script th:src="@{/webjars/momentjs/2.29.4/locale/fr.js}"></script>
-		<script th:src="@{/webjars/slim-select/1.27.1/dist/slimselect.min.js}"></script>
-		<script th:src="@{/webjars/jsqr/1.4.0/dist/jsQR.js}"></script>
-		<script th:src="@{/webjars/bootstrap-fileinput/5.2.8/js/fileinput.min.js}"></script>
-		<script th:src="@{/webjars/bootstrap-fileinput/5.2.8/js/locales/fr.js}"></script>
-		<script th:src="@{/webjars/bootstrap-fileinput/5.2.8/themes/fas/theme.min.js}"></script>
-		<script th:src="@{/webjars/bootstrap-input-spinner/2.1.1/src/bootstrap-input-spinner.js}"></script>
-		<script th:src="@{/webjars/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js}"></script>
-		<script th:src="@{/webjars/bootstrap-table/1.21.3/dist/bootstrap-table.min.js}"></script>
-		<script type="module" th:src="@{/webjars/bootstrap5-tags/1.4.24/tags.min.js}"></script>
+		<script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+		<script th:src="@{/webjars/chartjs/dist/chart.min.js}"></script>
+		<script th:src="@{/webjars/fullcalendar/main.min.js}"></script>
+		<script th:src="@{/webjars/fullcalendar/locales/fr.js}"></script>
+		<script th:src="@{/webjars/momentjs/min/moment.min.js}"></script>
+		<script th:src="@{/webjars/momentjs/locale/fr.js}"></script>
+		<script th:src="@{/webjars/slim-select/dist/slimselect.min.js}"></script>
+		<script th:src="@{/webjars/jsqr/dist/jsQR.js}"></script>
+		<script th:src="@{/webjars/bootstrap-fileinput/js/fileinput.min.js}"></script>
+		<script th:src="@{/webjars/bootstrap-fileinput/js/locales/fr.js}"></script>
+		<script th:src="@{/webjars/bootstrap-fileinput/themes/fa5/theme.min.js}"></script>
+		<script th:src="@{/webjars/bootstrap-input-spinner/src/bootstrap-input-spinner.js}"></script>
+		<script th:src="@{/webjars/bootstrap-datepicker/js/bootstrap-datepicker.min.js}"></script>
+		<script type="module" th:src="@{/webjars/bootstrap5-tags/tags.min.js}"></script>
 		<script type="module">
-      	import Tags from "/webjars/bootstrap5-tags/1.4.24/tags.min.js";
+      	import Tags from "/webjars/bootstrap5-tags/tags.min.js";
      	Tags.init(".initTags");
 		</script>
 		<script th:src="@{/js/suneditor.min.js}"></script>
 		<script th:src="@{/js/jquery.cascadingdropdown.min.js}"></script>
 		<script th:src="@{/js/app.js}"></script>
 		
-		<link th:href="@{/webjars/awesomplete/1.1.4/awesomplete.css}" rel="stylesheet">
-		<link th:href="@{/webjars/bootstrap/5.2.3/css/bootstrap.min.css}" rel="stylesheet">
-		<link th:href="@{/webjars/font-awesome/6.3.0/css/all.min.css}" rel="stylesheet">
-		<link th:href="@{/webjars/fullcalendar/5.11.3/main.min.css}" rel="stylesheet">
-		<link th:href="@{/webjars/slim-select/1.27.1/dist/slimselect.css}" rel="stylesheet">
-		<link th:href="@{/webjars/bootstrap-fileinput/5.2.8/css/fileinput.min.css}" rel="stylesheet">
-		<link th:href="@{/webjars/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css}" rel="stylesheet">
-		<link th:href="@{/webjars/bootstrap-icons/1.10.3/font/bootstrap-icons.css}" rel="stylesheet">
-		<link th:href="@{/webjars/bootstrap-table/1.21.3/dist/bootstrap-table.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/awesomplete/awesomplete.css}" rel="stylesheet">
+		<link th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/font-awesome/css/all.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/fullcalendar/main.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/slim-select/dist/slimselect.css}" rel="stylesheet">
+		<link th:href="@{/webjars/bootstrap-fileinput/css/fileinput.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/bootstrap-datepicker/css/bootstrap-datepicker.min.css}" rel="stylesheet">
 		<link th:href="@{/css/suneditor.min.css}" rel="stylesheet">
 		<link th:href="@{/css/app.css}" rel="stylesheet">
 		<title th:text="#{${'title.' + active}(${title})}">Application Emargement</title>
