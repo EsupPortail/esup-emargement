@@ -1888,10 +1888,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	})
 
-	$("#alphaOrder").on("change", function(event) {
-		var alphaOrder = $("#alphaOrder").prop('checked');
-		$("#alphaOrderAffinage").val(alphaOrder);
-		$("#alphaOrderRepartition").val(alphaOrder);
+	$('input[type=radio][name=tagCheckOrder]').on("change", function(event) {
+		var tagCheckOrder = $(this).val();
+		$("#alphaOrderAffinage").val(tagCheckOrder);
+		$("#alphaOrderRepartition").val(tagCheckOrder);
 	});
 
 	$(".contextualHelp").on("mouseover", function(event) {
@@ -1930,20 +1930,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	//Import event ADE
-	$("#existingSe").on("change", function(event) {
-		document.getElementById("displayEvents").submit();
-	});
 	$("#codeSalleSelect").on("change", function(event) {
 		document.getElementById("displaySalles").submit();
-	});
-
-	$("#codeComposante").on("change", function() {
-		if ($("#strDateMin").val() == "" || $("#strDateMax").val() == "") {
-			alert("Vous devez sélectionner une date de début et une date de fin");
-		} else {
-			$("#spinnerLoad").removeClass("d-none");
-			document.getElementById("displayEvents").submit();
-		}
 	});
 
 	$("#displayEvents").on("submit", function(event) {
@@ -1952,11 +1940,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	//Import event ADE
 	$("#strDateMin").on("change", function() {
+		var strDateMin = $("#strDateMin").val();
+		$("#strDateMinImport").val(strDateMin);
 		if ($("#strDateMax").val() == "") {
-			$("#strDateMax").val($("#strDateMin").val());
+			$("#strDateMax").val(strDateMin);
+			$("#strDateMaxImport").val(strDateMin);
 		}
 	});
-
+	$("#strDateMax").on("change", function() {
+		$("#strDateMaxImport").val($("#strDateMax").val());
+	});
 	const uuid = ID();
 	const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
 	eventSource.addEventListener('nbImportSession', response => {
@@ -1966,5 +1959,163 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	//affiche photo
 	displayToast();
-});
 
+	//jstree adecampus
+	$('#frmt').on('changed.jstree', function(e, data) {
+		var checkedNodes = data.selected;  // Get checked nodes
+		// Remove parent nodes if their children are checked
+		var nodesToRemove = [];
+		checkedNodes.forEach(function(nodeId) {
+			var node = data.instance.get_node(nodeId);
+			if (node.children.length > 0) {
+				node.children.forEach(function(childId) {
+					if (checkedNodes.includes(childId)) {
+						nodesToRemove.push(nodeId);
+					}
+				});
+			}
+		});
+
+		// Remove the parent nodes
+		nodesToRemove.forEach(function(nodeId) {
+			var index = checkedNodes.indexOf(nodeId);
+			if (index > -1) {
+				checkedNodes.splice(index, 1);
+			}
+		});
+		var r = [];
+		checkedNodes.forEach(function(nodeId) {
+			var node = data.instance.get_node(nodeId);
+			r.push(node.id);
+		});
+		$("#idList").val(r.join(', '));
+		$("#idListImport").val(r.join(', '));
+	}).jstree({
+		"checkbox": {
+			"keep_selected_style": false,
+			"three_state": false,
+			"cascade": "up"
+		},
+		"plugins": ["checkbox", "sort", "state"],
+		'core': {
+			'data': []
+		}
+	});
+   
+	$("#codeComposante1").on("change", function(event) {
+		const selectedData = $(this).val();
+		$("input[id^=hiddenCodeComposante]").val(selectedData);
+		if(selectedData == "myEvents"){
+			 $('#frmt').addClass("d-none");
+		}else{
+			$("#spinnerComps").removeClass("d-none");
+			updateJsTree(selectedData);
+		}
+	});
+	
+	function updateJsTree(selectedData) {
+		var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?composante=" + selectedData;
+		var request = new XMLHttpRequest();
+		request.open('GET', selectedUrl, true);
+		request.onload = function() {
+			if (request.status >= 200 && request.status < 400) {
+				const data = JSON.parse(request.responseText);
+				$('#frmt').jstree(true).settings.core.data = data;
+				$('#frmt').jstree(true).refresh();
+				$('#frmt').removeClass("d-none");
+				$("#spinnerComps").addClass("d-none");
+			}
+		}
+		request.send();
+	}
+
+    var table = $('.tableFoo').DataTable({
+	    responsive: true,
+	    ordering: true,
+	    paging: true,
+	    searching: true,
+	    info: false,
+	    language: {
+            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+        }
+	});
+					
+ 	$('#checkAll').on('click', function() {
+        var checked = this.checked;
+        $('.data-checkbox').prop('checked', checked);
+    });
+    $('.data-checkbox').on('click', function() {
+        var allChecked = $('.data-checkbox:checked').length === $('.data-checkbox').length;
+        $('#checkAll').prop('checked', allChecked);
+    });
+    	
+	$('#displayEvents').submit(function(e) {
+		e.preventDefault();
+		var formData = $(this).serialize();
+		$.ajax({
+			type: 'GET',
+			url: emargementContextUrl + "/manager/adeCampus/Events",
+			data: formData,
+			success: function(response) {
+				table.destroy();
+				$("#tableEvents").html(response);
+				$("#spinnerLoad").addClass("d-none");
+				table = $('.tableFoo').DataTable({
+					columnDefs: [
+						{
+							targets: 0, // Column index for the checkbox column
+							orderable: false, // Disable sorting on this column
+							className: 'select-checkbox', // Add a class for the checkbox column
+							render: function(data, type, row, meta) {
+								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+							}
+						},
+						{ type: 'date-eu', targets: 6 },
+						{ type: 'date-eu', targets: 2 }
+					],
+					select: {
+						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
+					},
+					order: [[6, 'desc']], // Set the default sorting column and order
+					responsive: true,
+					ordering: true,
+					paging: true,
+					searching: true,
+					info: false,
+					language: {
+						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+					}
+				});
+			},
+			error: function(error) {
+				console.log('Error: ' + error);
+			}
+		});
+	});
+	
+	function openAndCheckNodes(nodeIds) {
+		$.each(nodeIds, function(index, nodeId) {
+			var node = $('#jstree').jstree(true).get_node(nodeId);
+			if (node) {
+				$('#frmt').jstree(true).check_node(node);
+				$('#frmt').jstree(true).open_node(node);
+			}
+		});
+	}
+	
+	$("#displayEventsImport").submit(function(event) {
+		event.preventDefault();
+		$("#spinnerLoad").removeClass("d-none");
+		$.ajax({
+			url: emargementContextUrl + "/manager/adeCampus/importEvents",
+			type: "POST",
+			data: $("#displayEventsImport").serialize(), // Serialize form data
+			success: function() {
+				$('#displayEvents').submit();
+			},
+			error: function(error) {
+				console.log("Error: " + error);
+			}
+		});
+	});
+});

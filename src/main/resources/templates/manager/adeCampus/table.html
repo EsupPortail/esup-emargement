@@ -1,0 +1,52 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<tbody id="tableEvents">
+	    <tr th:each="event : ${listEvents}" th:class="${event.isAlreadyimport}? table-success : table-light">
+	    	<td></td>
+	    	<td th:text="${event.eventId}"></td>
+	    	<td th:text="${#dates.format(event.lastUpdate,'dd-MM-yy HH:mm')}" ></td>
+	    	<td th:text="${#dates.format(event.sessionEpreuve.dateCreation,'dd-MM-yy HH:mm')}" ></td>
+	    	<td>
+	    		<span th:text="${event.typeEvent}"></span>
+	    	</td>
+	        <td th:text="${event.sessionEpreuve.nomSessionEpreuve}"></td>
+			<td th:text="${#dates.format(event.sessionEpreuve.dateExamen,'dd-MM-yy')}" ></td>
+			<td th:text="${#dates.format(event.sessionEpreuve.heureEpreuve,'HH:mm')}" ></td>
+			<td th:text="${#dates.format(event.sessionEpreuve.finEpreuve,'HH:mm')}" ></td>
+			<td>
+				<span th:each="element : ${event.trainees}">
+			         <span th:each="entry: ${element}">
+				        <span th:text="${'[' + entry.value + ']'}"></span> 
+				    </span>
+			    </span>
+			</td>										
+			<td>
+				<span th:each="element : ${event.instructors}">
+			         <span th:each="entry: ${element}">
+				        <span th:text="${'[' + entry.value + ']'}"></span> 
+				    </span>
+			    </span>
+			</td>										
+	    	<td>
+	    		<span th:if="${event.isAlreadyimport}" th:text="${event.sessionEpreuve.campus.site}"></span>
+		    	<select th:unless="${event.isAlreadyimport}" class="form-select form-select-sm" id="campuses" name="campuses" required>
+					<option th:each="campus : ${campuses}"
+						th:value="${event.eventId + '@@' + campus.id}" th:text="${campus.site}" th:selected="${campus.site == event.sessionEpreuve.campus.site}"></option>
+				</select>
+	    	</td>
+			<td>
+				<span th:each="element : ${event.classrooms}">
+			         <span th:each="entry: ${element}">
+				        <span th:text="${'[' + entry.value + ']'}"></span> 
+				    </span>
+			    </span>
+			</td>
+			<td>
+				<span th:each="element : ${event.category6}">
+			         <span th:each="entry: ${element}">
+				        <span th:text="${'[' + entry.value + ']'}"></span> 
+				    </span>
+			    </span>
+			</td>								
+	    </tr>
+    </tbody>
+</html>

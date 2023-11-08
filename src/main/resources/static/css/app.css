@@ -283,3 +283,7 @@ dl dd:after {
 .ss-content.ss-open{
 	z-index : 5000;
 }
+.jstree-anchor {
+    white-space: break-spaces !important;
+    height: auto !important;
+}

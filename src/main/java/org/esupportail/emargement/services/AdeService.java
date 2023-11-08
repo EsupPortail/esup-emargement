@@ -1,5 +1,7 @@
 package org.esupportail.emargement.services;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +34,12 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.esupportail.emargement.domain.AdeClassroomBean;
 import org.esupportail.emargement.domain.AdeInstructorBean;
@@ -70,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.json.JSONObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -79,6 +88,10 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 @Service
 public class AdeService {
@@ -414,7 +427,7 @@ public class AdeService {
 							if (node2.getParentNode().equals(node)) {
 								Element element2 = (Element) node2; 
 								String name = element2.getAttribute("name");
-								String code = element2.getAttribute("code");
+								String code = element2.getAttribute("id");
 								mapComposantes.put(code, name);
 							}
 						}
@@ -925,7 +938,8 @@ public class AdeService {
 			logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
 		}
 	}
-	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, String codeComposante) throws IOException, ParserConfigurationException, SAXException, ParseException{
+	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, 
+			String codeComposante, List<String> idList) throws IOException, ParserConfigurationException, SAXException, ParseException{
         List<AdeResourceBean> adeResourceBeans = new ArrayList<>();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		List<LdapUser> ldapUsers = ldapService.getUsers(auth.getName());
@@ -935,24 +949,28 @@ public class AdeService {
 				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, false);
 			}	
-		}else if(codeComposante != null) {
-			
-	        String fatherId1 = getIdComposante(sessionId, codeComposante, "trainee", false);
-	        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, fatherId1, strDateMin, strDateMax, idEvents, existingSe, false);
-	        adeResourceBeans.addAll(beansTrainee);
-	        String fatherId2 = getIdComposante(sessionId, codeComposante, appliConfigService.getCategoriesAde().get(1), false);
-	        if(fatherId2 != null && !fatherId2.isEmpty()) {
-		        List<AdeResourceBean> beansCategory6 = getEventsFromXml(sessionId, fatherId2, strDateMin, strDateMax, idEvents, existingSe, false);
-		        adeResourceBeans.addAll(beansCategory6);
-		        Collection<AdeResourceBean> uniqueEvents = adeResourceBeans.stream()
-		                .collect(Collectors.toMap(AdeResourceBean::getEventId, Function.identity(),
-		                        (bean1, bean2) -> bean1))
-		                .values();
-		        adeResourceBeans.clear();
-		        adeResourceBeans.addAll(uniqueEvents);
-	        }
+		}else if(codeComposante != null || idList != null) {
+			if(idList !=null && !idList.isEmpty()) {
+				for(String id : idList) {
+			        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, false);
+			        adeResourceBeans.addAll(beansTrainee);
+				}
+			}else {
+		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, codeComposante, strDateMin, strDateMax, idEvents, existingSe, false);
+		        adeResourceBeans.addAll(beansTrainee);
+		        String fatherId2 = getIdComposante(sessionId, codeComposante, appliConfigService.getCategoriesAde().get(1), false);
+		        if(fatherId2 != null && !fatherId2.isEmpty()) {
+			        List<AdeResourceBean> beansCategory6 = getEventsFromXml(sessionId, fatherId2, strDateMin, strDateMax, idEvents, existingSe, false);
+			        adeResourceBeans.addAll(beansCategory6);
+			        Collection<AdeResourceBean> uniqueEvents = adeResourceBeans.stream()
+			                .collect(Collectors.toMap(AdeResourceBean::getEventId, Function.identity(),
+			                        (bean1, bean2) -> bean1))
+			                .values();
+			        adeResourceBeans.clear();
+			        adeResourceBeans.addAll(uniqueEvents);
+		        }
+			}
 		}
-
         return adeResourceBeans; 
     }
 	
@@ -999,6 +1017,108 @@ public class AdeService {
 				String eppn = (auth!=null)?  auth.getName() : "system";
 				saveEvents(beans, sessionId, emargementContext, null, eppn, true, typeSync);
 			}
+	    }
+	}
+	
+    public String getJsonfile(String fatherId, String emargementContext) {
+        String prettyJson = null;
+        String rootComposante = "";
+        ObjectMapper xmlMapper = new XmlMapper();
+        try {
+            String sessionId = getSessionId(false, emargementContext);
+            String detail = "12";
+            String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=trainee&path=1&detail=" +detail
+                    + "&fatherIds=" + fatherId;
+            Document doc = getDocument(urlAllResources);
+            // Remove attributes from trainee elements
+            NodeList traineeNodes = doc.getElementsByTagName("trainee");
+            for (int i = 0; i < traineeNodes.getLength(); i++) {
+            	
+                Element traineeElement = (Element) traineeNodes.item(i);
+                if(i==0) {
+                	String path = traineeElement.getAttribute("path");
+                	int index = path.indexOf(".");
+                	rootComposante = path.substring(0, index);
+                }
+                removeAttributes(traineeElement);
+                removeRightsTag(traineeElement);
+            }
+
+            // Save the modified XML to a file
+            DOMSource source = new DOMSource(doc); 
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            StreamResult streamResult = new StreamResult(byteArrayOutputStream);
+
+            // Create a Transformer and perform the transformation
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.transform(source, streamResult);
+
+			ByteArrayInputStream in = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+			String inContent = new String(IOUtils.toByteArray(in));
+			String temp = removeXmlDeclaration2(inContent);
+                
+            JsonNode jsonNode = xmlMapper.readTree(temp); 
+
+            // Create an ObjectMapper for JSON and serialize the JSONNode
+            ObjectMapper jsonMapper = new ObjectMapper();
+            String jsonOutput = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
+            String modifiedJsonContent = jsonOutput.replace("fatherId", "parent");
+            String modifiedJsonContent2 = modifiedJsonContent.replace("trainee", "data");
+            JSONObject jsonObject = new JSONObject(modifiedJsonContent2);
+
+            // Remove the "parent" object 
+            jsonObject.remove("trainee");
+            ObjectMapper objectMapper = new ObjectMapper();
+            String finalJson = objectMapper.writeValueAsString(jsonNode); 
+            String toto= finalJson.replaceAll("fatherId", "parent");
+            String tata = toto.replace("name", "text");
+            String state = "\"state\" : {\"opened\": true}";
+            String parent = "[{\"parent\":\"#\",\"id\":\"" + fatherId + "\",\"text\":\"" +  rootComposante + "\","  + state + "},";
+            
+            prettyJson = parent + tata.substring(12,tata.length()-1);
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
+       return prettyJson;
+	}
+    
+    private String removeXmlDeclaration2(String xmlString) {
+        // Define a regular expression to match the XML declaration
+        String regex = "<\\?xml[^>]*\\?>";
+        
+        // Replace the XML declaration with an empty string
+        return xmlString.replaceAll(regex, "");
+    }
+
+	private void removeRightsTag(Element element) {
+        NodeList rightsNodes = element.getElementsByTagName("rights");
+        for (int i = 0; i < rightsNodes.getLength(); i++) {
+            Node rightsNode = rightsNodes.item(i);
+            element.removeChild(rightsNode);
+        }
+    }
+	
+	private void removeAttributes(Element element) {
+	    String [] excludes = {"code", "address1", "address2", "availableQuantity","category", "city", "codeX", "codeY",  
+				"codeZ",  "color", "consumer", "country", "creation", "durationInMinutes", 
+				"email","fatherName",  "fax", "firstDay",  "firstSlot", "firstWeek",
+				"info" , "isGroup",  "jobCategory", "lastDay", "lastSlot", "lastUpdate", "lastWeek", 
+				"levelAccess", "manager", "nbEventsPlaced", "number",  "owner", "path", "size", 
+				"state", "telephone", "timezone", "type", "url", "zipCode"};
+		List<String> attributesToRemove = Arrays.asList(excludes);
+		
+		for(String item : attributesToRemove) {
+			 element.removeAttribute(item);
+		}
+	
+	    // Recur for child elements
+	    NodeList childNodes = element.getChildNodes();
+	    for (int i = 0; i < childNodes.getLength(); i++) {
+	        Node childNode = childNodes.item(i);
+	        if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+	        	removeAttributes((Element) childNode);
+	        }
 	    }
 	}
 }

@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.xml.sax.SAXException;
 
 @Controller
@@ -157,8 +158,41 @@ public class AdeController {
 	//TO DO : spinner + logs + duplication nom
 	
 	@GetMapping(value = "/manager/adeCampus")
-	public String index(@PathVariable String emargementContext, Model uiModel, 
+	public String index(@PathVariable String emargementContext, Model uiModel) throws ParseException{
+	
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		try {
+			String sessionId = adeService.getSessionId(false, emargementContext);
+			List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET);
+			if(prefsAdeStored.isEmpty()) {
+				uiModel.addAttribute("noProject","noProject");
+				uiModel.addAttribute("type", "composante");
+				uiModel.addAttribute("mapComposantes", adeService.getMapComposantes(sessionId));
+				uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
+				uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
+				uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+				uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
+			}else {
+				String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
+				if(adeService.getConnectionProject(idProject, sessionId)==null) {
+					sessionId = adeService.getSessionId(true, emargementContext);
+					adeService.getConnectionProject(idProject, sessionId);
+					log.info("Récupération du projet Ade " + idProject);
+				}
+				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+				uiModel.addAttribute("existingSe", true);
+			}
+	
+		} catch (Exception e) {
+			log.error("Erreur lors de la récupération des évènements", e);
+		}
+		return "manager/adeCampus/index";
+	}
+	
+	@GetMapping(value = "/manager/adeCampus/Events")
+	public String getTableEvents(@PathVariable String emargementContext, Model uiModel, 
 			@RequestParam(value="existingSe", required = false) String existingSe,
+			@RequestParam(value="idList", required = false) List<String> idList,
 			@RequestParam(value="codeComposante", required = false) String codeComposante, 
 			@RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="strDateMax", required = false) String strDateMax) throws ParseException{
@@ -184,7 +218,9 @@ public class AdeController {
 					log.info("Récupération du projet Ade " + idProject);
 				}
 				uiModel.addAttribute("currentComposante", codeComposante);
-				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante));
+				if("myEvents".equals(codeComposante) || idList.size()>0) {
+					uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList));
+				}
 				uiModel.addAttribute("strDateMin", strDateMin);
 				uiModel.addAttribute("strDateMax", strDateMax);
 				uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
@@ -196,7 +232,7 @@ public class AdeController {
 		} catch (Exception e) {
 			log.error("Erreur lors de la récupération des évènements", e);
 		}
-		return "manager/adeCampus/index";
+		return "manager/adeCampus/table";
 	}
 	
 	@RequestMapping(value = "/manager/adeCampus/params", produces = "text/html")
@@ -229,10 +265,12 @@ public class AdeController {
 	
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/importEvents")
+	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
 			@RequestParam(value="campuses", required = false) List<String> campuses,
 			@RequestParam(value="codeComposante") String codeComposante, @RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="existingSe", required = false) String existingSe,
+			@RequestParam(value="idList", required = false) List<String> idList,
 			@RequestParam(value="strDateMax", required = false) String strDateMax) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		if(idEvents!=null) {
 			String sessionId = adeService.getSessionId(false, emargementContext);
@@ -243,7 +281,7 @@ public class AdeController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante);
+			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante, idList);
 			
 			if(!beans.isEmpty()) {
 				adeService.saveEvents(beans, sessionId, emargementContext, campuses, auth.getName(), false, null);
@@ -251,8 +289,9 @@ public class AdeController {
 				log.info("Aucun évènement à importer");
 			}
 		}
-		return String.format("redirect:/%s/manager/adeCampus?strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s", 
-    			emargementContext, strDateMin, strDateMax, codeComposante);
+		
+		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
+			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
 	}
 	
 	@PostMapping(value = "/manager/adeCampus/savePref")
@@ -336,5 +375,11 @@ public class AdeController {
 	public String disconnect(@PathVariable String emargementContext) {
 		adeService.disconnectSession();
 		return String.format("redirect:/%s/manager/adeCampus", emargementContext);
+	}
+	
+	@RequestMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
+	@ResponseBody 
+	public String getJsonAde(@PathVariable String emargementContext, @RequestParam(value="composante", required = false) String composante) {
+    	return adeService.getJsonfile(composante, emargementContext);
 	}
 }
