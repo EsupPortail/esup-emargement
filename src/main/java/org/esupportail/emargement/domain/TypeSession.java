@@ -30,7 +30,7 @@ public class TypeSession {
 	@JsonIgnore
 	private Context context;
 	
-	@Column(name = "key", length = 5)
+	@Column(name = "key")
 	@JsonIgnore
 	private String key;
 	
