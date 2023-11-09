@@ -70,29 +70,28 @@ function displayAffinage(classes, isTiers) {
 
 function displayToast() {
 	$(".userToast").on("click", function(event) {
-		const toastLiveExample = document.getElementById('liveToast')
-		const toast = new bootstrap.Toast(toastLiveExample)
-		var splitField = this.getAttribute("data-whatever").split("//");
-		$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
-		var nom = "";
-		var prenom = "";
-		var eppn = "";
-		if (splitField[1] != "null") {
-			nom = splitField[1];
-			prenom = splitField[2];
-		} else {
-			eppn = splitField[0];
+		const toastLiveExample = document.getElementById('liveToast');
+		if(toastLiveExample!=null){
+			const toast = new bootstrap.Toast(toastLiveExample);
+			var splitField = this.getAttribute("data-whatever").split("//");
+			$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
+			var nom = "";
+			var prenom = "";
+			if (splitField[1] != "null") {
+				nom = splitField[1];
+				prenom = splitField[2];
+			}
+			$("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
+			$("#nomPresence").text(nom);
+			$("#prenomPresence").text(prenom);
+			if (splitField[3] != "null") {
+				$("#numIdentifiantPresence").text(splitField[3]);
+			}
+			if (splitField[4] != "null") {
+				$("#codeEtape").text(splitField[4]);
+			}
+			toast.show();
 		}
-		$("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
-		$("#nomPresence").text(nom);
-		$("#prenomPresence").text(prenom);
-		if (splitField[3] != "null") {
-			$("#numIdentifiantPresence").text(splitField[3]);
-		}
-		if (splitField[4] != "null") {
-			$("#codeEtape").text(splitField[4]);
-		}
-		toast.show()
 	});
 }
 
@@ -125,7 +124,6 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 		searchBox.addEventListener("keyup", function() {
 			if (this.value.length > 2) {
 				var request = new XMLHttpRequest();
-				var input = this.value;
 				request.open('GET', url + "?searchValue=" + this.value + paramurl, true);
 				request.onload = function() {
 					if (request.status >= 200 && request.status < 400) {
@@ -207,7 +205,6 @@ function changeSelectSessionEpreuve2(id, id2, url, change) {
 	var selectOrigin = document.getElementById(id);
 	var selectToPopulate = document.getElementById(id2);
 	var request = new XMLHttpRequest();
-	var input = this.value;
 	if (selectOrigin.value != "") {
 		request.open('GET', url + "?sessionEpreuve=" + selectOrigin.value, true);
 		request.onload = function() {
@@ -270,7 +267,6 @@ function displayFormconfig(val, valeur) {
 	var bool = '<div class="col-lg-10"><div id="boolGroup"><label class="radio-inline"><input type="radio" name="value" id="boolTrue" value="true"' + checkTrue + '/> True' +
 		'</label><label class="radio-inline ml-2"><input type="radio" name="value" id="boolFalse" value="false" ' + checkFalse + ' /> False</label></div></div>';
 
-	var areaEditor = document.getElementById("suneditor");
 	switch (val) {
 		case 'HTML':
 			remove("boolGroup");
@@ -312,35 +308,9 @@ function updatePresence(url, numEtu) {
 	request.open('GET', url + "?presence=" + numEtu, true);
 	request.onload = function() {
 		if (request.status >= 200 && request.status < 400) {
-			var data = JSON.parse(this.response);
-			var redirect = deleteParam(window.location.href, "tc");
-			var displayedIdentity = $("#displayedIdentity");
-			if (numEtu.startsWith("true")) {
-				var person = data[0].person;;
-				var guest = data[0].guest;
-				var identifiant = "";
-				var varUrl = "";
-				if (person != null) {
-					identifiant = person.eppn;
-					varUrl = person.eppn;
-				} else if (guest != null) {
-					identifiant = guest.email;
-					varUrl = "inconnu";
-				}
-				var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
-				var nom = "";
-				var prenom = "";
-				var eppn = "";
-				if (person != null && person.nom != "null") {
-					nom = person.nom.toUpperCase();
-					prenom = person.prenom;
-				} else if (guest != null && guest.nom != "null") {
-					nom = guest.nom.toUpperCase();
-					prenom = guest.prenom;
-				}
-			}
+			deleteParam(window.location.href, "tc");
 			setTimeout(function() {
-				displayedIdentity.addClass("d-none");
+				$("#displayedIdentity").addClass("d-none");
 			}, 2000);
 		} else {
 			console.log("erreur du serveur!");
@@ -468,7 +438,6 @@ function getStats(year, param, url, id, chartType, option, transTooltip, formatD
 			}
 		}
 	});
-	var prefId = document.getElementById(id);
 	var request = new XMLHttpRequest();
 	var paramUrl = (param != null) ? '&' + param : '';
 	request.open('GET', emargementContextUrl + "/" + url + "/stats/json?&anneeUniv=" + year + "&type=" + id + paramUrl, true);
@@ -508,7 +477,6 @@ function lineChart(data, id, fill, arrayDates, formatDate) {
 		var dates = arrayDates;
 		for (i = 0; i < data[0].length; i++) {
 			mapArray.set(data[0][i], data[1][i]);
-			var test = Array.from(mapArray.values());
 			inlineValeurs = Array.from(mapArray.values());
 		}
 		inlineDatasets.push({
@@ -534,7 +502,7 @@ function lineChart(data, id, fill, arrayDates, formatDate) {
 			datasets: inlineDatasets
 		};
 		var ctx3 = document.getElementById(id).getContext("2d");
-		var myLineChart = new Chart(ctx3, {
+		new Chart(ctx3, {
 			type: 'line',
 			data: dataMois,
 		});
@@ -562,7 +530,7 @@ function chartPieorDoughnut(data, id, type, option, datalabels) {
 			datasets: dataSets
 		};
 		var ctx3 = document.getElementById(id).getContext("2d");
-		var myDoughnutChart2 = new Chart(ctx3, {
+		new Chart(ctx3, {
 			type: type,
 			data: doughnutDataArray,
 			options: {
@@ -597,7 +565,6 @@ function chartPieorDoughnut(data, id, type, option, datalabels) {
 								let total1 = context.dataset.data.reduce((x, y) => x + y)
 								var currentValue = context.parsed;
 								var percentage = ((currentValue / total1) * 100).toFixed(1);
-								var total = 0;
 								var label = ' ' + context.label || '';
 								if (label) {
 									label += ' : ';
@@ -639,7 +606,7 @@ function multiChartStackBar(allData, id, start, transTooltip, formatDate, scaleT
 			datasets: dataSets
 		}
 		var ctx = document.getElementById(id).getContext("2d");
-		myBar = new Chart(ctx, {
+		new Chart(ctx, {
 			type: 'bar',
 			data: barChartData,
 			options: {
@@ -710,7 +677,7 @@ function chartBar(data1, label1, id, transTooltip, formatDate, data2, label2) {
 			datasets: datasets
 		}
 		var ctx = document.getElementById(id).getContext("2d");
-		myBar = new Chart(ctx, {
+		new Chart(ctx, {
 			type: 'bar',
 			data: barChartData,
 			options: {
@@ -802,6 +769,33 @@ function datesSorter2(a, b) {
 	if (date1 < date2) return -1;
 
 	return 0;
+}
+
+//jstree
+function openAndCheckNodes(nodeIds) {
+	$.each(nodeIds, function(index, nodeId) {
+		var node = $('#jstree').jstree(true).get_node(nodeId);
+		if (node) {
+			$('#frmt').jstree(true).check_node(node);
+			$('#frmt').jstree(true).open_node(node);
+		}
+	});
+}
+
+function updateJsTree(selectedData) {
+	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?composante=" + selectedData;
+	var request = new XMLHttpRequest();
+	request.open('GET', selectedUrl, true);
+	request.onload = function() {
+		if (request.status >= 200 && request.status < 400) {
+			const data = JSON.parse(request.responseText);
+			$('#frmt').jstree(true).settings.core.data = data;
+			$('#frmt').jstree(true).refresh();
+			$('#frmt').removeClass("d-none");
+			$("#spinnerComps").addClass("d-none");
+		}
+	}
+	request.send();
 }
 
 //==jQuery document.ready
@@ -1148,66 +1142,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		nbSelected = $("#usersGroupLdap option:selected").length;
 		$("#selectedUsers").text(nbSelected);
 	});
-	/* SEARCH LONG POLL */
-	var searchLongPoll = {
-		debug: false,
-		run: false,
-		timer: undefined,
-		lastAuthDate: 0,
-		list: undefined
-	};
-	searchLongPoll.start = function() {
-		if (!this.run) {
-			this.run = true;
-			this.timer = this.poll();
-		}
-	}
-	searchLongPoll.clear = function() {
-		//
-	}
-	searchLongPoll.stop = function() {
-		if (this.run && this.timer != null) {
-			clearTimeout(this.timer);
-		}
-		run = false;
-	}
-	searchLongPoll.load = function() {
-		if (typeof rootUrl != "undefined" && this.run) {
-			var request = new XMLHttpRequest();
-			request.open('GET', emargementContextUrl + "/supervisor/searchPoll", true);
-			request.onload = function() {
-				if (request.status >= 200 && request.status < 400) {
-					var message = this.response;
-					if (message && message.length) {
-						if (message != "stop") {
-							window.location.href = rootUrl + message;
-						}
-					} else {
-						setTimeout(function() {
-							searchLongPoll.timer = searchLongPoll.poll();
-						}, 2000);
-					}
-				}
-			};
-			request.onerror = function() {
-				// Plus de session (et redirection CAS) ou erreur autre ... on stoppe pour ne pas boucler
-				console.log("searchLongPoll stoppé ");
-				location.reload();
-				console.log("reload page");
-			};
-			request.send();
-		}
-	}
-	searchLongPoll.poll = function() {
-		if (this.timer != null) {
-			clearTimeout(this.timer);
-		}
-		setTimeout(searchLongPoll.load(), 1000);
-	}
-	if (typeof rootUrl != "undefined") {
-		searchLongPoll.start();
-	}
-	/* SEARCH LONG POLL - END*/
 
 	// tableau inscrits
 	var tempsAmenage = document.getElementById('tempsAmenage');
@@ -1459,7 +1393,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
 				var nom = "";
 				var prenom = "";
-				var eppn = "";
 				if (person != null && person.nom != null) {
 					nom = person.nom.toUpperCase();
 					prenom = person.prenom;
@@ -2013,22 +1946,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 	
-	function updateJsTree(selectedData) {
-		var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?composante=" + selectedData;
-		var request = new XMLHttpRequest();
-		request.open('GET', selectedUrl, true);
-		request.onload = function() {
-			if (request.status >= 200 && request.status < 400) {
-				const data = JSON.parse(request.responseText);
-				$('#frmt').jstree(true).settings.core.data = data;
-				$('#frmt').jstree(true).refresh();
-				$('#frmt').removeClass("d-none");
-				$("#spinnerComps").addClass("d-none");
-			}
-		}
-		request.send();
-	}
-
     var table = $('.tableFoo').DataTable({
 	    responsive: true,
 	    ordering: true,
@@ -2092,16 +2009,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
-	
-	function openAndCheckNodes(nodeIds) {
-		$.each(nodeIds, function(index, nodeId) {
-			var node = $('#jstree').jstree(true).get_node(nodeId);
-			if (node) {
-				$('#frmt').jstree(true).check_node(node);
-				$('#frmt').jstree(true).open_node(node);
-			}
-		});
-	}
 	
 	$("#displayEventsImport").submit(function(event) {
 		event.preventDefault();

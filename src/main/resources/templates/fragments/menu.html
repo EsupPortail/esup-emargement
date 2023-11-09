@@ -5,8 +5,8 @@
 	<body>
 		<nav th:fragment="menu(activeMenu)" class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
 			<div class="container-fluid">
-				<a class="navbar-brand"th:href="@{/{ctx}/(ctx=${eContext})}" ><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br />
-				<span class = "titleNav" th:text="${title != null ? title : 'Esup-emargement'}"></span></a>
+				<span class="navbar-brand"><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br />
+				<span class = "titleNav" th:text="${title != null ? title : 'Esup-emargement'}"></span></span>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 			      <span class="navbar-toggler-icon"></span>
 			    </button>
@@ -108,18 +108,18 @@
 								</optgroup>
 							</select>
 						</form>
-						<span><a class="btn btn-success nav-link fw-bold text-white px-3 py-2"
+						<span><a class="btn btn-success fw-bold text-white px-3 py-2"
 							sec:authorize="!isAuthenticated()" th:href="@{/login}">Connexion</a></span>
-							<span><a class="btn btn-outline-success greenCustom nav-link mb-2 px-3 py-2"
+							<span><a class="btn btn-outline-success greenCustom mb-2 px-3 py-2"
 							sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
-							th:href="@{/logout}">Déconnexion</a>
-							<span th:if="${!isSwitchUser}" class="form-text fw-bold" th:text="${name}"></span></span>
+							th:href="@{/logout}">Déconnexion</a><br/>
+							<span th:if="${!isSwitchUser}" class="text-white fw-bold" th:text="${name}"></span></span>
 						<form
 							sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
 							th:action="@{/logout/switchUser}" id="formSu" method="post">
 							<input type="submit" value="Déconnexion SU"
-								class="btn btn-outline-danger redCustom nav-link mb-2 px-3 py-2" />
-								<p class="form-text fw-bold" th:text="${name}"></p>
+								class="btn btn-outline-danger redCustom mb-2 px-3 py-2" /><br/>
+								<span class="text-white fw-bold me-2" th:text="${name}"></span>
 						</form>
 					</div>
 			    </div>

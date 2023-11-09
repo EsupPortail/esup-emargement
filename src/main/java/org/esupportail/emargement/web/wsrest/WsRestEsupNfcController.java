@@ -13,7 +13,6 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckService;
-import org.esupportail.emargement.web.supervisor.SearchLongPollController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +32,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/wsrest/nfc")
 @Controller 
 public class WsRestEsupNfcController {
-	
-	@Resource
-	SearchLongPollController searchLongPollController;
-	
+
 	@Resource
 	SessionLocationService sessionLocationService;
 
