@@ -74,11 +74,11 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.ToolUtil;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.json.JSONObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -1032,13 +1032,12 @@ public class AdeService {
             Document doc = getDocument(urlAllResources);
             // Remove attributes from trainee elements
             NodeList traineeNodes = doc.getElementsByTagName("trainee");
+            boolean isOk = false;
             for (int i = 0; i < traineeNodes.getLength(); i++) {
-            	
                 Element traineeElement = (Element) traineeNodes.item(i);
-                if(i==0) {
-                	String path = traineeElement.getAttribute("path");
-                	int index = path.indexOf(".");
-                	rootComposante = path.substring(0, index);
+                if(!isOk && fatherId.equals(traineeElement.getAttribute("fatherId"))) {
+                	rootComposante = traineeElement.getAttribute("fatherName");
+                	isOk = true;
                 }
                 removeAttributes(traineeElement);
                 removeRightsTag(traineeElement);
