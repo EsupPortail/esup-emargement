@@ -893,6 +893,7 @@ public class TagCheckService {
 			unknownTc.setTagChecker(tagChecker);
 			unknownTc.setSessionLocationBadged(sessionLocationBadged);
 			unknownTc.setTagDate(new Date());
+			unknownTc.setIsUnknown(true);
 			unknownTc.setTypeEmargement(TypeEmargement.CARD);
 		}
 		TagCheck tc =tagCheckRepository.save(unknownTc);
