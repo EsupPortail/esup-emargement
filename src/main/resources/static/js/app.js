@@ -885,7 +885,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			});
 		});
-
 	}
 
 	var suneditor = document.getElementById("pdfArea");
@@ -894,7 +893,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		editor1 = createSunEditor('pdfArea');
 		editor2 = createSunEditor('emailArea');
 	}
-
 
 	//Click events
 	document.addEventListener('click', function(event) {
@@ -1380,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				var person = tagCheck.person;;
 				var guest = tagCheck.guest;
 				var sessionId = tagCheck.sessionEpreuve.id;
-				var sessionLocationExpected = tagCheck.sessionLocationExpected.id;
+				var sessionLocationExpected = (tagCheck.sessionLocationExpected!=null)? tagCheck.sessionLocationExpected.id : null; 
 				var identifiant = "";
 				var varUrl = "";
 				if (person != null) {
@@ -1400,23 +1398,25 @@ document.addEventListener('DOMContentLoaded', function() {
 					nom = guest.nom.toUpperCase();
 					prenom = guest.prenom;
 				}
-				var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
-				var displayedIdentity2 = $("#" + displayedIdentity);
-				displayedIdentity2.removeClass("d-none");
-				displayedIdentity2.find("img").prop("src", url);
-				displayedIdentity2.find("img").prop("alt", identifiant);
-				displayedIdentity2.find('#prenomPresence3').text(prenom);
-				displayedIdentity2.find('#nomPresence3').text(nom);
-				if (person != null && person.numIdentifiant != null) {
-					displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+				if(sessionLocationExpected != null){
+					var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
+					var displayedIdentity2 = $("#" + displayedIdentity);
+					displayedIdentity2.removeClass("d-none");
+					displayedIdentity2.find("img").prop("src", url);
+					displayedIdentity2.find("img").prop("alt", identifiant);
+					displayedIdentity2.find('#prenomPresence3').text(prenom);
+					displayedIdentity2.find('#nomPresence3').text(nom);
+					if (person != null && person.numIdentifiant != null) {
+						displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+					}
+					const toastLiveExample = document.getElementById(displayedIdentity);
+					const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
+					toast.show();
+					$("body").scrollTop();
 				}
-				const toastLiveExample = document.getElementById(displayedIdentity);
-				const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
-				toast.show();
-				$("body").scrollTop();
-
+				var urlLocation = (sessionLocationExpected != null)? sessionLocationExpected : $_GET("location");
 				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
-					"&location=" + sessionLocationExpected + "&update=" + tagCheck.id;
+					"&location=" + urlLocation + "&update=" + tagCheck.id;
 				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					displayToast();
@@ -1483,6 +1483,20 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#collapseTable").removeClass("d-none");
 			$("#collapseTable table tbody").empty();
 			$("#" + this.value).clone().appendTo("#collapseTable table tbody");
+		});
+		$(document).on("click","#toto", function(event) {
+			if (window.confirm('Confirmez-vous la suppression cet individu?')) {
+				var trParent = $(this)[0].parentElement.parentElement;
+				var id = trParent.id;
+				var request = new XMLHttpRequest();
+				request.open('POST', emargementContextUrl + "/supervisor/tagCheck/" + id, true);
+				request.onload = function() {
+					if (request.status >= 200 && request.status < 400) {
+						$("#" + id).hide();
+					}
+				}
+				request.send();
+			}
 		});
 	}
 
@@ -1832,20 +1846,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		$(this).prop("title", "");
 	});
 
-	$("#toto").on("click", function(event) {
-		if (window.confirm('Confirmez-vous la suppression cet individu?')) {
-			var trParent = $(this)[0].parentElement.parentElement;
-			var id = trParent.id;
-			var request = new XMLHttpRequest();
-			request.open('POST', emargementContextUrl + "/supervisor/tagCheck/" + id, true);
-			request.onload = function() {
-				if (request.status >= 200 && request.status < 400) {
-					$("#" + id).hide();
-				}
-			}
-			request.send();
-		}
-	});
 	if (document.getElementById("sessionSearch") != null) {
 		$("#formSearch .form-select").on("change", function(event) {
 			$("#searchSessionEpreuve").val(null);

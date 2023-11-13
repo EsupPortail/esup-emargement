@@ -350,7 +350,7 @@
 											<td th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown}? table-warning : ''" class="nomPrenom">
 												<a href="#" class="me-1 userToast"	th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 													<i class="fa fa-user" aria-hidden="true"></i></a>
-												<a th:if="${tagCheck.isUnknown}" href="##" class="text-danger" title="Supprimer cet individu ?" id="toto"><i class="fa fa-trash"></i></a>
+													<button th:if="${tagCheck.isUnknown}" class="text-danger" title="Supprimer cet individu ?" id="toto"><i class="fa fa-trash"></i></button>
 													<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="fw-bold" 
 												th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 											</td>
