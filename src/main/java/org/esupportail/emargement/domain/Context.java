@@ -19,8 +19,6 @@ public class Context {
 	
 	private String title;
 	
-	private String pageFooter = "<a href=\"http://www.univ-ville.fr\">www.univ-ville.fr</a>";
-	
 	private String createur;
 	
 	private String commentaire;
@@ -53,14 +51,6 @@ public class Context {
 
 	public void setTitle(String title) {
 		this.title = title;
-	}
-
-	public String getPageFooter() {
-		return pageFooter;
-	}
-
-	public void setPageFooter(String pageFooter) {
-		this.pageFooter = pageFooter;
 	}
 
 	public String getCreateur() {

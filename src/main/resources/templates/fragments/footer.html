@@ -2,7 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 	<footer th:fragment="footer" id="footer">
-			<span th:utext="${htmlFooter != null ? htmlFooter : 'emargement'}"></span>
+	Esup-emargement - <span th:text="${#dates.year(#dates.createNow())}"></span>
+		- <span th:text="${'v' + appVersion}"></span>
 	</footer>
 </body>
 </html>

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix="emargement")
 @PropertySource(value = "classpath:/emargement.properties", encoding = "UTF-8")
+@PropertySource(value = "classpath:/version.properties", encoding = "UTF-8")
 @PropertySource("classpath:/security.properties")
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 @EnableScheduling
