@@ -190,7 +190,12 @@
 		    <artifactId>datatables-plugins</artifactId>
 		    <version>1.13.6</version>
 		    <scope>runtime</scope>
-		</dependency>			
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>bootstrap-icons</artifactId>
+			<version>1.11.1</version>
+		</dependency>
 	    <dependency>
 	        <groupId>com.fasterxml.jackson.dataformat</groupId>
 	        <artifactId>jackson-dataformat-xml</artifactId>
