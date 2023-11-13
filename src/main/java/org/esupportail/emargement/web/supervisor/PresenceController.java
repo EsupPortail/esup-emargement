@@ -237,7 +237,10 @@ public class PresenceController {
     					size = totalAll.intValue();
     				}
     				if(update!=null) {
-    					Sort sort = Sort.by(Sort.Order.desc("tagDate"),Sort.Order.asc("person.eppn"));
+    					Sort sort = Sort.by(Sort.Order.asc("person.eppn"));
+    					if(!appliConfigService.isBadgeageSortAlpha()) {
+    						sort = Sort.by(Sort.Order.desc("tagDate"),Sort.Order.asc("person.eppn"));
+    					}
     					pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     				}
     				
