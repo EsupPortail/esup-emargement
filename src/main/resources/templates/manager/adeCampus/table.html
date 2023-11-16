@@ -1,5 +1,5 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:sd="http://www.thymeleaf.org/spring-data">
-	<tbody id="tableEvents">
+	<tbody id="tableEvents" style="width:100%">
 	    <tr th:each="event : ${listEvents}" th:class="${event.isAlreadyimport}? table-success : table-light">
 	    	<td></td>
 	    	<td th:text="${event.eventId}"></td>

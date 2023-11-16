@@ -782,8 +782,8 @@ function openAndCheckNodes(nodeIds) {
 	});
 }
 
-function updateJsTree(selectedData) {
-	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?composante=" + selectedData;
+function updateJsTree(selectedData, category) {
+	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?category=" + category + "&fatherId=" + selectedData;
 	var request = new XMLHttpRequest();
 	request.open('GET', selectedUrl, true);
 	request.onload = function() {
@@ -1934,19 +1934,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			'data': []
 		}
 	});
-   
-	$("#codeComposante1").on("change", function(event) {
-		const selectedData = $(this).val();
-		$("input[id^=hiddenCodeComposante]").val(selectedData);
-		if(selectedData == "myEvents"){
-			 $('#frmt').addClass("d-none");
-		}else{
-			$("#spinnerComps").removeClass("d-none");
-			updateJsTree(selectedData);
-		}
-	});
 	
-    var table = $('.tableFoo').DataTable({
+	var table = $('.tableFoo').DataTable({
 	    responsive: true,
 	    ordering: true,
 	    paging: true,
@@ -1955,6 +1944,31 @@ document.addEventListener('DOMContentLoaded', function() {
 	    language: {
             url: "/webjars/datatables-plugins/i18n/fr-FR.json"
         }
+	});
+   
+	$("#codeComposante1").on("change", function(event) {
+		const selectedData = $(this).val();
+		$("#codeFormation").val("");
+		$("input[id^=hiddenCodeComposante]").val(selectedData);
+		if(selectedData == "myEvents"){
+			 $('#frmt').addClass("d-none");
+		}else{
+			$("#spinnerComps").removeClass("d-none");
+			updateJsTree(selectedData, "trainee");
+		}
+		table.clear().draw();
+	});
+	$("#codeFormation").on("change", function(event) {
+		const selectedData = $(this).val();
+		$("#codeComposante1").val("");
+		$("input[id^=hiddenCodeComposante]").val(selectedData);
+		if(selectedData == "myEvents"){
+			 $('#frmt').addClass("d-none");
+		}else{
+			$("#spinnerComps").removeClass("d-none");
+			updateJsTree(selectedData, category6);
+		}
+		table.clear().draw();
 	});
 					
  	$('#checkAll').on('click', function() {

@@ -36,13 +36,25 @@
 	 			<div class="card-body" id="gridEvents">
 	 				<div class="row">
                     	<div class="col-xl-3 col-lg-3 col-sm-6 border-right vh-100">
-							<select class="form-select mb-2" id="codeComposante1">
-								<option value="">----Composantes----</option>
-								<option value="myEvents" th:selected="${codeComposante eq 'myEvents'}">Mes évènements</option>
-								<option th:each="value : ${values}"
-									th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
-									th:selected="${#strings.substringAfter(value,'@@') eq codeComposante}"></option>
-							</select>
+							<div class="row">
+								<div th:class="${!#lists.isEmpty(valuesFormation)? 'col' : 'col-12'}">
+									<select class="form-select mb-2" id="codeComposante1">
+										<option value="">----Composantes----</option>
+										<option value="myEvents" th:selected="${codeComposante eq 'myEvents'}">Mes évènements</option>
+										<option th:each="value : ${values}" th:if="${!#lists.isEmpty(values)}"
+											th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
+											th:selected="${#strings.substringAfter(value,'@@') eq codeComposante}"></option>
+									</select>
+								</div>
+								<div th:class="${!#lists.isEmpty(values)? 'col' : 'col-12'}">
+									<select class="form-select mb-2" id="codeFormation" th:if="${!#lists.isEmpty(valuesFormation)}">
+										<option value="">----Formations----</option>
+										<option th:each="value : ${valuesFormation}"
+											th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
+											th:selected="${#strings.substringAfter(value,'@@') eq codeFormation}"></option>
+									</select>
+								</div>
+							</div>
 							<div class="d-flex justify-content-center mt-3 d-none" id="spinnerComps">
 							  <div class="spinner-border spinner-border-sm text-primary" role="status">
 							    <span class="visually-hidden">Loading...</span>
@@ -107,7 +119,7 @@
 										<div id="toolbar float-start" class="mb-3">
 										 <button class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
 										</div>
-										<table  class="table table-bordered table-striped tableFoo" id="grid">
+										<table  class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
 											<thead>
 											<tr>
 												<th><input type="checkbox" id="checkAll"></th>

@@ -15,7 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -25,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -406,10 +404,11 @@ public class AdeService {
 		return listMembers;
 	}
 	
-	public Map<String, String> getMapComposantes(String sessionId) throws IOException, ParserConfigurationException, SAXException {
+	public String getCodeComposante(String sessionId, String id) throws IOException, ParserConfigurationException, SAXException {
 		String detail = "12";
-		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false&category=trainee&path=1&detail=" +detail;
-		HashMap<String, String> mapComposantes = new HashMap<String, String>();
+		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false"
+				+ "&category=trainee&detail=" +detail +"&id=" + id;
+		String code = "";
 		try {
 			Document doc = getDocument(urlAllResources);
 			doc.getDocumentElement().normalize();
@@ -426,18 +425,51 @@ public class AdeService {
 							Node node2 = branches.item(temp2);
 							if (node2.getParentNode().equals(node)) {
 								Element element2 = (Element) node2; 
-								String name = element2.getAttribute("name");
-								String code = element2.getAttribute("id");
-								mapComposantes.put(code, name);
+									code = element2.getAttribute("code");
 							}
 						}
 					}
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la map des composantes, url : " + urlAllResources);
+			log.error("Erreur lors de la récupération du code composante, url : " + urlAllResources);
 		}
-		return sortByValue(mapComposantes);
+		return code;
+	}
+	
+	public Map<String, String> getMapComposantesFormations(String sessionId, String category) throws IOException, ParserConfigurationException, SAXException {
+		String detail = "12";
+		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false&category="
+				+ category + "&detail=" + detail;
+		HashMap<String, String> map = new HashMap<String, String>();
+		try {
+			Document doc = getDocument(urlAllResources);
+			doc.getDocumentElement().normalize();
+			NodeList list = doc.getElementsByTagName("category");
+			if(list.getLength() == 0) {
+				log.info("Aucun résultat!");
+			}else {
+				for (int temp = 0; temp < list.getLength(); temp++) {
+					Node node = list.item(temp);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						Element element = (Element) node; 
+						NodeList branches = element.getElementsByTagName("branch");
+						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
+							Node node2 = branches.item(temp2);
+							if (node2.getParentNode().equals(node)) {
+								Element element2 = (Element) node2; 
+								String name = element2.getAttribute("name");
+								String code = element2.getAttribute("id");
+								map.put(code, name);
+							}
+						}
+					}
+				}
+			}
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			log.error("Erreur lors de la récupération de la map, url : " + urlAllResources);
+		}
+		return sortByValue(map);
 	}
 
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update) throws IOException, ParserConfigurationException, SAXException, ParseException {
@@ -949,26 +981,10 @@ public class AdeService {
 				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, false);
 			}	
-		}else if(codeComposante != null || idList != null) {
-			if(idList !=null && !idList.isEmpty()) {
-				for(String id : idList) {
-			        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, false);
-			        adeResourceBeans.addAll(beansTrainee);
-				}
-			}else {
-		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, codeComposante, strDateMin, strDateMax, idEvents, existingSe, false);
+		}else if(idList !=null && !idList.isEmpty()) {
+			for(String id : idList) {
+		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, false);
 		        adeResourceBeans.addAll(beansTrainee);
-		        String fatherId2 = getIdComposante(sessionId, codeComposante, appliConfigService.getCategoriesAde().get(1), false);
-		        if(fatherId2 != null && !fatherId2.isEmpty()) {
-			        List<AdeResourceBean> beansCategory6 = getEventsFromXml(sessionId, fatherId2, strDateMin, strDateMax, idEvents, existingSe, false);
-			        adeResourceBeans.addAll(beansCategory6);
-			        Collection<AdeResourceBean> uniqueEvents = adeResourceBeans.stream()
-			                .collect(Collectors.toMap(AdeResourceBean::getEventId, Function.identity(),
-			                        (bean1, bean2) -> bean1))
-			                .values();
-			        adeResourceBeans.clear();
-			        adeResourceBeans.addAll(uniqueEvents);
-		        }
 			}
 		}
         return adeResourceBeans; 
@@ -1020,18 +1036,18 @@ public class AdeService {
 	    }
 	}
 	
-    public String getJsonfile(String fatherId, String emargementContext) {
+    public String getJsonfile(String fatherId, String emargementContext, String category) {
         String prettyJson = null;
         String rootComposante = "";
         ObjectMapper xmlMapper = new XmlMapper();
         try {
             String sessionId = getSessionId(false, emargementContext);
             String detail = "12";
-            String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=trainee&path=1&detail=" +detail
-                    + "&fatherIds=" + fatherId;
+            String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=" + 
+            			category + "&detail=" +detail + "&fatherIds=" + fatherId;
             Document doc = getDocument(urlAllResources);
             // Remove attributes from trainee elements
-            NodeList traineeNodes = doc.getElementsByTagName("trainee");
+            NodeList traineeNodes = doc.getElementsByTagName(category);
             boolean isOk = false;
             for (int i = 0; i < traineeNodes.getLength(); i++) {
                 Element traineeElement = (Element) traineeNodes.item(i);
@@ -1063,19 +1079,19 @@ public class AdeService {
             ObjectMapper jsonMapper = new ObjectMapper();
             String jsonOutput = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
             String modifiedJsonContent = jsonOutput.replace("fatherId", "parent");
-            String modifiedJsonContent2 = modifiedJsonContent.replace("trainee", "data");
+            String modifiedJsonContent2 = modifiedJsonContent.replace(category, "data");
             JSONObject jsonObject = new JSONObject(modifiedJsonContent2);
 
             // Remove the "parent" object 
-            jsonObject.remove("trainee");
+            jsonObject.remove(category);
             ObjectMapper objectMapper = new ObjectMapper();
             String finalJson = objectMapper.writeValueAsString(jsonNode); 
             String toto= finalJson.replaceAll("fatherId", "parent");
             String tata = toto.replace("name", "text");
             String state = "\"state\" : {\"opened\": true}";
             String parent = "[{\"parent\":\"#\",\"id\":\"" + fatherId + "\",\"text\":\"" +  rootComposante + "\","  + state + "},";
-            
-            prettyJson = parent + tata.substring(12,tata.length()-1);
+            int start = 5 + category.length();
+            prettyJson = parent + tata.substring(start,tata.length()-1);
         } catch (Exception e ) {
             e.printStackTrace();
         }

@@ -71,6 +71,8 @@ public class AdeController {
 	
 	private final static String ADE_STORED_SALLE = "adeStoredSalle";
 	
+	private final static String ADE_STORED_FORMATION = "adeStoredFormation";
+	
 	private final static String ADE_STORED_PROJET = "adeStoredProjet";
 	
 	private final static String ITEM = "adeCampus";
@@ -167,11 +169,12 @@ public class AdeController {
 			if(prefsAdeStored.isEmpty()) {
 				uiModel.addAttribute("noProject","noProject");
 				uiModel.addAttribute("type", "composante");
-				uiModel.addAttribute("mapComposantes", adeService.getMapComposantes(sessionId));
+				uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 				uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 				uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
 				uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 				uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
+				uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 			}else {
 				String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
 				if(adeService.getConnectionProject(idProject, sessionId)==null) {
@@ -180,7 +183,9 @@ public class AdeController {
 					log.info("Récupération du projet Ade " + idProject);
 				}
 				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+				uiModel.addAttribute("valuesFormation", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 				uiModel.addAttribute("existingSe", true);
+				uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
 			}
 	
 		} catch (Exception e) {
@@ -205,11 +210,12 @@ public class AdeController {
 				uiModel.addAttribute("noProject","noProject");
 				uiModel.addAttribute("type", "composante");
 				uiModel.addAttribute("currentComposante", codeComposante);			
-				uiModel.addAttribute("mapComposantes", adeService.getMapComposantes(sessionId));
+				uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 				uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 				uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
 				uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 				uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
+				uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 			}else {
 				String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
 				if(adeService.getConnectionProject(idProject, sessionId)==null) {
@@ -238,15 +244,18 @@ public class AdeController {
 	@RequestMapping(value = "/manager/adeCampus/params", produces = "text/html")
     public String displayParams(@PathVariable String emargementContext, Model uiModel) throws IOException, ParserConfigurationException, SAXException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		List<String> catAde = appliConfigService.getCategoriesAde();
 		String sessionId = adeService.getSessionId(false, emargementContext);
-		uiModel.addAttribute("mapComposantes", adeService.getMapComposantes(sessionId));
+		uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
+		uiModel.addAttribute("mapFormations", adeService.getMapComposantesFormations(sessionId, catAde.get(1)));
 		uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 		uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 		uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
+		uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 		uiModel.addAttribute("valueProject", (!getValuesPref(auth.getName(), ADE_STORED_PROJET).isEmpty())? getValuesPref(auth.getName(), ADE_STORED_PROJET).get(0) :"");
 		uiModel.addAttribute("rootCategories", getRootCategories());
-		uiModel.addAttribute("categories",appliConfigService.getCategoriesAde());
+		uiModel.addAttribute("categories", catAde);
 		return "manager/adeCampus/params";
 	}
 	
@@ -379,7 +388,8 @@ public class AdeController {
 	
 	@RequestMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
-	public String getJsonAde(@PathVariable String emargementContext, @RequestParam(value="composante", required = false) String composante) {
-    	return adeService.getJsonfile(composante, emargementContext);
+	public String getJsonAde(@PathVariable String emargementContext, @RequestParam(value="fatherId", required = false) String fatherId,
+			@RequestParam(value="category", required = false) String category) {
+    	return adeService.getJsonfile(fatherId, emargementContext, category);
 	}
 }
