@@ -89,8 +89,8 @@
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="statut">Statut</a></th>
-									<th scope="col"  class ="text-center hiddenBlock">Badgeage</th>
-									<th scope="col"  class ="text-center hiddenBlock">Libre</th>
+									<th scope="col" class ="text-center hiddenBlock">Badgeage</th>
+									<th scope="col" class ="text-center hiddenBlock">Libre</th>
 									<th scope="col" class ="text-center hiddenBlock" th:if="${isAdeCampusEnabled}">ADE</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Surveillants</th>
@@ -126,7 +126,7 @@
 									
 									<td class ="text-center hiddenBlock" th:text="${sessionEpreuve.typeBadgeage}"></td>
 									<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa fa-check text-success' :''"></i></td>
-									<td th:if="${isAdeCampusEnabled}"><i th:class="${sessionEpreuve.adeEventId != null} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+									<td th:if="${isAdeCampusEnabled}" class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.adeEventId != null} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell"><a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a></td>
 									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">

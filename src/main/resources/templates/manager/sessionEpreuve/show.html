@@ -30,7 +30,9 @@
 			            <dt class="col-sm-2">Badgeage</dt>
 			            <dd class="col-sm-10" th:text="${sessionEpreuve.typeBadgeage}"></dd>
 			            <dt class="col-sm-2">Session libre</dt>
-			            <dd class="col-sm-10"><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>
+			            <dd class="col-sm-10" ><i th:if="${sessionEpreuve.isSessionLibre}" class="fa fa-check text-success"></i></dd>
+			            <dt class="col-sm-2" th:if="${isAdeCampusEnabled}">ADE</dt>
+			            <dd class="col-sm-10" th:if="${isAdeCampusEnabled}"><i th:class="${sessionEpreuve.adeEventId != null} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></dd>
 			            <dt class="col-sm-2">Groupe à exclure (session libre)</dt>
 			            <dd class="col-sm-10"><span th:if="${sessionEpreuve.blackListGroupe != null}" th:text="${sessionEpreuve.blackListGroupe.nom}"></span></dd>
 			            <dt class="col-sm-2">Enregistrement automatique</dt>
@@ -112,11 +114,11 @@
 							    </div>
 							</div>
 							<a th:if="${!sessionEpreuve.isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-								onclick="return confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
+								onclick="confirm('Confirmez-vous la clôture de cette session?');" title="Clôturer"><i class="fas fa-door-closed text-secondary"></i></a>
 							<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-								onclick="return confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
+								onclick="confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
 							<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-								onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>								
+								onclick="confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>								
 			            </dd>
 					</dl>
                 </div>
