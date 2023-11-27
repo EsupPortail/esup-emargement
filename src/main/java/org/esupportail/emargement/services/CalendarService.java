@@ -60,60 +60,40 @@ public class CalendarService {
 	    	for(SessionEpreuve se : listSe) {
     			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, se.getContext());
     			boolean isFromContext = (userApp != null)? true : false;
-    			if(se.getDateFin() == null) {
-		    		CalendarDTO c = new CalendarDTO();
-		    		c.setId(se.getId());
-		    		String title = (!isAll)? se.getNomSessionEpreuve() : se.getContext().getKey().toUpperCase().concat(" : ").concat(se.getNomSessionEpreuve());
-		    		c.setTitle(title);
-		    		String strStart = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getHeureEpreuve()));  
-		    		c.setStart(strStart);
-		    		String strSEnd = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
-		    		c.setEnd(strSEnd);
-		    		String color = "#0b5ed7";
-		    		if(Statut.OPENED.equals(se.getStatut())) {
-		    			color = "#0d9314";
-		    		}else if(Statut.CLOSED.equals(se.getStatut())) {
-		    			color = "#e54c14";
-		    		}else if(Statut.STANDBY.equals(se.getStatut())) {
-		    			color = "#ffca2c";
-		    		}
-		    		c.setColor(color);
-		    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
-		    		c.setUrl(url);
-		    		l.add(c);
-    			}else {
-    				 List<LocalDate> getDatesInPeriod = getDatesInPeriod(se.getDateExamen(), se.getDateFin()) ;
-    				 for(int i= 0; i<getDatesInPeriod.size();i++) {
-    					CalendarDTO c = new CalendarDTO();
-			    		c.setId(se.getId());
-			    		String title = (!isAll)? se.getNomSessionEpreuve() : se.getContext().getKey().toUpperCase().concat(" : ").concat(se.getNomSessionEpreuve());
-			    		c.setTitle(title);
-			    		Date date = Date.from(getDatesInPeriod.get(i).atStartOfDay(ZoneId.systemDefault()).toInstant());
-			    		String strStart = dateFormat.format(date).concat("T").concat(hourFormat.format(se.getHeureEpreuve()));  
-			    		c.setStart(strStart);
-			    		String strSEnd = dateFormat.format(date).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
-			    		c.setEnd(strSEnd);
-			    		String color = "#0b5ed7";
-			    		if(Statut.OPENED.equals(se.getStatut())) {
-			    			color = "#0d9314";
-			    		}else if(Statut.CLOSED.equals(se.getStatut())) {
-			    			color = "#e54c14";
-			    		}else if(Statut.STANDBY.equals(se.getStatut())) {
-			    			color = "#ffca2c";
-			    		}
-			    		c.setColor(color);
-			    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
-			    		c.setUrl(url);
-			    		l.add(c);	 
-    				 }
-    			}
+	    		CalendarDTO c = new CalendarDTO();
+	    		c.setId(se.getId());
+	    		String title = (!isAll)? se.getNomSessionEpreuve() : se.getContext().getKey().toUpperCase().concat(" : ").concat(se.getNomSessionEpreuve());
+	    		c.setTitle(title);
+	    		String strStart = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getHeureEpreuve()));  
+	    		c.setStart(strStart);
+	    		String strSEnd = null;
+	    		String color = "#3788d8";
+	    		if(Statut.OPENED.equals(se.getStatut())) {
+	    			color = "#008000";
+	    		}else if(Statut.CLOSED.equals(se.getStatut())) {
+	    			color = "#ff0000";
+	    		}else if(Statut.STANDBY.equals(se.getStatut())) {
+	    			color = "#ffa500";
+	    		}
+	    		if(se.getDateFin() != null && !dateFormat.format(se.getDateExamen()).equals(dateFormat.format(se.getDateFin()))) {
+					c.setAllDay(true);
+				}
+	    		if(se.getDateFin() != null) {
+	    			strSEnd = dateFormat.format(se.getDateFin()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
+	    		}else {
+					strSEnd = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
+				}
+	    		c.setEnd(strSEnd);
+	    		c.setColor(color);
+	    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
+	    		c.setUrl(url);
+	    		l.add(c);
 	    	}
 	    }
 		JSONSerializer serializer = new JSONSerializer();
 		String flexJsonString = "Aucune statistique à récupérer";
 		flexJsonString = serializer.deepSerialize(l);
 		return flexJsonString;
-
 	}
 	
 	public List<LocalDate> getDatesInPeriod(Date startDate, Date endDate) {

@@ -7,6 +7,8 @@ public class CalendarDTO {
     private String end;
     private String color;
     private String url;
+    private String textColor;
+    private Boolean allDay = false;
     public String getColor() {
         return color;
     }
@@ -43,5 +45,19 @@ public class CalendarDTO {
 	public void setUrl(String url) {
 		this.url = url;
 	}
- 
+	public String getTextColor() {
+		return textColor;
+	}
+	public void setTextColor(String textColor) {
+		this.textColor = textColor;
+	}
+	public Boolean getAllDay() {
+		return allDay;
+	}
+	public void setAllDay(Boolean allDay) {
+		this.allDay = allDay;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
 }
