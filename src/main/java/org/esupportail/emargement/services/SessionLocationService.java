@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -184,6 +185,16 @@ public class SessionLocationService {
     
     public void deleteAllTLocationsBySessionEpreuveId(Long id) {
     	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuveId(id);
-    	sessionLocationRepository.deleteAll(sls);;
+    	sessionLocationRepository.deleteAll(sls);
     }
+    
+    public List<Integer> getPriorityList(SessionEpreuve se) {
+    	List<Integer> priorities = new ArrayList<>();
+    	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+    	if(!sls.isEmpty()) {
+    		priorities = sls.stream().map(e->e.getPriorite()).collect(Collectors.toList());
+    	}
+    	
+    	return priorities;
+	}
 }

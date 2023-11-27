@@ -798,6 +798,19 @@ function updateJsTree(selectedData, category) {
 	request.send();
 }
 
+function getCapacite(location){
+	$.ajax({
+		type: 'GET',
+		url: emargementContextUrl + "/manager/sessionLocation/searchCapacite?id=" + addSessionLocation.value,
+		success: function(response) {
+			$("#capacite").val(response);
+		},
+		error: function(error) {
+			console.log("Error: " + error);
+		}
+	});
+}
+
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
 	//Autocomplete
@@ -2039,4 +2052,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
+	
+	//Create sessionLocation
+	var addSessionLocation = document.getElementById("addSessionLocation");
+	if(addSessionLocation!=null){
+		getCapacite($("#location").val());
+		$("#addSessionLocation").on("change", function(event) {
+			getCapacite($(this).val())
+		});
+	}
 });

@@ -1,6 +1,7 @@
 package org.esupportail.emargement.web.manager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -108,10 +109,12 @@ public class SessionLocationController {
     }
 	
     @GetMapping(value = "/manager/sessionLocation", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
-    	SessionLocation SessionLocation = new SessionLocation();
-	    populateEditForm(uiModel, SessionLocation, id);
-    	
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = true) Long id) {
+    	SessionLocation sessionLocation = new SessionLocation();
+	    populateEditForm(uiModel, sessionLocation, id);
+	    List<Integer> priorityList = sessionLocationService.getPriorityList(sessionEpreuveRepository.findById(id).get());
+	    int priority = (priorityList.isEmpty())? 1 : Collections.max(priorityList)+1;
+	    sessionLocation.setPriorite(priority);
         return "manager/sessionLocation/create";
     }
     
@@ -133,6 +136,7 @@ public class SessionLocationController {
 	    	allLocations.removeAll(usedLocations);
 	    	uiModel.addAttribute("allLocations", allLocations);
     	}
+    	uiModel.addAttribute("priorityList", sessionLocationService.getPriorityList(se));
     	uiModel.addAttribute("allSessionEpreuves", allSe);
         uiModel.addAttribute("sessionLocation", sessionLocation);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
@@ -140,10 +144,17 @@ public class SessionLocationController {
     
     @PostMapping("/manager/sessionLocation/create")
     public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest){
-        if (bindingResult.hasErrors()) {
+    	if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
             return "manager/sessionLocation/create";
         }
+    	List<Integer> priorityList = sessionLocationService.getPriorityList(sessionLocation.getSessionEpreuve());
+    	if(!priorityList.isEmpty() && priorityList.contains(sessionLocation.getPriorite())){
+    		populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
+    		uiModel.addAttribute("existingPriority", "existingPriority");
+    		uiModel.addAttribute("sessionLocation", sessionLocation);
+    		return "manager/sessionLocation/create";
+    	}
         
     	int capaciteMax = sessionLocation.getLocation().getCapacite();
         if (bindingResult.hasErrors() || sessionLocation.getCapacite() > capaciteMax  ) {
@@ -178,6 +189,12 @@ public class SessionLocationController {
             }
             return "manager/sessionLocation/update";
         }
+    	List<Integer> priorityList = sessionLocationService.getPriorityList(sessionLocation.getSessionEpreuve());
+    	if(!priorityList.isEmpty() && priorityList.contains(sessionLocation.getPriorite()) && sessionLocation.getPriorite()!= oldSl.getPriorite()){
+    		populateEditForm(uiModel, oldSl, oldSl.getSessionEpreuve().getId());
+    		uiModel.addAttribute("existingPriority", "existingPriority");
+    		return "manager/sessionLocation/update";
+    	}
         uiModel.asMap().clear();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         oldSl.setCapacite(sessionLocation.getCapacite());
@@ -221,4 +238,13 @@ public class SessionLocationController {
     	
         return sessionLocationList;
     }
+    
+    
+    @GetMapping("/manager/sessionLocation/searchCapacite")
+    @ResponseBody
+    public int getCapacite(@RequestParam Long id) {
+    	return locationRepository.findById(id).get().getCapacite();
+    }
+    
+    
 }

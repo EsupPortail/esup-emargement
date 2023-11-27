@@ -14,6 +14,7 @@
 			        </ul>
 		    	</div>
 		    	<div class="alert alert-danger" th:if="${#ctx.containsVariable('error')}">La capacité maximale pour ce lieu est de  <span class="font-weight-bold" th:text="${error}"></span>  !!!</div>
+  				<div class="alert alert-danger" th:if="${#ctx.containsVariable('existingPriority')}">Cette valeur de priorité existe déjà</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/sessionLocation/create(ctx=${eContext})}" th:object="${sessionLocation}" method="post">
 						<div class="row mb-3">
@@ -28,7 +29,7 @@
 						<div class="row mb-3">
 	                    	<label for="location" class="col-lg-2 form-label">Lieu</label>
 	                    	<div class="col-lg-10">
-								<select class="form-control" name="location" id="addSessionLocation"  required="required">
+								<select class="form-control" name="location" id="addSessionLocation" required="required">
 									<option th:each="location : ${allLocations}"
 										th:value="${location.id}" th:text="${location.nom + ' (' + location.capacite + ' max)'}"></option>
 								</select>
@@ -36,20 +37,29 @@
 							</div>
 						</div>
 						<div class="row mb-3">
-	                    	<label for="priorite" class="col-lg-2 form-label">Priorité</label>
+	                    	<label for="priorite" class="col-lg-2 form-label">Priorité
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.sessionLocation.priorite}">
+			                    	<i class="fas fa-question-circle"></i></a>
+	                    	</label>
 	                    	<div class="col-lg-10">
 								<input type="number" min="1" th:field="*{priorite}"  class="form-control" required="required">
 							</div>
 						</div>
 						<div class="row mb-3">
-	                    	<label for="capacite" class="col-lg-2 form-label">Capacité</label>
+	                    	<label for="capacite" class="col-lg-2 form-label">Capacité
+	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.sessionLocation.capacite}">
+			                    	<i class="fas fa-question-circle"></i></a>
+	                    	</label>
 	                    	<div class="col-lg-10">
 								<input type="number"  min="1" th:field="*{capacite}" class="form-control" required="required">
 							</div>
 						</div>	
 						<div class="row mb-3">
 							<label class="col-lg-2 form-check-label" th:for="${isTiersTempsOnly}">
-								Temps aménagé </label>
+							Temps aménagé <a class=" contextualHelp" data-bs-toggle="tooltip"
+							th:title="#{help.ctx.sessionLocation.tempsAmenage}"> <i
+								class="fas fa-question-circle"></i></a>
+						</label>
 							<div class="col-lg-10">
 								<input class="form-check-input " type="checkbox"
 									th:field="*{isTiersTempsOnly}">
