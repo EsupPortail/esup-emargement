@@ -2,7 +2,6 @@ package org.esupportail.emargement.services;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Year;
@@ -23,7 +22,6 @@ import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -69,7 +67,6 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -119,6 +116,9 @@ public class PresenceService {
     
     @Resource
 	DataEmitterService dataEmitterService;
+    
+    @Resource    
+    AppliConfigService appliConfigService;
 	
 	@Resource
 	LogService logService;
@@ -386,90 +386,103 @@ public class PresenceService {
 	public List<TagCheck> updatePresents(String presence) {
 		String eppn = null;
 		boolean isTagCheckerNeeded = true;
+		boolean isValid = true;
+		List<TagCheck> list = new ArrayList<TagCheck>();
 		if(presence.startsWith("qrcode")) {
+			Long qrCodeValidtime = Long.valueOf(appliConfigService.getQrCodeChange());
+			Long now = System.currentTimeMillis() / 1000;
 			if(presence.contains("@@@")) {
 				isTagCheckerNeeded = false;
 				String splitPresence [] = presence.split("@@@");
 				presence = splitPresence[0];
 				eppn = toolUtil.decodeFromBase64(splitPresence[1]);
 			}
-			presence = toolUtil.decodeFromBase64(presence.replace("qrcode", ""));
+			String temp = toolUtil.decodeFromBase64(presence.replace("qrcode", ""));
+			String [] splitTemp = temp.split("@@@");
+			String qrCodetimestamp = splitTemp[1];
+			presence = splitTemp[0];
+			if(now - Long.valueOf(qrCodetimestamp) > qrCodeValidtime) {
+				isValid = false;
+				Long tempsDepasse = now - Long.valueOf(qrCodetimestamp) + qrCodeValidtime;
+				log.info("QrCode invalide pour " + eppn + ", temps dépassé de " + tempsDepasse + " secondes");
+			}
 		}
-		String [] splitPresence = presence.split(",");
-		List<TagCheck> list = new ArrayList<TagCheck>();
-		if(splitPresence.length>0) {
-			String msgError = "";
-			TypeEmargement typeEmargement = null;
-			boolean isPresent = Boolean.valueOf(splitPresence[0].trim());
-	    	if(isPresent) {
-	    		if(splitPresence.length >4) {
-		    		if("qrcode".equals(splitPresence[4].trim())){
-		    			typeEmargement = TypeEmargement.QRCODE;
-		    		}
-		    	}else {
-		    		typeEmargement = TypeEmargement.MANUAL;
+		if(isValid) {
+			String [] splitPresence = presence.split(",");
+			if(splitPresence.length>0) {
+				String msgError = "";
+				TypeEmargement typeEmargement = null;
+				boolean isPresent = Boolean.valueOf(splitPresence[0].trim());
+		    	if(isPresent) {
+		    		if(splitPresence.length >4) {
+			    		if("qrcode".equals(splitPresence[4].trim())){
+			    			typeEmargement = TypeEmargement.QRCODE;
+			    		}
+			    	}else {
+			    		typeEmargement = TypeEmargement.MANUAL;
+			    	}
 		    	}
-	    	}
-	    	if(eppn == null) {
-	    		eppn = splitPresence[1].trim();
-	    	}
-	    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
-	    	Date date = (isPresent)? new Date() : null;
-	    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
-	    	
-	    	if(sessionLocationRepository.findById(sessionLocationId).get() != null) {
-		    	SessionEpreuve se = sessionLocationRepository.findById(sessionLocationId).get().getSessionEpreuve();
-		    	Groupe gpe = se.getBlackListGroupe();
-				boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
-		    	String email = (splitPresence.length >3)? splitPresence[3] : "";
-		    	TagCheck presentTagCheck = null;
-		    	if(!eppn.isEmpty()) {
-		    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
-		    	}else if(!email.isEmpty()) {
-		    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
+		    	if(eppn == null) {
+		    		eppn = splitPresence[1].trim();
 		    	}
-		    	presentTagCheck.setSessionEpreuve(se);
-		    	presentTagCheck.setTypeEmargement(typeEmargement);
-		    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
-		    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			    if(isTagCheckerNeeded) {
-					TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
-					presentTagCheck.setTagChecker(tagChecker);
-		    	}
-				if(!isPresent) {
-					presentTagCheck.setProxyPerson(null);
-				}
-		    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
+		    	Long sessionLocationId = Long.valueOf(splitPresence[2].trim());
+		    	Date date = (isPresent)? new Date() : null;
+		    	SessionLocation sessionLocationBadged = (isPresent)? sessionLocationRepository.findById(sessionLocationId).get() : null;
 		    	
-		    	presentTagCheck.setTagDate(date);
-		    	presentTagCheck.setContext(contextService.getcurrentContext());
-		    	if(!isBlackListed && isPresent || !isBlackListed && !isPresent || isBlackListed && !isPresent) {
-		    		tagCheckRepository.save(presentTagCheck);
-		    	}
-		    	
-		    	list.add(presentTagCheck);
-		    	tagCheckService.setNomPrenomTagChecks(list, false, false);
-		    	if(presentTagCheck.getTagChecker() != null) {
-		        	List<TagChecker> tcList = new ArrayList<TagChecker>();
-		        	tcList.add(presentTagCheck.getTagChecker());
-			    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
-			    	presentTagCheck.setTagChecker(tcList.get(0));
-		    	}
-				if(isBlackListed) {
-					msgError = presentTagCheck.getNomPrenom();
-				}
-		    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
-		    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
-		    	float percent = 0;
-		    	if(totalExpected!=0) {
-		    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
-		    	}
-		    	//Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
-		        if(sessionLocationBadged != null) {
-		    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
-		    	}
-		        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, msgError);
-    		}
+		    	if(sessionLocationRepository.findById(sessionLocationId).get() != null) {
+			    	SessionEpreuve se = sessionLocationRepository.findById(sessionLocationId).get().getSessionEpreuve();
+			    	Groupe gpe = se.getBlackListGroupe();
+					boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
+			    	String email = (splitPresence.length >3)? splitPresence[3] : "";
+			    	TagCheck presentTagCheck = null;
+			    	if(!eppn.isEmpty()) {
+			    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn).get(0);
+			    	}else if(!email.isEmpty()) {
+			    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
+			    	}
+			    	presentTagCheck.setSessionEpreuve(se);
+			    	presentTagCheck.setTypeEmargement(typeEmargement);
+			    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
+			    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+				    if(isTagCheckerNeeded) {
+						TagChecker tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
+						presentTagCheck.setTagChecker(tagChecker);
+			    	}
+					if(!isPresent) {
+						presentTagCheck.setProxyPerson(null);
+					}
+			    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
+			    	
+			    	presentTagCheck.setTagDate(date);
+			    	presentTagCheck.setContext(contextService.getcurrentContext());
+			    	if(!isBlackListed && isPresent || !isBlackListed && !isPresent || isBlackListed && !isPresent) {
+			    		tagCheckRepository.save(presentTagCheck);
+			    	}
+			    	
+			    	list.add(presentTagCheck);
+			    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+			    	if(presentTagCheck.getTagChecker() != null) {
+			        	List<TagChecker> tcList = new ArrayList<TagChecker>();
+			        	tcList.add(presentTagCheck.getTagChecker());
+				    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
+				    	presentTagCheck.setTagChecker(tcList.get(0));
+			    	}
+					if(isBlackListed) {
+						msgError = presentTagCheck.getNomPrenom();
+					}
+			    	Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
+			    	Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
+			    	float percent = 0;
+			    	if(totalExpected!=0) {
+			    		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
+			    	}
+			    	//Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sessionLocationBadged);
+			        if(sessionLocationBadged != null) {
+			    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
+			    	}
+			        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, msgError);
+	    		}
+			}
 		}
     	return list;
 	}
@@ -561,55 +574,5 @@ public class PresenceService {
 		}
 		return photo64;
 	}
-	
-	public void getQrCodeSession(HttpServletResponse response,  Long sessionLocationId,  String emargementContext, String appUrl) {
 
-        Document document = new Document();
-        document.setMargins(10, 10, 10, 10);
-        
-        SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
-        SessionEpreuve se = sl.getSessionEpreuve();
-        String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
-        String nomFichier = "QrCodeSession_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
-    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
-        String title1 = String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()) + " // " + String.format("%1$tH:%1$tM", (se.getHeureEpreuve())) + "-" +
-        	 String.format("%1$tH:%1$tM", (se.getFinEpreuve()));
-        String title2 = se.getNomSessionEpreuve();
-        if(se.typeBadgeage.equals(TypeBadgeage.SALLE)){
-        	title2 = title2 + "-" + sl.getLocation().getNom();
-        }
-        
-		try {
-			response.setContentType("application/pdf");
-			response.setHeader("Content-Disposition", "attachment; filename=".concat(nomFichier));
-			PdfWriter.getInstance(document, response.getOutputStream());
-			String eppn = "dummy";
-			String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
-			String qrCodeString = "true," + eppn + "," + sessionLocationId + "," + eppn + ",qrcode";
-			String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
-			InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);
-			byte[] bytes = IOUtils.toByteArray(inputStream);
-			Image image = Image.getInstance(bytes);
-			image.setAlignment(Image.MIDDLE);
-			float x = (PageSize.A4.getWidth() - image.getScaledWidth()) / 2;
-			float y = (PageSize.A4.getHeight() - image.getScaledHeight()) / 2;
-			image.setAbsolutePosition(x, y);
-			document.open();
-			Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18,
-		            Font.BOLD);
-			Paragraph para1 = new Paragraph(title1, catFont);
-			Paragraph para2 = new Paragraph(title2, catFont);
-			document.add(para1);
-			document.add(para2);
-			document.add(image);
-
-			logService.log(ACTION.GET_QRCODESESSION, RETCODE.SUCCESS, "Session : " + se.getNomSessionEpreuve(), null,
-					null, emargementContext, null);
-		} catch (Exception e) {
-			logService.log(ACTION.GET_QRCODESESSION, RETCODE.FAILED, "Session : " + se.getNomSessionEpreuve(), null,
-					null, emargementContext, null);
-		}
-
-		document.close();
-    }
 }

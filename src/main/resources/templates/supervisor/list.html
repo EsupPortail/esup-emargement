@@ -65,7 +65,8 @@
 									title="Liste d'émargement">
 									<i class="fas fa-file-signature"></i>
 								</button>
-								<a th:if="${isSessionQrCodeEnabled}" data-bs-toggle="modal" data-bs-target="#qrCodeModal" class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
+								<a th:if="${isSessionQrCodeEnabled}" th:href="@{|/${eContext}/supervisor/qrCodePage/${currentLocation}|}" target="_blank" 
+									class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
 								<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 									th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
 									class="btn btn-danger mb-1 " title="Exporter les émargements"><i
@@ -76,30 +77,6 @@
 								</label>									
 							</form>
 						</div>
-						<div th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}" class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
-							<div class="modal-dialog modal-lg" role="document">
-								<div class="modal-content">
-									<div class="modal-header">
-										<h5 class="modal-title">
-											<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' // ' + 
-											#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' +  
-											#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></span><br />
-											<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
-											<span th:if="${sessionEpreuve.typeBadgeage.name() eq 'SALLE'}" th:text="${sessionLocation.location.nom}">
-											</span>
-										</h5>
-										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-									</div>
-									<div class="modal-body">
-											<img th:src="@{|/${eContext}/supervisor/qrCode/${currentLocation}|}" class="mx-auto d-block"></img>
-									</div>
-						            <div class="modal-footer">
-										<a th:href="@{|/${eContext}/supervisor/qrCodeSession?sessionLocation=${currentLocation}|}" class="btn btn-danger pull-left">PDF</a>
-						                <button type="button" class="btn btn-secondary pull-left" data-bs-dismiss="modal">Fermer</button>
-						            </div>									
-								</div>
-							</div>
-						</div>						
 						<div class="modal fade" id="commentModal" tabindex="-1"
 							aria-hidden="true" th:if="${sessionLocation !=null}">
 							<div class="modal-dialog">

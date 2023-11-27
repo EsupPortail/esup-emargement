@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -82,6 +83,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -169,6 +171,12 @@ public class PresenceController {
 	
 	@Resource
 	UserAppService userAppService;
+	
+    @ModelAttribute("qrcodeChange")
+    public Integer qrcodeChange() throws IOException {
+    	String qrcodeChange = appliConfigService.getQrCodeChange();
+        return Integer.valueOf(qrcodeChange)*1000;
+    }
 	
 	private final static String ITEM = "presence";
 	
@@ -583,24 +591,51 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sessionEpreuveId, sessionLocationId);
     }
-    
-	@RequestMapping(value = "/supervisor/qrCode/{id}")
+	
+	@RequestMapping(value = "/supervisor/qrCodeSession/{id}")
     @ResponseBody
-    public void getQrCode(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
+    public String getQrCode(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
 		String eppn ="dummy";
-		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode";
+	    String timestamp = Long.toString(System.currentTimeMillis() / 1000);
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp;
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 		String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
 		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-
-        IOUtils.copy(inputStream, response.getOutputStream());
+        String base64Image = "";
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            byte[] imageBytes = outputStream.toByteArray();
+            Base64.Encoder encoder = Base64.getEncoder();
+            base64Image = encoder.encodeToString(imageBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return base64Image;
     }
 	
-    @GetMapping("/supervisor/qrCodeSession")
-    public void getQrCodesession(@PathVariable String emargementContext,HttpServletResponse response, 
-    		@RequestParam(value ="sessionLocation", required = false) Long sessionLocationId) throws Exception {
-
-    	presenceService.getQrCodeSession(response, sessionLocationId, emargementContext, appUrl);
-    }
+	@RequestMapping(value = "/supervisor/qrCodePage/{id}")
+	public String displayQrCodePage(@PathVariable String emargementContext, @PathVariable("id") Long currentLocation,
+			Model uiModel) {
+		SessionLocation sessionLocation = sessionLocationRepository.findById(currentLocation).get();
+		SessionEpreuve sessionEpreuve = sessionLocation.getSessionEpreuve();
+		uiModel.addAttribute("currentLocation", currentLocation);
+		uiModel.addAttribute("sessionLocation", sessionLocation);
+		uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+		uiModel.addAttribute("active", "qrCodeSession");
+		return "supervisor/qrCodeSession";
+	}
 }

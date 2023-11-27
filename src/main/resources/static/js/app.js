@@ -811,6 +811,19 @@ function getCapacite(location){
 	});
 }
 
+function getQrCodeSession() {
+  $.ajax({
+    url: emargementContextUrl + "/supervisor/qrCodeSession/" + currentLocation,
+    method: 'GET', 
+    success: function(response) {
+      $("#imgQrCode").attr("src", "data:image/png;base64, " + response);
+    },
+    error: function(xhr, status, error) {
+      console.error('Error:', error);
+    }
+  });
+}
+
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
 	//Autocomplete
@@ -2060,5 +2073,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		$("#addSessionLocation").on("change", function(event) {
 			getCapacite($(this).val())
 		});
+	}
+	var qrCodeDisplay = document.getElementById("qrCodeDisplay");
+	if(qrCodeDisplay != null){
+		getQrCodeSession();
+		setInterval(getQrCodeSession, qrcodeChange);
 	}
 });

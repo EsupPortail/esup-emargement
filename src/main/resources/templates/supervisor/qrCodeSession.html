@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+			<div class="container-fluid">
+				<span class="navbar-brand"><img th:src="@{/resources/images/logo.png}" width="200" class="d-inline-block align-top img-fluid" alt="URN"/><br />
+				<span class = "titleNav" th:text="${title != null ? title : 'Esup-emargement'}"></span></span>
+			</div>
+		</nav>
+		<div class="container-fluid">
+			<div class="px-4 py-5 my-5 text-center">
+			    <div class="col-lg-6 mx-auto">
+			      <p class="lead mb-4 fw-bold">
+					<span  th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' // ' + 
+										#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' +  
+										#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></span>
+					<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
+					<span th:if="${sessionEpreuve.typeBadgeage.name() eq 'SALLE'}" th:text="${sessionLocation.location.nom}">
+					</span>
+				  </p>
+			      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center" id="qrCodeDisplay">
+			        <img id="imgQrCode" alt="QR Code de session" src=""
+								class="mx-auto d-block img-fluid"></img>
+			      </div>
+			    </div>
+		  	</div>
+		  </div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>
