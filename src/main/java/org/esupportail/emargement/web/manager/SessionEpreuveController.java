@@ -254,7 +254,7 @@ public class SessionEpreuveController {
     }
 	
 	@GetMapping(value = "/manager/sessionEpreuve/repartition/{id}", produces = "text/html")
-    public String repartitionList(@PathVariable("id") Long id, Model uiModel) {
+    public String repartitionList(@PathVariable("id") Long id, Model uiModel, @ModelAttribute(value ="tagCheckOrderValue") String tagCheckOrderValue) {
 		uiModel.addAttribute("countTagChecksTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, true));
 		uiModel.addAttribute("countTagChecksNotTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, false));
 		uiModel.addAttribute("countTagChecksRepartisTiersTemps", tagCheckService.countNbTagCheckRepartitionNotNull(id, true));
@@ -263,6 +263,7 @@ public class SessionEpreuveController {
 		uiModel.addAttribute("capaciteTotaleNotTiersTemps", sessionEpreuveService.countCapaciteTotalSessionLocations(id, false));
 		uiModel.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(id).get());
 		uiModel.addAttribute("help", helpService.getValueOfKey("repartition"));
+		uiModel.addAttribute("tagCheckOrderValue", (tagCheckOrderValue.isEmpty())? null : tagCheckOrderValue);
 		
 		PropertiesForm form = new PropertiesForm();
 		form.setList(sessionLocationService.getRepartition(id));
@@ -273,9 +274,9 @@ public class SessionEpreuveController {
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/executeRepartition/{id}", produces = "text/html")
     public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, 
-    		@RequestParam(value="alphaOrder", required = false) Boolean alphaOrder, final RedirectAttributes redirectAttributes) {
+    		@RequestParam(value="alphaOrder", required = false) String tagCheckOrder, final RedirectAttributes redirectAttributes) {
 		
-		boolean isOver = sessionEpreuveService.executeRepartition(id, alphaOrder);
+		boolean isOver = sessionEpreuveService.executeRepartition(id, tagCheckOrder);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
 		if(Statut.CLOSED.equals(sessionEpreuve.getStatut())){
 			isOver = true;
@@ -285,10 +286,11 @@ public class SessionEpreuveController {
 			log.info("Répartition effectuée pour la session : " + sessionEpreuve.getNomSessionEpreuve());
 			logService.log(ACTION.EXECUTE_REPARTITION, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), null, null, emargementContext, null);
 		}else {
-			log.info("Pas de répartition possible pour la session : " + sessionEpreuve.getNomSessionEpreuve() + " , la capcité totale est inférieure au nombre de participants");
+			log.info("Pas de répartition possible pour la session : " + sessionEpreuve.getNomSessionEpreuve() + " , la capacité totale est inférieure au nombre de participants");
 			logService.log(ACTION.EXECUTE_REPARTITION, RETCODE.FAILED, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), null, null, emargementContext, null);
 		}
 		redirectAttributes.addFlashAttribute("isOver",  isOver);
+		redirectAttributes.addFlashAttribute("tagCheckOrderValue", tagCheckOrder);
         return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
 	
@@ -471,9 +473,10 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")
     @Transactional
-    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel,@ModelAttribute(value="form") PropertiesForm  propertiesForm,
-    		@RequestParam(value="alphaOrder", required = false) Boolean alphaOrder){
+    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes, @ModelAttribute(value="form") PropertiesForm  propertiesForm,
+    		@RequestParam(value="alphaOrder") String alphaOrder){
 		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext, alphaOrder);
+		 redirectAttributes.addFlashAttribute("tagCheckOrderValue", alphaOrder);
     	 return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
     
@@ -488,7 +491,7 @@ public class SessionEpreuveController {
     }
     
     @PostMapping("/manager/sessionEpreuve/changeStatut/{id}")
-    public String chngeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    public String changeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
     		@RequestParam("statut") Statut statut, final RedirectAttributes redirectAttributes) throws IOException {
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();

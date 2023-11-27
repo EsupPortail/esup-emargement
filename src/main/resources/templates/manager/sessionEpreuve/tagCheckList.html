@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
@@ -34,7 +34,7 @@
 					<table class="table table-hover table-striped table-bordered">
 						<thead class="sticky-top">
 							<tr>
-								<th scope="col">N° Identifiant</th>
+								<th scope="col"><a class="sorted" sd:pagination-sort="person.numIdentifiant">N° Identifiant</a></th>
 								<th scope="col">Nom</th>
 								<th scope="col">Prénom</th>
 								<th scope="col" class="text-center d-none d-lg-table-cell d-xl-table-cell">Temps aménagé</th>

@@ -159,22 +159,22 @@ public class SessionEpreuveService {
 		}
 	}
 
-    public boolean executeRepartition(Long sessionEpreuveId, Boolean alphaOrder) {
+    public boolean executeRepartition(Long sessionEpreuveId, String tagCheckOrder) {
     	boolean isOver =false;
-    	if(alphaOrder==null ) {
-			alphaOrder = false;
+    	if(tagCheckOrder==null ) {
+    		tagCheckOrder = "alpha";
 		}
     	//Tiers-temps
     	Long countTagChecksIsTiersTemps = tagCheckService.countNbTagCheckRepartitionNull(sessionEpreuveId, true);
     	Long countTagChecksRepartisIsTiersTemps = tagCheckService.countNbTagCheckRepartitionNotNull(sessionEpreuveId, true);
     	int capaciteTotaleIsTiersTemps= countCapaciteTotalSessionLocations(sessionEpreuveId, true);
-    	Long capaciteRestanteIsTiersTemps = new Long(capaciteTotaleIsTiersTemps) - countTagChecksRepartisIsTiersTemps;
+    	Long capaciteRestanteIsTiersTemps = Long.valueOf(capaciteTotaleIsTiersTemps) - countTagChecksRepartisIsTiersTemps;
     	
     	//Non Tiers-temps
     	Long countTagChecksIsNotTiersTemps = tagCheckService.countNbTagCheckRepartitionNull(sessionEpreuveId, false);
     	Long countTagChecksRepartisIsNotTiersTemps = tagCheckService.countNbTagCheckRepartitionNotNull(sessionEpreuveId, false);
     	int capaciteTotaleIsNotTiersTemps= countCapaciteTotalSessionLocations(sessionEpreuveId, false);
-    	Long capaciteRestanteIsNotTiersTemps = new Long(capaciteTotaleIsNotTiersTemps) - countTagChecksRepartisIsNotTiersTemps;
+    	Long capaciteRestanteIsNotTiersTemps = Long.valueOf(capaciteTotaleIsNotTiersTemps) - countTagChecksRepartisIsNotTiersTemps;
     	
     	if(countTagChecksIsTiersTemps<=capaciteRestanteIsTiersTemps && countTagChecksIsNotTiersTemps<=capaciteRestanteIsNotTiersTemps) {
     		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(sessionEpreuveId).get();
@@ -185,14 +185,17 @@ public class SessionEpreuveService {
 				//on compte le nombre le nombre de place utilisé dans cette salle
 				Long nbUsedPlace = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsTrueAndSessionLocationExpectedId(sessionEpreuveId, sl.getId());
 				List<TagCheck> tagCheckList = null;
-				if(alphaOrder) {
+				if("alpha".equals(tagCheckOrder)) {
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonEppn(sessionEpreuveId);
 					tagCheckService.setNomPrenomTagChecks(tagCheckList, false, false);
 					List<TagCheck> sortedUsers = tagCheckList.stream()
 							  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 							  .collect(Collectors.toList());
 					tagCheckList = sortedUsers;
-				}else {
+				}else if("numEtu".equals(tagCheckOrder)) {
+					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonNumIdentifiant(sessionEpreuveId);
+				}
+				else {
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrue(sessionEpreuveId);
 				}
 				if(!tagCheckList.isEmpty()) {
@@ -220,13 +223,15 @@ public class SessionEpreuveService {
     		List<SessionLocation> sessionLocationListIsNotTiersTempsOnly= sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndIsTiersTempsOnlyFalseOrderByPriorite(sessionEpreuveId);
 			for(SessionLocation sl:  sessionLocationListIsNotTiersTempsOnly) {
 				List<TagCheck> tagCheckList = null;
-				if(alphaOrder) {
+				if("alpha".equals(tagCheckOrder)) {
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(sessionEpreuveId);
 					tagCheckService.setNomPrenomTagChecks(tagCheckList, false, false);
 					List<TagCheck> sortedUsers = tagCheckList.stream()
 							  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 							  .collect(Collectors.toList());
 					tagCheckList = sortedUsers;
+				}else if("numEtu".equals(tagCheckOrder)) {
+					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonNumIdentifiant(sessionEpreuveId);
 				}else{
 					tagCheckList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalse(sessionEpreuveId);
 				}
@@ -235,6 +240,7 @@ public class SessionEpreuveService {
 				if(!tagCheckList.isEmpty()) {
     				if(nbUsedPlace.intValue()<sl.getCapacite()) {
     	    			for(TagCheck tc:  tagCheckList) {
+    	    				
     	    				if(tc.getIsUnknown()) {
     	    					tagCheckRepository.delete(tc);
     	    				}else {
@@ -258,10 +264,9 @@ public class SessionEpreuveService {
     	return isOver;
     }
     
-    
-    public void affinageRepartition(PropertiesForm propertiesForm, String emargementContext, Boolean alphaOrder){
-    	if(alphaOrder==null ) {
-			alphaOrder = false;
+    public void affinageRepartition(PropertiesForm propertiesForm, String emargementContext, String tagCheckOrder){
+    	if(tagCheckOrder==null ) {
+    		tagCheckOrder = "alpha";
 		}
     	List <SessionLocation> list = propertiesForm.list;
     	if(!list.isEmpty()) {
@@ -278,15 +283,17 @@ public class SessionEpreuveService {
     		}
     		//Tiers-temps
     		List<TagCheck> tagCheckIsTiersTempsOnlyList = null;
-			if(alphaOrder) {
-				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonEppn(se.getId());
+			if("alpha".equals(tagCheckOrder)){
+				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonEppn(se.getId());
 				tagCheckService.setNomPrenomTagChecks(tagCheckIsTiersTempsOnlyList, false, false);
 				List<TagCheck> sortedUsers = tagCheckIsTiersTempsOnlyList.stream()
 						  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 						  .collect(Collectors.toList());
 				tagCheckIsTiersTempsOnlyList = sortedUsers;
-			}else {
-				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrue(se.getId());
+			}else if("numEtu".equals(tagCheckOrder)) {
+				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonNumIdentifiant(se.getId());
+			}else{
+				tagCheckIsTiersTempsOnlyList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsTrue(se.getId());
 			}
     		int i = 0;
     		int j = 0;
@@ -294,7 +301,7 @@ public class SessionEpreuveService {
     		if(!tagCheckIsTiersTempsOnlyList.isEmpty() && !isTiersTempsOnlyList.isEmpty()) {
     			sl = isTiersTempsOnlyList.get(j);
 	    		for(TagCheck tc : tagCheckIsTiersTempsOnlyList) {
-					if(i<sl.nbInscritsSessionLocation && j < isTiersTempsOnlyList.size() && i < sl.getCapacite()) {
+					if(i<sl.getNbInscritsSessionLocation() && j < isTiersTempsOnlyList.size() && i < sl.getCapacite()) {
 						tc.setSessionLocationExpected(sl);
 						tagCheckRepository.save(tc);
 						i++;
@@ -309,26 +316,29 @@ public class SessionEpreuveService {
     		}
     		//Non Tiers-temps
     		List<TagCheck> tagCheckNotTiersTempsList = null;
-			if(alphaOrder) {
-				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(se.getId());
+    		if("alpha".equals(tagCheckOrder)){
+				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonEppn(se.getId());
 				tagCheckService.setNomPrenomTagChecks(tagCheckNotTiersTempsList, false, false);
 				List<TagCheck> sortedUsers = tagCheckNotTiersTempsList.stream()
 						  .sorted(Comparator.comparing(TagCheck::getNomPrenom))
 						  .collect(Collectors.toList());
 				tagCheckNotTiersTempsList = sortedUsers;
-			} else {
-				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalse(se.getId());
+			}else if("numEtu".equals(tagCheckOrder)) {
+				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonNumIdentifiant(se.getId());
+			}else{
+				tagCheckNotTiersTempsList = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalse(se.getId());
 			}
     		i = 0;
     		j = 0;
     		if(!tagCheckNotTiersTempsList.isEmpty() && !notTiersTempsList.isEmpty()) {
     			sl = notTiersTempsList.get(j);
 				for(TagCheck tc : tagCheckNotTiersTempsList) {
-					if(i<sl.nbInscritsSessionLocation && j < notTiersTempsList.size() && i < sl.getCapacite()) {
+					if(i<sl.getNbInscritsSessionLocation() && j < notTiersTempsList.size() && i < sl.getCapacite()) {
 						tc.setSessionLocationExpected(sl);
 						tagCheckRepository.save(tc);
 						i++;
 					}else {
+						
 						i=1;
 						j++;
 						sl = notTiersTempsList.get(j);

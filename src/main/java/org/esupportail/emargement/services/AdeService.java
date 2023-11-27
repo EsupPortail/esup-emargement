@@ -910,7 +910,7 @@ public class AdeService {
 					}
 				}
 				//repartition
-				sessionEpreuveService.executeRepartition(se.getId(), true);
+				sessionEpreuveService.executeRepartition(se.getId(), "alpha");
 				List<Map<Long, String>> listAdeInstructors = ade.getInstructors();
 				if(listAdeInstructors!= null &&!listAdeInstructors.isEmpty()) {
 					String firstId = listAdeInstructors.get(0).keySet().toArray()[0].toString();
