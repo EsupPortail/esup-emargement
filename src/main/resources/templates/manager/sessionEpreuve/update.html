@@ -14,8 +14,9 @@
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/update/{id}(ctx=${eContext}, id=${sessionEpreuve.id})}" th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
 	                    <input type="hidden" th:field="*{adeEventId}" />
+	                    <input type="hidden" th:field="*{adeProjectId}" />
 	                    <input type="hidden" th:field="*{dateImport}" />
-	                    <input type="hidden" th:field="*{dateCreation}" />              
+	                    <input type="hidden" th:field="*{dateCreation}" />
 	                    <div class="row mb-3">
 	                    	<label for="codSes" class="col-lg-2 form-label">Année universitaire</label>
 	                    	<div class="col-lg-10">
