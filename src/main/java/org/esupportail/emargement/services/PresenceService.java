@@ -399,12 +399,14 @@ public class PresenceService {
 			}
 			String temp = toolUtil.decodeFromBase64(presence.replace("qrcode", ""));
 			String [] splitTemp = temp.split("@@@");
-			String qrCodetimestamp = splitTemp[1];
 			presence = splitTemp[0];
-			if(now - Long.valueOf(qrCodetimestamp) > qrCodeValidtime) {
-				isValid = false;
-				Long tempsDepasse = now - Long.valueOf(qrCodetimestamp) + qrCodeValidtime;
-				log.info("QrCode invalide pour " + eppn + ", temps dépassé de " + tempsDepasse + " secondes");
+			String qrCodetimestamp = splitTemp[1];
+			if(!"notime".equals(qrCodetimestamp)) {
+				if(now - Long.valueOf(qrCodetimestamp) > qrCodeValidtime) {
+					isValid = false;
+					Long tempsDepasse = now - Long.valueOf(qrCodetimestamp) + qrCodeValidtime;
+					log.info("QrCode invalide pour " + eppn + ", temps dépassé de " + tempsDepasse + " secondes");
+				}
 			}
 		}
 		if(isValid) {

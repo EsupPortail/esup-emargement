@@ -967,7 +967,7 @@ public class TagCheckService {
 	                table.addCell(dateCell);
 	                String identifiant = (tc.getPerson()!=null) ? tc.getPerson().getEppn() : tc.getGuest().getEmail();
 	                try {
-						String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode";
+						String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode@@@notime";
 						String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 						InputStream is = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 5, 5);
 						byte[] bytes = IOUtils.toByteArray(is);

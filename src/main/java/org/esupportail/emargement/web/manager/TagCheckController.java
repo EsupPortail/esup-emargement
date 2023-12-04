@@ -357,7 +357,7 @@ public class TagCheckController {
     		List<EsupSignature> list = esupSignatureRepository.findByTagCheck(tagCheck);
     		if(!list.isEmpty()) {
     			esupSignatureRepository.deleteAll(list);
-    		}    		
+    		}
     		Person person = tagCheck.getPerson();
     		if(person!=null) {
 	    		tagCheckRepository.delete(tagCheck);
@@ -510,7 +510,7 @@ public class TagCheckController {
 							String body = appliConfigService.getQrCodebodyMail();
 							body = body.replaceAll("@@nom@@", nomPrenom);
 							body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode";
+							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode@@@notime";
 							String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 							InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
 							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
