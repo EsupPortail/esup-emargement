@@ -3,6 +3,7 @@ package org.esupportail.emargement.repositories;
 import javax.persistence.EntityManager;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.esupportail.emargement.security.ContextHelper;
@@ -28,7 +29,7 @@ public class EmargementRepositoryAspect {
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextKey(..)) " +
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContext(..))",
 			argNames="joinPoint")
-	public void aroundExecution(JoinPoint joinPoint) throws Throwable {
+	public void enableFilterIfNeeded(JoinPoint joinPoint) throws Throwable {
 		String currentContext = ContextHelper.getCurrentContext();
 		if(currentContext!=null && !currentContext.isEmpty() && !currentContext.equals("all")) {
 			org.hibernate.Filter filter = em.unwrap(Session.class).enableFilter("contextFilter");
@@ -39,8 +40,13 @@ public class EmargementRepositoryAspect {
 			} else {
 				log.warn("Impossible de trouver le contexte de clé " + currentContext + " / joinPoint : " + joinPoint);
 			}
-
 		}
 	}
-
+	
+	@After(
+			value="(execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))",
+			argNames="joinPoint")
+	public void disableFilter(JoinPoint joinPoint) throws Throwable {
+		em.unwrap(Session.class).disableFilter("contextFilter");
+	}
 }
