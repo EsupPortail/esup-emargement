@@ -56,14 +56,14 @@
 					</div>
 					<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
 					<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
-					<div class="accordion mb-2" id="accordionExample" th:if="${isSessionQrCodeEnabled}">
+					<div class="accordion mb-2" id="accordionParticipant" th:if="${isSessionQrCodeEnabled}">
 					  <div class="accordion-item">
 					    <h2 class="accordion-header" id="headingOne">
 					      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-					       SCAN
+					       SCAN QR Code
 					      </button>
 					    </h2>
-					    <div id="collapseOne" class="accordion-collapse collapse" th:classappend="${scanClass}" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+					    <div id="collapseOne" class="accordion-collapse collapse" th:classappend="${scanClass}" aria-labelledby="headingOne" data-bs-parent="#accordionParticipant">
 					      <div class="accordion-body">
 							<div class="card text-center box-shadow h-md-250">
 								<div id="qrCodeCam"  th:attr="data-qrcode=${eppn64}"

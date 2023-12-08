@@ -7,6 +7,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Repository;
 public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Long countBySessionEpreuveId(Long id);
+	
+	List<TagCheck> findByContext(Context context);
 	
 	Page<TagCheck> findTagCheckBySessionEpreuveId(Long id, Pageable pageable);
 	
@@ -105,6 +108,15 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(Long id);
 	
 	Long countBySessionLocationExpectedIdAndTagDateIsNotNull(Long id);
+	
+	//Pas de Contexte
+	Long countByContextAndSessionLocationExpectedIdAndTagDateIsNotNull(Context ctx, Long id);
+	Long countByContextAndSessionLocationExpectedId(Context ctx, Long id);
+	List<TagCheck> findByContextAndPersonEppnAndSessionEpreuve(Context ctx, String eppn, SessionEpreuve sessionEpreuve);
+	List<TagCheck> findByContextAndSessionLocationExpectedIdAndPersonEppnEquals(Context ctx, Long id, String eppn);
+	
+	//remplace native query getSessionLocationIdExpected
+	List<TagCheck> findTagCheckByPersonEppnAndSessionEpreuve(String eppn, SessionEpreuve sessionEpreuve);
 	
 	Long countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(Long id);
 	
@@ -341,5 +353,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context, String anneeUniv);
 	
 	List<TagCheck> findTagCheckByContextAndSessionEpreuveId(Context context, Long id);
+	
 }
 

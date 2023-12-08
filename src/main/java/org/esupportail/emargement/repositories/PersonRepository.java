@@ -20,6 +20,8 @@ public interface PersonRepository extends JpaRepository<Person, Long>{
 	
 	Person findByEppnAndContext(String eppn, Context context);
 	
+	Person findByContextAndEppn(Context context, String eppn);
+	
 	@Modifying
 	@Query(value = "delete from person where id not in (select person_id from tag_check) and context_id = :ctxId ", nativeQuery = true)
 	int cleanPersons(Long ctxId);

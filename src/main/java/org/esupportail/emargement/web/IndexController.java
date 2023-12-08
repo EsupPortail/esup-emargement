@@ -1,13 +1,19 @@
 package org.esupportail.emargement.web;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.PresenceService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,11 +36,17 @@ public class IndexController {
     @Resource
     ContextService contextService;
     
+	@Resource
+	PresenceService presenceService;
+    
+	@Autowired
+	ToolUtil toolUtil;
+    
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return  ITEM;
 	}
-
+	
     @GetMapping("/")
     public String index(@RequestParam(required = false) String emargementContext, Model model) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -52,6 +64,7 @@ public class IndexController {
 					model.addAttribute("isSupervisor", WebUtils.isSupervisor());
 					model.addAttribute("isSwitchUser", WebUtils.isSwitchUser());
 					model.addAttribute("isUser", WebUtils.isUser());
+					model.addAttribute("eppn64", toolUtil.encodeToBase64(auth.getName()));
 	            	return "index";
 	            }
 	            return "redirect:/" + emargementContext;
@@ -95,10 +108,17 @@ public class IndexController {
 		
 	    return "redirect:/";
 	}
-
-	@GetMapping("favicon.ico")
+    
+    @GetMapping("favicon.ico")
 	@ResponseBody
 	void returnNoFavicon() {
 	}
-
+    
+    @GetMapping(value = {"updatePresents", "{emargementContext}/updatePresents"})
+    @ResponseBody
+    public  List<TagCheck>  updatePresents(@PathVariable(required = false) String emargementContext, @RequestParam(value ="presence") String presence) throws InterruptedException {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+        return presenceService.updatePresents(presence) ;
+    }
 }

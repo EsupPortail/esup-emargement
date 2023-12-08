@@ -39,6 +39,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	Page<TagChecker> findTagCheckerByUserAppEppnEquals(String eppn, Pageable pageable);
 	
+	List<TagChecker> findByContextAndUserAppEppn(Context ctx, String eppn);
+	
 	//STATS
 	@Query(value = "select eppn, count(*) from tag_checker, user_app, session_location where tag_checker.user_app_id = user_app.id "
 			+ "and tag_checker.session_location_id=session_location.id  and session_epreuve_id in (select id from session_epreuve where is_session_epreuve_closed='t' and annee_univ like :anneeUniv) "

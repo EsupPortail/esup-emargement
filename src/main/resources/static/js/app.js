@@ -308,6 +308,20 @@ function updatePresence(url, numEtu) {
 	request.open('GET', url + "?presence=" + numEtu, true);
 	request.onload = function() {
 		if (request.status >= 200 && request.status < 400) {
+			if(document.getElementById("newbie")!=null ){
+				const data = JSON.parse(request.responseText);
+				if (data != null) {
+					var tc = data[0];
+					var tagDate = moment(tc.tagDate).format('DD-MM-YYYY HH:mm:ss');
+					var info = moment(tc.sessionEpreuve.dateExamen).format('DD-MM-YYYY') + " // " +
+						tc.sessionEpreuve.nomSessionEpreuve + " // " + tc.sessionLocationBadged.location.nom;
+					$("#norole").addClass("d-none");
+					$("#newbie").removeClass("d-none");
+					$("#tagDate").text(tagDate);
+					$("#sessionNewbie").text(info);
+					$("#accordionNewbie").hide();
+				}
+			}
 			deleteParam(window.location.href, "tc");
 			setTimeout(function() {
 				$("#displayedIdentity").addClass("d-none");
@@ -925,7 +939,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (event.target.matches('.presenceCheck')) {
 			var isPresent = event.target.checked;
 			var isPresentValue = isPresent + ',' + event.target.value;
-			updatePresence(emargementContextUrl + "/supervisor/updatePresents", isPresentValue);
+			updatePresence(emargementContextUrl + "/updatePresents", isPresentValue);
 		}
 		if (event.target.matches('#pdfPreview')) {
 			var htmltemplate = document.getElementById("htmltemplate");
@@ -1395,9 +1409,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	//Presence
-	if (document.getElementById('presencePage') != null) {
+	if (document.getElementById('presencePage') != null || document.getElementById('unknownPage')!= null ) {
 		const uuid = ID();
-		const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
+		const eventSource = new EventSource(emargementContextUrl+ `/supervisor/register/${uuid}`);
 		eventSource.addEventListener('tc', response => {
 			var tagCheck = JSON.parse(response.data);
 			if (!tagCheck.isBlacklisted) {
@@ -1786,13 +1800,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			video.play();
 			requestAnimationFrame(tick);
 		});
-
+		let isCodeScanned = false;
 		function tick() {
 			loadingMessage.innerText = "⌛ Loading video..."
 			if (video.readyState === video.HAVE_ENOUGH_DATA) {
 				loadingMessage.hidden = true;
 				canvasElement.hidden = false;
-
 				canvasElement.height = video.videoHeight;
 				canvasElement.width = video.videoWidth;
 				canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
@@ -1801,26 +1814,38 @@ document.addEventListener('DOMContentLoaded', function() {
 					inversionAttempts: "dontInvert",
 				});
 				if (code) {
-					var value = code.data;
-					var sessionData = qrCodeCam.getAttribute("data-qrcode");
-					if (sessionData != null) {
-						var splitCode = value.split("value=");
-						value = splitCode[1] + "@@@" + sessionData;
+						drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+						drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+						drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+						drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+				}
+				if (!isCodeScanned) {
+					if (code) {
+						var value = code.data;
+						var sessionData = qrCodeCam.getAttribute("data-qrcode");
+						if (sessionData != null) {
+							var splitCode = value.split("value=");
+							value = splitCode[1] + "@@@" + sessionData;
+						}
+						var prefix = "";
+						if (qrCodeCam.hasAttribute('data-role')) {
+							prefix = emargementContextUrl + "/";
+						}
+						updatePresence(prefix + "updatePresents", value);
+						isCodeScanned = true;
+						console.log("QR Code scanned once.");
+						setTimeout(() => {
+					      isCodeScanned = false;
+					      console.log("Simulated scan. Code scanned only once.");
+					    }, 2000); //
+					} else {
+					   isCodeScanned = false; // Reset the flag if no QR code is found
 					}
-					updatePresence(emargementContextUrl + "/supervisor/updatePresents", value);
-					if (sessionData != null) {
-						setTimeout(function() {
-							window.location.reload();
-						}, 750);
-					}
-					drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-					drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-					drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-					drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
 				}
 			}
 			requestAnimationFrame(tick);
 		}
+		tick();
 	}
 
 	//Affinage reparttion

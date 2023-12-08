@@ -23,6 +23,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
@@ -379,15 +380,6 @@ public class PresenceController {
         return sessionLocationList;
     }
     
-    @GetMapping("/supervisor/updatePresents")
-    @ResponseBody
-    public List<TagCheck> updatePresents(@RequestParam(value ="presence") String presence) throws InterruptedException {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		
-        return presenceService.updatePresents(presence) ;
-    }
-    
     @GetMapping("/supervisor/exportPdf")
     public void exportPdf(@PathVariable String emargementContext,HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) Long sessionLocationId, 
     		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId) throws Exception {
@@ -596,8 +588,10 @@ public class PresenceController {
     @ResponseBody
     public String getQrCode(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
 		String eppn ="dummy";
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 	    String timestamp = Long.toString(System.currentTimeMillis() / 1000);
-		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp;
+		Context ctx = contextRepository.findByKey(emargementContext);
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp + "@@@" + ctx.getId() + "@@@" + auth.getName();;
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 		String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
 		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);

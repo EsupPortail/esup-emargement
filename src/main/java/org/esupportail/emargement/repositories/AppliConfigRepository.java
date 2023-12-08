@@ -17,4 +17,6 @@ public interface AppliConfigRepository extends JpaRepository<AppliConfig, Long> 
 	List<AppliConfig> findAppliConfigByContext(Context context);
 	
 	List<AppliConfig> findAppliConfigByKeyAndContext(String key, Context context);
+	
+	List<AppliConfig> findByContextAndKey(Context context, String key);
 }

@@ -716,14 +716,14 @@ public class TagCheckService {
 							if(totalPresent >= sessionLocationBadged.getCapacite()) {
 								TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
 								if(tagCheck != null) {
-									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
+									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, TypeEmargement.CARD);
 									isOk = true;
 								}else {
 									isOk = false;
 								}
 							}else {
 								if(!isBlackListed) {
-									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre);
+									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, TypeEmargement.CARD);
 									newTagCheck.setIsBlacklisted(false);
 									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadged.getId());
 								}else {
@@ -782,7 +782,7 @@ public class TagCheckService {
 						}
 						log.info("On enregistre l'inconnu dans la session : " +  eppn);
 						if(sl != null || seId != null || isUnknown) {
-							TagCheck newTc = saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre);
+							TagCheck newTc = saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, TypeEmargement.CARD);
 							dataEmitterService.sendData(newTc, new Float(0), new Long(0), new SessionLocation(), "");
 						}
 					} catch (Exception e) {
@@ -855,26 +855,40 @@ public class TagCheckService {
 	}
 	
 	public TagCheck saveUnknownTagCheck(String comment, Context ctx, String eppn, SessionEpreuve sessionEpreuve, SessionLocation sessionLocationBadged, 
-				TagChecker tagChecker, boolean isSessionLibre) {
+				TagChecker tagChecker, boolean isSessionLibre, TypeEmargement typeEmargement) {
 		TagCheck unknownTc = null;
 		List<TagCheck> badgedTcs = new ArrayList<TagCheck>();
+		//rm!!   Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, sessionEpreuve.getDateExamen(),sessionEpreuve.getId());
 		if(isSessionLibre) {
-			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, sessionEpreuve.getDateExamen(),sessionEpreuve.getId());
-			if(sessionLocationId != null) {
-				badgedTcs = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn);
+			if(TypeEmargement.QRCODE.equals(typeEmargement)) {
+				List<TagCheck> tcs = tagCheckRepository.findByContextAndPersonEppnAndSessionEpreuve(ctx, eppn, sessionEpreuve);
+				if(!tcs.isEmpty()) {
+					Long sessionLocationId = tcs.get(0).getSessionLocationExpected().getId();
+					badgedTcs = tagCheckRepository.findByContextAndSessionLocationExpectedIdAndPersonEppnEquals(ctx, sessionLocationId, eppn);
+				}
+			}else {
+				List<TagCheck> tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
+				if(!tcs.isEmpty()) {
+					Long sessionLocationId = tcs.get(0).getSessionLocationExpected().getId();
+					badgedTcs = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(sessionLocationId, eppn);
+				}
 			}
 		}else {
 			badgedTcs = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(sessionLocationBadged.getId(), eppn);
 		}
 		if(!badgedTcs.isEmpty()) {
 			unknownTc = badgedTcs.get(0);
-			unknownTc.setTagDate(new Date());
 		}else {
 			unknownTc = new TagCheck();
 			unknownTc.setComment(comment);
 			unknownTc.setSessionEpreuve(sessionEpreuve);
 			unknownTc.setContext(ctx);
-			Person p = personRepository.findByEppnAndContext(eppn, ctx);
+			Person p = null;
+			if(TypeEmargement.QRCODE.equals(typeEmargement)) {
+				p = personRepository.findByContextAndEppn(ctx, eppn);
+			}else {
+				p = personRepository.findByEppnAndContext(eppn, ctx);
+			}
 			if(p == null) {
 				p = new Person();
 				p.setContext(ctx);
@@ -892,10 +906,12 @@ public class TagCheckService {
 			unknownTc.setPerson(p);
 			unknownTc.setTagChecker(tagChecker);
 			unknownTc.setSessionLocationBadged(sessionLocationBadged);
-			unknownTc.setTagDate(new Date());
 			unknownTc.setIsUnknown(true);
-			unknownTc.setTypeEmargement(TypeEmargement.CARD);
 		}
+		unknownTc.setTagChecker(tagChecker);
+		unknownTc.setTagDate(new Date());
+		unknownTc.setTypeEmargement(typeEmargement);
+		unknownTc.setNbBadgeage(getNbBadgeage(unknownTc, true));
 		TagCheck tc =tagCheckRepository.save(unknownTc);
 		return tc;
 	}

@@ -27,7 +27,16 @@ public class EmargementRepositoryAspect {
 	@Before(
 			value="(execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))" +
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextKey(..)) " +
-					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContext(..))",
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextId(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContext(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextAndId(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextAndEppn(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.AppliConfigRepository.findByContextAndKey(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.TagCheckerRepository.findByContextAndUserAppEppn(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.TagCheckRepository.countByContextAndSessionLocationExpectedId(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.TagCheckRepository.findByContextAndPersonEppnAndSessionEpreuve(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.TagCheckRepository.findByContextAndSessionLocationExpectedIdAndPersonEppnEquals(..)) " +
+					"&& !execution(public * org.esupportail.emargement.repositories.TagCheckRepository.countByContextAndSessionLocationExpectedIdAndTagDateIsNotNull(..))",
 			argNames="joinPoint")
 	public void enableFilterIfNeeded(JoinPoint joinPoint) throws Throwable {
 		String currentContext = ContextHelper.getCurrentContext();
