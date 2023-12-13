@@ -28,6 +28,8 @@
 						</dd>
  						<dt class="col-sm-2">Type</dt>
 						<dd class="col-sm-10" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></dd>
+						<dt class="col-sm-2">Numéro</dt>
+						<dd class="col-sm-10" th:text="${(tagCheck.person != null)? tagCheck.person.numIdentifiant : ''}"></dd>
 			            <dt class="col-sm-2">Présent</dt>
 						<dd class="col-sm-10 text-danger fw-bold" th:if="${tagCheck.isExempt}">Exempt</dd>
 						<dd class="col-sm-10" th:unless="${tagCheck.isExempt}"><i th:if="${tagCheck.tagDate != null}" class="fa fa-check text-success"></i></dd>

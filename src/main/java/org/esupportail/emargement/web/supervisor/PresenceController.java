@@ -223,11 +223,11 @@ public class PresenceController {
         boolean isSessionLibre = false;
         boolean isCapaciteFull = false;
 		Page<TagCheck> tagCheckPage = null;
-		Long totalExpected = new Long(0) ;
-		Long totalAll = new Long(0) ;
-		Long totalPresent = new Long(0) ;
-		Long totalNonRepartis = new Long(0) ;
-		Long totalNotExpected = new Long(0) ;
+		Long totalExpected = Long.valueOf(0) ;
+		Long totalAll = Long.valueOf(0) ;
+		Long totalPresent = Long.valueOf(0) ;
+		Long totalNonRepartis = Long.valueOf(0) ;
+		Long totalNotExpected = Long.valueOf(0) ;
 		String currentLocation = null;
 		Page <TagCheck> page = new PageImpl <TagCheck>(new ArrayList<TagCheck>());
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
@@ -263,7 +263,7 @@ public class PresenceController {
 		        	totalNotExpected = tagCheckRepository.countTagCheckBySessionLocationExpectedIdIsNullAndSessionLocationBadgedId(sessionLocationId);
 		        	float percent = 0;
 		        	if(totalExpected!=0) {
-		        		percent = 100*(new Long(totalPresent).floatValue()/ new Long(totalExpected).floatValue() );
+		        		percent = 100*(Long.valueOf(totalPresent).floatValue()/ Long.valueOf(totalExpected).floatValue() );
 		        	}
 		        	uiModel.addObject("percent", percent);
     			}
@@ -485,8 +485,12 @@ public class PresenceController {
     
 	@GetMapping(value = "/supervisor/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
-        uiModel.addAttribute("tagCheck",  tagCheckRepository.findById(id).get());
+		List<TagCheck> allTagChecks = new ArrayList<>();
+		allTagChecks.add( tagCheckRepository.findById(id).get());
+		tagCheckService.setNomPrenomTagChecks(allTagChecks, false, false);
+        uiModel.addAttribute("tagCheck", allTagChecks.get(0));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        uiModel.addAttribute("active", ITEM);
         return "supervisor/show";
     }
 	

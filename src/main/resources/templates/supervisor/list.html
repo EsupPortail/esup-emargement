@@ -313,6 +313,7 @@
 											<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
 											<th th:if="${isGroupeDisplayed}"  class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" scope="col">Groupe</th>
 											<th scope="col" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
+											<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.numIdentifiant">N°</a></th>
 											<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
 											<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
 											<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Heure</a></th>
@@ -344,6 +345,7 @@
 											</td>
 											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${tagCheck.person != null}"  th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:unless="${tagCheck.person != null}">Externe</td>
+											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.person != null)? tagCheck.person.numIdentifiant : ''}"></td>
 											<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
 											<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
 												<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 

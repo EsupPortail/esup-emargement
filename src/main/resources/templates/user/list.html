@@ -8,9 +8,16 @@
 			<div class="card">
  					<div class="card-header">
     				<div class="row">
-		    			<div class="col-lg-2">
+		    			<div class="col">
 				    		<h2>Participant</h2>
 				   		</div>
+				   		<div class="col">
+		    				<div class="row float-end">
+		    					<a class=" contextualHelp" data-bs-toggle="tooltip" title="En vert : session émargée en tant que personne connue
+		    					En orange : session émargée par erreur ou dans la mauvaise salle.">
+		                    		<i class="fas fa-question-circle"></i></a>
+		    				</div>
+		    			</div>
 				   </div>
 				</div>			
   				<div class="card-body">
@@ -94,7 +101,8 @@
 								</tr>
 							</thead>
 							<tbody class ="center">
-								<tr th:each="tc : ${tagChecksPage}" th:classappend="${tc.typeEmargement!=null} ? table-success : ''" th:id="${tc.sessionEpreuve.id}" >
+								<tr th:each="tc : ${tagChecksPage}" th:classappend="${(tc.typeEmargement!=null and !tc.isUnknown? 'table-success' : '') +
+										(tc.isUnknown ? 'table-warning' : '')}" th:id="${tc.sessionEpreuve.id}" >
 									<td>
 										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
 										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>						
