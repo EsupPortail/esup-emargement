@@ -591,10 +591,10 @@ public class PresenceController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 	    String timestamp = Long.toString(System.currentTimeMillis() / 1000);
 		Context ctx = contextRepository.findByKey(emargementContext);
-		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp + "@@@" + ctx.getId() + "@@@" + auth.getName();;
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp + "@@@" + ctx.getId() + "@@@" + auth.getName();
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 		String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
-		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcode".concat(enocdedQrCode), 350, 350);
+		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcodeSession".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         String base64Image = "";
         try {

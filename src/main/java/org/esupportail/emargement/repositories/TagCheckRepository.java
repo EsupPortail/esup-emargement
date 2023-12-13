@@ -114,6 +114,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countByContextAndSessionLocationExpectedId(Context ctx, Long id);
 	List<TagCheck> findByContextAndPersonEppnAndSessionEpreuve(Context ctx, String eppn, SessionEpreuve sessionEpreuve);
 	List<TagCheck> findByContextAndSessionLocationExpectedIdAndPersonEppnEquals(Context ctx, Long id, String eppn);
+	List<TagCheck> findByContextAndSessionLocationBadgedIdAndPersonEppnEquals(Context ctx, Long id, String eppn);
 	
 	//remplace native query getSessionLocationIdExpected
 	List<TagCheck> findTagCheckByPersonEppnAndSessionEpreuve(String eppn, SessionEpreuve sessionEpreuve);
@@ -227,6 +228,13 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List <TagCheck> findByPersonGroupesIn(List<Groupe> groupes);
 	
 	List <TagCheck> findByPersonIdIn(List<Long> test);
+	
+	List<TagCheck> findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(SessionLocation sl, String Eppn);
+	
+	List<TagCheck> findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(SessionEpreuve se, String Eppn);
+	
+	//countSessionEpreuveIdExpected
+	Long countByPersonEppnAndSessionEpreuveDateExamen(String eppn, Date date);
 	
 	@Query(value = "select count(*) from tag_check where session_epreuve_id = :id and type_emargement= :type and context_id = :ctxId", nativeQuery = true)
 	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id, String type, Long ctxId);

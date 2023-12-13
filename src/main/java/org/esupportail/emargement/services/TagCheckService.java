@@ -758,6 +758,7 @@ public class TagCheckService {
 							}
 						}
 						else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
+							//comparaison avec les heures de début et de fin
 							LocalTime now = LocalTime.now();
 							seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
 							String lieu = " Autre session dans la journée";
@@ -874,7 +875,9 @@ public class TagCheckService {
 				}
 			}
 		}else {
-			badgedTcs = tagCheckRepository.findTagCheckBySessionLocationBadgedIdAndPersonEppnEquals(sessionLocationBadged.getId(), eppn);
+			if(!TypeEmargement.QRCODE.equals(typeEmargement) || TypeEmargement.QRCODE.equals(typeEmargement) && personRepository.findByContextAndEppn(ctx, eppn)!=null ) {
+				badgedTcs = tagCheckRepository.findByContextAndSessionLocationBadgedIdAndPersonEppnEquals(ctx, sessionLocationBadged.getId(), eppn);
+			}
 		}
 		if(!badgedTcs.isEmpty()) {
 			unknownTc = badgedTcs.get(0);

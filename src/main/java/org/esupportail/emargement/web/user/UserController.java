@@ -11,9 +11,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -66,6 +68,9 @@ public class UserController {
 	
 	@Autowired
     LdapUserRepository ldapUserRepository;
+	
+	@Autowired
+	ContextRepository contextRepository;
 
 	@Autowired
 	LdapService ldapService;
@@ -220,10 +225,12 @@ public class UserController {
 	
 	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
     @ResponseBody
-    public void getQrCode(@PathVariable("eppn") String eppn, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
-        String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@notime";
+    public void getQrCode(@PathVariable String emargementContext, @PathVariable("eppn") String eppn, @PathVariable("id") Long id, 
+    		HttpServletResponse response) throws WriterException, IOException {
+		Context ctx = contextRepository.findByKey(emargementContext);
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@notime@@@" + ctx.getId();
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
-		InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
+		InputStream inputStream = toolUtil.generateQRCodeImage("qrcodeUser".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         IOUtils.copy(inputStream, response.getOutputStream());
     }

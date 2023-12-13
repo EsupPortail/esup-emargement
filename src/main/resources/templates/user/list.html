@@ -101,10 +101,10 @@
 										<div th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
 													or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin))
 													or (tc.sessionEpreuve.dateFin!=null
-	                                                  and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
-	                                                  and #dates.createToday().before(tc.sessionEpreuve.dateFin))
+	                                                and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
+	                                                and #dates.createToday().before(tc.sessionEpreuve.dateFin))
 												 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-											<button th:if="${tc.sessionLocationExpected != null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
+											<button th:if="${tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
 											<i class="fas fa-qrcode"></i></button>
 											<div class="modal" th:attr="id=${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog">
 												<div class="modal-dialog" role="document">
@@ -114,6 +114,7 @@
 															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 														</div>
 														<div class="modal-body">
+															<span class="fw-bold" th:text="${name}"></span>
 															<img th:if="${tc.sessionLocationExpected != null}" th:src="@{${'/' + tc.context.key  + '/user/qrCode/' + tc.person.eppn + '/' + tc.sessionLocationExpected.id}}" />
 														</div>
 													</div>

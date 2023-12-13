@@ -303,9 +303,10 @@ function deleteParam(urlLocation, name) {
 	return url;
 }
 
-function updatePresence(url, numEtu) {
+function updatePresence(url, numEtu, currentLocation) {
 	var request = new XMLHttpRequest();
-	request.open('GET', url + "?presence=" + numEtu, true);
+	var location = (currentLocation != null)? "&currentLocation=" + currentLocation : "";
+	request.open('GET', url + "?presence=" + numEtu + location, true);
 	request.onload = function() {
 		if (request.status >= 200 && request.status < 400) {
 			if(document.getElementById("newbie")!=null ){
@@ -939,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (event.target.matches('.presenceCheck')) {
 			var isPresent = event.target.checked;
 			var isPresentValue = isPresent + ',' + event.target.value;
-			updatePresence(emargementContextUrl + "/updatePresents", isPresentValue);
+			updatePresence(emargementContextUrl + "/updatePresents", isPresentValue, null);
 		}
 		if (event.target.matches('#pdfPreview')) {
 			var htmltemplate = document.getElementById("htmltemplate");
@@ -1831,7 +1832,9 @@ document.addEventListener('DOMContentLoaded', function() {
 						if (qrCodeCam.hasAttribute('data-role')) {
 							prefix = emargementContextUrl + "/";
 						}
-						updatePresence(prefix + "updatePresents", value);
+						var location = document.getElementById("location");
+						var valLocation = (location!=null)? location.value : null;
+						updatePresence(prefix + "updatePresents", value, valLocation);
 						isCodeScanned = true;
 						console.log("QR Code scanned once.");
 						setTimeout(() => {

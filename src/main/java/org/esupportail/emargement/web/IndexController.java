@@ -1,10 +1,12 @@
 package org.esupportail.emargement.web;
 
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.ContextService;
@@ -116,9 +118,10 @@ public class IndexController {
     
     @GetMapping(value = {"updatePresents", "{emargementContext}/updatePresents"})
     @ResponseBody
-    public  List<TagCheck>  updatePresents(@PathVariable(required = false) String emargementContext, @RequestParam(value ="presence") String presence) throws InterruptedException {
+    public  List<TagCheck>  updatePresents(@PathVariable(required = false) String emargementContext, 
+    		@RequestParam(value ="presence") String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) throws InterruptedException, ParseException {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-        return presenceService.updatePresents(presence) ;
+        return presenceService.updatePresents(presence, location) ;
     }
 }
