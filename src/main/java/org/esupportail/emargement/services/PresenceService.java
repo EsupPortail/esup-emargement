@@ -342,8 +342,10 @@ public class PresenceService {
 			String ctxId = splitTemp[2];
 			ctx = contextRepository.findByContextId(Long.valueOf(ctxId));
 			if(!"notime".equals(qrCodetimestamp)) {
-				String eppnTagChecker = splitTemp[3];
-				tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppnTagChecker).get(0);
+				if(splitTemp.length>3) {
+					String eppnTagChecker = splitTemp[3];
+					tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppnTagChecker).get(0);
+				}
 				List<AppliConfig> configs  = appliConfigRepository.findByContextAndKey(ctx,"QRCODE_CHANGE");
 				Long qrCodeValidtime = Long.valueOf(configs.get(0).getValue());
 				Long now = System.currentTimeMillis() / 1000;

@@ -600,28 +600,7 @@ public class PresenceController {
 		String url = appUrl + "/" + emargementContext + "/user?scanClass=show&value=";
 		InputStream inputStream = toolUtil.generateQRCodeImage(url + "qrcodeSession".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-        String base64Image = "";
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            byte[] imageBytes = outputStream.toByteArray();
-            Base64.Encoder encoder = Base64.getEncoder();
-            base64Image = encoder.encodeToString(imageBytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        String base64Image = toolUtil.getBase64ImgFromInputStream(inputStream);
         return base64Image;
     }
 	

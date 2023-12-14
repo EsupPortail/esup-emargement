@@ -10,7 +10,6 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -88,6 +87,12 @@ public class UserController {
 	ToolUtil toolUtil;
 	
 	private final static String ITEM = "user";
+	
+    @ModelAttribute("qrcodeChange")
+    public Integer qrcodeChange() throws IOException {
+    	String qrcodeChange = appliConfigService.getQrCodeChange();
+        return Integer.valueOf(qrcodeChange)*1000;
+    }
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
@@ -222,16 +227,18 @@ public class UserController {
         uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         return "user/show";
     }
-	
+
 	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
     @ResponseBody
-    public void getQrCode(@PathVariable String emargementContext, @PathVariable("eppn") String eppn, @PathVariable("id") Long id, 
+    public String getQrCode(@PathVariable String emargementContext, @PathVariable("eppn") String eppn, @PathVariable("id") Long id, 
     		HttpServletResponse response) throws WriterException, IOException {
 		Context ctx = contextRepository.findByKey(emargementContext);
-		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@notime@@@" + ctx.getId();
+		String timestamp = Long.toString(System.currentTimeMillis() / 1000);
+		String qrCodeString = "true," + eppn + "," + id + "," + eppn + ",qrcode@@@" + timestamp + "@@@" + ctx.getId();
 		String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 		InputStream inputStream = toolUtil.generateQRCodeImage("qrcodeUser".concat(enocdedQrCode), 350, 350);
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-        IOUtils.copy(inputStream, response.getOutputStream());
+        String base64Image = toolUtil.getBase64ImgFromInputStream(inputStream);
+        return base64Image;
     }
 }

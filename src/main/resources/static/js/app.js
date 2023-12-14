@@ -826,12 +826,12 @@ function getCapacite(location){
 	});
 }
 
-function getQrCodeSession() {
+function getQrCodeSession(url, idImg) {
   $.ajax({
-    url: emargementContextUrl + "/supervisor/qrCodeSession/" + currentLocation,
+    url: url,
     method: 'GET', 
     success: function(response) {
-      $("#imgQrCode").attr("src", "data:image/png;base64, " + response);
+      $("#" + idImg).attr("src", "data:image/png;base64, " + response);
     },
     error: function(xhr, status, error) {
       console.error('Error:', error);
@@ -2104,7 +2104,25 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	var qrCodeDisplay = document.getElementById("qrCodeDisplay");
 	if(qrCodeDisplay != null){
-		getQrCodeSession();
-		setInterval(getQrCodeSession, qrcodeChange);
+		var url = emargementContextUrl + "/supervisor/qrCodeSession/" + currentLocation;
+		getQrCodeSession(url, "imgQrCode");
+		setInterval(function() {getQrCodeSession(url, "imgQrCode")}, qrcodeChange);
 	}
+    
+	const elementsWithTestClass = document.getElementsByClassName('qrCodeUserDisplay');
+	$('#userPage .modal').on('show.bs.modal', function(event) {
+		var id = this.id.replace("qrCodeModal", "");
+		var dataEppn = this.getAttribute("data-eppn");
+		var dataSession = this.getAttribute("data-session");
+		var url = emargementContextUrl + "/user/qrCode/" + dataEppn + "/" + dataSession;
+		var imgQrCodeUser = "imgQrCodeUser" + id;
+		getQrCodeSession(url, imgQrCodeUser);
+		console.log(qrcodeChange);
+		var interval = setInterval(function() {
+		    getQrCodeSession(url, imgQrCodeUser);
+		  }, qrcodeChange);
+		$('#userPage .modal').on('hidden.bs.modal', function() {
+			clearInterval(interval);
+		});
+	});
 });

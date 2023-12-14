@@ -109,4 +109,30 @@ public class ToolUtil {
 	  String decodedString = new String(decodedBytes);
 	  return decodedString;
 	}
+	
+	public String getBase64ImgFromInputStream(InputStream inputStream) {
+		String base64Image = "";
+		try {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			byte[] buffer = new byte[4096];
+			int bytesRead;
+			while ((bytesRead = inputStream.read(buffer)) != -1) {
+				outputStream.write(buffer, 0, bytesRead);
+			}
+			byte[] imageBytes = outputStream.toByteArray();
+			Base64.Encoder encoder = Base64.getEncoder();
+			base64Image = encoder.encodeToString(imageBytes);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (inputStream != null) {
+					inputStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return base64Image; 
+	}
 }

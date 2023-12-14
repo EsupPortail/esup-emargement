@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="userPage">
 			<div class="card">
  					<div class="card-header">
     				<div class="row">
@@ -112,18 +112,20 @@
 	                                                and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
 	                                                and #dates.createToday().before(tc.sessionEpreuve.dateFin))
 												 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-											<button th:if="${tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" class="btn btn-sm btn-secondary ms-2" title="qrCode de participation" data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}">
+											<button th:id="${tc.id}" th:if="${tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" 
+												class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" data-bs-toggle="modal" 
+												data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
 											<i class="fas fa-qrcode"></i></button>
-											<div class="modal" th:attr="id=${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog">
+											<div class="modal" th:if="${tc.sessionLocationExpected != null}" th:id="${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog" data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
 												<div class="modal-dialog" role="document">
 													<div class="modal-content">
 														<div class="modal-header">
 															<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
 															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 														</div>
-														<div class="modal-body">
+														<div class="modal-body" >
 															<span class="fw-bold" th:text="${name}"></span>
-															<img th:if="${tc.sessionLocationExpected != null}" th:src="@{${'/' + tc.context.key  + '/user/qrCode/' + tc.person.eppn + '/' + tc.sessionLocationExpected.id}}" />
+															<img th:id="${'imgQrCodeUser' + tc.id}" th:if="${tc.sessionLocationExpected != null and tc.person!=null}" alt="QrcOde" src=""/>
 														</div>
 													</div>
 												</div>
