@@ -325,6 +325,7 @@ public class PresenceService {
 		boolean isValid = true;
 		boolean isQrCode = presence.startsWith("qrcode");
 		boolean isQrCodeUser = presence.startsWith("qrcodeUser");
+		boolean isQrcodeSession = presence.startsWith("qrcodeSession");
 		List<TagCheck> list = new ArrayList<TagCheck>();
 		Context ctx = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -365,7 +366,13 @@ public class PresenceService {
 				TypeEmargement typeEmargement = null;
 				boolean isPresent = false;
 	    		if(splitPresence.length >4 && "qrcode".equals(splitPresence[4].trim())) {
-		    		typeEmargement = TypeEmargement.QRCODE;
+	    			if(isQrcodeSession) {
+	    				typeEmargement = TypeEmargement.QRCODE_SESSION;
+	    			}else if (isQrCodeUser) {
+	    				typeEmargement = TypeEmargement.QRCODE_USER;
+	    			}else {
+	    				typeEmargement = TypeEmargement.QRCODE;
+	    			}
 		    	}else {
 		    		typeEmargement = TypeEmargement.MANUAL;
 		    		isPresent = Boolean.valueOf(splitPresence[0].trim());
@@ -476,14 +483,14 @@ public class PresenceService {
 			    	}else {
 			    		sessionLocation = sessionLocationRepository.findById(sessionLocationId).get();
 			    	}
-			    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || TypeEmargement.QRCODE.equals(typeEmargement)) {
+			    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
 			    		sessionLocationBadged = sessionLocation;
 			    	}else {
 			    		sessionLocationBadged = null;
 			    	}
 		    	}
 		    	if(isUnknown) {
-					TagCheck newTc = tagCheckService.saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, false, TypeEmargement.QRCODE);
+					TagCheck newTc = tagCheckService.saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, false, typeEmargement);
 					dataEmitterService.sendData(newTc, Float.valueOf("0"), Long.valueOf("0"), new SessionLocation(), "");
 				}else if(sessionLocation != null) {
 		    		Date date = (isPresent)? new Date() : null;

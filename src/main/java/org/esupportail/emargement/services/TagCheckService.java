@@ -861,7 +861,7 @@ public class TagCheckService {
 		List<TagCheck> badgedTcs = new ArrayList<TagCheck>();
 		//rm!!   Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, sessionEpreuve.getDateExamen(),sessionEpreuve.getId());
 		if(isSessionLibre) {
-			if(TypeEmargement.QRCODE.equals(typeEmargement)) {
+			if(typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
 				List<TagCheck> tcs = tagCheckRepository.findByContextAndPersonEppnAndSessionEpreuve(ctx, eppn, sessionEpreuve);
 				if(!tcs.isEmpty()) {
 					Long sessionLocationId = tcs.get(0).getSessionLocationExpected().getId();
@@ -875,7 +875,7 @@ public class TagCheckService {
 				}
 			}
 		}else {
-			if(!TypeEmargement.QRCODE.equals(typeEmargement) || TypeEmargement.QRCODE.equals(typeEmargement) && personRepository.findByContextAndEppn(ctx, eppn)!=null ) {
+			if(!typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) && personRepository.findByContextAndEppn(ctx, eppn)!=null ) {
 				badgedTcs = tagCheckRepository.findByContextAndSessionLocationBadgedIdAndPersonEppnEquals(ctx, sessionLocationBadged.getId(), eppn);
 			}
 		}
@@ -887,7 +887,7 @@ public class TagCheckService {
 			unknownTc.setSessionEpreuve(sessionEpreuve);
 			unknownTc.setContext(ctx);
 			Person p = null;
-			if(TypeEmargement.QRCODE.equals(typeEmargement)) {
+			if(typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())){
 				p = personRepository.findByContextAndEppn(ctx, eppn);
 			}else {
 				p = personRepository.findByEppnAndContext(eppn, ctx);
@@ -1506,7 +1506,7 @@ public class TagCheckService {
 		int previousNb = (tc.getNbBadgeage() == null)? 0 : tc.getNbBadgeage();
 		int nbBadgeage = 0;
 		if(isPresent) {
-			if(TypeEmargement.QRCODE.equals(tc.getTypeEmargement())) {
+			if(tc.getTypeEmargement().name().startsWith(TypeEmargement.QRCODE.name())) {
 				if(tc.getTagDate() == null) {
 					nbBadgeage = previousNb + 1;
 				}else {

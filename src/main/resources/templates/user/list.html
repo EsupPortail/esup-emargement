@@ -6,7 +6,7 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid" id="userPage">
 			<div class="card">
- 					<div class="card-header">
+ 				<div class="card-header">
     				<div class="row">
 		    			<div class="col">
 				    		<h2>Participant</h2>
@@ -143,6 +143,8 @@
 											<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
 											<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 											<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+											<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
+											<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>								
 											<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 										</span>
 									</td>

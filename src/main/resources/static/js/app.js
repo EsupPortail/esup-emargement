@@ -2109,7 +2109,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		setInterval(function() {getQrCodeSession(url, "imgQrCode")}, qrcodeChange);
 	}
     
-	const elementsWithTestClass = document.getElementsByClassName('qrCodeUserDisplay');
 	$('#userPage .modal').on('show.bs.modal', function(event) {
 		var id = this.id.replace("qrCodeModal", "");
 		var dataEppn = this.getAttribute("data-eppn");
@@ -2117,7 +2116,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		var url = emargementContextUrl + "/user/qrCode/" + dataEppn + "/" + dataSession;
 		var imgQrCodeUser = "imgQrCodeUser" + id;
 		getQrCodeSession(url, imgQrCodeUser);
-		console.log(qrcodeChange);
 		var interval = setInterval(function() {
 		    getQrCodeSession(url, imgQrCodeUser);
 		  }, qrcodeChange);
