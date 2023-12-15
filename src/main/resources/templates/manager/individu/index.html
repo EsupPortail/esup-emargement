@@ -6,7 +6,20 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 			<div class="card">
-				<div class="card-header"><h2>Individus</h2></div>
+				<div class="card-header">
+					<div class="row">
+		    			<div class="col">
+				    		<h2>Individus</h2>
+				   		</div>
+				   		<div class="col">
+		    				<div class="row float-end">
+		    					<a class=" contextualHelp" data-bs-toggle="tooltip" title="En vert : session émargée en tant que personne connue
+		    					En orange : session émargée par erreur ou dans la mauvaise salle.">
+		                    		<i class="fas fa-question-circle"></i></a>
+		    				</div>
+		    			</div>
+	    			</div>
+			   </div>
   				<div class="card-body">
   					<form action="#" th:action="@{|/${eContext}/manager/individu|}" id="formSearch">
 						<div class="row">
@@ -77,7 +90,8 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}">
+								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'table-success' : '') +
+										(tagCheck.isUnknown ? 'table-warning' : '')}">
 									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
 									<td th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></td>
 									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>

@@ -8,7 +8,8 @@
 	        <div class="card">
 		    	<div class="card-header"><h2 >Inscription</h2></div>
 	 				<div class="card-body">
-					<dl class="row">
+					<dl class="row"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'bg-success-subtle' : '') +
+										(tagCheck.isUnknown ? 'bg-warning-subtle' : '')}">
 			            <dt class="col-sm-2">Session</dt>
 			            <dd class="col-sm-10" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></dd>
 			            <dt class="col-sm-2">Type</dt>
