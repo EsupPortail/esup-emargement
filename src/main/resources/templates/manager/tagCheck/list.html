@@ -140,7 +140,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown)? 'table-warning' : ''}"> 
+								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre) ? 'table-warning' : ''}"> 
 									<td th:if="${!isSessionEpreuveClosed and isConvocationEnabled}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
@@ -177,6 +177,7 @@
 										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 										<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
 										<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+										<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>
 										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 									 </span></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:text="${tagCheck.nbBadgeage}"></td>

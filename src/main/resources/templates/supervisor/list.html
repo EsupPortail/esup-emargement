@@ -71,7 +71,7 @@
 									th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
 									class="btn btn-danger mb-1 " title="Exporter les émargements"><i
 									class="fas fa-file-export"></i></a>
-								<label th:if="${isQrCodeEnabled or isUserQrCodeEnabled}" class="btn btn-secondary active  mb-1" data-bs-toggle="buttons"> <input
+								<label th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}" class="btn btn-secondary active  mb-1" data-bs-toggle="buttons"> <input
 									type="checkbox" class="btn-check" id="webCamCheck"
 									th:checked="${enableWebcam}"> <i class="fas fa-video"></i>
 								</label>									
@@ -325,7 +325,7 @@
 									</thead>
 									<tbody>
 										<tr th:each="tagCheck : ${tagCheckPage}" th:class="${tagCheck.tagDate == null}? table-danger : table-success" th:id="${tagCheck.id}">
-											<td th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown}? table-warning : ''" class="nomPrenom">
+											<td th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre}? table-warning : ''" class="nomPrenom">
 												<a href="#" class="me-1 userToast"	th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 													<i class="fa fa-user" aria-hidden="true"></i></a>
 													<button th:if="${tagCheck.isUnknown}" class="text-danger" title="Supprimer cet individu ?" id="toto"><i class="fa fa-trash"></i></button>
@@ -379,6 +379,7 @@
 													<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 													<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
 													<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+													<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>
 													<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 												 </span>
 											</td>

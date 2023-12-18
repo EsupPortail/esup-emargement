@@ -348,6 +348,7 @@ public class PresenceController {
         uiModel.addObject("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
         uiModel.addObject("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         uiModel.addObject("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
+        uiModel.addObject("isCardQrCodeEnabled", appliConfigService.isCardQrCodeEnabled());
         uiModel.addObject("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addObject("active", ITEM);
 		uiModel.addObject("help", helpService.getValueOfKey(ITEM));

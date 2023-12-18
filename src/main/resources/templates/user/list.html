@@ -102,7 +102,7 @@
 							</thead>
 							<tbody class ="center">
 								<tr th:each="tc : ${tagChecksPage}" th:classappend="${(tc.typeEmargement!=null and !tc.isUnknown? 'table-success' : '') +
-										(tc.isUnknown ? 'table-warning' : '')}" th:id="${tc.sessionEpreuve.id}" >
+										((tc.isUnknown and !tc.sessionEpreuve.isSessionLibre) ? 'table-warning' : '')}" th:id="${tc.sessionEpreuve.id}" >
 									<td>
 										<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
 										<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>						
@@ -144,7 +144,8 @@
 											<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 											<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 											<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
-											<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>								
+											<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+											<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>							
 											<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 										</span>
 									</td>

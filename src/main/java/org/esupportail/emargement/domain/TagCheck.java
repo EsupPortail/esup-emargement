@@ -58,7 +58,7 @@ public class TagCheck implements ContextSupport {
     private SessionLocation sessionLocationExpected;
     
     public static enum TypeEmargement {
-        CARD, LINK, MANUAL, QRCODE, QRCODE_SESSION, QRCODE_USER
+        CARD, LINK, MANUAL, QRCODE, QRCODE_SESSION, QRCODE_USER, QRCODE_CARD
     };
     
     @Column

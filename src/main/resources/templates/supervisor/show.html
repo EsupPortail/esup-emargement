@@ -10,7 +10,7 @@
 	 				<div class="card-body">
 					<dl class="row">
 						<dt class="col-sm-2">Personne</dt>
-						<dd class="col-sm-10" th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown}? bg-warning : ''">
+						<dd class="col-sm-10" th:if="${tagCheck.person != null}"  th:classappend="${tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre}? bg-warning : ''">
 							<span th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span><span class="fw-bold" 
 							th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 						</dd>
@@ -48,7 +48,8 @@
 								<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 								<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 								<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
-								<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>								
+								<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+								<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>								
 								<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 							 </span>
 						</dd>						

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -326,10 +328,17 @@ public class PresenceService {
 		boolean isQrCode = presence.startsWith("qrcode");
 		boolean isQrCodeUser = presence.startsWith("qrcodeUser");
 		boolean isQrcodeSession = presence.startsWith("qrcodeSession");
+		boolean isQrcodeCarte = false;
 		List<TagCheck> list = new ArrayList<TagCheck>();
 		Context ctx = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if(isQrCode) {
+		if(isValidEppn(presence)) {
+			isQrcodeCarte = true;
+			if(!appliConfigService.isCardQrCodeEnabled()) {
+				isValid = false;
+				log.error("Badgeage de " + presence + " non pris en compte car l'option ENABLE_CARD_QRCODE n'est pas activée ");
+			}
+		}else if(isQrCode) {
 			if(presence.contains("@@@")) {
 				isTagCheckerNeeded = false;
 				String splitPresence [] = presence.split("@@@");
@@ -365,7 +374,9 @@ public class PresenceService {
 				String msgError = "";
 				TypeEmargement typeEmargement = null;
 				boolean isPresent = false;
-	    		if(splitPresence.length >4 && "qrcode".equals(splitPresence[4].trim())) {
+				if(isQrcodeCarte) {
+					typeEmargement = TypeEmargement.QRCODE_CARD;
+				}else if(splitPresence.length >4 && "qrcode".equals(splitPresence[4].trim())) {
 	    			if(isQrcodeSession) {
 	    				typeEmargement = TypeEmargement.QRCODE_SESSION;
 	    			}else if (isQrCodeUser) {
@@ -383,7 +394,12 @@ public class PresenceService {
 		    	boolean isUnknown = false;
 		    	String comment = "";
 		    	SessionEpreuve sessionEpreuve =  null;
-		    	if(splitPresence.length >2) {
+		    	if(isQrcodeCarte) {
+		    		eppn = splitPresence[0];
+		    		ctx = contextService.getcurrentContext();
+		    		sessionLocationId = validLocation.getId();
+		    		tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, auth.getName()).get(0);
+		    	}else if(splitPresence.length >2) {
 			    	if(eppn == null) {
 			    		eppn = splitPresence[1].trim();
 			    	}
@@ -392,102 +408,102 @@ public class PresenceService {
 			    	}else {
 			    		sessionLocationId = Long.valueOf(splitPresence[2].trim());
 			    	}
-			    	if(ctx!=null) {
-				    	List<SessionLocation> sls = sessionLocationRepository.findByContextAndId(ctx, sessionLocationId);
-				    	sessionLocation = sls.get(0);
-				    	sessionEpreuve = sessionLocation.getSessionEpreuve();
-				    	Long seId = null;
-				    	List<TagCheck> tcs = new ArrayList<TagCheck>();
-				    	if(!sessionEpreuve.isSessionLibre) {
-							try {
-								tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
-								if(tcs.isEmpty()) {
-									//comparaison avec les heures de début et de fin
-						    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-						    		Date today = dateFormat.parse(dateFormat.format(new Date()));
-									LocalTime now = LocalTime.now();
-									seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, today, now); 
-									String lieu = " Autre session dans la journée";
-									if(seId != null) {
-										SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-										lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
-										List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-										if(!list2.isEmpty()) {
-											if(list2.get(0).getSessionLocationExpected() !=null) {
-												String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
-												lieu = lieu.concat(" , lieu : ").concat(location);
-											}
-										}
-										comment = "Inconnu dans cette session " + lieu;
-										isUnknown = true;
-									}else {
-										comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
-										isUnknown = true;
-									}		
-								}
-							} catch (Exception e) {
-								isUnknown = true;
-								comment = "Intrus";
-							}
-				    	}
-						if(!isUnknown) {
-				    		if(sessionEpreuve.isSessionLibre) {
-				    			isPresent = true;
-				    		}else{
+		    	}
+		    	if(ctx!=null) {
+			    	List<SessionLocation> sls = sessionLocationRepository.findByContextAndId(ctx, sessionLocationId);
+			    	sessionLocation = sls.get(0);
+			    	sessionEpreuve = sessionLocation.getSessionEpreuve();
+			    	Long seId = null;
+			    	List<TagCheck> tcs = new ArrayList<TagCheck>();
+			    	if(!sessionEpreuve.isSessionLibre) {
+						try {
+							tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
+							if(tcs.isEmpty()) {
+								//comparaison avec les heures de début et de fin
 					    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-					    		Date date = dateFormat.parse(dateFormat.format(new Date()));
-					    		Long countSe = tagCheckRepository.countByPersonEppnAndSessionEpreuveDateExamen(eppn, date);
-								List <TagCheck> checkOtherLocation = tagCheckRepository.findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(sessionEpreuve, eppn);
-								SessionLocation sessionLocationExpected = checkOtherLocation.get(0).getSessionLocationExpected();
-					    		if(!tcs.isEmpty()) {
-									if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
-										List <TagCheck> tcsTemp = tagCheckRepository.findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(sessionLocation, eppn);
-										if(tcsTemp.isEmpty()) {
-											comment = "Inconnu dans cette salle, Salle attendue : " +  sessionLocationExpected.getLocation().getNom();
-											isUnknown = true;
-										}else {
-											isPresent = true;
+					    		Date today = dateFormat.parse(dateFormat.format(new Date()));
+								LocalTime now = LocalTime.now();
+								seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, today, now); 
+								String lieu = " Autre session dans la journée";
+								if(seId != null) {
+									SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
+									lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
+									List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
+									if(!list2.isEmpty()) {
+										if(list2.get(0).getSessionLocationExpected() !=null) {
+											String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
+											lieu = lieu.concat(" , lieu : ").concat(location);
 										}
+									}
+									comment = "Inconnu dans cette session " + lieu;
+									isUnknown = true;
+								}else {
+									comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
+									isUnknown = true;
+								}		
+							}
+						} catch (Exception e) {
+							isUnknown = true;
+							comment = "Intrus";
+						}
+			    	}
+					if(!isUnknown) {
+			    		if(sessionEpreuve.isSessionLibre) {
+			    			isPresent = true;
+			    		}else{
+				    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				    		Date date = dateFormat.parse(dateFormat.format(new Date()));
+				    		Long countSe = tagCheckRepository.countByPersonEppnAndSessionEpreuveDateExamen(eppn, date);
+							List <TagCheck> checkOtherLocation = tagCheckRepository.findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(sessionEpreuve, eppn);
+							SessionLocation sessionLocationExpected = checkOtherLocation.get(0).getSessionLocationExpected();
+				    		if(!tcs.isEmpty()) {
+								if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
+									List <TagCheck> tcsTemp = tagCheckRepository.findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(sessionLocation, eppn);
+									if(tcsTemp.isEmpty()) {
+										comment = "Inconnu dans cette salle, Salle attendue : " +  sessionLocationExpected.getLocation().getNom();
+										isUnknown = true;
 									}else {
 										isPresent = true;
-										sessionLocation = sessionLocationExpected;
-										sessionLocationId = sessionLocationExpected.getId();
 									}
-								}else if (countSe>0) {
-									//On regarde si il est est dans une autre session aujourd'hui
-									LocalTime now = LocalTime.now();
-									seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
-									String lieu = " Autre session dans la journée";
-									if(seId != null) {
-										SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-										lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
-										List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-										if(!list2.isEmpty()) {
-											if(list2.get(0).getSessionLocationExpected() !=null) {
-												String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
-												lieu = lieu.concat(" , lieu : ").concat(location);
-											}
+								}else {
+									isPresent = true;
+									sessionLocation = sessionLocationExpected;
+									sessionLocationId = sessionLocationExpected.getId();
+								}
+							}else if (countSe>0) {
+								//On regarde si il est est dans une autre session aujourd'hui
+								LocalTime now = LocalTime.now();
+								seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
+								String lieu = " Autre session dans la journée";
+								if(seId != null) {
+									SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
+									lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
+									List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
+									if(!list2.isEmpty()) {
+										if(list2.get(0).getSessionLocationExpected() !=null) {
+											String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
+											lieu = lieu.concat(" , lieu : ").concat(location);
 										}
-										comment = "Inconnu dans cette session " + lieu;
-										isUnknown = true;
-									}else {
-										comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
-										isUnknown = true;
 									}
-								}else { //Il est vraiment inconnu!!!
-									comment = "Inconnu";
+									comment = "Inconnu dans cette session " + lieu;
+									isUnknown = true;
+								}else {
+									comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
 									isUnknown = true;
 								}
-				    		}
-						}
-			    	}else {
-			    		sessionLocation = sessionLocationRepository.findById(sessionLocationId).get();
-			    	}
-			    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
-			    		sessionLocationBadged = sessionLocation;
-			    	}else {
-			    		sessionLocationBadged = null;
-			    	}
+							}else { //Il est vraiment inconnu!!!
+								comment = "Inconnu";
+								isUnknown = true;
+							}
+			    		}
+					}
+		    	}else {
+		    		sessionLocation = sessionLocationRepository.findById(sessionLocationId).get();
+		    	}
+		    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
+		    		sessionLocationBadged = sessionLocation;
+		    	}else {
+		    		sessionLocationBadged = null;
 		    	}
 		    	if(isUnknown) {
 					TagCheck newTc = tagCheckService.saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, false, typeEmargement);
@@ -499,7 +515,7 @@ public class PresenceService {
 					boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
 			    	String email = (splitPresence.length >3)? splitPresence[3] : "";
 			    	TagCheck presentTagCheck = null;
-			    	if(isQrCode && se.getIsSessionLibre()){
+			    	if((isQrCode || isQrcodeCarte) && se.getIsSessionLibre()){
 			    		presentTagCheck = tagCheckService.saveUnknownTagCheck("", ctx, eppn, se, sessionLocationBadged, tagChecker, true, typeEmargement);
 			    	}else {
 				    	if(!eppn.isEmpty()) {
@@ -650,5 +666,10 @@ public class PresenceService {
 		}
 		return photo64;
 	}
-
+	public static boolean isValidEppn(String eppn) {
+        String eppnRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        Pattern pattern = Pattern.compile(eppnRegex);
+        Matcher matcher = pattern.matcher(eppn);
+        return matcher.matches();
+    }
 }
