@@ -829,46 +829,51 @@ public class AdeService {
 				se.setTypeSession(typeSession);
 				sessionEpreuveRepository.save(se);
 				//Etudiants
-				List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
-				if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
-					List<String> allMembers = new ArrayList<String>();
-					for(Map<Long, String> map : listAdeTrainees) {
-						for (Entry<Long, String> entry : map.entrySet()) {
-							allMembers.addAll(getMembersOfEvent(sessionId, entry.getKey().toString(), "members"));
-						}
-					}
-					List <String> allCodes = new ArrayList<String>();
-					if(!allMembers.isEmpty()) {
-						for(String id : allMembers) {
-							allCodes.add(getMembersOfEvent(sessionId, id, "code").get(0));
-						}
-					}
-					if(!allCodes.isEmpty()) {
-						for (String code : allCodes) {
-							List<Person> persons = personRepository.findByNumIdentifiant(code);
-							Person person = null;
-							if(!persons.isEmpty()) {
-								person = persons.get(0);
-							}else {
-								person = new Person();
-								person.setContext(ctx);
-								List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
-								if(!ldapUsers.isEmpty()) {
-									person.setEppn(ldapUsers.get(0).getEppn());
-									person.setNumIdentifiant(code);
-									person.setType("student");
-									personRepository.save(person);
-								}else {
-									log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+				if(appliConfigService.isMembersAdeImport()) {
+					List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+					if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
+						List<String> allMembers = new ArrayList<String>();
+						for(Map<Long, String> map : listAdeTrainees) {
+							for (Entry<Long, String> entry : map.entrySet()) {
+								List<String> membersOfEvent = getMembersOfEvent(sessionId, entry.getKey().toString(), "members");
+								if(!membersOfEvent.isEmpty()) {
+									allMembers.addAll(membersOfEvent);
 								}
 							}
-							TagCheck tc = new TagCheck();
-							//A voir 
-							//tc.setCodeEtape(codeEtape);
-							tc.setContext(ctx);
-							tc.setPerson(person);
-							tc.setSessionEpreuve(se);
-							tagCheckRepository.save(tc);
+						}
+						List <String> allCodes = new ArrayList<String>();
+						if(!allMembers.isEmpty()) {
+							for(String id : allMembers) {
+								allCodes.add(getMembersOfEvent(sessionId, id, "code").get(0));
+							}
+						}
+						if(!allCodes.isEmpty()) {
+							for (String code : allCodes) {
+								List<Person> persons = personRepository.findByNumIdentifiant(code);
+								Person person = null;
+								if(!persons.isEmpty()) {
+									person = persons.get(0);
+								}else {
+									person = new Person();
+									person.setContext(ctx);
+									List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
+									if(!ldapUsers.isEmpty()) {
+										person.setEppn(ldapUsers.get(0).getEppn());
+										person.setNumIdentifiant(code);
+										person.setType("student");
+										personRepository.save(person);
+									}else {
+										log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+									}
+								}
+								TagCheck tc = new TagCheck();
+								//A voir 
+								//tc.setCodeEtape(codeEtape);
+								tc.setContext(ctx);
+								tc.setPerson(person);
+								tc.setSessionEpreuve(se);
+								tagCheckRepository.save(tc);
+							}
 						}
 					}
 				}
