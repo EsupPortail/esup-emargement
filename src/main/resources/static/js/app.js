@@ -71,7 +71,7 @@ function displayAffinage(classes, isTiers) {
 function displayToast() {
 	$(".userToast").on("click", function(event) {
 		const toastLiveExample = document.getElementById('liveToast');
-		if(toastLiveExample!=null){
+		if (toastLiveExample != null) {
 			const toast = new bootstrap.Toast(toastLiveExample);
 			var splitField = this.getAttribute("data-whatever").split("//");
 			$("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
@@ -147,11 +147,11 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								});
 							}
 							else if (id == "searchIndividuGroupe") {
-								       var labelValue = "<strong>Nom : </strong>" + value.groupe.nom
-									   list.push({
-										   label: labelValue,
-										   value: value.groupe.id+ "//" + value.groupe.nom
-									   });
+								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom
+								list.push({
+									label: labelValue,
+									value: value.groupe.id + "//" + value.groupe.nom
+								});
 							}
 							else if (id == "searchLocation") {
 								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Adresse : </strong>" +
@@ -305,11 +305,11 @@ function deleteParam(urlLocation, name) {
 
 function updatePresence(url, numEtu, currentLocation) {
 	var request = new XMLHttpRequest();
-	var location = (currentLocation != null)? "&currentLocation=" + currentLocation : "";
+	var location = (currentLocation != null) ? "&currentLocation=" + currentLocation : "";
 	request.open('GET', url + "?presence=" + numEtu + location, true);
 	request.onload = function() {
 		if (request.status >= 200 && request.status < 400) {
-			if(document.getElementById("newbie")!=null ){
+			if (document.getElementById("newbie") != null) {
 				const data = JSON.parse(request.responseText);
 				if (data != null) {
 					var tc = data[0];
@@ -813,7 +813,7 @@ function updateJsTree(selectedData, category) {
 	request.send();
 }
 
-function getCapacite(location){
+function getCapacite(location) {
 	$.ajax({
 		type: 'GET',
 		url: emargementContextUrl + "/manager/sessionLocation/searchCapacite?id=" + addSessionLocation.value,
@@ -827,16 +827,16 @@ function getCapacite(location){
 }
 
 function getQrCodeSession(url, idImg) {
-  $.ajax({
-    url: url,
-    method: 'GET', 
-    success: function(response) {
-      $("#" + idImg).attr("src", "data:image/png;base64, " + response);
-    },
-    error: function(xhr, status, error) {
-      console.error('Error:', error);
-    }
-  });
+	$.ajax({
+		url: url,
+		method: 'GET',
+		success: function(response) {
+			$("#" + idImg).attr("src", "data:image/png;base64, " + response);
+		},
+		error: function(xhr, status, error) {
+			console.error('Error:', error);
+		}
+	});
 }
 
 //==jQuery document.ready
@@ -1410,16 +1410,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	//Presence
-	if (document.getElementById('presencePage') != null || document.getElementById('unknownPage')!= null ) {
+	if (document.getElementById('presencePage') != null || document.getElementById('unknownPage') != null) {
 		const uuid = ID();
-		const eventSource = new EventSource(emargementContextUrl+ `/supervisor/register/${uuid}`);
+		const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
 		eventSource.addEventListener('tc', response => {
 			var tagCheck = JSON.parse(response.data);
 			if (!tagCheck.isBlacklisted) {
 				var person = tagCheck.person;;
 				var guest = tagCheck.guest;
 				var sessionId = tagCheck.sessionEpreuve.id;
-				var sessionLocationExpected = (tagCheck.sessionLocationExpected!=null)? tagCheck.sessionLocationExpected.id : null; 
+				var sessionLocationExpected = (tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.id : null;
 				var identifiant = "";
 				var varUrl = "";
 				if (person != null) {
@@ -1439,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					nom = guest.nom.toUpperCase();
 					prenom = guest.prenom;
 				}
-				if(sessionLocationExpected != null){
+				if (sessionLocationExpected != null) {
 					var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
 					var displayedIdentity2 = $("#" + displayedIdentity);
 					displayedIdentity2.removeClass("d-none");
@@ -1455,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					toast.show();
 					$("body").scrollTop();
 				}
-				var urlLocation = (sessionLocationExpected != null)? sessionLocationExpected : $_GET("location");
+				var urlLocation = (sessionLocationExpected != null) ? sessionLocationExpected : $_GET("location");
 				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
 					"&location=" + urlLocation + "&update=" + tagCheck.id;
 				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
@@ -1525,7 +1525,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#collapseTable table tbody").empty();
 			$("#" + this.value).clone().appendTo("#collapseTable table tbody");
 		});
-		$(document).on("click","#toto", function(event) {
+		$(document).on("click", "#toto", function(event) {
 			if (window.confirm('Confirmez-vous la suppression cet individu?')) {
 				var trParent = $(this)[0].parentElement.parentElement;
 				var id = trParent.id;
@@ -1815,10 +1815,10 @@ document.addEventListener('DOMContentLoaded', function() {
 					inversionAttempts: "dontInvert",
 				});
 				if (code) {
-						drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-						drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-						drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-						drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+					drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+					drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+					drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+					drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
 				}
 				if (!isCodeScanned) {
 					if (code) {
@@ -1833,16 +1833,16 @@ document.addEventListener('DOMContentLoaded', function() {
 							prefix = emargementContextUrl + "/";
 						}
 						var location = document.getElementById("location");
-						var valLocation = (location!=null)? location.value : null;
+						var valLocation = (location != null) ? location.value : null;
 						updatePresence(prefix + "updatePresents", value, valLocation);
 						isCodeScanned = true;
 						console.log("QR Code scanned once.");
 						setTimeout(() => {
-					      isCodeScanned = false;
-					      console.log("Simulated scan. Code scanned only once.");
-					    }, 2000); //
+							isCodeScanned = false;
+							console.log("Simulated scan. Code scanned only once.");
+						}, 2000); //
 					} else {
-					   isCodeScanned = false; // Reset the flag if no QR code is found
+						isCodeScanned = false; // Reset the flag if no QR code is found
 					}
 				}
 			}
@@ -1988,25 +1988,25 @@ document.addEventListener('DOMContentLoaded', function() {
 			'data': []
 		}
 	});
-	
+
 	var table = $('.tableFoo').DataTable({
-	    responsive: true,
-	    ordering: true,
-	    paging: true,
-	    searching: true,
-	    info: false,
-	    language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        }
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}
 	});
-   
+
 	$("#codeComposante1").on("change", function(event) {
 		const selectedData = $(this).val();
 		$("#codeFormation").val("");
 		$("input[id^=hiddenCodeComposante]").val(selectedData);
-		if(selectedData == "myEvents"){
-			 $('#frmt').addClass("d-none");
-		}else{
+		if (selectedData == "myEvents") {
+			$('#frmt').addClass("d-none");
+		} else {
 			$("#spinnerComps").removeClass("d-none");
 			updateJsTree(selectedData, "trainee");
 		}
@@ -2016,24 +2016,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		const selectedData = $(this).val();
 		$("#codeComposante1").val("");
 		$("input[id^=hiddenCodeComposante]").val(selectedData);
-		if(selectedData == "myEvents"){
-			 $('#frmt').addClass("d-none");
-		}else{
+		if (selectedData == "myEvents") {
+			$('#frmt').addClass("d-none");
+		} else {
 			$("#spinnerComps").removeClass("d-none");
 			updateJsTree(selectedData, category6);
 		}
 		table.clear().draw();
 	});
-					
- 	$('#checkAll').on('click', function() {
-        var checked = this.checked;
-        $('.data-checkbox').prop('checked', checked);
-    });
-    $('.data-checkbox').on('click', function() {
-        var allChecked = $('.data-checkbox:checked').length === $('.data-checkbox').length;
-        $('#checkAll').prop('checked', allChecked);
-    });
-    	
+
+	$('#checkAll').on('click', function() {
+		var checked = this.checked;
+		$('.data-checkbox').prop('checked', checked);
+	});
+	$('.data-checkbox').on('click', function() {
+		var allChecked = $('.data-checkbox:checked').length === $('.data-checkbox').length;
+		$('#checkAll').prop('checked', allChecked);
+	});
+
 	$('#displayEvents').submit(function(e) {
 		e.preventDefault();
 		var formData = $(this).serialize();
@@ -2077,7 +2077,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
-	
+
 	$("#displayEventsImport").submit(function(event) {
 		event.preventDefault();
 		$("#spinnerLoad").removeClass("d-none");
@@ -2093,22 +2093,22 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	});
-	
+
 	//Create sessionLocation
 	var addSessionLocation = document.getElementById("addSessionLocation");
-	if(addSessionLocation!=null){
+	if (addSessionLocation != null) {
 		getCapacite($("#location").val());
 		$("#addSessionLocation").on("change", function(event) {
 			getCapacite($(this).val())
 		});
 	}
 	var qrCodeDisplay = document.getElementById("qrCodeDisplay");
-	if(qrCodeDisplay != null){
+	if (qrCodeDisplay != null) {
 		var url = emargementContextUrl + "/supervisor/qrCodeSession/" + currentLocation;
 		getQrCodeSession(url, "imgQrCode");
-		setInterval(function() {getQrCodeSession(url, "imgQrCode")}, qrcodeChange);
+		setInterval(function() { getQrCodeSession(url, "imgQrCode") }, qrcodeChange);
 	}
-    
+
 	$('#userPage .modal').on('show.bs.modal', function(event) {
 		var id = this.id.replace("qrCodeModal", "");
 		var dataEppn = this.getAttribute("data-eppn");
@@ -2117,10 +2117,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		var imgQrCodeUser = "imgQrCodeUser" + id;
 		getQrCodeSession(url, imgQrCodeUser);
 		var interval = setInterval(function() {
-		    getQrCodeSession(url, imgQrCodeUser);
-		  }, qrcodeChange);
+			getQrCodeSession(url, imgQrCodeUser);
+		}, qrcodeChange);
 		$('#userPage .modal').on('hidden.bs.modal', function() {
 			clearInterval(interval);
 		});
 	});
+	//commentaire tagCheck dans interface surveillant
+	$('.commentTC').on('click', function() {
+		var $row = $(this).closest('tr');
+		var id = $row[0].id;
+		var nomPrenom = $row.find('.nomPrenom').text();
+		var hideComment = $(this)[0].title;
+		$('.modal-title').text(nomPrenom);
+		$('#formComment').text(hideComment);
+		var formAction = $('#formCommentTc').attr('action') +id;
+		$('#formCommentTc').attr('action', formAction); 
+		formAction="";
+		$('#commentTagCheckModal').modal('show');
+	});
+
 });

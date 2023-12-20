@@ -616,4 +616,15 @@ public class PresenceController {
 		uiModel.addAttribute("active", "qrCodeSession");
 		return "supervisor/qrCodeSession";
 	}
+	
+	
+	@PostMapping("/supervisor/tagCheck/updateComment/{id}")
+	// @ResponseBody
+    public String updateComment(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc, String comment) {
+    	tc.setComment(comment);
+    	tagCheckService.save(tc, emargementContext);
+
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
+    }
 }

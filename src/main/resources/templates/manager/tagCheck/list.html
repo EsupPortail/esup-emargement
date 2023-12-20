@@ -136,6 +136,7 @@
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
+									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="isExempt">Commentaire</a></th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -163,7 +164,7 @@
 										<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 									</td>
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td th:unless="${tagCheck.person != null}"></td>
+									<td th:unless="${tagCheck.person != null}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
@@ -171,19 +172,21 @@
 									<td class="d-none d-lg-table-cell d-xl-table-cell" 
 											th:text="${tagCheck.sessionLocationBadged != null} ? ${tagCheck.sessionLocationBadged.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center">
-									<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
-										<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
-										<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
-										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
-										<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
-										<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
-										<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>
-										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
-									 </span></td>
+										<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
+											<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+											<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+											<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+											<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
+											<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+											<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>
+											<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+										</span>
+									</td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:text="${tagCheck.nbBadgeage}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell text-center" th:if="${sessionEpreuve.isProcurationEnabled}"><span th:text="${(tagCheck.proxyPerson != null) ? tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom :''}"></span></td>
 									<td class="hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
+									<td class="text-center d-none d-xl-table-cell" th:text="${tagCheck.comment}"></td>
 									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/tagCheck/{id}?form(id=${tagCheck.id},ctx=${eContext})}">
 										<i class="fa fa-pen text-warning ms-2"></i></a>
