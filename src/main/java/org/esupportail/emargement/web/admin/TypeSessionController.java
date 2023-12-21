@@ -68,10 +68,11 @@ public class TypeSessionController {
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.ASC, sort = "key")  Pageable pageable) {
 		
         Page<TypeSession> typeSessionPage = typeSessionRepository.findAll(pageable);
-        //Context context = contextRepository.findByContextKey(emargementContext);
         model.addAttribute("typeSessionPage", typeSessionPage);
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
-        model.addAttribute("checkTypeSession", typeSessionService.checkTypeSession());
+        if(typeSessionPage.getContent().isEmpty()) {
+        	model.addAttribute("checkTypeSession", "ok");
+        }
 		return "admin/typeSession/list";
 	}
 	

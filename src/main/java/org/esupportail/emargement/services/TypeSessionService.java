@@ -1,11 +1,9 @@
 package org.esupportail.emargement.services;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -46,22 +44,6 @@ public class TypeSessionService {
 		return list;
 	}
 	
-	public List <String> checkTypeSession() {
-		
-		List <String> listKey = getTypeSessionCategories();
-		List <TypeSession> list = typeSessionRepository.findAll();
-		List <String> currentKeys = list.stream().map(o -> o.getKey()).collect(Collectors.toList());
-		List <String> newListKey = new ArrayList<String>();
-		
-		for (String key : listKey){
-			if(!currentKeys.contains(key)) {
-				newListKey.add(key);
-				log.info("rubrique de type de session manquante: " + key);
-			}
-		}
-		return newListKey;
-	}
-	
 	@Transactional
 	public int updateTypeSession(String emargementcontext) {
 		List <String> list = getTypeSessionCategories();
@@ -83,5 +65,4 @@ public class TypeSessionService {
 		}
 		return nb;
 	}
-
 }

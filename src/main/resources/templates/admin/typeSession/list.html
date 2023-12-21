@@ -20,7 +20,7 @@
 	    		</div>         	
   				<div class="card-body">
 		    		<div  class="alert alert-danger" th:if="${error}">Un type de session avec cette clé existe déjà</div>
-								<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkTypeSession)}" >Les types de session ne sont pas à jour, il manque : <span class="font-weight-bold" th:text="${checkTypeSession}"></span>
+								<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkTypeSession)}" >Initialiser types de session : </span>
 									<a th:href="@{/{ctx}/admin/typeSession/updateTypes(ctx=${eContext})}" class="btn btn-warning ms-3">Mettre à jour</a>		
 								</div>
 								<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold" th:text="${nbUpdate + ' '}"></span>type de sessions ajoutée(s)</div>	
