@@ -362,5 +362,9 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckByContextAndSessionEpreuveId(Context context, Long id);
 	
+	@Query(value = "select distinct session_epreuve_id from tag_check where person_id in "
+			+ "(select person_id from groupe_person where groupe_id= :gpeId)", nativeQuery = true)
+	List<Long> findSessionEpreuveIdByTagCheckGroupe(Long gpeId);
+	
 }
 

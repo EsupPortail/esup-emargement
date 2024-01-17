@@ -111,36 +111,54 @@
 										</div>
 									</form>
 									<div id="contentToRefresh">
-									<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
-										<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
-										<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
-										<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
-										<input type="hidden" name ="idList" id="idListImport"/>
-										<div id="toolbar float-start" class="mb-3">
-										 <button class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
-										</div>
-										<table  class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
-											<thead>
-											<tr>
-												<th><input type="checkbox" id="checkAll"></th>
-												<th>Id</th>
-												<th>Maj</th>
-												<th>Import</th>
-												<th>Type</th>
-												<th>Nom</th>
-												<th>Date</th>
-												<th>Début</th>
-												<th>Fin</th>
-												<th>Groupe</th>
-												<th>Enseignants</th>
-												<th class="table-warning">Site</th>
-												<th>Salles</th>
-												<th>Formation</th>
-											</tr>
-											</thead>
-											<tbody id="tableEvents"></tbody>
-										</table>
-									</form>
+										<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
+											<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
+											<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
+											<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
+											<input type="hidden" name ="idList" id="idListImport"/>
+											<div id="toolbar float-start" class="mb-3">
+											<button th:if="${isCreateGroupeAdeEnabled}" class="btn btn-sm btn-info mt-1 me-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample">
+											  Groupe
+											</button>
+											 <button class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+											</div>
+											<div class="collapse" id="collapseExample">
+												<div class="alert alert-info">
+													<div class="row">
+														<div class="col-5">
+															<select id="blackListGroupe" name="existingGroupe" class="form-check" multiple>
+																<option th:each="groupe : ${allGroupes}" th:value="${groupe.id}" 
+																th:text="${groupe.nom}"></option>																																																				th:value="${groupe.id}" th:text="${groupe.nom}"></option-->
+															</select>
+														</div>
+														<div class="col-auto">
+															<input type="text" class="form-control" name="newGroupe" placeholder="Nouveau groupe.." value="">
+														</div>
+													</div>
+												</div>
+											</div>				
+											<table class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
+												<thead>
+												<tr>
+													<th><input type="checkbox" id="checkAll"></th>
+													<th>Id</th>
+													<th>Maj</th>
+													<th>Import</th>
+													<th>Type</th>
+													<th>Nom</th>
+													<th>Date</th>
+													<th>Début</th>
+													<th>Fin</th>
+													<th>Groupe</th>
+													<th>Enseignants</th>
+													<th class="table-warning">Site</th>
+													<th>Salles</th>
+													<th>Formation</th>
+												</tr>
+												</thead>
+												<tbody id="tableEvents"></tbody>
+											</table>
+										</form>
 									</div>
 								</div>
 							</div>

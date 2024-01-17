@@ -93,6 +93,14 @@ public class GroupeService {
     	}
 	}
 	
+	public void addPerson(Person person, List<Long> groupeIds) {
+    	for(Long id : groupeIds) {
+    		Groupe groupe = groupeRepository.findById(id).get();
+    		groupe.getPersons().add(person);
+    		groupeRepository.save(groupe);
+    	}
+	}
+	
 	public void addMembersFromSessionEpreuve(List<Long> ids, List<Long> groupeIds) {
 		
 		List<Person> allPersons =new ArrayList<Person>();

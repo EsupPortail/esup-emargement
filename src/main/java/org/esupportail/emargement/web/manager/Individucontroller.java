@@ -20,10 +20,12 @@ import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SearchBean;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
@@ -92,6 +94,9 @@ public class Individucontroller {
 	@Autowired
 	EsupSignatureRepository esupSignatureRepository;
 	
+	@Autowired	
+	SessionEpreuveRepository sessionEpreuveRepository;
+	
 	@Resource
 	TagCheckService tagCheckService;
 	
@@ -116,7 +121,7 @@ public class Individucontroller {
 	
 	@GetMapping(value = "/manager/individu")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", 
-	value="eppnTagChecker") String eppnTagChecker, @RequestParam(defaultValue = "", value="idGroupe") String idGroupe, 
+	value="eppnTagChecker") String eppnTagChecker, @RequestParam(defaultValue = "", value="idGroupe") String idGroupe, @RequestParam(defaultValue = "", value="sessions") Long sessions,
 			@RequestParam(value="annee", required = false) String annee, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1, HttpServletResponse response){
 		if(!identifiantTagCheck.isEmpty()) {
 			Page<TagCheck> pTagChecks = null;
@@ -135,7 +140,7 @@ public class Individucontroller {
 					}
 				}
 			}
-			model.addAttribute("assiduiteList",tagCheckService.setListAssiduiteBean(pTagChecks.getContent()));
+			model.addAttribute("assiduiteList",tagCheckService.setListAssiduiteBean(pTagChecks.getContent(), null));
 			model.addAttribute("tagChecksPage", pTagChecks);
 			model.addAttribute("mapTc", mapTc);
 			if(!pTagChecks.isEmpty()) {
@@ -148,14 +153,20 @@ public class Individucontroller {
 			if(!pTagCheckers.isEmpty()) {
 				model.addAttribute("individu", pTagCheckers.getContent().get(0));	
 			}			
+		}else if(sessions!=null) {
+			List<Long> seIds = tagCheckRepository.findSessionEpreuveIdByTagCheckGroupe(sessions);
+			List<SessionEpreuve> ses = new ArrayList<>();
+			if(!seIds.isEmpty()) {
+				for(Long id : seIds) {
+					ses.add(sessionEpreuveRepository.findById(id).get());
+				}
+			}
+			model.addAttribute("groupe", groupeRepository.findById(sessions).get());	
+			model.addAttribute("sePage", ses);
 		}
 		else if(!idGroupe.isEmpty()) {
-			//Annee
-			
 			Long id = Long.valueOf(idGroupe);
 			Page<AppUser> usersGroupePage = new PageImpl<>(groupeService.getMembers(id));
-			List<Long> test = usersGroupePage.getContent().stream().filter(t -> t.getPersonOrGuestId() != null)
-					.map(t -> t.getPersonOrGuestId()).collect(Collectors.toList());
 			model.addAttribute("usersGroupePage", usersGroupePage);
 			Groupe groupe = groupeRepository.findById(id).get();
 			if(!usersGroupePage.isEmpty()) {
@@ -175,7 +186,7 @@ public class Individucontroller {
 			Map<Person, AssiduiteBean> mapAssiduite = new HashMap(); 
 			//voir cas guest
 			for (Person p : mapTcs.keySet()) {
-		        List<AssiduiteBean> listAssiduite =  tagCheckService.setListAssiduiteBean(mapTcs.get(p)) ;
+		        List<AssiduiteBean> listAssiduite =  tagCheckService.setListAssiduiteBean(mapTcs.get(p), groupe.getAnneeUniv()) ;
 		        mapAssiduite.put(p, listAssiduite.get(0));
 		    }
 			model.addAttribute("assiduiteMap", mapAssiduite);
@@ -237,7 +248,7 @@ public class Individucontroller {
 	    	}
     	}
     	if("groupe".equals(type)) {
-    		List<Groupe> groupes = groupeRepository.findByNomLike("%" + searchValue + "%");
+    		List<Groupe> groupes = groupeRepository.findByNomLikeIgnoreCase("%" + searchValue + "%");
     		for(Groupe groupe : groupes) {
     			SearchBean searchBean = new SearchBean();
     			searchBean.setIdentifiant(groupe.getNom());

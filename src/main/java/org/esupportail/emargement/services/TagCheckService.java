@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1594,13 +1595,19 @@ public class TagCheckService {
 		return typeEmargement;
 	}
 	
-	public List<AssiduiteBean> setListAssiduiteBean(List<TagCheck> pTagChecks) {
+	public List<AssiduiteBean> setListAssiduiteBean(List<TagCheck> pTagChecks, String anneeUniv) {
 		
 		List<AssiduiteBean> list = new ArrayList<>();
 		Map<String, String> mapTypes = new HashedMap();
 		
 		//Annees
-		Set<String> annees = pTagChecks.stream().map(p -> p.getSessionEpreuve().getAnneeUniv()).collect(Collectors.toSet());
+		Set<String> annees = null;
+		if(anneeUniv == null || anneeUniv.isEmpty()) {
+			annees = pTagChecks.stream().map(p -> p.getSessionEpreuve().getAnneeUniv()).collect(Collectors.toSet());
+		}else {
+			annees = new HashSet<>();
+			annees.add(anneeUniv);
+		}
 		
 		//Type sessions
 		Set<String> tcSessions = pTagChecks.stream().map(p -> p.getSessionEpreuve().getTypeSession().getKey()).collect(Collectors.toSet());

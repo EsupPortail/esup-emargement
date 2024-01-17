@@ -60,6 +60,8 @@ public class Groupe implements ContextSupport {
 	
 	public String nom;
 	
+	public String anneeUniv;
+	
 	@Transient
 	public long nbTagCheck=0; 
 	
@@ -134,5 +136,12 @@ public class Groupe implements ContextSupport {
 	public void setNbTagCheck(long nbTagCheck) {
 		this.nbTagCheck = nbTagCheck;
 	}
-	
+
+	public String getAnneeUniv() {
+		return anneeUniv;
+	}
+
+	public void setAnneeUniv(String anneeUniv) {
+		this.anneeUniv = anneeUniv;
+	}
 }

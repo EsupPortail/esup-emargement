@@ -147,7 +147,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								});
 							}
 							else if (id == "searchIndividuGroupe") {
-								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom
+								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> Année : </strong>" + value.groupe.anneeUniv
 								list.push({
 									label: labelValue,
 									value: value.groupe.id + "//" + value.groupe.nom
@@ -2002,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	$("#codeComposante1").on("change", function(event) {
 		const selectedData = $(this).val();
-		$("#codeFormation").val("");
+		$("#codeFormation").val($(this).val());
 		$("input[id^=hiddenCodeComposante]").val(selectedData);
 		if (selectedData == "myEvents") {
 			$('#frmt').addClass("d-none");
@@ -2136,5 +2136,30 @@ document.addEventListener('DOMContentLoaded', function() {
 		formAction="";
 		$('#commentTagCheckModal').modal('show');
 	});
-
+	
+	$('.tableSearchGroup').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		},
+		pageLength: -1,
+		lengthMenu: [
+	        [10, 25, 50, -1],
+	        [10, 25, 50, 'All']
+	    ]
+	});
+	$('.tableFoo2').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}
+	});
 });

@@ -99,12 +99,12 @@
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
 									<td>
-										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
-										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span>
+										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>	
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
-									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>
+									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
 									<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 												<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
@@ -117,11 +117,13 @@
 											 </span>
 									</td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
-									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm')}"></td>
+									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yy HH:mm')}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
 									<td class="center">
 										<a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir individu">
 											<i class="fa fa-eye text-primary"></i></a>
+										<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" title ="Voir session">
+											<i class="fa fa-list text-primary ms-2"></i></a>											
 										<a th:if="${tagCheck.tagDate != null}" 
 										  	th:href="@{/{ctx}/manager/individu/attestation/preview/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir l'attestation">
 											<i class="fa-solid fa-file-pdf text-info ms-2" ></i></a>
@@ -142,6 +144,36 @@
 							</tbody>
 						</table>
 						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+					<div th:if="${not #lists.isEmpty(sePage)}">
+						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
+							<div class="col"><strong>Groupe : </strong>
+								<span th:text="${groupe.nom + ' [' + groupe.anneeUniv + ']  -- Sessions'}"></span>
+								<a th:href="@{/{ctx}/manager/individu?idGroupe={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-outline-primary">Voir membres</a>
+							</div>
+						</div>
+						<table class="table tableFoo2" style="width:100%">
+							<thead>
+								<tr>
+									<th>Date</th>
+									<th>Session</th>
+									<th>Type</th>
+									<th>Voir</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="se : ${sePage}">
+									<td>
+										<span th:text="${#dates.format(se.dateExamen, 'dd/MM/yy')}"></span><br/>
+										<span th:if="${se.dateFin != null}" th:text="${#dates.format(se.dateFin,'dd/MM/yy')}"></span>
+									</td>
+									<td th:text="${se.nomSessionEpreuve}"></td>
+									<td th:text="${se.typeSession.libelle}"></td>
+									<td><a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${se.id},ctx=${eContext})}" title ="Voir session">
+										<i class="fa fa-eye text-primary"></i></a></td>
+								</tr>
+							</tbody>
+						</table>		
 					</div>
 					<div th:if="${not #lists.isEmpty(tagCheckersPage)}">
 						<div class="alert alert-info mt-2" th:if="${#ctx.containsVariable('individu')}">
@@ -164,8 +196,8 @@
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"  th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
-										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
-										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
+										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span><br/>
+										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>
 									<td class="center"><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>	
 								</tr>
@@ -175,16 +207,11 @@
 					<div th:if="${not #lists.isEmpty(usersGroupePage)}">
 						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
 							<div class="col"><strong>Groupe : </strong>
-							<span th:text="${groupe.nom}"></span></div>
-							<select id="anneeUnivSelect" name="anneeUniv" class="form-select col"> 
-					    		<option value="all" th:selected="${annee == 'all'}">Toutes</option>
-								<option th:each="year, iStat : ${years}"
-									th:value="@{/{ctx}/manager/individu?eppnTagCheck=&amp;idGroupe={groupe}&amp;eppnTagChecker=&amp;annee={annee}(groupe=${groupe.id}, 
-									annee=${#strings.substringBefore(year,'/')},ctx=${eContext})}" th:text="${year}"  th:selected="${#strings.substringBefore(year,'/') eq annee}"></option>
-							</select>
+								<span th:text="${groupe.nom + ' [' + groupe.anneeUniv + ']'}"></span>
+								<a th:href="@{/{ctx}/manager/individu?sessions={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-primary">Voir sessions</a>
+							</div>
 						</div>
-						<table class="table table-hover table-striped table-bordered" id="tableTagChecks" data-toggle="table" data-pageSize="10" 
-						 data-search="true" data-sort-name="nom" >
+						<table class="table table-hover table-striped table-bordered tableSearchGroup"  style="width:100%">
 							<thead>
 								<tr>
 									<th data-sortable="true" scope="col" data-field="nom">Nom</th>

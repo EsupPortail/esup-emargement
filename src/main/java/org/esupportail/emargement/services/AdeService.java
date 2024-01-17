@@ -59,6 +59,7 @@ import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -125,6 +126,9 @@ public class AdeService {
 	@Autowired
 	LocationRepository locationRepository;
 	
+	@Autowired
+	GroupeRepository groupeRepository;
+	
 	@Autowired	
 	SessionLocationRepository sessionLocationRepository;
 	
@@ -172,6 +176,9 @@ public class AdeService {
 	
     @Resource 
     LdapService ldapService;
+    
+    @Resource 
+    GroupeService groupeService;
     
     public String getFatherIdResource(String sessionId, String idItem, String category, String tree) throws IOException {
 		String fatherId = "0";
@@ -478,6 +485,7 @@ public class AdeService {
 		if(idEvents != null) {
 			for(Long id : idEvents) {
 				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
+				
 				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
 			}
 		}else {
@@ -485,7 +493,6 @@ public class AdeService {
 					"&endDate=" + formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
 			setEvents(urlEvents, adeBeans, existingSe, sessionId, resourceId, update);
 		}
-
 		return adeBeans;
 	}
 	
@@ -731,7 +738,7 @@ public class AdeService {
 	//@Async
 	@Transactional
 	public void saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, List<String> campuses, 
-			String eppn, boolean update, String typeSync) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			String eppn, boolean update, String typeSync, List<Long> groupes) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
@@ -865,6 +872,9 @@ public class AdeService {
 									}else {
 										log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
 									}
+								}
+								if(!groupes.isEmpty()) {
+									groupeService.addPerson(person, groupes);
 								}
 								TagCheck tc = new TagCheck();
 								//A voir 
@@ -1036,7 +1046,7 @@ public class AdeService {
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true);
 			if(!beans.isEmpty()) {
 				String eppn = (auth!=null)?  auth.getName() : "system";
-				saveEvents(beans, sessionId, emargementContext, null, eppn, true, typeSync);
+				saveEvents(beans, sessionId, emargementContext, null, eppn, true, typeSync, null);
 			}
 	    }
 	}

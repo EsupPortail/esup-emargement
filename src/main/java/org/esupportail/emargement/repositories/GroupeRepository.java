@@ -14,7 +14,9 @@ public interface GroupeRepository extends JpaRepository<Groupe, Long> {
 	
 	List<Groupe> findByNom(String nom);
 	
-	List<Groupe> findByNomLike(String nom);
+	List<Groupe> findByNomLikeIgnoreCase(String nom);
+	
+	List<Groupe> findByAnneeUnivOrderByNom(String annee);
 	
 	List<Groupe> findAllByOrderByNom();
 	

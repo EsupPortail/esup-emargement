@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,11 +18,13 @@ import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -111,6 +114,9 @@ public class AdeController {
 	
 	@Autowired
 	AppliConfigRepository appliConfigRepository;
+	
+	@Autowired	
+	GroupeRepository groupeRepository;
 
 	@Autowired
 	TagCheckerRepository tagCheckerRepository;
@@ -186,6 +192,8 @@ public class AdeController {
 				uiModel.addAttribute("valuesFormation", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 				uiModel.addAttribute("existingSe", true);
 				uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
+				uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
+				uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
 			}
 	
 		} catch (Exception e) {
@@ -280,7 +288,9 @@ public class AdeController {
 			@RequestParam(value="codeComposante") String codeComposante, @RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="existingSe", required = false) String existingSe,
 			@RequestParam(value="idList", required = false) List<String> idList,
-			@RequestParam(value="strDateMax", required = false) String strDateMax) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			@RequestParam(value="strDateMax", required = false) String strDateMax,
+			@RequestParam(value="existingGroupe", required = false) List<Long> existingGroupe,
+			@RequestParam(value="newGroupe", required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		if(idEvents!=null) {
 			String sessionId = adeService.getSessionId(false, emargementContext);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -293,7 +303,24 @@ public class AdeController {
 			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante, idList);
 			
 			if(!beans.isEmpty()) {
-				adeService.saveEvents(beans, sessionId, emargementContext, campuses, auth.getName(), false, null);
+				List<Long> groupes = new ArrayList<>();
+				if(appliConfigService.isAdeCampusGroupeAutoEnabled()) {
+					if(existingGroupe!=null) {
+						groupes.addAll(existingGroupe);
+					}
+					if(!newGroupe.isEmpty()) {
+						Groupe groupe = new Groupe();
+						groupe.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+						groupe.setNom(newGroupe);
+						groupe.setDescription("import Campus ADE");
+						groupe.setContext(contextRepository.findByContextKey(emargementContext));
+						groupe.setDateCreation(new Date());
+						groupe.setModificateur(auth.getName());
+						groupeRepository.save(groupe);
+						groupes.add(groupe.getId());
+					}		
+				}
+				adeService.saveEvents(beans, sessionId, emargementContext, campuses, auth.getName(), false, null, groupes);
 			}else {
 				log.info("Aucun évènement à importer");
 			}

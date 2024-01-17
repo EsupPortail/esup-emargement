@@ -31,6 +31,7 @@
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Date de modification</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Modificateur</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Année</th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -42,7 +43,7 @@
 									<td th:text="${#dates.format(groupe.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
 									<td th:text="${#dates.format(groupe.dateModification, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
 									<td th:text="${groupe.modificateur}" class="d-none d-lg-table-cell  d-xl-table-cell"></td>
-
+									<td th:text="${groupe.anneeUniv}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
 									<td class ="center">
 										<a th:href="@{/{ctx}/manager/groupe/{id}(id=${groupe.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/manager/groupe/{id}?form(id=${groupe.id},ctx=${eContext})}" class="center ms-2"><i class="fa fa-pen text-warning"></i></a>
