@@ -226,11 +226,11 @@ public class ApogeeService {
 				+ "FROM APOGEE.GPE_OBJ GPE_OBJ, APOGEE.GROUPE GROUPE, APOGEE.IND_AFFECTE_GPE IND_AFFECTE_GPE, "
 				+ "APOGEE.INDIVIDU INDIVIDU WHERE INDIVIDU.COD_IND = IND_AFFECTE_GPE.COD_IND AND "
 				+ "GPE_OBJ.COD_GPE = IND_AFFECTE_GPE.COD_GPE AND GROUPE.COD_GPE = GPE_OBJ.COD_GPE "
-				+ "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_GPE = ? "
+				+ "AND IND_AFFECTE_GPE.COD_ANU = ? AND  GROUPE.COD_GPE = ? AND GPE_OBJ.COD_ELP = ?"
 				+ "ORDER BY INDIVIDU.LIB_NOM_PAT_IND";
 		
 		try {
-			results = apogeeJdbcTemplate.queryForList(query, new Object[] {apogeeBean.getCodAnu(), apogeeBean.getCodExtGpe()});
+			results = apogeeJdbcTemplate.queryForList(query, new Object[] {apogeeBean.getCodAnu(), apogeeBean.getCodExtGpe(),apogeeBean.getCodElp()});
 			for(Map<String, Object> so : results) {
 				ApogeeBean ab = new ApogeeBean();
 				ab.setCodExtGpe(apogeeBean.getCodExtGpe());
