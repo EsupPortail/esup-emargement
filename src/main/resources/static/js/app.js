@@ -2136,8 +2136,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		formAction="";
 		$('#commentTagCheckModal').modal('show');
 	});
-	
-	$('.tableSearchGroup').DataTable({
+	var title = '';
+	$('table.assiduite').DataTable( {
 		responsive: true,
 		ordering: true,
 		paging: true,
@@ -2150,16 +2150,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		lengthMenu: [
 	        [10, 25, 50, -1],
 	        [10, 25, 50, 'All']
-	    ]
-	});
-	$('.tableFoo2').DataTable({
-		responsive: true,
-		ordering: true,
-		paging: true,
-		searching: true,
-		info: false,
-		language: {
-			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		}
-	});
+	    ],
+        dom: 'Bfrtilp',
+        buttons: [
+            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
+        ]
+	 }).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		 title = $(dataTable.table().node()).attr('data-export-title');
+	 });
+
 });

@@ -150,10 +150,11 @@
 										<button type="button" data-bs-dismiss="toast" class="btn btn-sm btn-primary me-1 userToast" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 										<i class="fa fa-user" aria-hidden="true"></i></button>
-										<span th:text="${tagCheck.person.eppn}"></span>
+										<a th:href="@{|/${eContext}/manager/individu?eppnTagCheck=${tagCheck.person.eppn}|}"><span th:text="${tagCheck.person.eppn}"></span></a>
 									</td>
 									<td th:unless="${tagCheck.person != null}">
-										<span th:text="${tagCheck.guest.email}"></span>
+										<a th:href="@{|/${eContext}/manager/individu?eppnTagCheck=${tagCheck.guest.email}|}">
+											<span th:text="${tagCheck.guest.email}"></span></a>
 									</td>
 									<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}" th:text="${tagCheck.guest.nom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>

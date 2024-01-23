@@ -44,6 +44,13 @@
 		<script th:src="@{/webjars/datatables-responsive/js/dataTables.responsive.min.js}"></script>
 		<script th:src="@{/webjars/datatables-plugins/i18n/fr-FR.js}"></script>
 		<script th:src="@{/webjars/datatables-plugins/sorting/date-eu.js}"></script>
+		<!--orde important<-->
+		<script th:src="@{/webjars/datatables-buttons/js/dataTables.buttons.min.js}"></script>
+		<script th:src="@{/webjars/jszip/jszip.min.js}"></script>
+		<script th:src="@{/webjars/pdfmake/build/pdfmake.min.js}"></script>
+		<script th:src="@{/webjars/pdfmake/build/vfs_fonts.js}"></script>
+		<script th:src="@{/webjars/datatables-buttons/js/buttons.html5.min.js}"></script>
+		<script th:src="@{/webjars/datatables-buttons/js/buttons.print.min.js}"></script>
 		<script th:src="@{/webjars/jstree/jstree.min.js}"></script>
 		<script type="module" th:src="@{/webjars/bootstrap5-tags/tags.min.js}"></script>
 		<script type="module">
@@ -66,6 +73,7 @@
 		<link th:href="@{/webjars/jstree/themes/default/style.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.css}" rel="stylesheet">
 		<link th:href="@{/css/suneditor.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/datatables-buttons/css/buttons.dataTables.min.css}" rel="stylesheet">
 		<link th:href="@{/css/app.css}" rel="stylesheet">
 		<title th:text="#{${'title.' + active}(${title})}">Application Emargement</title>
 	</head>

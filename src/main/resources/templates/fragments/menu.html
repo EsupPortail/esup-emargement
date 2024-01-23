@@ -39,7 +39,7 @@
 				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
 				          <li th:if="${isAdeCampusEnabled}"><a class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
-				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Individus</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Assiduité</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>
 				          <li><hr class="dropdown-divider"></li>

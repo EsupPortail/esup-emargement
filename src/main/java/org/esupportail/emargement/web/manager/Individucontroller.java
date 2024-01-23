@@ -141,7 +141,7 @@ public class Individucontroller {
 				}
 			}
 			model.addAttribute("assiduiteList",tagCheckService.setListAssiduiteBean(pTagChecks.getContent(), null));
-			model.addAttribute("tagChecksPage", pTagChecks);
+			model.addAttribute("tagChecksPage", pTagChecks.getContent());
 			model.addAttribute("mapTc", mapTc);
 			if(!pTagChecks.isEmpty()) {
 				model.addAttribute("individu", pTagChecks.getContent().get(0));	
@@ -149,7 +149,7 @@ public class Individucontroller {
 		}else if(!eppnTagChecker.isEmpty()) {
 			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, p1);
 			tagCheckerService.setNomPrenom4TagCheckers(pTagCheckers.getContent());
-			model.addAttribute("tagCheckersPage", pTagCheckers);
+			model.addAttribute("tagCheckersPage", pTagCheckers.getContent());
 			if(!pTagCheckers.isEmpty()) {
 				model.addAttribute("individu", pTagCheckers.getContent().get(0));	
 			}			
@@ -167,7 +167,7 @@ public class Individucontroller {
 		else if(!idGroupe.isEmpty()) {
 			Long id = Long.valueOf(idGroupe);
 			Page<AppUser> usersGroupePage = new PageImpl<>(groupeService.getMembers(id));
-			model.addAttribute("usersGroupePage", usersGroupePage);
+			model.addAttribute("usersGroupePage", usersGroupePage.getContent());
 			Groupe groupe = groupeRepository.findById(id).get();
 			if(!usersGroupePage.isEmpty()) {
 				model.addAttribute("groupe", groupe);	

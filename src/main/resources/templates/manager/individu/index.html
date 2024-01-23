@@ -9,7 +9,7 @@
 				<div class="card-header">
 					<div class="row">
 		    			<div class="col">
-				    		<h2>Individus</h2>
+				    		<h2>Assiduité</h2>
 				   		</div>
 				   		<div class="col">
 		    				<div class="row float-end">
@@ -45,8 +45,8 @@
 							<span th:if="${individu.person !=null && individu.person.numIdentifiant!=null}" th:text="${' -- N°' + individu.person.numIdentifiant}"></span>
 						</div>
 						<div class="alert alert-light">
-							<strong>Assiduité : </strong>
-							<table class="table table-hover table-striped table-bordered" id="tableAssiduite">
+							<table class="table table-hover table-striped table-bordered assiduite" 
+							th:attr="data-export-title=${(individu.person !=null)? individu.person.eppn +  '_par_annee': individu.guest.email +  '_par_annee' }" style="width:100%">
 								<thead class="sticky-top">
 									<tr>
 										<th scope="col">Année</th>
@@ -71,22 +71,23 @@
 								</tbody>
 							</table>
 						</div>
-						<table class="table table-hover table-striped table-bordered" id="tableTagChecks">
+						<table class="table table-hover table-striped table-bordered assiduite"
+							th:attr="data-export-title=${individu.person.eppn +  '_details_par_annee'}" style="width:100%">
 							<thead class="sticky-top">
 								<tr>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.anneeUniv">Année</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Session</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
+									<th scope="col">Année</th>
+									<th scope="col">Session</th>
+									<th scope="col">Type</th>
 									<th scope="col">Groupe</th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
-									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Tiers-temps</th>
-									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Exempté</th>
-									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Envoi convocation</th>								
-									<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
-									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Repartition</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
-									<th scope="col" class="center">Voir</th>
+									<th scope="col">Date</th>
+									<th scope="col">Tiers-temps</th>
+									<th scope="col">Exempté</th>
+									<th th:if="${isConvocationEnabled}" scope="col">Envoi convocation</th>								
+									<th scope="col">Emargement</th>
+									<th scope="col">Repartition</th>
+									<th scope="col">Date</th>
+									<th scope="col">Surveillant</th>
+									<th scope="col" class="exclude">Voir</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -102,10 +103,10 @@
 										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span>
 										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>	
-									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
-									<td th:if="${isConvocationEnabled}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
-									<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
+									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
+									<td th:attr="data-filter=${(tagCheck.isExempt!=null and tagCheck.isExempt)? 'Oui' : ''}"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
+									<td th:if="${isConvocationEnabled}" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
+									<td class="center checkedByCard" th:attr="data-filter=${tagCheck.typeEmargement}">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 												<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
 												<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
@@ -116,12 +117,10 @@
 												<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 											 </span>
 									</td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
-									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yy HH:mm')}"></td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
+									<td th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
+									<td th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yy HH:mm')}"></td>
+									<td th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
 									<td class="center">
-										<a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir individu">
-											<i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" title ="Voir session">
 											<i class="fa fa-list text-primary ms-2"></i></a>											
 										<a th:if="${tagCheck.tagDate != null}" 
@@ -143,7 +142,6 @@
 								</tr>
 							</tbody>
 						</table>
-						<nav th:replace="fragments/pagination :: pagination"></nav>
 					</div>
 					<div th:if="${not #lists.isEmpty(sePage)}">
 						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
@@ -152,13 +150,13 @@
 								<a th:href="@{/{ctx}/manager/individu?idGroupe={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-outline-primary">Voir membres</a>
 							</div>
 						</div>
-						<table class="table tableFoo2" style="width:100%">
+						<table class="table assiduite" style="width:100%" th:attr="data-export-title=${groupe.nom + ' [' + groupe.anneeUniv + ']'}">
 							<thead>
 								<tr>
 									<th>Date</th>
 									<th>Session</th>
 									<th>Type</th>
-									<th>Voir</th>
+									<th class="exclude">Voir</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -180,26 +178,25 @@
 							<strong>Surveillant : </strong>
 							<span th:text="${ ' ' + individu.userApp.prenom + ' ' + individu.userApp.nom+ ', ' + individu.userApp.eppn}"></span>
 						</div>						
-						<table class="table table-hover table-striped table-bordered">
+						<table class="table table-hover table-striped table-bordered assiduite" style="width:100%" 
+							th:attr="data-export-title=${'surveillant_' + individu.userApp.eppn}">
 							<thead>
 								<tr>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve">Session</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location.nom">Lieu</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocation.location.campus.site">Site</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.sessionEpreuve.dateExamen">Date</a></th>
-									<th scope="col" class="center">Voir</th>
+									<th scope="col">Session</th>
+									<th scope="col">Lieu</th>
+									<th scope="col">Site</th>
+									<th scope="col">Date</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr th:each="tagChecker : ${tagCheckersPage}">
 									<td th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></td>
-									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"  th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
-									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
+									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
+									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
 										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span><br/>
 										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>
-									<td class="center"><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>	
 								</tr>
 							</tbody>
 						</table>
@@ -211,35 +208,36 @@
 								<a th:href="@{/{ctx}/manager/individu?sessions={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-primary">Voir sessions</a>
 							</div>
 						</div>
-						<table class="table table-hover table-striped table-bordered tableSearchGroup"  style="width:100%">
+						<table class="table table-hover table-striped table-bordered assiduite" style="width:100%" 
+							th:attr="data-export-title=${groupe.nom + ' [' + groupe.anneeUniv + ']'}">
 							<thead>
 								<tr>
-									<th data-sortable="true" scope="col" data-field="nom">Nom</th>
-									<th data-sortable="true" scope="col">Prénom</th>
-									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">N° étudiant</th>									
-									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Type</th>
-									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Total Sessions</th>
-									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center">Présence Totale</th>
-									<th data-sortable="true" scope="col" class="text-center">Taux présence</th>
-									<th data-sortable="true" scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell ">Détail présence</th>
-									<th data-sortable="true" scope="col" class="text-center">Voir</th>
+									<th scope="col">Nom</th>
+									<th scope="col">Prénom</th>
+									<th scope="col" >N° étudiant</th>									
+									<th scope="col" >Type</th>
+									<th scope="col" >Total Sessions</th>
+									<th scope="col" >Présence Totale</th>
+									<th scope="col" class="text-center">Taux présence</th>
+									<th scope="col" >Détail présence</th>
+									<th scope="col" class="exclude">Voir</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr th:each="assiduite: ${assiduiteMap}" > 
-									<td  th:text="${assiduite.key.nom}"></td>
+									<td th:text="${assiduite.key.nom}"></td>
 									<td th:text="${assiduite.key.prenom}"></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${assiduite.key.numIdentifiant}"></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="#{person.type  + '.' + ${assiduite.key.type}}"></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="${assiduite.value.totalSession}"></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell text-center" th:text="${assiduite.value.nbPresent}"></td>
+									<td th:text="${assiduite.key.numIdentifiant}"></td>
+									<td th:text="#{person.type  + '.' + ${assiduite.key.type}}"></td>
+									<td th:text="${assiduite.value.totalSession}"></td>
+									<td th:text="${assiduite.value.nbPresent}"></td>
 									<td class="text-center">
 										<span  th:text="${assiduite.value.percentPresent + ' %'}"></span>
 									</td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
-										<span th:text="${assiduite.value.detailPerence}"></span>
-									</td>
-									<td class="text-center"><a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}&amp;idGroupe=&amp;eppnTagChecker=(eppn=${assiduite.key.eppn},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+									<td th:text="${assiduite.value.detailPerence}"></td>
+									<td class="text-center"><a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}&amp;idGroupe=&amp;
+										eppnTagChecker=(eppn=${assiduite.key.eppn}, ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									</td>									
 								</tr>
 							</tbody>
 						</table>						
