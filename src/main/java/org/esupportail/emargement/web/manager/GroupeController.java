@@ -171,6 +171,7 @@ public class GroupeController {
         	oldGroupe.setDescription(groupe.getDescription());
         	oldGroupe.setNom(groupe.getNom());
         	oldGroupe.setModificateur(eppn);
+        	oldGroupe.setAnneeUniv(groupe.getAnneeUniv());
             groupeRepository.save(oldGroupe);
             log.info("Maj groupe : " + groupe.getNom());
             logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
