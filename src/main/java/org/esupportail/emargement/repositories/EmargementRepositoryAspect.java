@@ -25,7 +25,7 @@ public class EmargementRepositoryAspect {
 	// Attention, ne fonctionne pas sur les native query ...
 	// De même cf doc hibernate "Filters apply to entity queries, but not to direct fetching."
 	@Before(
-			value="(execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))" +
+			value="(execution(public * org.springframework.data.jpa.repository.*.*(..)) || execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))" +
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextKey(..)) " +
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContextId(..)) " +
 					"&& !execution(public * org.esupportail.emargement.repositories.*.findByContext(..)) " +
