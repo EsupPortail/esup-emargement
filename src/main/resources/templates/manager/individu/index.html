@@ -71,7 +71,15 @@
 								</tbody>
 							</table>
 						</div>
-						<table class="table table-hover table-striped table-bordered assiduite"
+						<div class="row input-daterange mb-2">
+							<div class="col-md-4">
+								<input type="text" class="form-control" id="min" name="min" placeholder="Date début" readonly />
+							</div>
+							<div class="col-md-4">
+								<input type="text" class="form-control" id="max" name="max" placeholder="Date fin" readonly />
+							</div>
+						</div>
+					<table class="table table-hover table-striped table-bordered assiduite2"
 							th:attr="data-export-title=${individu.person.eppn +  '_details_par_annee'}" style="width:100%">
 							<thead class="sticky-top">
 								<tr>
@@ -101,7 +109,6 @@
 									</td>
 									<td>
 										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span>
-										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>	
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td th:attr="data-filter=${(tagCheck.isExempt!=null and tagCheck.isExempt)? 'Oui' : ''}"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
@@ -195,7 +202,6 @@
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
 										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span><br/>
-										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 									</td>
 								</tr>
 							</tbody>

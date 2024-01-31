@@ -113,6 +113,13 @@ function getCalendar(calendarEl, urlEvents, editable) {
 	calendar.render();
 }
 
+function createDateFromString(dateString) {
+	const [day, month, year] = dateString.split('-').map(Number);
+	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
+
+	return new Date(adjustedYear, month - 1, day); // month is 0-indexed in JavaScript Date objects
+}
+
 function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 	var searchBox = document.getElementById(id);
 	if (searchBox != null) {
@@ -2136,8 +2143,33 @@ document.addEventListener('DOMContentLoaded', function() {
 		formAction="";
 		$('#commentTagCheckModal').modal('show');
 	});
+	
+	//Recherche assiduité
+	let minDate, maxDate;
+	DataTable.ext.search.push(function (settings, data, dataIndex) {
+	    let min = minDate.val();
+	    let max = maxDate.val();
+	    let date = new Date(newDate = createDateFromString(data[4]));
+	    if (
+	        (min === null && max === null) ||
+	        (min === null && date <= max) ||
+	        (min <= date && max === null) ||
+	        (min <= date && date <= max)
+	    ) {
+	        return true;
+	    }
+	    return false;
+	});
+	// Create date inputs
+	minDate = new DateTime('#min', {
+	    format: 'DD-MM-YY'
+	});
+	maxDate = new DateTime('#max', {
+	    format: 'DD-MM-YY'
+	});
+	
 	var title = '';
-	$('table.assiduite').DataTable( {
+	var dataTableOptions = {
 		responsive: true,
 		ordering: true,
 		paging: true,
@@ -2158,8 +2190,18 @@ document.addEventListener('DOMContentLoaded', function() {
             {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
             {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
         ]
-	 }).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		 title = $(dataTable.table().node()).attr('data-export-title');
-	 });
+	 }
+	
+	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
 
+	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
+	 
+	// Refilter the table
+	document.querySelectorAll('#min, #max').forEach((el) => {
+		el.addEventListener('change', () => table3.draw());
+	});
 });
