@@ -92,7 +92,7 @@
 		<dependency>
 		    <groupId>com.opencsv</groupId>
 		    <artifactId>opencsv</artifactId>
-		    <version>5.8</version>
+		    <version>5.9</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
@@ -138,7 +138,7 @@
 		<dependency>
 		    <groupId>org.webjars</groupId>
 		    <artifactId>font-awesome</artifactId>
-		    <version>6.4.2</version>
+		    <version>6.5.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
@@ -188,7 +188,7 @@
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
 		  <artifactId>bootstrap5-tags</artifactId>
-		  <version>1.6.11</version>
+		  <version>1.6.15</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -225,7 +225,7 @@
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>datatables.net-datetime</artifactId>
 		    <version>1.5.0</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 		    <groupId>org.webjars.bower</groupId>
 		    <artifactId>pdfmake</artifactId>
@@ -239,7 +239,7 @@
  		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>bootstrap-icons</artifactId>
-		    <version>1.11.1</version>
+		    <version>1.11.3</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -259,10 +259,6 @@
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
 		</dependency>	
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-lang3</artifactId>
-		</dependency>	
-		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
@@ -271,21 +267,16 @@
         <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
-            <version>9.3.1</version>
+            <version>9.5.1</version>
         </dependency>
 		<dependency>
 		    <groupId>org.jsoup</groupId>
 		    <artifactId>jsoup</artifactId>
-		    <version>1.16.2</version>
+		    <version>1.17.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>commons-io</groupId>
-		    <artifactId>commons-io</artifactId>
-		    <version>2.15.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.itextpdf</groupId>
@@ -320,7 +311,7 @@
 		<dependency>
 		   <groupId>org.blazingcache</groupId>
 		   <artifactId>blazingcache-jcache</artifactId>
-		   <version>3.1.0</version>
+		   <version>3.3.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
