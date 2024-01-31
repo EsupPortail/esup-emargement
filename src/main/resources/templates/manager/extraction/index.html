@@ -41,7 +41,7 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="composante" class="form-label">Composantes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
-											<span class='ml-2 text-danger font-weight-bold' id="nbInscritsComposante">[0]</span>
+											<span class='ml-2 text-primary font-weight-bold' id="nbInscritsComposante">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
 											<select  th:id="codCmp" th:name="codCmp" required="required" class="step3">
@@ -55,7 +55,7 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodEtp'>[0]</span>
-											<span class='ml-2 text-danger font-weight-bold' id="nbInscritsEtp">[0]</span>
+											<span class='ml-2 text-primary font-weight-bold' id="nbInscritsEtp">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
 											<select th:id="codEtp" th:name="codEtp" class="step4">
@@ -66,7 +66,7 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="codElp" id="labelCodElp"  class="form-label">Matières</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodElp'>[0]</span>
-				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsMatiere">[0]</span>
+				                    		<span class='ml-2 text-primary font-weight-bold' id="nbInscritsMatiere">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
 											<select th:id="codElp" th:name="codElp" class="step5"></select>
@@ -76,7 +76,7 @@
 			                    		<div class="col-lg-2">
 				                    		<label for="codExtGpe" id="labelCodExtGpe"  class="form-label">Groupes</label>
 				                    		<span class='ml-2 text-success font-weight-bold' id='nbCodExtGpe'>[0]</span>
-				                    		<span class='ml-2 text-danger font-weight-bold' id="nbInscritsGroupe">[0]</span>
+				                    		<span class='ml-2 text-primary font-weight-bold' id="nbInscritsGroupe">[0]</span>
 				                    	</div>
 				                    	<div class="col-lg-10">
 											<select th:id="codExtGpe" th:name="codExtGpe" class="step6"></select>
@@ -181,12 +181,17 @@
 	                    <div class = "col-lg-12" th:if="${type == 'csv'}">
 							<div class="bg-light p-3 ">
 								<div class="card-header h3 pl-2 mb-2">Import CSV</div>
+								<div class="alert alert-info fw-bold">
+									Le fichier doit contenir sur une colonne soit des N° étudiants, soit des eppn ou un mix. Les champs doivent être avec ou sans guillemets. Le séparateur est le point virgule.<br/>
+									Pour les personnes externes la première colonne doit-être une adresse email, la deuxième le nom et la troisème le prénom.<br />
+									Dans tous les cas si la valeur de la première colonne commence pa '#" , celle-ci ne sera pas pris en compte (en-tête)
+								</div>
 								<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
 									enctype="multipart/form-data" method="post">
 									<div class="row mb-3">
 				                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Fichier</label>
 				                    	<div class="col-lg-10">	
-											<input  type="file"  id="filename" name="files" class="file" data-browse-on-zone-click="true" multiple="multiple">
+											<input  type="file" id="files" name="files" class="file" multiple="multiple">
 										</div>
 									</div>
 									<div id="formImportCascadingCsv">

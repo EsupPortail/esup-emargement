@@ -1674,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				maxFileSize: 1000,
 				maxFileCount: 10,
 				mainClass: "input-group-lg",
+				dropZoneEnabled: false
 			});
 		} else {
 			const config = {
