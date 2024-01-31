@@ -54,7 +54,7 @@ public class CalendarService {
 	    if(isAll) {
 	    	listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendar(startDate, endDate);
 	    }else {
-	    	listSe = sessionEpreuveRepository.findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(startDate, endDate, startDate, endDate);
+	    	listSe = sessionEpreuveRepository.findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(startDate, endDate, startDate, endDate, startDate, endDate);
 	    }
 	    if(!listSe.isEmpty()) {
 	    	for(SessionEpreuve se : listSe) {
