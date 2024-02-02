@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CampusRepository extends JpaRepository<Campus, Long> {
-    
+	
 	Long countBySite(String site);
 	
 	List<Campus> findByContext(Context context);
@@ -18,4 +18,8 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
 	//STATS
 	@Query(value = "select key, count(*) as count from campus, context where campus.context_id=context.id group by key order by key, count desc", nativeQuery = true)
 	List<Object[]> countCampusesByContext();
+	
+    @Query(nativeQuery=true,value="SELECT key, COUNT(*) AS count FROM campus JOIN context ON context_id = context.id GROUP BY key ORDER BY key, count DESC") 
+    List<Object[]> countByContext();
+
 }

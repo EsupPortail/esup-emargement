@@ -604,6 +604,7 @@ public class TagCheckService {
 		finalString = finalString.replace(wrapChar.concat("site").concat(wrapChar), tc.getSessionEpreuve().getCampus().getSite());
 		finalString = finalString.replace(wrapChar.concat("salle").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getNom());
 		finalString = finalString.replace(wrapChar.concat("adresse").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getAdresse());
+		finalString = finalString.replace(wrapChar.concat("place").concat(wrapChar), tc.getPlace());
 		
 		return finalString;
 	}
@@ -1102,7 +1103,7 @@ public class TagCheckService {
 				mainTable.setWidthPercentage(100);
 				mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
 				mainTable.setSpacingBefore(20.0f);
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+	    		mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
 				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
 				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
 				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));

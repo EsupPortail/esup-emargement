@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+	<nav th:replace="fragments/menu :: menu(item)"></nav>
+	<div th:replace="fragments/help :: help"></div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header">
+				<div class="row">
+					<div class="col-auto align-self-center">
+						<a class="btn btn-sm btn-secondary" title="Annuler"
+							th:href="@{/{ctx}/admin/location?form(ctx=${eContext})}"><i
+							class="fa fa-undo"></i></a>
+					</div>
+					<div class="col h2 mb-0 ps-0">
+						<span th:text="${existing ? 'Lieu ' : 'Nouveau lieu'}"></span> <span
+							th:if="${existing}" class="fw-bold"
+							th:text="${actualName ?: location.nom}"></span>
+					</div>
+				</div>
+			</div>
+			<div class="card-body">
+				<div th:if="${#fields.hasErrors('${location.*}')}"
+					class="alert alert-danger" th:errors="${location.*}"></div>
+					<!--  ancien name du form : th:name="${item}" -->
+				<form method="post" name="location" 
+					th:action="${(existing ? #mvc.url('Location#Update').arg(0, eContext).arg(1, location.id) : #mvc.url('Location#Create').arg(0, eContext)).build()}"
+					th:object="${location}">
+
+					<!--Lieux suggérés-->
+					<div th:if="${!#lists.isEmpty(suggestedLocations)}"
+						class="form-group row alert alert-primary">
+						<div class="col-lg-2">
+							<label class="form-label" for="locationEvent">Suggestions</label><span
+								class="text-danger fw-bold"
+								th:text="${'(' + #lists.size(suggestedLocations) + ')'}"></span>
+						</div>
+						<div class="col-lg-6">
+							<select id="icsEventLocations">
+								<option data-placeholder="true"></option>
+								<option th:each="el : ${suggestedLocations}" th:text="${el}"
+									th:value="${el}"></option>
+							</select>
+						</div>
+						<div class="col-lg-2">
+							<a class="btn btn-success"
+								th:href="@{/{ctx}/admin/location/addAll(ctx=${eContext})}"
+								onclick="return confirm('Confirmez-vous l\'import de tous les lieux?');">Importer
+								tous ces lieux</a>
+						</div>
+					</div>
+
+					<div class="row row-cols-1 row-cols-md-2 mb-3 gy-3">
+						<div>
+							<div class="form-floating">
+								<input required th:field="*{nom}" class="form-control"
+									type="text" maxlength="64" placeholder="Nom"><label
+									for="name">Nom</label>
+							</div>
+						</div>
+						<div>
+							<div class="form-floating">
+								<select required th:field="*{campus}" class="form-select">
+									<option selected value="">Sélectionner un site</option>
+									<option th:text="${campus.site}" th:value="${campus.id}" th:each="campus : ${allCampuses}"></option>
+								</select>
+								<label for="campus">Site</label>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<div class="col">
+							<div class="form-floating">
+								<textarea th:field="*{adresse}" class="form-control" rows="1"
+									placeholder="Adresse"></textarea>
+								<label for="adresse">Adresse</label>
+							</div>
+						</div>
+					</div>
+					<div class="row row-cols-1 row-cols-md-auto mb-3 gy-3">
+						<div>
+							<div class="form-floating">
+								<input required th:field="*{capacite}" class="form-control"
+									type="number" min="1" placeholder="Capacité"><label
+									for="capacite">Capacité</label>
+							</div>
+						</div>
+						<div class="d-none d-lg-block align-self-center">
+							<div class="form-check form-check-reverse form-switch mb-0">
+								<input id="hasPlan" class="form-check-input" type="checkbox"
+									role="switch" th:checked="${location.hasPlan}"><label
+									class="form-check-label" for="hasPlan">Plan</label>
+							</div>
+						</div>
+					</div>
+					<div id="plan-editor" class="d-none mb-3">
+						<div class="row mb-3">
+							<div class="col">
+								<div class="row row-cols-auto">
+									<div>
+										<div class="form-floating">
+											<input required th:field="*{plan.rows}" class="form-control"
+												type="number" max="127" min="1" placeholder="Lignes"><label
+												for="plan.rows">Lignes</label>
+										</div>
+									</div>
+									<div>
+										<div class="form-floating">
+											<input required th:field="*{plan.columns}"
+												class="form-control" type="number" max="127" min="1"
+												placeholder="Colonnes"><label for="plan.columns">Colonnes</label>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col">
+								<div class="row justify-content-center">
+									<div class="col-auto">
+										<div class="row row-cols-auto gx-1 justify-content-center">
+
+											<div>
+												<label class="form-label" for="place">Places</label>
+											</div>
+
+											<div>
+												<a class="contextualHelp" data-bs-html="true"
+													data-bs-toggle="tooltip" data-container="body"
+													th:attr="data-bs-title=#{help.plan.places}"><i
+													class="fa fa-question-circle"></i></a>
+											</div>
+										</div>
+										<div class="row row-cols-3 gx-3">
+
+											<div>
+												<input required id="none" class="form-check-input"
+													type="radio" name="place" value="none">
+											</div>
+											<div>
+												<input checked required id="standard"
+													class="form-check-input" type="radio" name="place"
+													value="standard">
+											</div>
+											<div>
+												<input required id="special" class="form-check-input"
+													type="radio" name="place" value="special">
+											</div>
+
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col">
+								<div class="row justify-content-end">
+									<div class="col-auto">
+										<div class="form-check form-switch">
+											<div class="row">
+												<div class="col-auto">
+													<label class="form-check-label" for="plan.hasAlphanumEnum1">Alphanumérique</label>
+												</div>
+											</div>
+											<div class="row justify-content-center">
+												<div class="col-auto">
+													<input th:field="*{plan.hasAlphanumEnum}"
+														class="form-check-input ms-0" type="checkbox"
+														role="switch">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!--Problème d'affichage avec un grand nombre de lignes et colonnes-->
+						<div id="places" th:with="plan = ${location.plan}">
+							<div th:each="row : ${#numbers.sequence(1, plan.rows)}"
+								th:with="columns = ${plan.columns}" class="row">
+								<div th:each="col : ${#numbers.sequence(1, columns)}"
+									th:with="place = ${#conversions.convert((row - 1) * columns + col, 'java.lang.Short')}"
+									class="col"
+									th:classappend="${'place-' + (#arrays.contains(plan.standardPlaces, place) ? 'standard' : (#arrays.contains(plan.specialPlaces, place) ? 'special' : 'none'))}">
+									<span id="num-place" th:text="${place}" class="d-none"></span>
+									<span id="alpha-place" th:text="${#conversions.convert(64+row, 'java.lang.Character') + '' +col}"></span>
+									</div>
+							</div>
+						</div>
+
+						<input th:field="*{plan.specialPlaces}" type="hidden"> <input
+							th:field="*{plan.standardPlaces}" type="hidden">
+					</div>
+					<div class="row">
+						<div class="col-auto ms-auto">
+							<input class="btn btn-success" type="submit"
+								th:value="${existing ? 'Modifier' : 'Créer'}">
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

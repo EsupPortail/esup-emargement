@@ -88,6 +88,12 @@ public class TagCheck implements ContextSupport {
     
     private Integer nbBadgeage;
 
+    private String place;
+
+    public String toString() {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode()) + " - place : "+ place;
+    }
+    
 	public Long getId() {
 		return id;
 	}
@@ -271,4 +277,12 @@ public class TagCheck implements ContextSupport {
 	public void setIsBlacklisted(Boolean isBlacklisted) {
 		this.isBlacklisted = isBlacklisted;
 	}
+
+	public String getPlace() { 
+		return place; 
+	}
+	public void setPlace(String place) { 
+		this.place = place; 
+	}
+
 }

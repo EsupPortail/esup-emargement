@@ -287,3 +287,23 @@ dl dd:after {
     white-space: break-spaces !important;
     height: auto !important;
 }
+
+
+/* Pour le plan */
+#places {
+        height:70vh;
+        display:flex;
+        flex-direction:column-reverse;
+}
+#places > .row { flex: 1 1 0; }
+#none, .place-none { background-color:#888; }
+#special, .place-special { background-color:blue; }
+#standard, .place-standard { background-color:#fff; }
+#none, #special, #standard {
+        outline:transparent solid 1px;
+        outline-offset:4px;
+        border-color:#000;
+        background-image:none;
+}
+:is(#none, #special, #standard):checked { outline-color: blue; }
+#places :is(.place-none, .place-special, .place-standard) { border:1px solid #000; }
