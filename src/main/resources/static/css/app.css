@@ -307,3 +307,8 @@ dl dd:after {
 }
 :is(#none, #special, #standard):checked { outline-color: blue; }
 #places :is(.place-none, .place-special, .place-standard) { border:1px solid #000; }
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}

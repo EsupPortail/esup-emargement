@@ -180,8 +180,8 @@
 									th:with="place = ${#conversions.convert((row - 1) * columns + col, 'java.lang.Short')}"
 									class="col"
 									th:classappend="${'place-' + (#arrays.contains(plan.standardPlaces, place) ? 'standard' : (#arrays.contains(plan.specialPlaces, place) ? 'special' : 'none'))}">
-									<span id="num-place" th:text="${place}" class="d-none"></span>
-									<span id="alpha-place" th:text="${#conversions.convert(64+row, 'java.lang.Character') + '' +col}"></span>
+									<span id="num-place" th:text="${place}" class="prevent-select d-none"></span>
+									<span id="alpha-place" class="prevent-select" th:text="${#conversions.convert(64+row, 'java.lang.Character') + '' +col}"></span>
 									</div>
 							</div>
 						</div>
