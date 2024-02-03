@@ -8,7 +8,6 @@ import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
@@ -27,7 +26,6 @@ import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.EventRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
@@ -112,9 +110,6 @@ public class ContextService {
 	@Autowired
 	TypeSessionRepository typeSessionRepository;
 	
-	@Autowired	
-	EsupSignatureRepository esupSignatureRepository;
-	
 	public String getDefaultContext() {
 		String defaultContext = null;
 		Authentication auth = SecurityContextHolder.getContext()
@@ -189,8 +184,6 @@ public class ContextService {
 		eventRepository.deleteAll(events);
 		List<TypeSession> typeSessions = typeSessionRepository.findByContext(context);
 		typeSessionRepository.deleteAll(typeSessions);
-		List<EsupSignature> signs = esupSignatureRepository.findByContext(context);
-		esupSignatureRepository.deleteAll(signs);
 		contextRepository.delete(context);
 	
 	}

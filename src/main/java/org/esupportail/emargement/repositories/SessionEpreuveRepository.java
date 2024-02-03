@@ -40,9 +40,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Date startDate, Date endDate);
 	
-	
-	List<SessionEpreuve> findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate1, Date endDate1, Date startDate, Date endDate, Date startDateFin, Date endDateFin);
-
+	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate, Date endDate, Date startDateFin, Date endDateFin);
 	
 	List<SessionEpreuve> findAllByDateExamen(Date date);
 	
@@ -74,8 +72,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	@Query(value = "select * from session_epreuve "
 			+ "where (date_examen >= :startDate and date_examen <= :endDate) or "
-			+ " (date_fin >= :startDate and date_fin <= :endDate) or "
-			+ "(date_examen <= :startDate and date_fin >= :endDate)" , nativeQuery = true)
+			+ " (date_fin >= :startDate and date_fin <= :endDate)", nativeQuery = true)
 	List<SessionEpreuve> getAllSessionEpreuveForCalendar(Date startDate, Date endDate);
 	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head"></head>
+<body>
+	<nav th:replace="fragments/menu :: menu(item)"></nav>
+	<div th:replace="fragments/help :: help"></div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header">
+				<div class="row row-cols-auto align-items-center">
+					<div>
+						<a class="btn btn-sm btn-secondary" title="Annuler"
+							th:href="${#mvc.url('Location#List').buildAndExpand(eContext)}"><i
+							class="fa fa-undo"></i></a>
+					</div>
+					<h2 class="me-auto mb-0" th:text="${'Lieu ' + location.name}"></h2>
+					<div>
+						<a class="btn btn-warning" title="Modifier"
+							th:href="${(#mvc.url('Location#CreateForm').arg(0, eContext).arg(1, location.id)).build()}"><i
+							class="fa fa-pen"></i></a>
+					</div>
+				</div>
+			</div>
+			<div class="card-body">
+				<dl class="row mb-0">
+					<dt class="col-sm-2 col-xl-1">Nom</dt>
+					<dd class="col-sm-10 col-xl-11" th:text="${location.name}"></dd>
+					<dt class="col-sm-2 col-xl-1">Site</dt>
+					<dd class="col-sm-10 col-xl-11" th:text="${location.campus.name}"></dd>
+					<dt class="col-sm-2 col-xl-1">Adresse</dt>
+					<dd class="col-sm-10 col-xl-11"
+						th:text="${#strings.defaultString(location.address, 'Non renseignée')}"></dd>
+					<dt class="col-sm-2 col-xl-1">Capacité</dt>
+					<dd class="col-sm-10 col-xl-11" th:text="${location.capacity}"></dd>
+
+					<!--Problème d'affichage avec un grand nombre de lignes et colonnes-->
+					<dd class="d-none d-lg-block col" th:if="${location.plan}"
+						th:with="plan = ${location.plan}">
+						<div id="places">
+							<div class="row"
+								th:each="row : ${#numbers.sequence(1, plan.rows)}"
+								th:with="columns = ${plan.columns}">
+								<div class="col"
+									th:classappend="${'place-' + (#arrays.contains(plan.standardPlaces, place) ? 'standard' : (#arrays.contains(plan.specialPlaces, place) ? 'special' : 'none'))}"
+									th:each="col : ${#numbers.sequence(1, columns)}"
+									th:with="place = ${#conversions.convert((row - 1) * columns + col, 'java.lang.Short')}">
+								</div>
+							</div>
+						</div>
+					</dd>
+
+				</dl>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

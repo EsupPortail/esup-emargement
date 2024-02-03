@@ -38,6 +38,7 @@
 								<th scope="col">Nom</th>
 								<th scope="col">Prénom</th>
 								<th scope="col" class="text-center d-none d-lg-table-cell d-xl-table-cell">Temps aménagé</th>
+								<th scope="col" class="text-center d-none d-lg-table-cell d-xl-table-cell">Place</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -46,6 +47,7 @@
 								<td th:text="${(tagCheck.person!=null)? tagCheck.person.nom : tagCheck.guest.nom}"></td>
 								<td th:text="${(tagCheck.person!=null)? tagCheck.person.prenom : tagCheck.guest.prenom}"></td>
 								<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i th:class="${tagCheck.isTiersTemps} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+								<td th:text="${(tagCheck.place!=null)? tagCheck.place : 'non placé'}"></td>
 							</tr>
 						</tbody>
 					</table>

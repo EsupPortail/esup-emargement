@@ -36,6 +36,7 @@
 								<th scope="col"><a class="sorted" sd:pagination-sort="capacite">Capacité maximale</a></th>
 								<th scope="col"><a class="sorted" sd:pagination-sort="campus.site">Site</a></th>
 								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Adresse</th>
+								<th class="center" scope="col">Plan</th>
 								<th class ="center" scope="col">Actions</th>
 							</tr>
 						</thead>
@@ -45,8 +46,9 @@
 								<td th:text="${location.capacite}"></td>
 								<td th:text="${(location.campus!= null)? location.campus.site : ''}"></td>
 								<td th:text="${location.adresse}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td class="center"><i class="fa" th:classappend="${location.hasPlan ? 'fa-check text-success' : 'fa-times text-danger'}"></i></td>
 								<td class ="text-center"><a th:href="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-									<a class ="ms-2" th:href="@{/{ctx}/admin/location/{id}?form(id=${location.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
+									<a class ="ms-2" th:href="@{/{ctx}/admin/location/plan/{id}?form(id=${location.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
 									<a class ="ms-2" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${location.id }"><i class="fa fa-trash text-danger"></i></a>
 									<div class="modal modal-warning fade in" th:id="modal-warning+${location.id}" >
 									    <div class="modal-dialog">

@@ -16,6 +16,7 @@ import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
+import org.esupportail.emargement.services.CampusService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EventService;
 import org.esupportail.emargement.services.HelpService;
@@ -53,54 +54,61 @@ import net.fortuna.ical4j.data.ParserException;
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
 public class LocationController {
-	
+
 	@Autowired
 	LocationRepository locationRepository;
-	
+
+	@Autowired 
+	CampusService campusService;
+
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
-	
+
 	@Autowired
 	LocationRepositoryCustom locationRepositoryCustom;
-	
+
 	@Autowired
 	CampusRepository campusRepository;
-	
+
 	@Resource
 	LocationService locationService;
-	
+
 	@Resource
 	LogService logService;
-	
+
 	@Resource
 	HelpService helpService;
-	
+
 	@Resource
 	ContextService contexteService;
-	
+
 	@Autowired
 	StoredFileRepository storedFileRepository;
-	
+
 	@Resource
 	EventService eventService;
-	
+
 	@Autowired
 	ToolUtil toolUtil;
-	
+
 	private final static String ITEM = "location";
-	
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return ITEM;
 	}
+	private static String getRedirectRoute(@PathVariable String emargementContext) { 
+		//return "redirect:/" + ContextService.getCurrentKey() + "/admin/location"; 
+		return String.format("redirect:/%s/admin/location", emargementContext);
+	}
 
 	@GetMapping(value = "/admin/location")
 	public String list(Model model, @PageableDefault(direction = Direction.ASC, sort = "nom", size = 1)  Pageable pageable, @RequestParam(value="location", required = false) String location) {
-		
+
 		Long count = locationRepository.count();
-		
+
 		int size = pageable.getPageSize();
 		if( size == 1 && count>0) {
 			size = count.intValue();
@@ -111,123 +119,157 @@ public class LocationController {
 			model.addAttribute("location", location);
 			model.addAttribute("collapse", "show");
 		}
-        model.addAttribute("locationPage", locationPage);
-        model.addAttribute("paramUrl", "0");
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
-        model.addAttribute("selectAll", count);
+		model.addAttribute("locationPage", locationPage);
+		model.addAttribute("paramUrl", "0");
+		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+		model.addAttribute("selectAll", count);
 		return "admin/location/list";
 	}
-	
+
 	@GetMapping(value = "/admin/location/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
-        uiModel.addAttribute("location",  locationRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-        return "admin/location/show";
-    }
+	public String show(@PathVariable("id") Long id, Model uiModel) {
+		uiModel.addAttribute("location",  locationRepository.findById(id).get());
+		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+		return "admin/location/show";
+	}
+
+	@GetMapping(value = "/admin/location", params = "form", produces = "text/html")
+	public String createForm(Model uiModel) throws IOException, ParserException {
+		Location location = new Location();
+		uiModel.addAttribute("eventLocations", locationService.getSuggestedLocation());
+		populateEditForm(uiModel, location);
+		return "admin/location/create";
+	}
 	
-    @GetMapping(value = "/admin/location", params = "form", produces = "text/html")
-    public String createForm(Model uiModel) throws IOException, ParserException {
-    	Location location = new Location();
-    	uiModel.addAttribute("eventLocations", locationService.getSuggestedLocation());
-    	populateEditForm(uiModel, location);
-        return "admin/location/create";
-    }
-    
-    @GetMapping(value = "/admin/location/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
-    	Location location = locationRepository.findById(id).get();
-    	populateEditForm(uiModel, location);
-        return "admin/location/update";
-    }
-    
-    void populateEditForm(Model uiModel, Location Location) {
-    	uiModel.addAttribute("allCampuses", campusRepository.findAll());
-        uiModel.addAttribute("location", Location);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-    }
-    
-    @PostMapping("/admin/location/create")
-    public String create(@PathVariable String emargementContext, @Valid Location location, BindingResult bindingResult, Model uiModel, 
-    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
-        if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, location);
-            return "admin/location/create";
-        }
-        uiModel.asMap().clear();
-    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(locationRepository.countByNom(location.getNom())>0) {
-        	redirectAttributes.addFlashAttribute("nom", location.getNom());
-        	redirectAttributes.addFlashAttribute("error", "constrainttError");
-        	log.info("Erreur lors de la création, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	return String.format("redirect:/%s/admin/location?form", emargementContext);
-        }else {
-        	location.setContext(contexteService.getcurrentContext());
-        	locationRepository.save(location);
-        	log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/location", emargementContext);
-        }
-    }
-    
-    @PostMapping("/admin/location/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
-        if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, location);
-            return "admin/location/update";
-        }
-        uiModel.asMap().clear();
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
-        List<SessionLocation> sls = sessionLocationRepository.findByLocationIdAndCapaciteGreaterThan(location.getId(), location.getCapacite());
-        if(locationRepository.countByNom(location.getNom())>0 && !location.getNom().equalsIgnoreCase(locationRepository.findById(location.getId()).get().getNom())) {
-        	redirectAttributes.addFlashAttribute("nom", location.getNom());
-        	redirectAttributes.addFlashAttribute("error", "constrainttError");
-        	log.info("Erreur lors de la maj, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
-        }else if(!sls.isEmpty()){
-        	redirectAttributes.addFlashAttribute("capacite", location.getCapacite());
-        	redirectAttributes.addFlashAttribute("sls", sls);
-        	log.info("Erreur lors de la maj, la capacité de " + location.getCapacite() + " est insuffisante car plus élevée dans un lieu de session utilisé !!! ");
-        	return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
-        }else {
-        	location.setCampus(location.getCampus());
-        	location.setContext(contexteService.getcurrentContext());
-        	locationRepository.save(location);
-        	log.info("maj lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	logService.log(ACTION.UPDATE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/location", emargementContext);
-        }        
-    }
-    
-    @PostMapping(value = "/admin/location/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
-    	Location location = locationRepository.findById(id).get();
-    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	try {
-    		locationRepository.delete(location);
-    		log.info("Suppression du lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-    		logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
+	// @GetMapping(name = "CreateForm", path = ITEM + "/form")
+	@GetMapping(value = "/admin/location/plan/{id}", params = "form", produces = "text/html")
+	public String form(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) throws IOException, ParserException {
+	// public String createForm(@PathVariable String emargementContext, @PathVariable String ctx, @RequestParam(required = false) Object id, Model m) throws IOException, ParserException {
+
+		boolean existing;
+		boolean hasId = id != null;
+		// Long id_long = Long.parseLong(id);
+		String response;
+		Location location = hasId ? locationService.findById(true, id) : null;
+
+
+		if(location != null) {
+			existing = true;
+			response = "admin/location";
+		}
+		else {
+			existing = false;
+			if(hasId) response = getRedirectRoute(emargementContext);
+			else {
+				response = "admin/location";
+				uiModel.addAttribute("suggestedLocations", locationService.getSuggestedLocation());
+			}
+			location = new Location();
+		}
+		uiModel.addAttribute("existing", existing);
+		uiModel.addAttribute("help", helpService.getValueOfKey("location"));
+		uiModel.addAttribute(ITEM, location);
+		uiModel.addAttribute("allCampuses", campusService.findAll());
+		return response + "/form";
+	}
+
+	@GetMapping(value = "/admin/location/{id}", params = "form", produces = "text/html")
+	public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+		Location location = locationRepository.findById(id).get();
+		populateEditForm(uiModel, location);
+		return "admin/location/update";
+	}
+
+	void populateEditForm(Model uiModel, Location Location) {
+		uiModel.addAttribute("allCampuses", campusRepository.findAll());
+		uiModel.addAttribute("location", Location);
+		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+	}
+
+	@PostMapping("/admin/location/create")
+	public String create(@PathVariable String emargementContext, @Valid Location location, BindingResult bindingResult, Model uiModel, 
+			HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
+		if (bindingResult.hasErrors()) {
+			populateEditForm(uiModel, location);
+			return "admin/location/create";
+		}
+		uiModel.asMap().clear();
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(locationRepository.countByNom(location.getNom())>0) {
+			redirectAttributes.addFlashAttribute("nom", location.getNom());
+			redirectAttributes.addFlashAttribute("error", "constrainttError");
+			log.info("Erreur lors de la création, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+			return String.format("redirect:/%s/admin/location?form", emargementContext);
+		}else {
+			location.setContext(contexteService.getcurrentContext());
+			locationService.save(location);
+			locationRepository.save(location);
+			log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+			logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
+			return String.format("redirect:/%s/admin/location", emargementContext);
+		}
+	}
+
+	@PostMapping(name = "Location#Update", path = "/admin/location/update/{id}")
+	public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws Exception {
+		if (bindingResult.hasErrors()) {
+			populateEditForm(uiModel, location);
+			return "admin/location/update";
+		}
+		uiModel.asMap().clear();
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		List<SessionLocation> sls = sessionLocationRepository.findByLocationIdAndCapaciteGreaterThan(location.getId(), location.getCapacite());
+		if(locationRepository.countByNom(location.getNom())>0 && !location.getNom().equalsIgnoreCase(locationRepository.findById(location.getId()).get().getNom())) {
+			redirectAttributes.addFlashAttribute("nom", location.getNom());
+			redirectAttributes.addFlashAttribute("error", "constrainttError");
+			log.info("Erreur lors de la maj, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+			return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
+		}else if(!sls.isEmpty()){
+			redirectAttributes.addFlashAttribute("capacite", location.getCapacite());
+			redirectAttributes.addFlashAttribute("sls", sls);
+			log.info("Erreur lors de la maj, la capacité de " + location.getCapacite() + " est insuffisante car plus élevée dans un lieu de session utilisé !!! ");
+			return String.format("redirect:/%s/admin/location/%s?form", emargementContext, location.getId());
+		}else {
+			location.setCampus(location.getCampus());
+			location.setContext(contexteService.getcurrentContext());
+			locationService.save(location);
+			locationRepository.save(location);
+			log.info("maj lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+			logService.log(ACTION.UPDATE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
+			return String.format("redirect:/%s/admin/location", emargementContext);
+		}        
+	}
+
+	@PostMapping(value = "/admin/location/{id}")
+	public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+		Location location = locationRepository.findById(id).get();
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		try {
+			locationRepository.delete(location);
+			log.info("Suppression du lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+			logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			redirectAttributes.addFlashAttribute("item", location.getNom());
 			redirectAttributes.addFlashAttribute("error", "constrainttError");
 		}    	
-        return String.format("redirect:/%s/admin/location", emargementContext);
-    }
-    
-    @GetMapping("/admin/location/search")
-    @ResponseBody
-    public List<Location> search(@PathVariable String emargementContext, @RequestParam("searchValue") String searchString){
-    	HttpHeaders headers = new HttpHeaders();
+		return String.format("redirect:/%s/admin/location", emargementContext);
+	}
+
+	@GetMapping("/admin/location/search")
+	@ResponseBody
+	public List<Location> search(@PathVariable String emargementContext, @RequestParam("searchValue") String searchString){
+		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		List<Location> locations= locationRepositoryCustom.findAll(searchString, emargementContext);
-    	
-        return locations;
-    }
-    
-    @GetMapping("/admin/location/addAll")
-    @Transactional
-    public String addAll(@PathVariable String emargementContext,  final RedirectAttributes redirectAttributes) throws IOException, ParserException{
+
+		return locations;
+	}
+
+	@GetMapping("/admin/location/addAll")
+	@Transactional
+	public String addAll(@PathVariable String emargementContext,  final RedirectAttributes redirectAttributes) throws IOException, ParserException{
 		List<String> nomLocations = locationService.getSuggestedLocation();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(!nomLocations.isEmpty()) {
@@ -242,5 +284,5 @@ public class LocationController {
 		}
 		redirectAttributes.addAttribute("msgModal", "ddd");
 		return String.format("redirect:/%s/admin/location", emargementContext);
-    }
+	}
 }

@@ -113,13 +113,6 @@ function getCalendar(calendarEl, urlEvents, editable) {
 	calendar.render();
 }
 
-function createDateFromString(dateString) {
-	const [day, month, year] = dateString.split('-').map(Number);
-	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
-
-	return new Date(adjustedYear, month - 1, day); // month is 0-indexed in JavaScript Date objects
-}
-
 function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 	var searchBox = document.getElementById(id);
 	if (searchBox != null) {
@@ -1674,7 +1667,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				maxFileSize: 1000,
 				maxFileCount: 10,
 				mainClass: "input-group-lg",
-				dropZoneEnabled: false
 			});
 		} else {
 			const config = {
@@ -2144,33 +2136,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		formAction="";
 		$('#commentTagCheckModal').modal('show');
 	});
-	
-	//Recherche assiduité
-	let minDate, maxDate;
-	DataTable.ext.search.push(function (settings, data, dataIndex) {
-	    let min = minDate.val();
-	    let max = maxDate.val();
-	    let date = new Date(newDate = createDateFromString(data[4]));
-	    if (
-	        (min === null && max === null) ||
-	        (min === null && date <= max) ||
-	        (min <= date && max === null) ||
-	        (min <= date && date <= max)
-	    ) {
-	        return true;
-	    }
-	    return false;
-	});
-	// Create date inputs
-	minDate = new DateTime('#min', {
-	    format: 'DD-MM-YY'
-	});
-	maxDate = new DateTime('#max', {
-	    format: 'DD-MM-YY'
-	});
-	
 	var title = '';
-	var dataTableOptions = {
+	$('table.assiduite').DataTable( {
 		responsive: true,
 		ordering: true,
 		paging: true,
@@ -2191,18 +2158,95 @@ document.addEventListener('DOMContentLoaded', function() {
             {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
             {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
         ]
-	 }
-	
-	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
+	 }).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		 title = $(dataTable.table().node()).attr('data-export-title');
+	 });
 
-	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
-	 
-	// Refilter the table
-	document.querySelectorAll('#min, #max').forEach((el) => {
-		el.addEventListener('change', () => table3.draw());
-	});
+		
+        // Plan
+		$(document).on('change', '#plan\\.hasAlphanumEnum1', function (){
+			// alert('test1');
+			// console.log($("#num-place"));
+		       $("span#num-place").toggleClass('d-none');
+			   $("span#alpha-place").toggleClass('d-none');
+		  });
+		$(document).on('change', '#hasPlan', function (){
+		       $("#plan-editor").toggleClass('d-none');
+		  });
+		if ($('#hasPlan').is(':checked')) {
+		       $("#plan-editor").removeClass('d-none');
+		} 
+
+        const placePrefix = 'place-';
+        const placeRow = document.createElement('div');
+        const place = document.createElement('div');
+        const placeTypes = [`${placePrefix}none`, `${placePrefix}standard`, `${placePrefix}special`];
+        const locationForm = document.forms.location;
+        placeRow.classList.add('row');
+        place.classList.add('col', placeTypes[1]);
+        if(locationForm != null) {
+                const editorTogglingClass = 'd-lg-block';
+                const planEditor = locationForm.querySelector('#plan-editor');
+                const places = planEditor.querySelector('#places');
+                const hasPlanField = locationForm.elements.hasPlan;
+                const capacityField = locationForm.elements.capacity;
+                const editorClasses = planEditor.classList;
+                hasPlanField.addEventListener('change', (e) => {
+                        const state = e.currentTarget.checked;
+                        capacityField.disabled = state;
+                        if(state) editorClasses.add(editorTogglingClass);
+                        else editorClasses.remove(editorTogglingClass);
+                        planEditor.querySelectorAll('input').forEach((field) => { field.disabled = !state; });
+                });
+                hasPlanField.dispatchEvent(new Event('change'));
+                locationForm.elements['plan.columns'].addEventListener('change', updateCols);
+                locationForm.elements['plan.rows'].addEventListener('change', updateRows);
+                const placeTypesSelector = placeTypes.map(type => '.' + type).toString();
+                $(places).on('dragstart', placeTypesSelector, (event) => event.preventDefault());
+                $(places).on('mousedown', placeTypesSelector, (event) => {
+                        const selectedType = placePrefix + locationForm.elements.place.value;
+                        const place = event.currentTarget;
+                        place.classList.remove(...placeTypes.filter(type => type != selectedType));
+                        place.classList.add(selectedType);
+                });
+                $(places).on('mouseenter', placeTypesSelector, (event) => { if(event.buttons == 1) $(event.currentTarget).trigger('mousedown') });
+                locationForm.addEventListener('submit', function() {
+                        const cols = locationForm.elements['plan.columns'].value;
+                        standardPlaces = [];
+                        specialPlaces = [];
+                        placeRows = places.children;
+                        for(let row = 0; row < placeRows.length; row++) {
+                                const rowPlaces = placeRows[row].children;
+                                let i = 0;
+                                while(i < rowPlaces.length) {
+                                        const classes = rowPlaces[i++].classList;
+                                        if(classes.contains(placeTypes[1]) || classes.contains(placeTypes[2])) {
+                                                const rowPlace = cols * row + i;
+                                                if(classes.contains(placeTypes[1])) standardPlaces.push(rowPlace);
+                                                else specialPlaces.push(rowPlace);
+                                        }
+                                }
+                        }
+                        locationForm.elements['plan.specialPlaces'].value = specialPlaces;
+                        locationForm.elements['plan.standardPlaces'].value = standardPlaces;
+                });
+                alert(document.forms.session.elements.dateExamen.value);
+        }
+        function updateCols(e) {
+                const rows = places.children;
+                const n = e.currentTarget.value - rows[0].children.length;
+                if(n > 0) for(let i = 0; i < n; i++) for(const row of rows) row.appendChild(place.cloneNode());
+                else for(let i = 0; i > n; i--) { for(const row of rows) row.lastElementChild.remove(); }
+        }
+        function updateRows(e) {
+                const n = e.currentTarget.value - places.children.length;
+                if(n > 0) {
+                        for(let i = 0; i < n; i++) {
+                                const row = placeRow.cloneNode();
+                                for(let col = 0; col < locationForm.elements['plan.columns'].value; col++) row.appendChild(place.cloneNode());
+                                places.appendChild(row);
+                        }
+                }
+                else for(let i = 0; i > n; i--) places.lastElementChild.remove();
+        }
 });

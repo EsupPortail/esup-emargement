@@ -6,6 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -17,22 +19,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
 public class Campus implements ContextSupport {
-	
+
 	@Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	@JsonIgnore
-    private Long id;
-	
+	private Long id;
+
 	@ManyToOne
 	@JsonIgnore
 	private Context context;
-	
-    private String site;
-    
-    @Column(columnDefinition = "TEXT")
-    @JsonIgnore
-    private String description;
-    
+
+	private String site;
+
+	@Column(columnDefinition = "TEXT")
+	@JsonIgnore
+	private String description;
+
 	public Long getId() {
 		return id;
 	}
@@ -58,5 +60,5 @@ public class Campus implements ContextSupport {
 	public void setContext(Context context) {
 		this.context = context;
 	}
-    
+
 }

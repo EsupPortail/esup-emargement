@@ -2,7 +2,6 @@ package org.esupportail.emargement.repositories;
 
 import java.util.List;
 
-import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
@@ -13,8 +12,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EsupSignatureRepository extends JpaRepository<EsupSignature, Long>{
-	
-	List<EsupSignature> findByContext(Context context);
 
 	List<EsupSignature> findBySignRequestId(Long signRequestId);
 	
