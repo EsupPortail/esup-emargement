@@ -393,7 +393,37 @@
 											<td class="center tagChecker hiddenBlock" th:text="${tagCheck.comment}"> </td>
 											<td class="center">
 												<a th:href="@{/{ctx}/supervisor/{id}(id=${tagCheck.id},ctx=${eContext})}" title="voir" class="me-2"><i class="fa fa-eye"></i></a>
-												<a class="commentTC" th:title="${tagCheck.comment}" data-bs-toggle="modal" data-bs-target="#commentTagCheckModal"><i class="fa fa-comment"></i></a>
+												<a class="commentTC" th:title="${tagCheck.comment}" data-bs-toggle="modal" th:attr="data-bs-target=${'#commentTagCheckModal' + tagCheck.id}"><i class="fa fa-comment"></i></a>
+												<div class="modal" tabindex="-1" th:attr="id=${'commentTagCheckModal' + tagCheck.id}">
+													<div class="modal-dialog">
+														<div class="modal-content">
+															<form method="post"
+																th:action="@{/{ctx}/supervisor/tagCheck/updateComment(ctx=${eContext})}"
+																id="formCommentTc">
+																<input type="hidden" id="idComment" name="idComment" th:value="${tagCheck.id}" />
+																<div class="modal-header">
+																	<h5 class="modal-title">
+																		<span th:if="${tagCheck.person != null}" th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span>
+																		<span th:unless="${tagCheck.person != null}" th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span>
+																	</h5>
+																	<button type="button" class="btn-close"
+																		data-bs-dismiss="modal" aria-label="Close"></button>
+																</div>
+																<div class="modal-body">
+																	<textarea class="form-control"
+																		placeholder="votre commentaire" name="comment"
+																		id="formComment">
+																   </textarea>
+																</div>
+																<div class="modal-footer">
+																	<button type="button" class="btn btn-secondary"
+																		data-bs-dismiss="modal">Fermer</button>
+																	<button type="submit" class="btn btn-primary">Enregistrer</button>
+																</div>
+															</form>
+														</div>
+													</div>
+												</div>
 											</td>
 										</tr>
 									</tbody>
@@ -418,26 +448,6 @@
 										<input type="submit" value="Valider" class="btn btn-success mt-2">
 									</form>	
 								  </div>
-							  </div>
-							</div>
-							<div class="modal" tabindex="-1" id="commentTagCheckModal">
-							  <div class="modal-dialog">
-							    <div class="modal-content">
-									<form method="post" th:action="@{/{ctx}/supervisor/tagCheck/updateComment/(ctx=${eContext})}" id="formCommentTc">
-								      <div class="modal-header">
-								        <h5 class="modal-title"></h5>
-								        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-								      </div>
-								      <div class="modal-body">
-								       <textarea class="form-control" placeholder="votre commentaire" name="comment" id="formComment">
-									   </textarea>
-								      </div>
-								      <div class="modal-footer">
-								        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-								        <button type="submit" class="btn btn-primary">Enregistrer</button>
-								      </div>
-							      </form>
-							    </div>
 							  </div>
 							</div>
 						</div>

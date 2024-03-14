@@ -2131,20 +2131,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			clearInterval(interval);
 		});
 	});
-
-	//commentaire tagCheck dans interface surveillant
-	$('.commentTC').on('click', function() {
-		var $row = $(this).closest('tr');
-		var id = $row[0].id;
-		var nomPrenom = $row.find('.nomPrenom').text();
-		var hideComment = $(this)[0].title;
-		$('.modal-title').text(nomPrenom);
-		$('#formComment').text(hideComment);
-		var formAction = $('#formCommentTc').attr('action') +id;
-		$('#formCommentTc').attr('action', formAction); 
-		formAction="";
-		$('#commentTagCheckModal').modal('show');
-	});
 	
 	//Recherche assiduité
 	if(document.getElementById("tagCheckAssiduite") != null){

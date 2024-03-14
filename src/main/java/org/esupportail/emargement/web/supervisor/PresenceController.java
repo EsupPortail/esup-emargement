@@ -617,9 +617,9 @@ public class PresenceController {
 	}
 	
 	
-	@PostMapping("/supervisor/tagCheck/updateComment/{id}")
+	@PostMapping("/supervisor/tagCheck/updateComment")
 	// @ResponseBody
-    public String updateComment(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc, String comment) {
+    public String updateComment(@PathVariable String emargementContext, @RequestParam("idComment") TagCheck tc, String comment) {
     	tc.setComment(comment);
     	tagCheckService.save(tc, emargementContext);
 
