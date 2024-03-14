@@ -2131,6 +2131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			clearInterval(interval);
 		});
 	});
+
 	//commentaire tagCheck dans interface surveillant
 	$('.commentTC').on('click', function() {
 		var $row = $(this).closest('tr');
@@ -2146,63 +2147,65 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	
 	//Recherche assiduité
-	let minDate, maxDate;
-	DataTable.ext.search.push(function (settings, data, dataIndex) {
-	    let min = minDate.val();
-	    let max = maxDate.val();
-	    let date = new Date(newDate = createDateFromString(data[4]));
-	    if (
-	        (min === null && max === null) ||
-	        (min === null && date <= max) ||
-	        (min <= date && max === null) ||
-	        (min <= date && date <= max)
-	    ) {
-	        return true;
-	    }
-	    return false;
-	});
-	// Create date inputs
-	minDate = new DateTime('#min', {
-	    format: 'DD-MM-YY'
-	});
-	maxDate = new DateTime('#max', {
-	    format: 'DD-MM-YY'
-	});
+	if(document.getElementById("tagCheckAssiduite") != null){
+		let minDate, maxDate;
+		DataTable.ext.search.push(function (settings, data, dataIndex) {
+		    let min = minDate.val();
+		    let max = maxDate.val();
+		    let date = new Date(newDate = createDateFromString(data[4]));
+		    if (
+		        (min === null && max === null) ||
+		        (min === null && date <= max) ||
+		        (min <= date && max === null) ||
+		        (min <= date && date <= max)
+		    ) {
+		        return true;
+		    }
+		    return false;
+		});
+		// Create date inputs
+		minDate = new DateTime('#min', {
+		    format: 'DD-MM-YY'
+		});
+		maxDate = new DateTime('#max', {
+		    format: 'DD-MM-YY'
+		});
+		
+		var title = '';
+		var dataTableOptions = {
+			responsive: true,
+			ordering: true,
+			paging: true,
+			searching: true,
+			info: false,
+			language: {
+				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+			},
+			pageLength: -1,
+			lengthMenu: [
+		        [10, 25, 50, -1],
+		        [10, 25, 50, 'All']
+		    ],
+	        dom: 'Bfrtilp',
+	        buttons: [
+	            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+	            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+	            {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+	            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
+	        ]
+		 }
+		
+		$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+			title = $(dataTable.table().node()).attr('data-export-title');
+		});
 	
-	var title = '';
-	var dataTableOptions = {
-		responsive: true,
-		ordering: true,
-		paging: true,
-		searching: true,
-		info: false,
-		language: {
-			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		},
-		pageLength: -1,
-		lengthMenu: [
-	        [10, 25, 50, -1],
-	        [10, 25, 50, 'All']
-	    ],
-        dom: 'Bfrtilp',
-        buttons: [
-            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
-        ]
-	 }
-	
-	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
-
-	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
-	 
-	// Refilter the table
-	document.querySelectorAll('#min, #max').forEach((el) => {
-		el.addEventListener('change', () => table3.draw());
-	});
+		let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+			title = $(dataTable.table().node()).attr('data-export-title');
+		});
+		 
+		// Refilter the table
+		document.querySelectorAll('#min, #max').forEach((el) => {
+			el.addEventListener('change', () => table3.draw());
+		});
+	}
 });
