@@ -103,12 +103,12 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>webjars-locator</artifactId>
-			<version>0.50</version>
+			<version>0.52</version>
 		</dependency>		
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>5.3.2</version>
+			<version>5.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -198,7 +198,7 @@
 		<dependency>
 		    <groupId>org.webjars</groupId>
 		    <artifactId>jstree</artifactId>
-		    <version>3.3.15</version>
+		    <version>3.3.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -267,7 +267,7 @@
         <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
-            <version>9.5.1</version>
+            <version>9.4.1</version>
         </dependency>
 		<dependency>
 		    <groupId>org.jsoup</groupId>
@@ -316,12 +316,12 @@
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
 		    <artifactId>core</artifactId>
-		    <version>3.5.2</version>
+		    <version>3.5.3</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
 		    <artifactId>javase</artifactId>
-		    <version>3.5.2</version>
+		    <version>3.5.3</version>
 		</dependency>
 	</dependencies>
 	<build>
