@@ -400,7 +400,7 @@
 															<form method="post"
 																th:action="@{/{ctx}/supervisor/tagCheck/updateComment(ctx=${eContext})}"
 																id="formCommentTc">
-																<input type="hidden" id="idComment" name="idComment" th:value="${tagCheck.id}" />
+																<input type="hidden" name="idComment" th:value="${tagCheck.id}" />
 																<div class="modal-header">
 																	<h5 class="modal-title">
 																		<span th:if="${tagCheck.person != null}" th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span>
@@ -412,7 +412,7 @@
 																<div class="modal-body">
 																	<textarea class="form-control"
 																		placeholder="votre commentaire" name="comment"
-																		id="formComment">
+																		th:text="${tagCheck.comment}">
 																   </textarea>
 																</div>
 																<div class="modal-footer">
