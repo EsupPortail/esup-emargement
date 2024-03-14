@@ -208,4 +208,9 @@ public class EsupSignatureService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.delete(urlDeletePdf);
 	}
+	
+	public void deleteAllBySessionEpreuve(SessionEpreuve se) {
+    	List<EsupSignature> signs = esupSignatureRepository.findBySessionEpreuve(se, null).getContent();
+    	esupSignatureRepository.deleteAll(signs);
+    }
 }

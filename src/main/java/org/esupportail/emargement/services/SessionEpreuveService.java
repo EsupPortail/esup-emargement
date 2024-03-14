@@ -106,6 +106,9 @@ public class SessionEpreuveService {
 	SessionLocationService sessionLocationService;
 	
 	@Resource
+	EsupSignatureService esupSignatureService;
+	
+	@Resource
 	LdapService ldapService;
 		
 	@Resource
@@ -747,12 +750,12 @@ public class SessionEpreuveService {
 	 
 	 @Transactional
 	 public void delete(SessionEpreuve se) {
-		 
 		 tagCheckService.deleteAllTagChecksBySessionEpreuveId(se.getId());
 		 tagCheckerService.deleteAllTagCheckersBySessionEpreuveId(se.getId());
 		 sessionLocationService.deleteAllTLocationsBySessionEpreuveId(se.getId());
-		 sessionEpreuveRepository.delete(se);
+		 esupSignatureService.deleteAllBySessionEpreuve(se);
 		 storedFileService.deleteAllStoredFiles(se);
+		 sessionEpreuveRepository.delete(se);
 	 }
 	 
 	 public void addNbInscrits(List<SessionEpreuve> sessionEpreuveList) {
