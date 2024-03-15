@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 	<head th:fragment="head">
-		<link rel="apple-touch-icon" sizes="180x180" th:href="@{/images/favicons/apple-touch-icon.png}">
-		<link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicons/favicon-32x32.png}">
-		<link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicons/favicon-16x16.png}">
-		<link rel="manifest" th:href="@{/images/favicons/site.webmanifest}">
-		<link rel="mask-icon" th:href="@{/images/favicons/safari-pinned-tab.svg}">
+		<link rel="apple-touch-icon" sizes="180x180" th:href="@{/resources/images/favicons/apple-touch-icon.png}">
+		<link rel="icon" type="image/png" sizes="32x32" th:href="@{/resources/images/favicons/favicon-32x32.png}">
+		<link rel="icon" type="image/png" sizes="16x16" th:href="@{/resources/images/favicons/favicon-16x16.png}">
+		<link rel="manifest" th:href="@{/resources/images/favicons/site.webmanifest}">
+		<link rel="mask-icon" th:href="@{/resources/images/favicons/safari-pinned-tab.svg}">
 		<meta name="msapplication-TileColor" content="#da532c">
 		<meta name="theme-color" content="#ffffff">
 		<meta charset="utf-8">
@@ -58,9 +58,9 @@
       	import Tags from "/webjars/bootstrap5-tags/tags.min.js";
      	Tags.init(".initTags");
 		</script>
-		<script th:src="@{/js/suneditor.min.js}"></script>
-		<script th:src="@{/js/jquery.cascadingdropdown.min.js}"></script>
-		<script th:src="@{/js/app.js}"></script>
+		<script th:src="@{/resources/js/suneditor.min.js}"></script>
+		<script th:src="@{/resources/js/jquery.cascadingdropdown.min.js}"></script>
+		<script th:src="@{/resources/js/app.js}"></script>
 		
 		<link th:href="@{/webjars/awesomplete/awesomplete.css}" rel="stylesheet">
 		<link th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
@@ -73,10 +73,10 @@
 		<link th:href="@{/webjars/datatables-responsive/css/responsive.dataTables.min.css}" rel="stylesheet">		
 		<link th:href="@{/webjars/jstree/themes/default/style.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.css}" rel="stylesheet">
-		<link th:href="@{/css/suneditor.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/datatables-buttons/css/buttons.dataTables.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/datatables.net-datetime/dist/dataTables.dateTime.min.css}" rel="stylesheet">
-		<link th:href="@{/css/app.css}" rel="stylesheet">
+		<link th:href="@{/resources/css/suneditor.min.css}" rel="stylesheet">
+		<link th:href="@{/resources/css/app.css}" rel="stylesheet">
 		<title th:text="#{${'title.' + active}(${title})}">Application Emargement</title>
 	</head>
 </html>
