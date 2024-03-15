@@ -2156,42 +2156,56 @@ document.addEventListener('DOMContentLoaded', function() {
 		maxDate = new DateTime('#max', {
 		    format: 'DD-MM-YY'
 		});
-		
-		var title = '';
-		var dataTableOptions = {
-			responsive: true,
-			ordering: true,
-			paging: true,
-			searching: true,
-			info: false,
-			language: {
-				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-			},
-			pageLength: -1,
-			lengthMenu: [
-		        [10, 25, 50, -1],
-		        [10, 25, 50, 'All']
-		    ],
-	        dom: 'Bfrtilp',
-	        buttons: [
-	            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-	            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-	            {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-	            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
-	        ]
-		 }
-		
-		$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-			title = $(dataTable.table().node()).attr('data-export-title');
-		});
-	
-		let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-			title = $(dataTable.table().node()).attr('data-export-title');
-		});
-		 
-		// Refilter the table
-		document.querySelectorAll('#min, #max').forEach((el) => {
-			el.addEventListener('change', () => table3.draw());
-		});
 	}
+	var title = '';
+	var dataTableOptions = {
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		},
+		columnDefs: [
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY').unix();
+					}
+					return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+				}
+			}
+		],
+		pageLength: -1,
+		lengthMenu: [
+	        [10, 25, 50, -1],
+	        [10, 25, 50, 'All']
+	    ],
+        dom: 'Bfrtilp',
+        buttons: [
+            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'pdf', orientation: 'landscape', pageSize: 'LEGAL', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
+        ]
+	 }
+	
+	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
+
+	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
+	 
+	// Refilter the table
+	document.querySelectorAll('#min, #max').forEach((el) => {
+		el.addEventListener('change', () => table3.draw());
+	});
 });

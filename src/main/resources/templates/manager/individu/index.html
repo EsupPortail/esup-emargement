@@ -87,13 +87,13 @@
 									<th scope="col">Session</th>
 									<th scope="col">Type</th>
 									<th scope="col">Groupe</th>
-									<th scope="col">Date</th>
+									<th scope="col" class="dateItem">Date</th>
 									<th scope="col">Tiers-temps</th>
 									<th scope="col">Exempté</th>
 									<th th:if="${isConvocationEnabled}" scope="col">Envoi convocation</th>								
 									<th scope="col">Emargement</th>
 									<th scope="col">Repartition</th>
-									<th scope="col">Date</th>
+									<th scope="col" class="dateItem">Date</th>
 									<th scope="col">Surveillant</th>
 									<th scope="col" class="exclude">Voir</th>
 								</tr>
@@ -108,7 +108,7 @@
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
 									<td>
-										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span>
+										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
 									</td>	
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td th:attr="data-filter=${(tagCheck.isExempt!=null and tagCheck.isExempt)? 'Oui' : ''}"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
@@ -160,7 +160,7 @@
 						<table class="table assiduite" style="width:100%" th:attr="data-export-title=${groupe.nom + ' [' + groupe.anneeUniv + ']'}">
 							<thead>
 								<tr>
-									<th>Date</th>
+									<th class="dateItem">Date</th>
 									<th>Session</th>
 									<th>Type</th>
 									<th class="exclude">Voir</th>
@@ -192,7 +192,7 @@
 									<th scope="col">Session</th>
 									<th scope="col">Lieu</th>
 									<th scope="col">Site</th>
-									<th scope="col">Date</th>
+									<th scope="col" class="dateItem">Date</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -201,7 +201,7 @@
 									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
-										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span><br/>
+										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span><br/>
 									</td>
 								</tr>
 							</tbody>
