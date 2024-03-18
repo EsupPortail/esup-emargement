@@ -18,8 +18,6 @@ import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.SessionLocationRepository;
-import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.utils.ParamUtil;
@@ -36,13 +34,7 @@ public class UserAppService {
 	
 	@Autowired
 	private UserAppRepository userAppRepository;
-	
-	@Autowired
-	TagCheckerRepository tagCheckerRepository;
 
-	@Autowired
-	SessionLocationRepository sessionLocationRepository;
-	
 	@Autowired
 	private UserAppRepositoryCustom userAppRepositoryCustom;
 

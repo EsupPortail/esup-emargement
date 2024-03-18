@@ -12,7 +12,6 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -40,7 +39,6 @@ public class StoredFileService {
 		return storedFile;
 	}
 	
-
 	public void deleteAllStoredFiles(SessionEpreuve se) {
 		List<StoredFile> sfs = storedFileRepository.findBySessionEpreuve(se);
 		storedFileRepository.deleteAll(sfs);

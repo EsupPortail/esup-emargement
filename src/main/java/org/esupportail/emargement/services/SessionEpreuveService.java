@@ -34,9 +34,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
-import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -76,9 +74,6 @@ public class SessionEpreuveService {
 	private SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
-    LdapUserRepository ldapUserRepository;
-	
-	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
@@ -99,17 +94,11 @@ public class SessionEpreuveService {
 	@Autowired
 	StoredFileRepository storedFileRepository;
 	
-	@Autowired
-	BigFileRepository bigFileRepository;
-	
 	@Resource
 	SessionLocationService sessionLocationService;
 	
 	@Resource
 	EsupSignatureService esupSignatureService;
-	
-	@Resource
-	LdapService ldapService;
 		
 	@Resource
 	TagCheckService tagCheckService;
@@ -121,13 +110,7 @@ public class SessionEpreuveService {
 	StoredFileService storedFileService;
 	
 	@Resource
-	UserService userService;
-	
-	@Resource
 	LogService logService;
-	
-	@Resource
-	AppliConfigService appliConfigService;
 	
 	@Value("${app.url}")
 	private String appUrl;

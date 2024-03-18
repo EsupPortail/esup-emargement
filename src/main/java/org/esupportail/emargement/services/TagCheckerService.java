@@ -44,9 +44,6 @@ public class TagCheckerService {
 	@Resource	
 	AppliConfigService appliConfigService;
 	
-	@Resource
-	UserAppService userAppService;
-	
 	@Autowired
 	ParamUtil paramUtil;
 	
@@ -167,4 +164,5 @@ public class TagCheckerService {
 		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(id);
 		tagCheckerRepository.deleteAll(tcs);
 	}
+
 }

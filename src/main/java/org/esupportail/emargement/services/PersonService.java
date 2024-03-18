@@ -13,16 +13,16 @@ import org.springframework.stereotype.Service;
 public class PersonService {
 	
 	@Autowired
-	private LdapUserRepository ldapUserRepository;
+	private LdapUserRepository userLdapRepository;
 	
 	public List<Person> setNomPrenom(List<Person> persons){
 		
 		if(!persons.isEmpty()) {
 			for(Person p : persons) {
-				List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(p.getEppn());
-				if(!ldapUsers.isEmpty()) {
-					p.setNom(ldapUsers.get(0).getName());
-					p.setPrenom(ldapUsers.get(0).getPrenom());
+				List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(p.getEppn());
+				if(!userLdaps.isEmpty()) {
+					p.setNom(userLdaps.get(0).getName());
+					p.setPrenom(userLdaps.get(0).getPrenom());
 				}
 			}
 		}

@@ -13,8 +13,6 @@ import javax.persistence.criteria.Root;
 
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
-import org.esupportail.emargement.repositories.UserAppRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -22,9 +20,6 @@ public class UserAppRepositoryCustom{
 
 	@PersistenceContext
 	private EntityManager entityManager;
-	
-	@Autowired
-	UserAppRepository userAppRepository;
 	
 	public List<UserApp> findAll(String searchString){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();

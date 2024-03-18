@@ -58,7 +58,7 @@ public class ArchiveService {
 					archive.setDateArchivage(ses.get(0).getDateArchivage());
 					archive.setLoginArchivage(ses.get(0).getLoginArchivage());
 				}
-				long nbAnonymousTagChecks = new Long (0);
+				long nbAnonymousTagChecks = Long.valueOf("0");
 				String anonymousEppn = ANONYMOUS.concat("_").concat(emargementContext).concat("@").concat(nomDomaine);
 				List<Person> persons = personRepository.findByEppn(anonymousEppn);
 				if(!persons.isEmpty()) {

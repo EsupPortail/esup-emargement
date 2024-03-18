@@ -4,14 +4,10 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
-import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -26,11 +22,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findByAdeEventId(Long id);
 	
-	Page<SessionEpreuve> findByNomSessionEpreuve(String nomSessionEpreuve, Pageable pageable);
-	
 	List<SessionEpreuve> findSessionEpreuveByStatutNotOrderByDateExamen(Statut statut);
-	
-	List<SessionEpreuve>  findSessionEpreuveByDateExamenAndCampusEqualsAndIdNot(Date date, Campus campus, Long id);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
@@ -38,13 +30,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve>  findByContextAndDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Context context, Date today, Date endDate);
 	
-	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Date startDate, Date endDate);
-	
-	
 	List<SessionEpreuve> findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate1, Date endDate1, Date startDate, Date endDate, Date startDateFin, Date endDateFin);
-
-	
-	List<SessionEpreuve> findAllByDateExamen(Date date);
 	
 	Long countByDateExamenGreaterThanEqual(Date date);
 	
@@ -57,10 +43,6 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve> findAllByDateArchivageIsNullOrderByNomSessionEpreuve();
 	
 	List<SessionEpreuve> findAByAnneeUnivAndDateArchivageIsNotNull(String anneeUniv);
-	
-	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
-	
-	Page<SessionEpreuve> findAllByOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Example<SessionEpreuve> sessionQuery, Pageable pageable);
 	
 	Long countByAnneeUniv(String anneeUniv);
 	

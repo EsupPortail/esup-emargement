@@ -30,8 +30,6 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 	
 	List<SessionLocation> findSessionLocationByLocationIdIn(List<Long> ids);
 	
-	List<SessionLocation> findSessionLocationByLocationIdAndSessionEpreuveId(Long id, Long seId);
-	
 	List<SessionLocation> findSessionLocationByContext(Context context);
 	
 	List<SessionLocation> findByContextAndId(Context context, Long id);

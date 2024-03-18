@@ -15,11 +15,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
-	Long countBySessionLocationId(Long id);
-	
 	Long countBySessionLocationAndUserApp(SessionLocation sl, UserApp userApp);
-	
-	Long countBySessionLocationIdAndUserAppEppn(Long id, String eppn);
 	
 	List<TagChecker> findBySessionLocation(SessionLocation sl);
 	
@@ -28,8 +24,6 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveIdAndUserApp(Long id, UserApp userApp);
 	
 	List<TagChecker> findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(Long id, String eppn);
-	
-	List<TagChecker> findTagCheckerBySessionLocationLocationNomAndSessionLocationSessionEpreuveIdAndUserAppEppn(String nomLocation, Long id, String eppn);
 	
 	Page<TagChecker> findTagCheckerBySessionLocationIn(List<SessionLocation> sessionLocations, Pageable pageable);
 	
@@ -46,9 +40,5 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 			+ "and tag_checker.session_location_id=session_location.id  and session_epreuve_id in (select id from session_epreuve where is_session_epreuve_closed='t' and annee_univ like :anneeUniv) "
 			+ "and tag_checker.context_id = :context group by eppn order by count desc", nativeQuery = true)
 	List<Object[]> countTagCheckersByContext(Long context, String anneeUniv);
-
-	@Query(value = "select distinct key,  count(*) as count from tag_checker, context where tag_checker.context_id=context.id and "
-			+ "session_location_id is not null group by key order by key, count desc", nativeQuery = true)
-	List<Object[]> countNbTagCheckerByContext();
 
 }

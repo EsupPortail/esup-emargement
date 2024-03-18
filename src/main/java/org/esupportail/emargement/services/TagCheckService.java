@@ -48,10 +48,8 @@ import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
-import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
-import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -97,9 +95,6 @@ public class TagCheckService {
 	TagCheckRepository tagCheckRepository;
 	
 	@Autowired
-	GroupeRepository groupeRepository;
-	
-	@Autowired
 	ContextRepository contextRepository;
 	
 	@Autowired
@@ -107,9 +102,6 @@ public class TagCheckService {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
-	
-	@Autowired
-	LocationRepository locationRepository;
 	
 	@Resource
 	ImportExportService importExportService;
@@ -138,9 +130,6 @@ public class TagCheckService {
 	@Resource
 	ContextService contexteService;
 	
-	@Resource
-	PersonService personService;
-	
 	@Autowired
 	SessionLocationRepository sessionLocationRepository;
 	
@@ -149,15 +138,9 @@ public class TagCheckService {
     
     @Resource   
     TagCheckerService tagCheckerService;
-    
-	@Resource
-	LdapService ldapService;
 	
 	@Resource
 	LogService logService;
-	
-	@Resource
-	UserAppService userAppService;
 	
 	@Autowired
 	ParamUtil paramUtil;

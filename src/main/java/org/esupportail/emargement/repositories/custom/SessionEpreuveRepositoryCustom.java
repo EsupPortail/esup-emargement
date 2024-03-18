@@ -19,7 +19,6 @@ import javax.persistence.criteria.Root;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -44,11 +43,6 @@ public class SessionEpreuveRepositoryCustom{
         query.orderBy(criteriaBuilder.desc(c.get("dateExamen")));
         query.select(c);
         return entityManager.createQuery(query).getResultList();
-	}
-	
-	public Page<SessionEpreuve> findAll2(Example<SessionEpreuve> sessionQuery){
-		
-		return null;
 	}
 	
 	public Specification<SessionEpreuve> getSpecFromDatesAndExample(

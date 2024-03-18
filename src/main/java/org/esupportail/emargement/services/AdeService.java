@@ -59,7 +59,6 @@ import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -72,7 +71,6 @@ import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.utils.ToolUtil;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,16 +116,10 @@ public class AdeService {
 	private String encryptedUrl;
 
 	@Autowired
-	ToolUtil toolUtil;
-	
-	@Autowired
 	PrefsRepository prefsRepository;
 	
 	@Autowired
 	LocationRepository locationRepository;
-	
-	@Autowired
-	GroupeRepository groupeRepository;
 	
 	@Autowired	
 	SessionLocationRepository sessionLocationRepository;
@@ -962,7 +954,7 @@ public class AdeService {
 											tc.setSessionLocation(sl);
 											tagCheckerRepository.save(tc);
 										}else {
-											log.info("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
+											log.warn("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
 													", n'est pas dans le ldap "  );
 										}
 									}
