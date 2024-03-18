@@ -114,7 +114,7 @@ function getCalendar(calendarEl, urlEvents, editable) {
 }
 
 function createDateFromString(dateString) {
-	const [day, month, year] = dateString.split('-').map(Number);
+	const [day, month, year] = dateString.split('/').map(Number);
 	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
 
 	return new Date(adjustedYear, month - 1, day); // month is 0-indexed in JavaScript Date objects
@@ -2133,30 +2133,28 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	
 	//Recherche assiduité
-	if(document.getElementById("tagCheckAssiduite") != null){
-		let minDate, maxDate;
-		DataTable.ext.search.push(function (settings, data, dataIndex) {
-		    let min = minDate.val();
-		    let max = maxDate.val();
-		    let date = new Date(newDate = createDateFromString(data[4]));
-		    if (
-		        (min === null && max === null) ||
-		        (min === null && date <= max) ||
-		        (min <= date && max === null) ||
-		        (min <= date && date <= max)
-		    ) {
-		        return true;
-		    }
-		    return false;
-		});
-		// Create date inputs
-		minDate = new DateTime('#min', {
-		    format: 'DD-MM-YY'
-		});
-		maxDate = new DateTime('#max', {
-		    format: 'DD-MM-YY'
-		});
-	}
+	let minDate, maxDate;
+	DataTable.ext.search.push(function(settings, data, dataIndex) {
+		let min = minDate.val();
+		let max = maxDate.val();
+		let date = new Date(newDate = createDateFromString(data[4]));
+		if (
+			(min === null && max === null) ||
+			(min === null && date <= max) ||
+			(min <= date && max === null) ||
+			(min <= date && date <= max)
+		) {
+			return true;
+		}
+		return false;
+	});
+	// Create date inputs
+	minDate = new DateTime('#min', {
+		format: 'DD/MM/YY'
+	});
+	maxDate = new DateTime('#max', {
+		format: 'DD/MM/YY'
+	});
 	var title = '';
 	var dataTableOptions = {
 		responsive: true,
