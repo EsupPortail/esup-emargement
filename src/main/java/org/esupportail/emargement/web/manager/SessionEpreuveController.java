@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
@@ -164,13 +163,13 @@ public class SessionEpreuveController {
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 
 	@GetMapping(value = "/manager/sessionEpreuve")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
-			@RequestParam(value="seNom", required = false) String seNom, @RequestParam(value="multiSearch", required = false) String multiSearch,
+			@RequestParam(value="multiSearch", required = false) String multiSearch,
 			SessionEpreuve sessionSearch,  @RequestParam(value="dateSessions", required = false) String dateSessions) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Context ctx = contextRepository.findByKey(emargementContext);
@@ -179,7 +178,8 @@ public class SessionEpreuveController {
 		.withIgnoreNullValues()
 		.withMatcher("statut", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
-		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact());
+		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
+		.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact());
 		
 		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
 		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
@@ -213,7 +213,7 @@ public class SessionEpreuveController {
 		
 		if(sessionSearch.getId()!=null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent() ) {
 			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
-			List<SessionEpreuve> ses = new ArrayList<SessionEpreuve>();
+			List<SessionEpreuve> ses = new ArrayList<>();
 			ses.add(se);
 			sessionEpreuvePage = new PageImpl<>(ses);
 			sessionSearch.setStatut(se.getStatut());
@@ -236,6 +236,7 @@ public class SessionEpreuveController {
         model.addAttribute("sessionSearch", sessionSearch);
         model.addAttribute("statuts", Statut.values());
         model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
+        model.addAttribute("sites", campusRepository.findByOrderBySite());
         model.addAttribute("dateSessions", dateSessions);
         
 		return "manager/sessionEpreuve/list";
@@ -244,7 +245,7 @@ public class SessionEpreuveController {
 	@GetMapping(value = "/manager/sessionEpreuve/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-		List<SessionEpreuve> list = new ArrayList<SessionEpreuve>();
+		List<SessionEpreuve> list = new ArrayList<>();
 		list.add(se);
 		sessionEpreuveService.computeCounters(list);
         uiModel.addAttribute("sessionEpreuve", list.get(0));
@@ -273,7 +274,7 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/executeRepartition/{id}", produces = "text/html")
-    public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, 
+    public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, 
     		@RequestParam(value="alphaOrder", required = false) String tagCheckOrder, final RedirectAttributes redirectAttributes) {
 		
 		boolean isOver = sessionEpreuveService.executeRepartition(id, tagCheckOrder);
@@ -366,10 +367,9 @@ public class SessionEpreuveController {
     }
     
     @PostMapping("/manager/sessionEpreuve/create")
-    public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, Model uiModel, 
-    						HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen, 
-    						@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
-    	
+    public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
+    		Model uiModel, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen, 
+    		@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
@@ -405,9 +405,9 @@ public class SessionEpreuveController {
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionEpreuve sessionEpreuve, 
-    		@RequestParam("strDateExamen") String strDateExamen, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, Model uiModel, 
-    					HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException, ParseException {
+    public String update(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, 
+    		@RequestParam("strDateExamen") String strDateExamen, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, 
+    		Model uiModel) throws IOException, ParseException {
         
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
@@ -437,7 +437,7 @@ public class SessionEpreuveController {
     }
     
     @PostMapping(value = "/manager/sessionEpreuve/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	String nom = sessionEpreuve.getNomSessionEpreuve();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -492,7 +492,7 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/changeStatut/{id}")
     public String changeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
-    		@RequestParam("statut") Statut statut, final RedirectAttributes redirectAttributes) throws IOException {
+    		@RequestParam("statut") Statut statut, final RedirectAttributes redirectAttributes){
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	sessionEpreuve.setStatut(statut);
@@ -507,7 +507,7 @@ public class SessionEpreuveController {
     
     @GetMapping("/manager/sessionEpreuve/storedFiles/{id}")
     @ResponseBody
-    public List<StoredFile> getStoredfiles(@PathVariable String emargementContext, @PathVariable("id") Long id){
+    public List<StoredFile> getStoredfiles(@PathVariable("id") Long id){
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
@@ -519,7 +519,7 @@ public class SessionEpreuveController {
     @Transactional
     @PostMapping("/manager/sessionEpreuve/storedFiles/delete")
     @ResponseBody
-    public String  deleteStoredfile(@PathVariable String emargementContext, @RequestParam("key") Long key){
+    public String  deleteStoredfile(@RequestParam("key") Long key){
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		StoredFile storedFile = storedFileRepository.findById(key).get();
@@ -531,7 +531,7 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@RequestMapping(value = "/manager/sessionEpreuve/{id}/photo")
-	public void getPhoto(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public void getPhoto(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
 		StoredFile sf = storedFileRepository.findById(id).get();
 		if(sf != null) {
 			Long size = sf.getFileSize();

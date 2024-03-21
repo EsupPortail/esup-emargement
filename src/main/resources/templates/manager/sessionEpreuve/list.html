@@ -41,7 +41,14 @@
 												  	id="btnradio4"  value="all" autocomplete="off">
 												  <label class="btn btn-outline-primary" for="btnradio4">Tout</label>											  
 												</div>
-											</div>					
+											</div>
+											<div class="col-auto">
+												<select class="form-select" title="Tous les sites" th:field="*{campus}">
+													<option value="">-- SITES --</option>
+												    <option th:each="campus : ${sites}" 
+												        th:value="${campus.id}" th:text="${campus.site}"></option>
+												</select>
+											</div>
 											<div class="col-auto"  th:if="${#maps.size(typesSession)>1}">
 												<select class="form-select" title="Tous les types" th:field="*{typeSession}">
 													<option value="">-- TYPES --</option>
