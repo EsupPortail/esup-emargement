@@ -1804,7 +1804,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=enableWebcam&value=" + value, true);
 		request.onload = function() {
 			if (request.status >= 200 && request.status < 400) {
-				window.location.href = redirect;
+				if( value == "true"){
+					$("#webCamDiv").removeClass("d-none");
+				}else{
+					$("#webCamDiv").removeClass("d-none");
+					$("#webCamDiv").addClass("d-none");
+				}
 			}
 		}
 		request.send();
