@@ -10,6 +10,7 @@ var allSelect = selectAll;
 var myChartBar = null;
 var suneditor0 = null;
 var selectCmp = null;
+var sortDate;
 //==jQuery remove()
 function remove(id) {
 	var elem = document.getElementById(id);
@@ -846,6 +847,36 @@ function getQrCodeSession(url, idImg) {
 	});
 }
 
+function initTablePresence(sortDate){
+	new DataTable("#tablePresence", {
+		responsive: true,
+		ordering: true,
+		paging: false,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}, order: [
+			sortDate // Adjust the column index if needed
+		],
+		columnDefs: [
+			{
+				targets: 4,
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY hh:mm:ss').unix();
+					}
+					return moment(data, 'DD/MM/YY hh:mm:ss').format('DD/MM/YY hh:mm:ss');
+				}
+			}
+		]
+	});
+}
+
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
 	//Autocomplete
@@ -1468,16 +1499,9 @@ document.addEventListener('DOMContentLoaded', function() {
 				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					displayToast();
+					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+					initTablePresence(sortDate);
 				});
-				setTimeout(function() {
-					if (!$("#collapseTable").hasClass("d-none")) {
-						var id = $("#collapseTable tr")[0].id;
-						if (tagCheck.id == id) {
-							$("#collapseTable table tbody").empty();
-							$("#" + id).clone().appendTo("#collapseTable table tbody");
-						}
-					}
-				}, 500);
 			}
 		}, false);
 
@@ -2206,4 +2230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	document.querySelectorAll('#min, #max').forEach((el) => {
 		el.addEventListener('change', () => table3.draw());
 	});
+	
+	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+	initTablePresence(sortDate);
 });

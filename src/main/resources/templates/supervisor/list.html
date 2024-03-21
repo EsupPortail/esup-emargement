@@ -42,11 +42,6 @@
 									title="Ajouter un inscrit" data-bs-toggle="collapse"
 									href="#collapseExample" class="btn btn-primary mb-1"><i
 									class="fa fa-plus fa-lg"></i></a>									
-								<button th:if="${tagCheckPage!=null}" class="btn btn-info mb-1"
-									type="button" data-bs-toggle="collapse"
-									data-bs-target="#searchCollapse" title="Rechercher un inscrit">
-									<i class="fas fa-search"></i>
-								</button>
 								<input type="hidden" id="sessionId" name="sessionLocationId"
 									th:value="${sessionLocation.id}" /> <input type="hidden"
 									id="sessionEpreuveId" name="sessionEpreuveId"
@@ -191,22 +186,6 @@
 										</div>
 									</div>
 								</div>
-								<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-									<div class="form-group alert alert-dark pt-1 pb-1 mt-2">
-			                           <form th:if="${tagCheckPage!=null}" action="#" th:action="@{|/${eContext}/supervisor/getTagCheck2|}" id="formSearchTc" >
-			                                <input th:if="${sessionEpreuve.id != ''}" type="hidden" name="sessionEpreuve" th:value="${sessionEpreuve.id}" />
-			                                <input th:if="${sessionLocation !=null}" type="hidden" name="location" th:value="${sessionLocation.id}" />
-				                            <select id="searchTagCheck"  name="present" >
-				                            	 <option>--Choisir--</option>
-				                            	 <option th:each="tagCheck : ${allTagChecks}" th:value="${tagCheck.id}" 
-				                            	 th:text="${(tagCheck.person!=null)?  tagCheck.person.nom + ' ' + tagCheck.person.prenom :  tagCheck.guest.nom + ' ' + tagCheck.guest.prenom }" />
-				                            </select>
-			                            </form>
-			                            <div id="collapseTable" class="table-responsive mt-2 d-none">
-			                            	<table class="table table-dark table-bordered table-sm"><tbody></tbody></table>
-			                            </div>
-									</div>
-								</div>
 								<div class="d-flex justify-content-center align-items-center w-100 pb-2" th:if="${sessionLocation != null}">
 									<div class="toast-container position-static" >
 									  <div th:id="${sessionLocation.id + '_displayedIdentity2'}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -307,21 +286,22 @@
 								  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
 								  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 								</div>
-								<table class="table table-hover table-striped table-bordered table-sm"  data-sticky-header-offset-y="true" id="tablePresence">
+								<table class="table table-hover table-striped table-bordered table-sm"  data-sticky-header-offset-y="true" 
+									id="tablePresence" style="width:100%;">
 									<thead class="sticky-top">
 										<tr>
-											<th scope="col"><a class="sorted" sd:pagination-sort="person.eppn">Personne</a></th>
-											<th th:if="${isGroupeDisplayed}"  class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" scope="col">Groupe</th>
-											<th scope="col" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.type">Type</a></th>
-											<th scope="col" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="person.numIdentifiant">N°</a></th>
-											<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Présent</a></th>
-											<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}"><a class="sorted" sd:pagination-sort="proxyPerson.eppn">Procuration</a></th>
-											<th scope="col" class="center"><a class="sorted" sd:pagination-sort="tagDate">Heure</a></th>
-											<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
-											<th scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu</a></th>
-											<th scope="col" class="center hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
-											<th scope="col" class="center hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Commentaire</a></th>
-											<th scope="col" class="center">Action</th>
+											<th scope="col">Personne</th>
+											<th th:if="${isGroupeDisplayed}" scope="col">Groupe</th>
+											<th scope="col">Type</th>
+											<th scope="col">N°</th>
+											<th scope="col">Présent</th>
+											<th scope="col" th:if="${sessionEpreuve.isProcurationEnabled}">Procuration</th>
+											<th scope="col" class="dateItem">Heure</th>
+											<th scope="col">Emargement</th>
+											<th scope="col">Lieu</th>
+											<th scope="col">Surveillant</th>
+											<th scope="col">Commentaire</th>
+											<th scope="col">Action</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -340,16 +320,16 @@
 												<span th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span><span class="fw-bold" 
 												th:text="${(tagCheck.isUnknown) ? ' (' + tagCheck.comment + ')' : '' }"></span>
 											</td>
-											<td th:if="${isGroupeDisplayed}" class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">
+											<td th:if="${isGroupeDisplayed}">
 												<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 												<span th:if="${tagCheck.guest != null}" th:text="${#strings.listJoin(tagCheck.guest.groupes.![nom], ',')}"></span>
 											</td>
-											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
-											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:unless="${tagCheck.person != null}">Externe</td>
-											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${tagCheck.person != null}" th:text="${tagCheck.person.numIdentifiant}"></td>
-											<td class="center d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:unless="${tagCheck.person != null}"></td>
+											<td th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
+											<td th:unless="${tagCheck.person != null}">Externe</td>
+											<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.numIdentifiant}"></td>
+											<td th:unless="${tagCheck.person != null}"></td>
 											<td th:if="${tagCheck.isExempt}" class="text-danger fw-bold text-center">Exempt</td>
-											<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}">
+											<td th:unless="${tagCheck.isExempt}" class="center"  th:id="${'#' + tagCheck.id}"  th:attr="data-order=${tagCheck.tagDate}">
 												<input th:if="${tagCheck.person != null && tagCheck.tagDate==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 
 												th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}">
 												<input th:if="${tagCheck.person != null && tagCheck.tagDate!=null}"  type="checkbox" class="presenceCheck" name="presenceCheck" 
@@ -361,7 +341,7 @@
 												th:value="${'' + ',' + sessionLocation.id + ',' + tagCheck.guest.email}" 
 													th:disabled="${tagCheck.isUnknown or isSessionLibre}" checked="checked" >	
 											</td>
-											<td class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}">
+											<td class="center" th:if="${sessionEpreuve.isProcurationEnabled}">
 												<span th:if="${tagCheck.person != null}" class="procuration">
 													<input  th:if="${tagCheck.tagDate==null && tagCheck.proxyPerson==null && !isOver}" type="checkbox" class="proxyPersonCheck" name="proxyPersonCheck" 
 													th:value="${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom}" />
@@ -370,11 +350,11 @@
 													<i class="fa fa-user me-2" aria-hidden="true"></i><span th:text="${tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom}"></span></a>
 												</span>
 											</td>
-											<td class="center" id="tagDate">
-												<span th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yyyy')}"></span>
+											<td class="center" id="tagDate" th:attr="data-order=${#dates.format(tagCheck.tagDate, 'dd/MM/yy HH:mm:ss')}">
+												<span th:text="${#dates.format(tagCheck.tagDate, 'dd/MM/yy')}"></span>
 												<strong class="me-2"><span th:text="${#dates.format(tagCheck.tagDate, ' HH:mm:ss')}"></span></strong>
 											</td>
-											<td class="center checkedByCard d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">
+											<td class="center checkedByCard">
 												<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 													<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
 													<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
@@ -385,14 +365,13 @@
 													<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 												 </span>
 											</td>
-											<td class="center sessionLocationBadged d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" >
+											<td class="center sessionLocationBadged" >
 											<span th:if="${tagCheck.sessionLocationBadged!=null}" th:class="${(tagCheck.sessionLocationBadged != tagCheck.sessionLocationExpected)? 'fw-bold' : ''}" 
 												th:text="${tagCheck.sessionLocationBadged.location.nom}"></span>
 											</td>
-											<td class="center tagChecker hiddenBlock" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : ''}"> </td>
-											<td class="center tagChecker hiddenBlock" th:text="${tagCheck.comment}"> </td>
+											<td class="center tagChecker" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : ''}"> </td>
+											<td class="center tagChecker" th:text="${tagCheck.comment}"> </td>
 											<td class="center">
-												<a th:href="@{/{ctx}/supervisor/{id}(id=${tagCheck.id},ctx=${eContext})}" title="voir" class="me-2"><i class="fa fa-eye"></i></a>
 												<a class="commentTC" th:title="${tagCheck.comment}" data-bs-toggle="modal" th:attr="data-bs-target=${'#commentTagCheckModal' + tagCheck.id}"><i class="fa fa-comment"></i></a>
 												<div class="modal" tabindex="-1" th:attr="id=${'commentTagCheckModal' + tagCheck.id}">
 													<div class="modal-dialog">
@@ -429,7 +408,6 @@
 									</tbody>
 								</table>
 							</div>
-							<nav th:replace="fragments/pagination :: pagination"></nav>
 							<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
 							  <div class="offcanvas-header">
 							    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Actions</h5>
