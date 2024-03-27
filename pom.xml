@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
 	<artifactId>esup-emargement</artifactId>
-	<version>1.0.7</version>
+	<version>1.0.8-SNAPSHOT</version>
 	<name>esup-emargement</name>
 	<packaging>war</packaging>
 	<description>Application emargement</description>
