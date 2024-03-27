@@ -17,6 +17,7 @@ import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.IOUtils;
+import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.domain.Prefs;
@@ -26,6 +27,7 @@ import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EventRepository;
@@ -38,6 +40,7 @@ import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
 import org.esupportail.emargement.services.AdeService;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EventService;
 import org.esupportail.emargement.services.HelpService;
@@ -125,6 +128,9 @@ public class SessionEpreuveController {
     SessionLocationService sessionLocationService;
     
     @Resource
+    AppliConfigService appliConfigService;
+    
+    @Resource
     TagCheckService tagCheckService;
     
 	@Resource
@@ -153,6 +159,9 @@ public class SessionEpreuveController {
 	
 	@Autowired
 	PrefsRepository prefsRepository;
+	
+	@Autowired
+	AppliConfigRepository appliConfigRepository;
 	
 	private final static String ITEM = "sessionEpreuve";
 	
@@ -316,7 +325,7 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/deleteRepartition/{id}", produces = "text/html")
-    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id) {
 		tagCheckService.resetSessionLocationExpected(id);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
 		log.info("Réinitialisation de la répartition possible pour la session : " + sessionEpreuve.getNomSessionEpreuve());
@@ -394,14 +403,13 @@ public class SessionEpreuveController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, session  déjà existante : " + sessionEpreuve.getNomSessionEpreuve());
         	return String.format("redirect:/%s/manager/sessionEpreuve?form", emargementContext);
-        }else {
-        	sessionEpreuve.setContext(contexteService.getcurrentContext());
-        	sessionEpreuveService.save(sessionEpreuve, emargementContext);
-        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        	log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-        	logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
-        }        
+        }
+		sessionEpreuve.setContext(contexteService.getcurrentContext());
+		sessionEpreuveService.save(sessionEpreuve, emargementContext);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
+		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());        
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
@@ -437,7 +445,8 @@ public class SessionEpreuveController {
     }
     
     @PostMapping(value = "/manager/sessionEpreuve/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    		@RequestParam(value = "view", required = false)String view, final RedirectAttributes redirectAttributes) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	String nom = sessionEpreuve.getNomSessionEpreuve();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -450,6 +459,9 @@ public class SessionEpreuveController {
 			log.info("Impossible de supprimer la session : " + nom, e);
 			logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.FAILED, "Nom : " + nom, auth.getName(), null, emargementContext, null);
 		}
+    	if(view!=null) {
+    		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
+    	}
         return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
     
@@ -492,7 +504,7 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/changeStatut/{id}")
     public String changeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
-    		@RequestParam("statut") Statut statut, final RedirectAttributes redirectAttributes){
+    		@RequestParam("statut") Statut statut, @RequestParam(value="view", required = false) String view, final RedirectAttributes redirectAttributes){
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	sessionEpreuve.setStatut(statut);
@@ -502,6 +514,9 @@ public class SessionEpreuveController {
     	redirectAttributes.addFlashAttribute("currentAnneeUniv", sessionEpreuve.getAnneeUniv());
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
     	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + "changement statut " + statut.name(), auth.getName(), null, emargementContext, null);
+    	if(view!=null) {
+    		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
+    	}
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
     
@@ -552,5 +567,56 @@ public class SessionEpreuveController {
 		}
 		
 		return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+	}
+	
+    @GetMapping("/manager/sessionEpreuve/old")
+    public String cleanup(Model model){
+    	Date today = new Date();
+    	model.addAttribute("autoClose", appliConfigRepository.findAppliConfigByKey("AUTO_CLOSE_SESSION").get(0).getValue());
+    	model.addAttribute("notClosed", sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(today, Statut.CLOSED, today, Statut.CLOSED));
+    	model.addAttribute("noTagCheck", sessionEpreuveRepository.findSessionEpreuveWithNoTagCheck(new Date(), contexteService.getcurrentContext().getId()));
+    	model.addAttribute("noTagChecker", sessionEpreuveRepository.findSessionEpreuveWithNoTagChecker(new Date(), contexteService.getcurrentContext().getId()));
+    	model.addAttribute("noSessionLocation", sessionEpreuveRepository.findSessionEpreuveWithNoSessionLocation(new Date(), contexteService.getcurrentContext().getId()));
+       	model.addAttribute("noTagDate", sessionEpreuveRepository.findSessionEpreuveWithNoTagDate(new Date(), contexteService.getcurrentContext().getId()));
+
+    	return "manager/sessionEpreuve/old";
+    }
+
+    @Transactional
+    @PostMapping("/manager/sessionEpreuve/cleanup/{type}")
+	public String cleanupsession(@PathVariable String emargementContext, @PathVariable("type") String type){
+    	Date today = new Date();
+    	if(type!=null) {
+    		if("notClosed".equals(type)){
+    			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    			for(SessionEpreuve se :  sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(today, Statut.CLOSED, today, Statut.CLOSED)) {
+    				se.setStatut(Statut.CLOSED);
+    				sessionEpreuveRepository.save(se);
+    			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut " + Statut.CLOSED.name(), auth.getName(), null, emargementContext, null);
+    			}
+    		}else if("noTagCheck".equals(type)){
+    			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoTagCheck(new Date(), contexteService.getcurrentContext().getId()));
+    		}else if("noTagDate".equals(type)){
+    			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoTagDate(new Date(), contexteService.getcurrentContext().getId()));
+    		}else if("noTagChecker".equals(type)){
+    			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoTagChecker(new Date(), contexteService.getcurrentContext().getId()));
+    		}else if("noSessionLocation".equals(type)){
+    			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoSessionLocation(new Date(), contexteService.getcurrentContext().getId()));
+    		}
+    	}
+		
+		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
+	}
+    
+	@Transactional
+    @PostMapping("/manager/sessionEpreuve/autoClose")
+	public String  activeAutoClose(@PathVariable String emargementContext) throws IOException, ParserConfigurationException, SAXException, ParseException {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		boolean  autoCLose = (appliConfigService.getAutoCloseSession())? false : true;
+		AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("AUTO_CLOSE_SESSION").get(0);
+		appliConfig.setValue(String.valueOf(autoCLose));
+		appliConfigRepository.save(appliConfig);
+		logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
 	}
 }

@@ -36,6 +36,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThan(Date date);
 	
+	List<SessionEpreuve> findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(Date date, Statut statut, Date date2, Statut statut2);
+	
 	List<SessionEpreuve> findAllByDateExamenOrDateFinNotNullAndDateFinLessThanEqualAndDateFinGreaterThanEqual(Date date, Date dateFin, Date dateFin2);
 	
 	List<SessionEpreuve> findAllByDateExamenLessThan(Date date);
@@ -147,4 +149,27 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findByContextOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Context ctx);
 
+	 @Query(value = "SELECT * FROM session_epreuve WHERE context_id = :contextId AND id NOT IN " +
+             "(SELECT DISTINCT session_epreuve_id FROM tag_check WHERE context_id = :contextId) " +
+             "AND ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) " +
+             "OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))",
+     nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagCheck(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id =  :contextId and id not in "
+			+ "(select distinct session_epreuve_id from tag_checker, session_location "
+			+ "where session_location.id = tag_checker.session_location_id and tag_checker.context_id =  :contextId  and session_location.context_id =  :contextId) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagChecker(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id = :contextId and id not in "
+			+ "(select distinct session_epreuve_id from session_location where context_id = :contextId) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoSessionLocation(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id =  :contextId and id in "
+			+ "(SELECT session_epreuve_id FROM tag_check where context_id = :contextId GROUP BY session_epreuve_id "
+			+ "HAVING COUNT(tag_date) = 0 OR COUNT(*) = SUM(CASE WHEN tag_date IS NULL THEN 1 ELSE 0 END)) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagDate(Date date, Long contextId);
 }

@@ -78,6 +78,7 @@
 											</div>
 											<div class="col-auto">
 												<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
+												<a class="btn btn-success ms-1"th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}"><i class="fas fa-hands-wash"></i></a>
 									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
 										    </div>
 										</div>
@@ -223,10 +224,8 @@
 										        </div>
 										    </div>
 										</div>
-										<a th:if="${sessionEpreuve.isSessionEpreuveClosed and sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/close/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-											onclick="confirm('Confirmez-vous la réouverture de cette session?');" title="Réouvrir"><i class="fas fa-door-closed text-secondary"></i></a>
 										<a th:if="${sessionEpreuve.dateArchivage == null}" th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center ms-2" 
-											onclick="confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
+											onclick="return confirm('Confirmez-vous la copie de cette session?');" title="Dupliquer"><i class="fa fa-copy text-info"></i></a>
 										<form th:if="${!sessionEpreuve.isSessionEpreuveClosed and isAdeCampusEnabled and sessionEpreuve.adeEventId != null and 
 												(#dates.createToday().equals(sessionEpreuve.dateExamen)
 												or (sessionEpreuve.dateFin!=null and #dates.createToday().equals(sessionEpreuve.dateFin))

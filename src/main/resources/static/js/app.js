@@ -2136,66 +2136,68 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	
 	//Recherche assiduité
-	let minDate, maxDate;
-	DataTable.ext.search.push(function(settings, data, dataIndex) {
-		let min = minDate.val();
-		let max = maxDate.val();
-		let date = new Date(newDate = createDateFromString(data[4]));
-		if (
-			(min === null && max === null) ||
-			(min === null && date <= max) ||
-			(min <= date && max === null) ||
-			(min <= date && date <= max)
-		) {
-			return true;
-		}
-		return false;
-	});
-	// Create date inputs
-	minDate = new DateTime('#min', {
-		format: 'DD/MM/YY'
-	});
-	maxDate = new DateTime('#max', {
-		format: 'DD/MM/YY'
-	});
-	var title = '';
-	var dataTableOptions = {
-		responsive: true,
-		ordering: true,
-		paging: true,
-		searching: true,
-		info: false,
-		language: {
-			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		},
-		columnDefs: [
-			{
-				targets: 'dateItem',
-				type: 'datetime-moment', // Use the datetime-moment plugin
-				render: function(data, type, row) {
-					if (!data) { // Check if data is empty
-						return ''; // Return empty string if data is empty
-					}
-					if (type === 'sort' || type === 'type') {
-						return moment(data, 'DD/MM/YY').unix();
-					}
-					return moment(data, 'DD/MM/YY').format('DD/MM/YY');
-				}
+	if(document.getElementById("assiduitePage") != null){
+		let minDate, maxDate;
+		DataTable.ext.search.push(function(settings, data, dataIndex) {
+			let min = minDate.val();
+			let max = maxDate.val();
+			let date = new Date(newDate = createDateFromString(data[4]));
+			if (
+				(min === null && max === null) ||
+				(min === null && date <= max) ||
+				(min <= date && max === null) ||
+				(min <= date && date <= max)
+			) {
+				return true;
 			}
-		],
-		pageLength: -1,
-		lengthMenu: [
-	        [10, 25, 50, -1],
-	        [10, 25, 50, 'All']
-	    ],
-        dom: 'Bfrtilp',
-        buttons: [
-            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'pdf', orientation: 'landscape', pageSize: 'LEGAL', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
-            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
-        ]
-	 }
+			return false;
+		});
+		// Create date inputs
+		minDate = new DateTime('#min', {
+			format: 'DD/MM/YY'
+		});
+		maxDate = new DateTime('#max', {
+			format: 'DD/MM/YY'
+		});
+		var title = '';
+		var dataTableOptions = {
+			responsive: true,
+			ordering: true,
+			paging: true,
+			searching: true,
+			info: false,
+			language: {
+				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+			},
+			columnDefs: [
+				{
+					targets: 'dateItem',
+					type: 'datetime-moment', // Use the datetime-moment plugin
+					render: function(data, type, row) {
+						if (!data) { // Check if data is empty
+							return ''; // Return empty string if data is empty
+						}
+						if (type === 'sort' || type === 'type') {
+							return moment(data, 'DD/MM/YY').unix();
+						}
+						return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+					}
+				}
+			],
+			pageLength: -1,
+			lengthMenu: [
+				[10, 25, 50, -1],
+				[10, 25, 50, 'All']
+			],
+			dom: 'Bfrtilp',
+			buttons: [
+				{ extend: 'copy', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'csv', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'pdf', orientation: 'landscape', pageSize: 'LEGAL', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'print', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } }
+			]
+		}
+	}
 	
 	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
 		title = $(dataTable.table().node()).attr('data-export-title');
@@ -2212,4 +2214,30 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
 	initTablePresence(sortDate);
+	
+	$('.tableCleanup').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		dom: 'frtilp',
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		},columnDefs: [
+				{
+					targets: 'dateItem',
+					type: 'datetime-moment', // Use the datetime-moment plugin
+					render: function(data, type, row) {
+						if (!data) { // Check if data is empty
+							return ''; // Return empty string if data is empty
+						}
+						if (type === 'sort' || type === 'type') {
+							return moment(data, 'DD/MM/YY').unix();
+						}
+						return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+					}
+				}
+			]
+	});
 });

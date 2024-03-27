@@ -705,25 +705,6 @@ public class SessionEpreuveService {
 	        }
         }
         
-        /*
-        List<StoredFile> listSf = storedFileRepository.findBySessionEpreuve(originalSe);
-        
-        if(! listSf.isEmpty()) {
-        	for(StoredFile sf : listSf) {
-        		StoredFile storedFile = new StoredFile();
-     	        storedFile.setBigFile(sf.getBigFile());
-     	        storedFile.setContentType(sf.getContentType());
-     	        storedFile.setContext(context);
-     	        storedFile.setFilename(sf.getFilename());
-     	        storedFile.setFileSize(sf.getFileSize());
-     	        storedFile.setImageData(sf.getImageData());
-     	        storedFile.setSendTime(new Date());
-     	        storedFile.setSessionEpreuve(newSe);
-     	        storedFileRepository.save(storedFile);
-        	}
-        }*/
-        
-        
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
@@ -733,12 +714,21 @@ public class SessionEpreuveService {
 	 
 	 @Transactional
 	 public void delete(SessionEpreuve se) {
+		 Authentication auth = SecurityContextHolder.getContext().getAuthentication();		 
 		 tagCheckService.deleteAllTagChecksBySessionEpreuveId(se.getId());
 		 tagCheckerService.deleteAllTagCheckersBySessionEpreuveId(se.getId());
 		 sessionLocationService.deleteAllTLocationsBySessionEpreuveId(se.getId());
 		 esupSignatureService.deleteAllBySessionEpreuve(se);
 		 storedFileService.deleteAllStoredFiles(se);
 		 sessionEpreuveRepository.delete(se);
+		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), auth.getName(), null, se.getContext().getKey(), null);
+	 }
+	 
+	 @Transactional
+	 public void deleteAll(List<SessionEpreuve> ses) {
+		 for(SessionEpreuve se : ses) {
+			 delete(se);
+		 }
 	 }
 	 
 	 public void addNbInscrits(List<SessionEpreuve> sessionEpreuveList) {
