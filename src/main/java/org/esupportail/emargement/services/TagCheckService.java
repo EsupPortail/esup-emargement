@@ -55,6 +55,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.ParamUtil;
@@ -141,6 +142,9 @@ public class TagCheckService {
 	
 	@Resource
 	LogService logService;
+	
+	@Resource
+	PersonService personService;  
 	
 	@Autowired
 	ParamUtil paramUtil;
@@ -471,6 +475,8 @@ public class TagCheckService {
 			esupSignatureRepository.deleteAll(list);
 		}
 		tagCheckRepository.deleteAll(tagChecks);
+		
+		personService.deleteUnusedPersons(contextRepository.findByContextKey(ContextHelper.getCurrentContext()));
     }
     
 	public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy){
