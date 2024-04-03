@@ -345,17 +345,18 @@
 											</td>
 											<td class="center" th:if="${sessionEpreuve.isProcurationEnabled}">
 												<span th:if="${tagCheck.person != null}" class="procuration">
-													<input  th:if="${tagCheck.tagDate==null && tagCheck.proxyPerson==null && !isOver}" type="checkbox" class="proxyPersonCheck" name="proxyPersonCheck" 
+													<input th:if="${tagCheck.tagDate==null && tagCheck.proxyPerson==null && !isOver}" type="checkbox" class="proxyPersonCheck" name="proxyPersonCheck" 
 													th:value="${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom}" />
 													<a th:if="${tagCheck.proxyPerson!=null}" href="#" data-bs-toggle="modal" class="proxyPersonCheck btn btn-primary btn-sm" 
 													 th:attr="data-whatever=${tagCheck.id + ',' +  tagCheck.person.prenom + ' ' + tagCheck.person.nom + ',' + tagCheck.proxyPerson.id}"> 
 													<i class="fa fa-user me-2" aria-hidden="true"></i><span th:text="${tagCheck.proxyPerson.prenom + ' ' + tagCheck.proxyPerson.nom}"></span></a>
 												</span>
 											</td>
-											<td class="center" id="tagDate" th:attr="data-order=${#dates.format(tagCheck.tagDate, 'dd/MM/yy HH:mm:ss')}">
+											<td th:if="${tagCheck.tagDate!=null}" class="center" id="tagDate" th:attr="data-order=${#dates.format(tagCheck.tagDate, 'dd/MM/yy HH:mm:ss')}">
 												<span th:text="${#dates.format(tagCheck.tagDate, 'dd/MM/yy')}"></span>
 												<strong class="me-2"><span th:text="${#dates.format(tagCheck.tagDate, ' HH:mm:ss')}"></span></strong>
 											</td>
+											<td th:unless="${tagCheck.tagDate!=null}"></td>
 											<td class="center checkedByCard">
 												<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
 													<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
