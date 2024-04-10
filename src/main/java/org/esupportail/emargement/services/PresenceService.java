@@ -341,7 +341,7 @@ public class PresenceService {
 				presence = splitPresence[0];
 				eppn = toolUtil.decodeFromBase64(splitPresence[1]);
 			}
-			String temp = toolUtil.decodeFromBase64(presence.replace("qrcodeUser", "").replace("qrcodeSession", ""));
+			String temp = toolUtil.decodeFromBase64(presence.replace("qrcodeUser", "").replace("qrcodeSession", "").replace("qrcode", ""));
 			String [] splitTemp = temp.split("@@@");
 			presence = splitTemp[0];
 			String qrCodetimestamp = splitTemp[1];
