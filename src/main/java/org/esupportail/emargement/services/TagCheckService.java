@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -187,17 +187,15 @@ public class TagCheckService {
     public Long countNbTagCheckRepartitionNull(Long sessionEpreuveId, boolean isTiersTemps) {
     	if(isTiersTemps) {
     		return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrue(sessionEpreuveId);
-    	}else {
-    		return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalse(sessionEpreuveId);
     	}
+    	return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalse(sessionEpreuveId);
     }
     
     public Long countNbTagCheckRepartitionNotNull(Long sessionEpreuveId,  boolean isTiersTemps) {
     	if(isTiersTemps) {
     		return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsTrue(sessionEpreuveId);
-    	}else {
-    		return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalse(sessionEpreuveId);
     	}
+    	return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalse(sessionEpreuveId);
     }
     
     public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable,  Long presentId, boolean withUnknown){
@@ -248,7 +246,8 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
-    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Person formPerson, Long sessionLocationId, Guest formGuest) throws Exception {
+    public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, 
+    		String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Long sessionLocationId) throws Exception {
     	List<List<String>> rows  = new ArrayList<List<String>>();
     	List<Integer> bilanCsv = new ArrayList<Integer>();
     	if(reader!=null) {
@@ -487,10 +486,13 @@ public class TagCheckService {
 			for(TagCheck tc : tagChecks) {
 				if(tc.getPerson()!=null) {
 					List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getPerson().getEppn());
-					if(!ldapUsers.isEmpty()) {
-						tc.getPerson().setNom(ldapUsers.get(0).getName());
-						tc.getPerson().setPrenom(ldapUsers.get(0).getPrenom());
-						tc.setNomPrenom(ldapUsers.get(0).getName().concat(ldapUsers.get(0).getPrenom()));
+					//LdapUser ldapUser = mapTc.get(tc.getPerson().getEppn());
+					LdapUser ldapUser =  ldapUsers.get(0);
+					if(ldapUser!=null) {
+						tc.getPerson().setCivilite(ldapUser.getCivilite());
+						tc.getPerson().setNom(ldapUser.getName());
+						tc.getPerson().setPrenom(ldapUser.getPrenom());
+						tc.setNomPrenom(ldapUser.getName().concat(ldapUser.getPrenom()));
 					}else {
 						tc.setNomPrenom("");
 					}
@@ -501,8 +503,9 @@ public class TagCheckService {
 					if(tc.getTagChecker()!=null) {
 						List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getTagChecker().getUserApp().getEppn());
 						if(!ldapUsers.isEmpty()) {
-							tc.getTagChecker().getUserApp().setNom(ldapUsers.get(0).getName());
-							tc.getTagChecker().getUserApp().setPrenom(ldapUsers.get(0).getPrenom());
+							LdapUser ldapUser = ldapUsers.get(0);
+							tc.getTagChecker().getUserApp().setNom(ldapUser.getName());
+							tc.getTagChecker().getUserApp().setPrenom(ldapUser.getPrenom());
 						}else {
 							tc.getTagChecker().getUserApp().setNom("");
 							tc.getTagChecker().getUserApp().setPrenom("");				
@@ -513,8 +516,9 @@ public class TagCheckService {
 					if(tc.getProxyPerson()!=null) {
 						List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(tc.getProxyPerson().getEppn());
 						if(!ldapUsers.isEmpty()) {
-							tc.getProxyPerson().setNom(ldapUsers.get(0).getName());
-							tc.getProxyPerson().setPrenom(ldapUsers.get(0).getPrenom());
+							LdapUser ldapUser = ldapUsers.get(0);
+							tc.getProxyPerson().setNom(ldapUser.getName());
+							tc.getProxyPerson().setPrenom(ldapUser.getPrenom());
 						}else {
 							tc.getProxyPerson().setNom("");
 							tc.getProxyPerson().setPrenom("");		
@@ -523,7 +527,6 @@ public class TagCheckService {
 				}
 			}
 		}
-		
 		return count;
 	}
 	
@@ -976,7 +979,7 @@ public class TagCheckService {
 	                table.addCell(dateCell);
 	                String identifiant = (tc.getPerson()!=null) ? tc.getPerson().getEppn() : tc.getGuest().getEmail();
 	                try {
-	                	String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode@@@notime@@@" + tc.getContext().getId();
+						String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode@@@notime@@@" + tc.getContext().getId();
 						String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 						InputStream is = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 5, 5);
 						byte[] bytes = IOUtils.toByteArray(is);
@@ -1309,8 +1312,6 @@ public class TagCheckService {
 			
 			key = tagCheckRepository.getContextIdBySeId(sl.getSessionEpreuve().getId(), eppn, date);
 		}
-
-		
 		
 		return key;
 	}
@@ -1571,9 +1572,8 @@ public class TagCheckService {
 	public String getTypeIndividu(TagCheck tc) {
 		if(tc.getPerson()!=null) {
 			return  messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null);
-		}else {
-			return "Externe";
 		}
+		return "Externe";
 	}
 	public String getTypeEmargement(TagCheck tc) {
 		String typeEmargement = "";
@@ -1587,7 +1587,7 @@ public class TagCheckService {
 	public List<AssiduiteBean> setListAssiduiteBean(List<TagCheck> pTagChecks, String anneeUniv) {
 		
 		List<AssiduiteBean> list = new ArrayList<>();
-		Map<String, String> mapTypes = new HashedMap();
+		Map<String, String> mapTypes = new HashMap<>();
 		
 		//Annees
 		Set<String> annees = null;

@@ -28,6 +28,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionEpreuveId(Long id);
 	
+	List<TagCheck> findTagCheckBySessionEpreuveIn(List<SessionEpreuve> ses);
+	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullOrderByPersonEppn(Long id);
 	
 	Page<TagCheck> findTagCheckByPersonEppn(String eppn, Pageable pageable);
@@ -99,6 +101,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckBySessionEpreuveIdAndDateEnvoiConvocationIsNull(Long id);
 	
 	Long countBySessionLocationExpectedIdAndTagDateIsNotNull(Long id);
+	
+	Long countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(Long id);
 	
 	//Pas de Contexte
 	Long countByContextAndSessionLocationExpectedIdAndTagDateIsNotNull(Context ctx, Long id);

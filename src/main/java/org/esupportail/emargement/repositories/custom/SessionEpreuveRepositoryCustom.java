@@ -1,7 +1,6 @@
 package org.esupportail.emargement.repositories.custom;
 
 import java.text.Format;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,12 +28,12 @@ public class SessionEpreuveRepositoryCustom{
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	public List<SessionEpreuve> findAll(String searchString) throws ParseException{
+	public List<SessionEpreuve> findAll(String searchString){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionEpreuve> query = criteriaBuilder.createQuery(SessionEpreuve.class);
         Root<SessionEpreuve> c = query.from(SessionEpreuve.class);
         Join<SessionEpreuve, Campus> u = c.join("campus");
-        List<Predicate> orPredicates = new ArrayList<Predicate>();
+        List<Predicate> orPredicates = new ArrayList<>();
         if(searchString!=null) {
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(c.get("nomSessionEpreuve")),'%' + searchString.toLowerCase()  + '%'));
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(u.get("site")),'%' + searchString.toLowerCase()  + '%'));

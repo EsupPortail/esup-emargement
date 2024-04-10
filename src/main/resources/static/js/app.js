@@ -160,6 +160,20 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 									label: labelValue,
 									value: value.groupe.id + "//" + value.groupe.nom
 								});
+							}else if (id == "searchSession") { 
+								value = value.sessionEpreuve;
+								var realDate = value.dateExamen.substring(0, 10);
+								var splitDate = realDate.split("-");
+								var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
+								var heureExamen = value.heureEpreuve.substring(0, 5);
+								var heureFin = value.finEpreuve.substring(0, 5);
+								//console.log(value.heureEpreuve);
+								var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + 
+									value.campus.site + "<strong class='ms-2'>Date : </strong>" + frDate + "<strong class='ms-2'>Heure : </strong>" + heureExamen + " -" + heureFin;
+								list.push({
+									label: labelValue,
+									value: value.id
+								})
 							}
 							else if (id == "searchLocation") {
 								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Adresse : </strong>" +
@@ -412,6 +426,7 @@ function submitSearchForm(id, url, endUrl) {
 		var formSearch = document.getElementById("formSearch");
 		search.addEventListener("awesomplete-selectcomplete", function(event) {
 			var splitResult = this.value.split("//");
+			console.log(this.value);
 			search.value = splitResult[0].toString().trim();
 			formSearch.submit();
 		});
@@ -1219,10 +1234,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	} else if (document.getElementById("searchSessionEpreuve") != null) {
 		submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
 	} else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null
-		&& document.getElementById("searchIndividuGroupe") != null) {
+		&& document.getElementById("searchIndividuGroupe") != null && document.getElementById("searchSession") != null) {
 		submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
 		submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
 		submitSearchForm("searchIndividuGroupe", emargementContextUrl + "/manager/individu/search", "&type=groupe");
+		submitSearchForm("searchSession", emargementContextUrl + "/manager/individu/search", "&type=sessionEpreuve");
 	} else if (document.getElementById("searchIndividu") != null) {
 		searchUsersAutocomplete("searchIndividu", emargementContextUrl + "/manager/individu/search", "&type=tagCheck", 100);
 		searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {

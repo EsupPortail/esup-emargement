@@ -21,8 +21,12 @@
 	    			</div>
 			   </div>
   				<div class="card-body">
-  					<form action="#" th:action="@{|/${eContext}/manager/individu|}" id="formSearch">
+  					<form th:action="@{|/${eContext}/manager/individu|}" id="formSearch">
 						<div class="row">
+							<div class="col">
+								<input type="text" placeholder="Recherche Session" name="sessionEpreuve" value="" 
+									class="form-control form-control-underlined border-primary" id="searchSession" >
+							</div>	
 							<div class="col">
 								<input type="text" placeholder="Recherche Inscrit" name="eppnTagCheck" value="" 
 									class="form-control form-control-underlined border-primary" id="searchIndividuTagCheck" >
@@ -102,7 +106,9 @@
 								<tr th:each="tagCheck : ${tagChecksPage}" th:id="${tagCheck.id}"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'table-success' : '') +
 										(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre? 'table-warning' : '')}">
 									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
-									<td th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td> 
+										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></a>
+									</td>
 									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>
 									<td>
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
@@ -197,7 +203,10 @@
 							</thead>
 							<tbody>
 								<tr th:each="tagChecker : ${tagCheckersPage}">
-									<td th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td> 
+										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagChecker.sessionEpreuve.id},ctx=${eContext})}" 
+											th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></a>
+									</td>
 									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
@@ -247,6 +256,42 @@
 								</tr>
 							</tbody>
 						</table>						
+					</div>
+					<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('activite')}">
+						<div class="col fw-bold"><strong>Activité : </strong>
+							<span th:text="${activite.nomSessionEpreuve + #dates.format(activite.dateExamen, ' dd/MM/yy') + 
+													#dates.format(activite.heureEpreuve, ' HH:mm') + '-' + #dates.format(activite.finEpreuve, 'HH:mm')}"></span>
+							 <span class="badge text-bg-success ms-3"><span th:text="${nbBadgeage}"></span> / <span th:text="${#lists.size(activitePage)}"></span></span>
+						</div>
+					</div>
+					<div th:if="${#lists.isEmpty(activitePage) and #ctx.containsVariable('activite')}">
+					 Aucun inscrit dans cette session.
+					</div>
+					<div th:if="${not #lists.isEmpty(activitePage)}">
+						<table class="table table-hover table-striped table-bordered table-sm assiduite" style="width:100%" th:attr="data-export-title=${activite}">
+							<thead>
+								<tr>
+									<th>Civilité</th>
+									<th>Nom</th>
+									<th>Prénom</th>
+									<th>Num Etu</th>
+									<th>Groupe</th>
+									<th class="text-center">Emargement</th>
+									<th class="text-center">Exempt</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="tc : ${activitePage}" th:with="individu=(${(tc.person != null) ? tc.person : tc.guest})">
+									<td th:text="${individu.civilite}"></td>
+									<td th:text="${individu.nom}"></td>
+									<td th:text="${individu.prenom}"></td>
+									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
+									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
+									<td class="text-center" th:text="${(tc.tagDate!=null)?  'Présent' : ''}"></td>
+									<td class="text-center" th:text="${(tc.isExempt)? 'Exempt' : ''}"></td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
   			</div>

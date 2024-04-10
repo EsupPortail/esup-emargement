@@ -462,7 +462,7 @@ public class SessionEpreuveController {
     	if(view!=null) {
     		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
     	}
-        return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
+        return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
     }
     
     @PostMapping("/manager/sessionEpreuve/emargement")
@@ -610,7 +610,7 @@ public class SessionEpreuveController {
     
 	@Transactional
     @PostMapping("/manager/sessionEpreuve/autoClose")
-	public String  activeAutoClose(@PathVariable String emargementContext) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public String  activeAutoClose(@PathVariable String emargementContext){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		boolean  autoCLose = (appliConfigService.getAutoCloseSession())? false : true;
 		AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("AUTO_CLOSE_SESSION").get(0);

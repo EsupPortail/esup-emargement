@@ -50,6 +50,12 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
 	
+	List<SessionEpreuve> findDistinctByNomSessionEpreuveLikeIgnoreCase(String nom);
+	
+	List<SessionEpreuve> findByNomSessionEpreuveLikeIgnoreCase(String nom);
+	
+	List<SessionEpreuve> findByNomSessionEpreuve(String nom);
+	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
 			+ "and session_epreuve.id = tag_check.session_epreuve_id "

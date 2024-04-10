@@ -13,14 +13,12 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
-import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -49,6 +47,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.UserService;
@@ -132,6 +131,9 @@ public class TagCheckController {
 	UserService userService;
 	
 	@Resource
+	PersonService personService;   
+	
+	@Resource
 	TagCheckService tagCheckService;
 	
 	@Autowired
@@ -170,7 +172,7 @@ public class TagCheckController {
 	private String appUrl;
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
-    public String listTagCheckBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
+    public String listTagCheckBySessionEpreuve(@PathVariable("id") Long id, Model model, 
     		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person.eppn")  Pageable pageable, 
     			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
@@ -291,7 +293,7 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/create")
     @Transactional
-    public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
+    public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel,  
     		final RedirectAttributes redirectAttributes) throws Exception {
     	
     	boolean isOk = true;
@@ -312,13 +314,13 @@ public class TagCheckController {
         	mapTempEtapes.put("addUser", tagCheck.getCodeEtape());
         }
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, mapTempEtapes, 
-    			tagCheck.getCheckLdap(), tagCheck.getPerson(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null, tagCheck.getGuest());
+    			tagCheck.getCheckLdap(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
     
     @PostMapping("/manager/tagCheck/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel) {
     	
     	boolean isOk = true;
     	TagCheck tc = tagCheckRepository.findById(id).get();
@@ -349,7 +351,7 @@ public class TagCheckController {
     
     @Transactional
     @PostMapping(value = "/manager/tagCheck/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	if(Statut.CLOSED.equals(tagCheck.getSessionEpreuve().getStatut())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
@@ -358,22 +360,15 @@ public class TagCheckController {
     		if(!list.isEmpty()) {
     			esupSignatureRepository.deleteAll(list);
     		}
-    		Person person = tagCheck.getPerson();
-    		if(person!=null) {
-	    		tagCheckRepository.delete(tagCheck);
-    		}else {
-    			Guest guest = tagCheck.getGuest();
-        		if(guest!=null) {
-    	    		tagCheckRepository.delete(tagCheck);
-        		}
-    		}
+    		tagCheckRepository.delete(tagCheck);
+    		personService.deleteUnusedPersons(contextRepository.findByContextKey(emargementContext));
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tagCheck.getSessionEpreuve().getId(), emargementContext);
     }
     
 	@Transactional
 	@GetMapping(value = "/manager/tagCheck/deleteAllTagChecks/{id}", produces = "text/html")
-    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id) {
 		tagCheckService.deleteAllTagChecksBySessionEpreuveId(id);
         return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
@@ -381,26 +376,24 @@ public class TagCheckController {
     @PostMapping("/manager/tagCheck/convocationForm")
     @Transactional
     public String convocationForm(@PathVariable String emargementContext, @RequestParam(value = "listeIds", required = false) List<Long> listeIds, @RequestParam(value = "sessionEpreuveId") SessionEpreuve sessionEpreuve, 
-    		@RequestParam(value = "submit") String submit, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    		@RequestParam(value = "submit") String submit, Model uiModel, final RedirectAttributes redirectAttributes) {
     	
     	
     	if("selected".equals(submit) && listeIds!= null && listeIds.isEmpty()) {
     		 redirectAttributes.addFlashAttribute("msgModal", "Vous n'avez pas sélectionné d'inscrits");
     		 return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, sessionEpreuve.getId());
     		
-    	}else {
-	    	uiModel.addAttribute("listeIds", listeIds);
-	    	uiModel.addAttribute("all", ("all".equals(submit)) ? true : false);
-	    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-	    	uiModel.addAttribute("tagChecks", tagCheckService.snTagChecks(listeIds));
-	    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
-	    	uiModel.addAttribute("convocationHtml", appliConfigService.getConvocationContenu());
-	    	uiModel.addAttribute("sujetMailConvocation", appliConfigService.getConvocationSujetMail());
-	    	uiModel.addAttribute("bodyMailConvocation", appliConfigService.getConvocationBodyMail());
-	    	uiModel.addAttribute("help", helpService.getValueOfKey("convocation"));
-	        return "manager/tagCheck/convocation";
-	        
     	}
+    	uiModel.addAttribute("listeIds", listeIds);
+    	uiModel.addAttribute("all", ("all".equals(submit)) ? true : false);
+    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+    	uiModel.addAttribute("tagChecks", tagCheckService.snTagChecks(listeIds));
+    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
+    	uiModel.addAttribute("convocationHtml", appliConfigService.getConvocationContenu());
+    	uiModel.addAttribute("sujetMailConvocation", appliConfigService.getConvocationSujetMail());
+    	uiModel.addAttribute("bodyMailConvocation", appliConfigService.getConvocationBodyMail());
+    	uiModel.addAttribute("help", helpService.getValueOfKey("convocation"));
+        return "manager/tagCheck/convocation";
     }
     
     @PostMapping("/manager/tagCheck/pdfConvocation")
@@ -410,8 +403,7 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/export")
     public void exportTagChecks(@PathVariable String emargementContext,@RequestParam("type") String type, @RequestParam("sessionId") Long id, 
-    		@RequestParam("tempsAmenage") String tempsAmenage, HttpServletResponse response){
-    	
+    		 HttpServletResponse response){
     	tagCheckService.exportTagChecks(type, id, response, emargementContext, null, false);
     }
     
@@ -420,7 +412,7 @@ public class TagCheckController {
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam("subject") String subject, @RequestParam("bodyMsg") String bodyMsg, 
     		@RequestParam(value="isSendToManager", defaultValue = "false") boolean isSendToManager,  @RequestParam(value="all", defaultValue = "false") boolean isAll,
     		@RequestParam(value = "listeIds", defaultValue = "") List<Long> listeIds,  @RequestParam("htmltemplatePdf") String htmltemplatePdf, @RequestParam("seId") 
-    		Long seId, Model uiModel) throws Exception {
+    		Long seId) throws Exception {
 
 		if(appliConfigService.isSendEmails()){
 			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId);
@@ -581,7 +573,7 @@ public class TagCheckController {
     }
     
 	@GetMapping(value = "/manager/tagCheck/esupsignature/{id}", produces = "text/html")
-    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, Model uiModel, @PathVariable String emargementContext, HttpServletResponse response) {
+    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, @PathVariable String emargementContext, HttpServletResponse response) {
 		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response, TypeSignature.SESSION);
 		return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, id);
 	}
