@@ -15,7 +15,6 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -64,9 +63,6 @@ public class UserController {
 	
 	@Resource
 	AppliConfigService appliConfigService;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
 	
 	@Autowired
 	ContextRepository contextRepository;

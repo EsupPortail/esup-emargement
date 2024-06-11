@@ -2,7 +2,7 @@
 	<tbody id="tableEvents" style="width:100%">
 	    <tr th:each="event : ${listEvents}" th:class="${event.isAlreadyimport}? table-success : table-light">
 	    	<td></td>
-	    	<td th:text="${event.eventId}"></td>
+	    	<td th:text="${event.eventId}" class="degree" th:attr="data-degree=${event.degreeId}"></td>
 	    	<td th:text="${#dates.format(event.lastUpdate,'dd-MM-yy HH:mm')}" ></td>
 	    	<td th:text="${#dates.format(event.sessionEpreuve.dateCreation,'dd-MM-yy HH:mm')}" ></td>
 	    	<td>
@@ -26,13 +26,6 @@
 				    </span>
 			    </span>
 			</td>										
-	    	<td>
-	    		<span th:if="${event.isAlreadyimport}" th:text="${event.sessionEpreuve.campus.site}"></span>
-		    	<select th:unless="${event.isAlreadyimport}" class="form-select form-select-sm" id="campuses" name="campuses" required>
-					<option th:each="campus : ${campuses}"
-						th:value="${event.eventId + '@@' + campus.id}" th:text="${campus.site}" th:selected="${campus.site == event.sessionEpreuve.campus.site}"></option>
-				</select>
-	    	</td>
 			<td>
 				<span th:each="element : ${event.classrooms}">
 			         <span th:each="entry: ${element}">

@@ -17,7 +17,6 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
@@ -40,10 +39,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	
 	@Autowired
 	UserAppRepositoryCustom userAppRepositoryCustom;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
-	
+
 	@Autowired
 	ContextRepository contextRepository;
 	

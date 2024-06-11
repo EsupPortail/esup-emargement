@@ -38,6 +38,7 @@ import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.TagCheckerService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -109,20 +110,24 @@ public class Individucontroller {
 	@Resource
 	HelpService helpService;
 	
+	@Autowired
+	ToolUtil toolUtil;
+	
 	@Value("${emargement.esupsignature.url}")
 	private String urlEsupsignature;
 	
 	private final static String ITEM = "individu";
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
-		return  ITEM;
+	public static String getActiveMenu() {
+		return ITEM;
 	}
 	
 	@GetMapping(value = "/manager/individu")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", 
 	value="eppnTagChecker") String eppnTagChecker, @RequestParam(defaultValue = "", value="idGroupe") String idGroupe, @RequestParam(defaultValue = "", value="sessions") Long sessions,
-			@RequestParam(defaultValue = "", value="sessionEpreuve") Long sessionEpreuveId,	@RequestParam(value="annee", required = false) String annee, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1){
+			@RequestParam(defaultValue = "", value="sessionEpreuve") Long sessionEpreuveId,	@RequestParam(value="annee", required = false) String annee, 
+			@RequestParam(value="searchAbsences", required = false) String searchAbsences, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1){
 		if(!identifiantTagCheck.isEmpty()) {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
@@ -193,13 +198,30 @@ public class Individucontroller {
 			model.addAttribute("annee", annee);
 			model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
 		}else if(sessionEpreuveId!=null) {
-		//	List<SessionEpreuve> ses = sessionEpreuveRepository.findByNomSessionEpreuve(nomSessionEpreuve);
-		//	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveIn(ses);
 			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
 			tagCheckService.setNomPrenomTagChecks(tcs, false, false);
 			model.addAttribute("activite", sessionEpreuveRepository.findById(sessionEpreuveId).get());	
 			model.addAttribute("activitePage", tcs);
 			model.addAttribute("nbBadgeage", tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(sessionEpreuveId));
+		}else if(searchAbsences!=null) {
+			List<TagCheck> tcs = new ArrayList<>();
+			if ("week".equals(searchAbsences) || "month".equals(searchAbsences)) {
+				Date[] weekDates = toolUtil.getIntervalDates(searchAbsences);
+				Date dateDebut = weekDates[0];
+				Date dateFin = weekDates[1];
+				tcs = tagCheckRepository
+						.findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+								dateDebut, dateFin, dateDebut, dateFin, dateDebut, dateFin);
+			} else if ("year".equals(searchAbsences)) {
+				tcs = tagCheckRepository.findByTagDateIsNullAndSessionEpreuveAnneeUniv(
+						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			} else if ("exempt".equals(searchAbsences)) {
+				tcs = tagCheckRepository.findByIsExemptTrueAndSessionEpreuveAnneeUniv(
+						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			}
+			tagCheckService.setNomPrenomTagChecks(tcs, true, true);
+			model.addAttribute("absencesPage", tcs);
+			model.addAttribute("choice", searchAbsences);
 		}
 		
 		model.addAttribute("types", personService.getTypesPerson());
@@ -207,6 +229,8 @@ public class Individucontroller {
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
 		return "manager/individu/index";
 	}
+	
+
 	
     @GetMapping("/manager/individu/search")
     @ResponseBody

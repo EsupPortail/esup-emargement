@@ -866,6 +866,21 @@ function initTablePresence(sortDate){
 	});
 }
 
+function getNbItems(table) {
+	var dataMap = {};
+	table.rows().every(function() {
+		var rowNode = this.node();
+		$(rowNode).find('.degree').each(function() {
+			var cellData = table.cell($(this).closest('td')).node().dataset.degree;
+			dataMap[cellData] = (dataMap[cellData] || 0) + 1;
+		});
+	});
+	var dataString = Object.keys(dataMap).map(function(key) {
+		return key + "@" + dataMap[key];
+	}).join(",");
+	return dataString;
+}
+
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
 	//Autocomplete
@@ -1998,12 +2013,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 		var r = [];
+		var text = [];
 		checkedNodes.forEach(function(nodeId) {
 			var node = data.instance.get_node(nodeId);
+			text.push(node.text);
 			r.push(node.id);
 		});
 		$("#idList").val(r.join(', '));
-		$("#idListImport").val(r.join(', '));
+		$("#idListImport").val(r.join(','));
+		$("#idListTask").val(r.join(', '));
+		$("#textListTask").val(text.join(', '));
 	}).jstree({
 		"checkbox": {
 			"keep_selected_style": false,
@@ -2082,8 +2101,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
 							}
 						},
-						{ type: 'date-eu', targets: 6 },
-						{ type: 'date-eu', targets: 2 }
+						{ type: 'date-eu', targets: 'dateItem'}
 					],
 					select: {
 						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
@@ -2098,26 +2116,29 @@ document.addEventListener('DOMContentLoaded', function() {
 						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 					}
 				});
+				$("#nbItems").val(getNbItems(table));
 			},
 			error: function(error) {
 				console.log('Error: ' + error);
 			}
 		});
 	});
-
-	$("#displayEventsImport").submit(function(event) {
-		event.preventDefault();
-		$("#spinnerLoad").removeClass("d-none");
-		$.ajax({
-			url: emargementContextUrl + "/manager/adeCampus/importEvents",
-			type: "POST",
-			data: $("#displayEventsImport").serialize(), // Serialize form data
-			success: function() {
-				$('#displayEvents').submit();
-			},
-			error: function(error) {
-				console.log("Error: " + error);
-			}
+	
+	$("#importBtn").on('click', function() {
+		$("#displayEventsImport").submit(function(event) {
+			event.preventDefault();
+			$("#spinnerLoad").removeClass("d-none");
+			$.ajax({
+				url: emargementContextUrl + "/manager/adeCampus/importEvents",
+				type: "POST",
+				data: $("#displayEventsImport").serialize(), // Serialize form data
+				success: function() {
+					$('#displayEvents').submit();
+				},
+				error: function(error) {
+					console.log("Error: " + error);
+				}
+			});
 		});
 	});
 
@@ -2213,8 +2234,12 @@ document.addEventListener('DOMContentLoaded', function() {
 				{ extend: 'print', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } }
 			]
 		}
+		//assiduité absences
+		$("#searchAbsences").on('change', function() {
+			$("#formSearch").submit();
+		});
 	}
-	
+
 	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
 		title = $(dataTable.table().node()).attr('data-export-title');
 	});
@@ -2241,19 +2266,19 @@ document.addEventListener('DOMContentLoaded', function() {
 		language: {
 			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 		},columnDefs: [
-				{
-					targets: 'dateItem',
-					type: 'datetime-moment', // Use the datetime-moment plugin
-					render: function(data, type, row) {
-						if (!data) { // Check if data is empty
-							return ''; // Return empty string if data is empty
-						}
-						if (type === 'sort' || type === 'type') {
-							return moment(data, 'DD/MM/YY').unix();
-						}
-						return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
 					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY').unix();
+					}
+					return moment(data, 'DD/MM/YY').format('DD/MM/YY');
 				}
-			]
+			}
+		]
 	});
 });

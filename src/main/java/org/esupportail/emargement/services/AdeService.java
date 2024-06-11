@@ -15,12 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,11 +36,13 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
 import org.esupportail.emargement.domain.AdeInstructorBean;
 import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
@@ -76,6 +75,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -116,69 +116,68 @@ public class AdeService {
 	private String encryptedUrl;
 
 	@Autowired
-	PrefsRepository prefsRepository;
+	private PrefsRepository prefsRepository;
 	
 	@Autowired
-	LocationRepository locationRepository;
+	private LocationRepository locationRepository;
 	
 	@Autowired	
-	SessionLocationRepository sessionLocationRepository;
+	private SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
-	CampusRepository campusRepository;
+	private CampusRepository campusRepository;
 	
 	@Autowired
-	TypeSessionRepository typeSessionRepository;
+	private TypeSessionRepository typeSessionRepository;
 	
 	@Autowired
-	ContextRepository contextRepository;
+	private ContextRepository contextRepository;
 	
 	@Autowired
-	TagCheckerRepository tagCheckerRepository;
+	private TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
-	LdapUserRepository ldapUserRepository;
+	private LdapUserRepository ldapUserRepository;
 	
 	@Autowired
-	TagCheckRepository tagCheckRepository;
+	private TagCheckRepository tagCheckRepository;
 	
 	@Autowired
-	UserAppRepository userAppRepository;
+	private UserAppRepository userAppRepository;
 	
 	@Autowired
-	SessionEpreuveRepository sessionEpreuveRepository;
+	private SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
-	PersonRepository personRepository;
+	private PersonRepository personRepository;
 	
     @Resource 
-    PreferencesService preferencesService;
+    private PreferencesService preferencesService;
     
     @Resource 
-    SessionEpreuveService sessionEpreuveService;
+    private SessionEpreuveService sessionEpreuveService;
     
     @Resource    
-    DataEmitterService dataEmitterService;
+    private DataEmitterService dataEmitterService;
 
     @Resource
-    AppliConfigService appliConfigService;
+    private AppliConfigService appliConfigService;
     
 	@Resource
-	LogService logService;
+	private LogService logService;
 	
     @Resource 
-    LdapService ldapService;
+    private LdapService ldapService;
     
     @Resource 
-    GroupeService groupeService;
+    private GroupeService groupeService;
     
-    public String getFatherIdResource(String sessionId, String idItem, String category, String tree) throws IOException {
+    private String getFatherIdResource(String sessionId, String idItem, String category, String tree){
 		String fatherId = "0";
 		String detail = "2";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String url = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree="+ tree + "&detail=" + detail + 
 				"&category=" + category + idParam;
-		log.debug("Fatherid  " + category + " : " + url);
 		try {
 			Document doc = getDocument(url);
 			doc.getDocumentElement().normalize();
@@ -195,16 +194,16 @@ public class AdeService {
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération du FatherId de : " + category);
+			log.error("Erreur lors de la récupération du FatherId de : " + category, e);
 		}
     	return fatherId;
     }
 
-	public List<AdeClassroomBean> getListClassrooms(String sessionId, String fatherId, String idItem, List<Long> selectedIds)  throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public List<AdeClassroomBean> getListClassrooms(String sessionId, String fatherId, String idItem, List<Long> selectedIds)  throws  ParseException {
 		String detail = "9";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom&fatherIds=" + fatherId + idParam;
-		List<AdeClassroomBean> adeBeans = new ArrayList<AdeClassroomBean>();
+		List<AdeClassroomBean> adeBeans = new ArrayList<>();
 		try {
 			Document doc = getDocument(urlClassroom);
 			doc.getDocumentElement().normalize();
@@ -245,16 +244,16 @@ public class AdeService {
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la liste des salles, url : " + urlClassroom);
+			log.error("Erreur lors de la récupération de la liste des salles, url : " + urlClassroom, e);
 		}
 		return adeBeans;
 	}
 	
-	public List<AdeInstructorBean> getListInstructors(String sessionId, String fatherId, String idItem) throws IOException, ParserConfigurationException, SAXException {
+	public List<AdeInstructorBean> getListInstructors(String sessionId, String fatherId, String idItem) {
 		String detail = "10";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlInstructors = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=instructor&fatherIds=" + fatherId + idParam;
-		List<AdeInstructorBean> adeBeans = new ArrayList<AdeInstructorBean>();
+		List<AdeInstructorBean> adeBeans = new ArrayList<>();
 		try {
 			Document doc = getDocument(urlInstructors);
 			doc.getDocumentElement().normalize();
@@ -283,164 +282,103 @@ public class AdeService {
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la liste des enseignants, url : " + urlInstructors);
+			log.error("Erreur lors de la récupération de la liste des enseignants, url : " + urlInstructors, e);
 		}
 		return adeBeans;
 	}
 	
-	public Map<String, String> getClassroomsList(String sessionId) throws IOException, ParserConfigurationException, SAXException {
-		HashMap<String, String> mapClassrooms = new HashMap<String, String>();
-		String detail = "8";
-		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" +detail + "&category=classroom";
-		try {
-			Document doc = getDocument(urlClassroom);
-			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("category");
+	public Map<String, String> getClassroomsList(String sessionId) {
+	    HashMap<String, String> mapClassrooms = new HashMap<>();
+	    String detail = "8";
+	    String urlClassroom = String.format("%s?sessionId=%s&function=getResources&tree=true&detail=%s&category=classroom",
+	                                         urlAde, sessionId, detail);
+	    try {
+	        Document doc = getDocument(urlClassroom);
+	        doc.getDocumentElement().normalize();
+	        NodeList categories = doc.getElementsByTagName("category");
 
-			if(list.getLength() == 0) {
-				log.info("Aucune salle trouvée!");
-			}else {
-				for (int temp = 0; temp < list.getLength(); temp++) {
-					Node node = list.item(temp);
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						Element element = (Element) node; 
-						NodeList branches = element.getElementsByTagName("branch");
-						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-							Node node2 = branches.item(temp2);
-							if (node2.getParentNode().equals(node)) {
-								Element element2 = (Element) node2; 
-								mapClassrooms.put(element2.getAttribute("id"), element2.getAttribute("name"));
-							}
-						}
-					}
-				}
-			}
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la map des salles, url : " + urlClassroom);
-		}
-		return sortByValue(mapClassrooms);
+	        if (categories.getLength() == 0) {
+	            log.info("No classrooms found!");
+	        } else {
+	            for (int i = 0; i < categories.getLength(); i++) {
+	                Node categoryNode = categories.item(i);
+	                if (categoryNode.getNodeType() == Node.ELEMENT_NODE) {
+	                    Element categoryElement = (Element) categoryNode;
+	                    NodeList branches = categoryElement.getElementsByTagName("branch");
+	                    for (int j = 0; j < branches.getLength(); j++) {
+	                        Node branchNode = branches.item(j);
+	                        if (branchNode.getParentNode().equals(categoryNode)) {
+	                            Element branchElement = (Element) branchNode;
+	                            mapClassrooms.put(branchElement.getAttribute("id"), branchElement.getAttribute("name"));
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    } catch (ParserConfigurationException | SAXException | IOException e) {
+	        log.error("Error while retrieving the classrooms map, URL: {}", urlClassroom, e);
+	    }
+	    return sortByValue(mapClassrooms);
 	}
 	
-    public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId, String activityId) throws IOException {
-    	String url = null;
-    	if(activityId != null) {
-    		url = urlAde + "?sessionId=" + sessionId + "&function=getActivities&id="+ activityId + "&detail=9";
-    	}else {
-    		url = urlAde + "?sessionId=" + sessionId + "&function=getActivities&resources="+ resourceId + "&detail=9";
-    	}
-    	Map<String, AdeResourceBean> mapActivities = new HashMap<String, AdeResourceBean>();
-		try {
-			Document doc;
-			doc = getDocument(url);
-			NodeList list = doc.getElementsByTagName("activities");
-			for (int temp = 0; temp < list.getLength(); temp++) {
-				Node node = list.item(temp);
-				if (node.getNodeType() == Node.ELEMENT_NODE) {
-					Element element = (Element) node; 
-					NodeList branches = element.getElementsByTagName("activity");
-					for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-						Node node2 = branches.item(temp2);
-						if (node2.getParentNode().equals(node)) {
-							Element element2 = (Element) node2;
-							AdeResourceBean  adeResourceBean = new AdeResourceBean();
-							adeResourceBean.setTypeEvent(element2.getAttribute("type"));
-							mapActivities.put(element2.getAttribute("id"), adeResourceBean);
-						}
-					}
-				}
-			}			
-		} catch (ParserConfigurationException | SAXException e) {
-			log.error("erreur lors de la récupération du type d'évènement Ade Campus", e);
-		}
+	public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId, String activityId) throws IOException {
+	    String url = String.format("%s?sessionId=%s&detail=9&function=getActivities%s",
+	                                urlAde, sessionId, activityId != null ? "&id=" + activityId : "&resources=" + resourceId);
+	    Map<String, AdeResourceBean> mapActivities = new HashMap<>();
 
-		return mapActivities;
+	    try {
+	        Document doc = getDocument(url);
+	        NodeList activities = doc.getElementsByTagName("activity");
+
+	        for (int i = 0; i < activities.getLength(); i++) {
+	            Element activityElement = (Element) activities.item(i);
+	            AdeResourceBean adeResourceBean = new AdeResourceBean();
+	            adeResourceBean.setTypeEvent(activityElement.getAttribute("type"));
+	            mapActivities.put(activityElement.getAttribute("id"), adeResourceBean);
+	        }
+	    } catch (ParserConfigurationException | SAXException e) {
+	    	log.error("erreur lors de la récupération du type d'évènement Ade Campus", e);
+	    }
+
+	    return mapActivities;
+	}
+	
+    public List<String> getMembersOfEvent(String sessionId, String idResource, String target) {
+        String detail = "13";
+        String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", urlAde, sessionId, idResource, detail);
+
+        List<String> listMembers = new ArrayList<>();
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(urlMembers);
+            doc.getDocumentElement().normalize();
+
+            NodeList resourceList = doc.getElementsByTagName("resource");
+            for (int i = 0; i < resourceList.getLength(); i++) {
+                Element resourceElement = (Element) resourceList.item(i);
+                if ("members".equals(target)) {
+                    NodeList memberList = resourceElement.getElementsByTagName("member");
+                    for (int j = 0; j < memberList.getLength(); j++) {
+                        Element memberElement = (Element) memberList.item(j);
+                        listMembers.add(memberElement.getAttribute("id"));
+                    }
+                } else if ("code".equals(target)) {
+                    String code = resourceElement.getAttribute("code");
+                    listMembers.add(code);
+                }
+            }
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            log.error("Erreur lors de la récupération des membres de l'évènement, url : " + urlMembers, e);
+        }
+        return listMembers;
     }
-
-	public List<String>  getMembersOfEvent(String sessionId, String idResource, String target) {
-		String detail = "13";
-		String urlMembers = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&id=" + idResource + "&detail=" + detail;
-		List<String> listMembers = new ArrayList<String>();
-		try {
-			Document doc = getDocument(urlMembers);
-			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("resources");
-
-			if(list.getLength() == 0) {
-				log.info("Aucun étudiant récupéré.");
-			}else {
-				for (int temp = 0; temp < list.getLength(); temp++) {
-					Node node = list.item(temp);
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						Element element = (Element) node; 
-						NodeList branches = element.getElementsByTagName("resource");
-						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-							Node node2 = branches.item(temp2);
-							if (node2.getParentNode().equals(node)) {
-								Element element2 = (Element) node2; 
-								if("members".equals(target)) {
-									NodeList resource3 = element2.getElementsByTagName("allMembers");
-									for (int temp3 = 0; temp3 < resource3.getLength(); temp3++) {
-										Node node3 = resource3.item(temp3);
-										Element element3 = (Element) node3; 
-										NodeList resource4 = element3.getElementsByTagName("member");
-										for (int temp4 = 0; temp4 < resource4.getLength(); temp4++) {
-											Node node4 = resource4.item(temp4);
-											Element element4 = (Element) node4; 
-											listMembers.add(element4.getAttribute("id"));
-										}
-									}
-								}else if("code".equals(target)) {
-									listMembers.add(element2.getAttribute("code"));
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération des membres de l'évènement, url : " + urlMembers);
-		}
-		return listMembers;
-	}
 	
-	public String getCodeComposante(String sessionId, String id) throws IOException, ParserConfigurationException, SAXException {
-		String detail = "12";
-		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false"
-				+ "&category=trainee&detail=" +detail +"&id=" + id;
-		String code = "";
-		try {
-			Document doc = getDocument(urlAllResources);
-			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("category");
-			if(list.getLength() == 0) {
-				log.info("Aucune composante !");
-			}else {
-				for (int temp = 0; temp < list.getLength(); temp++) {
-					Node node = list.item(temp);
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						Element element = (Element) node; 
-						NodeList branches = element.getElementsByTagName("branch");
-						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-							Node node2 = branches.item(temp2);
-							if (node2.getParentNode().equals(node)) {
-								Element element2 = (Element) node2; 
-									code = element2.getAttribute("code");
-							}
-						}
-					}
-				}
-			}
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération du code composante, url : " + urlAllResources);
-		}
-		return code;
-	}
-	
-	public Map<String, String> getMapComposantesFormations(String sessionId, String category) throws IOException, ParserConfigurationException, SAXException {
+	public Map<String, String> getMapComposantesFormations(String sessionId, String category){
 		String detail = "12";
 		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false&category="
 				+ category + "&detail=" + detail;
-		HashMap<String, String> map = new HashMap<String, String>();
+		HashMap<String, String> map = new HashMap<>();
 		try {
 			Document doc = getDocument(urlAllResources);
 			doc.getDocumentElement().normalize();
@@ -466,18 +404,17 @@ public class AdeService {
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la map, url : " + urlAllResources);
+			log.error("Erreur lors de la récupération de la map, url : " + urlAllResources, e);
 		}
 		return sortByValue(map);
 	}
 
-	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update) throws IOException, ParseException {
 		String detail = "8";
-		List<AdeResourceBean> adeBeans = new ArrayList<AdeResourceBean>();
+		List<AdeResourceBean> adeBeans = new ArrayList<>();
 		if(idEvents != null) {
 			for(Long id : idEvents) {
 				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
-				
 				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
 			}
 		}else {
@@ -504,6 +441,7 @@ public class AdeService {
 					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element element = (Element) node;
 						AdeResourceBean adeResourceBean = new AdeResourceBean();
+						adeResourceBean.setDegreeId(Long.valueOf(resourceId));
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventId(eventId) >0)? true : false;
 						if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)|| update){
@@ -595,7 +533,7 @@ public class AdeService {
 				}
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération des évènements, url : " + url);
+			log.error("Erreur lors de la récupération des évènements, url : " + url, e);
 		}
 	}
 	
@@ -657,7 +595,7 @@ public class AdeService {
 	public Map<String, String> getProjectLists(String sessionId) throws IOException, ParserConfigurationException, SAXException {
 		String detail = "4";
 		String url = urlAde + "?sessionId=" + sessionId + "&function=getProjects&detail=" + detail;
-		HashMap<String, String> mapProjects = new HashMap<String, String>();
+		HashMap<String, String> mapProjects = new HashMap<>();
 		Document doc = getDocument(url);
 		NodeList list = doc.getElementsByTagName("projects");
 		
@@ -710,56 +648,33 @@ public class AdeService {
 		log.info("Ade sessionId : " + sessionId);
 		return sessionId;
 	}
-	private Map<String, String> sortByValue(Map<String, String> unsortMap) {
-		List<Map.Entry<String, String>> list =
-				new LinkedList<Map.Entry<String, String>>(unsortMap.entrySet());
-
-		Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
-			public int compare(Map.Entry<String, String> o1,
-					Map.Entry<String, String> o2) {
-				return (o1.getValue()).compareTo(o2.getValue());
-			}
-		});
-		Map<String, String> sortedMap = new LinkedHashMap<String, String>();
-		for (Map.Entry<String, String> entry : list) {
-			sortedMap.put(entry.getKey(), entry.getValue());
-		}
-		return sortedMap;
+	
+	private Map<String, String> sortByValue(Map<String, String> unsortedMap) {
+	    return unsortedMap.entrySet()
+	            .stream()
+	            .sorted(Map.Entry.comparingByValue())
+	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+	                                      (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 	}
 	
-	//@Async
+	@Async
 	@Transactional
-	public void saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, List<String> campuses, 
-			String eppn, boolean update, String typeSync, List<Long> groupes) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public int saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, Campus campus, 
+			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax) throws ParseException {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
 		int maj = 0;
-		String idProject =  null;
-		if(eppn !=null && !"system".equals(eppn)) {
-		    idProject = prefsRepository.findByUserAppEppnAndNom(eppn, ADE_STORED_PROJET).get(0).getValue();
-	        if(getConnectionProject(idProject, sessionId)==null) {
-				sessionId = getSessionId(true, emargementContext);
-				getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
-		}
-		
+		StopWatch time = new StopWatch( );
+		time.start( );
 		for(AdeResourceBean ade : beans) {
 			SessionEpreuve se = ade.getSessionEpreuve();
 			boolean isUpdateOk = false;
 			Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
 			if(update && se.getDateExamen().compareTo(today)>=0) {
 				if(se.getDateImport() != null && ade.getLastUpdate().compareTo(se.getDateImport())>=0) {
-					Long sessionEpreuveId = se.getId();
+					clearSessionRelatedData(se);
 					isUpdateOk = true;
-					List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
-					tagCheckRepository.deleteAll(tcs);
-					List<TagChecker> tcers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(sessionEpreuveId);
-					tagCheckerRepository.deleteAll(tcers);
-					List<SessionLocation> sls =  sessionLocationRepository.findSessionLocationBySessionEpreuveId(sessionEpreuveId);
-					sessionLocationRepository.deleteAll(sls);
-					se.setDateImport(new Date());
 				}else{
 					log.info("Aucune maj de l'évènement car il est déjà à jour , id stocké : " + ade.getEventId());
 				}
@@ -770,225 +685,255 @@ public class AdeService {
 				se.setDateCreation(new Date());
 			}
 			if(!update || update && isUpdateOk){
-				se.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
-				Calendar c = Calendar.getInstance();
-			    c.setTime(se.getHeureEpreuve());
-			    c.add(Calendar.MINUTE, -15);
-			    Date heureConvocation = c.getTime();
-			    se.setHeureConvocation(heureConvocation);
-				se.setContext(ctx);
-				se.setStatut(Statut.STANDBY);
-				if(se.getTypeBadgeage()==null) {
-					se.setTypeBadgeage(TypeBadgeage.SESSION);
-				}
-				if(campuses != null) {
-					for(String str : campuses) {
-						if(str.contains(ade.getEventId().toString())) {
-							String [] splitCampuses = str.split("@@");
-							Campus campus = campusRepository.findById(Long.valueOf(splitCampuses[1])).get();
-							if(!campus.equals(se.getCampus())){
-								se.setCampus(campus);
-							}
-						}
-					}
-				}
-				
-				se.setDateImport(new Date());
-				se = sessionEpreuveRepository.save(se);
-				String typeEvent= ade.getTypeEvent();
-				TypeSession typeSession = null;
-				if(typeEvent == null) {
-					if(!typeSessionRepository.findByKey("n/a").isEmpty()) {
-						typeSession = typeSessionRepository.findByKey("n/a").get(0);
-					}else {
-						typeSession = new TypeSession();
-						typeSession.setKey("n/a");
-						typeSession.setLibelle("n/a");
-						typeSession.setAddByAdmin(true);
-						typeSession.setComment("Ajouté d'Ade Campus");
-						typeSession.setContext(ctx);
-						typeSession.setDateModification(new Date());
-						typeSession = typeSessionRepository.save(typeSession);
-					}
-				}else {
-					List<TypeSession> typeSessions = typeSessionRepository.findByKey(typeEvent);
-					if(!typeSessions.isEmpty()) {
-						typeSession = typeSessions.get(0);
-					}else {
-						typeSession = new TypeSession();
-						typeSession.setKey(ade.getTypeEvent());
-						typeSession.setLibelle(ade.getTypeEvent());
-						typeSession.setAddByAdmin(true);
-						typeSession.setComment("Ajouté d'Ade Campus");
-						typeSession.setContext(ctx);
-						typeSession.setDateModification(new Date());
-						typeSession = typeSessionRepository.save(typeSession);
-					}
-				}
-				se.setTypeSession(typeSession);
+				processSessionEpreuve(se, campus, ctx);
+				processTypeSession(ade, se, ctx);
 				sessionEpreuveRepository.save(se);
-				//Etudiants
-				if(appliConfigService.isMembersAdeImport()) {
-					List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
-					if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
-						List<String> allMembers = new ArrayList<String>();
-						for(Map<Long, String> map : listAdeTrainees) {
-							for (Entry<Long, String> entry : map.entrySet()) {
-								List<String> membersOfEvent = getMembersOfEvent(sessionId, entry.getKey().toString(), "members");
-								if(!membersOfEvent.isEmpty()) {
-									allMembers.addAll(membersOfEvent);
-								}
-							}
-						}
-						List <String> allCodes = new ArrayList<String>();
-						if(!allMembers.isEmpty()) {
-							for(String id : allMembers) {
-								allCodes.add(getMembersOfEvent(sessionId, id, "code").get(0));
-							}
-						}
-						if(!allCodes.isEmpty()) {
-							for (String code : allCodes) {
-								List<Person> persons = personRepository.findByNumIdentifiant(code);
-								Person person = null;
-								if(!persons.isEmpty()) {
-									person = persons.get(0);
-								}else {
-									person = new Person();
-									person.setContext(ctx);
-									List<LdapUser> ldapUsers = ldapUserRepository.findByNumEtudiantEquals(code);
-									if(!ldapUsers.isEmpty()) {
-										person.setEppn(ldapUsers.get(0).getEppn());
-										person.setNumIdentifiant(code);
-										person.setType("student");
-										personRepository.save(person);
-									}else {
-										log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
-									}
-								}
-								if(!groupes.isEmpty()) {
-									groupeService.addPerson(person, groupes);
-								}
-								TagCheck tc = new TagCheck();
-								//A voir 
-								//tc.setCodeEtape(codeEtape);
-								tc.setContext(ctx);
-								tc.setPerson(person);
-								tc.setSessionEpreuve(se);
-								tagCheckRepository.save(tc);
-							}
-						}
-					}
-				}
-				List<Map<Long, String>> listAdeClassRooms = ade.getClassrooms();
-				List<SessionLocation> sls = new ArrayList<SessionLocation>();
-				if(listAdeClassRooms!= null && !listAdeClassRooms.isEmpty()) {
-					String firstId = listAdeClassRooms.get(0).keySet().toArray()[0].toString();
-					String fatherIdClassroom = getFatherIdResource(sessionId, firstId, "classroom", "true");
-					for(Map<Long, String> map : listAdeClassRooms) {
-						for (Entry<Long, String> entry : map.entrySet()) {
-							List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, fatherIdClassroom, entry.getKey().toString(), null);
-							if(!adeClassroomBeans.isEmpty()) {
-								for(AdeClassroomBean bean : adeClassroomBeans) {
-									Location location = null;
-									Long adeClassRoomId = bean.getIdClassRoom();
-									if(!locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).isEmpty()){
-										location = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).get(0);
-									}else {
-										location = new Location();
-										location.setAdeClassRoomId(adeClassRoomId);
-										location.setAdresse(bean.getChemin());
-										location.setCampus(ade.getSessionEpreuve().getCampus());
-										location.setCapacite(bean.getSize());
-										location.setContext(ctx);
-										location.setNom(bean.getNom());
-										locationRepository.save(location);
-									}
-									SessionLocation sl = new SessionLocation();
-									sl.setCapacite(location.getCapacite());
-									sl.setContext(ctx);
-									sl.setLocation(location);
-									sl.setSessionEpreuve(se);
-									sl.setPriorite(1);
-									SessionLocation savesl = sessionLocationRepository.save(sl);
-									sls.add(savesl);
-								}
-							}
-					    }
-					}
-				}
+				processStudents(se, ade, sessionId, groupes, ctx);
+				List<SessionLocation> sls = new ArrayList<>();
+				processLocations(se, ade, sessionId, ctx, sls);
 				//repartition
 				sessionEpreuveService.executeRepartition(se.getId(), "alpha");
-				List<Map<Long, String>> listAdeInstructors = ade.getInstructors();
-				if(listAdeInstructors!= null &&!listAdeInstructors.isEmpty()) {
-					String firstId = listAdeInstructors.get(0).keySet().toArray()[0].toString();
-					String fatherIdInstructor = getFatherIdResource(sessionId, firstId, "instructor", "true");
-					for(Map<Long, String> map : listAdeInstructors) {
-						for (Entry<Long, String> entry : map.entrySet()) {
-							List<AdeInstructorBean> adeInstructorBeans = getListInstructors(sessionId, fatherIdInstructor, entry.getKey().toString());
-							for(AdeInstructorBean bean : adeInstructorBeans) {
-								Long adeInstructorId = bean.getIdInstructor();
-								UserApp userApp = null;
-								List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
-								if(!ldapUsers.isEmpty()) {
-									userApp = userAppRepository.findByEppnAndContext(ldapUsers.get(0).getEppn(), ctx);
-									if(userApp != null) {
-										userApp.setAdeInstructorId(adeInstructorId);
-									}else {
-										userApp = new UserApp();
-										userApp.setContext(ctx);
-										userApp.setAdeInstructorId(adeInstructorId);
-										userApp.setDateCreation(new Date());
-										userApp.setContextPriority(0);
-										userApp.setEppn(ldapUsers.get(0).getEppn());
-										userApp.setUserRole(Role.MANAGER);
-									}
-									userAppRepository.save(userApp);
-								}
-								//On associe à un surveillant
-								if(!sls.isEmpty()) {
-									for(SessionLocation sl : sls) {
-										if(userApp != null) {
-											TagChecker tc =  new TagChecker();
-											tc.setContext(ctx);
-											tc.setUserApp(userApp);
-											tc.setSessionLocation(sl);
-											tagCheckerRepository.save(tc);
-										}else {
-											log.warn("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
-													", n'est pas dans le ldap "  );
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				processInstructors(ade, sessionId, ctx, sls);
 				i++;
 				dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
 				if(update && isUpdateOk){
 					maj++;
 				}
+				if(dureeMax != null && time.getTime() > dureeMax*1000) {
+					log.info("Temps d'import ADE Campus dépassé : " + time.getTime() + "secondes");
+					break;
+				}
 			}
 		}
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String eppn = (auth!=null)?  auth.getName() : "system";
 		if(update) {
 			log.info("Bilan syncrhonisation ADE : " + maj + " importé(s)");
 			logService.log(ACTION.ADE_SYNC, RETCODE.SUCCESS, typeSync + " - Nb maj sessions : " + maj, eppn, null, emargementContext, eppn);
 		}else {
 			logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
 		}
+		return i;
 	}
+	
+	private void clearSessionRelatedData(SessionEpreuve se) {
+		Long sessionEpreuveId = se.getId();
+		List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
+		tagCheckRepository.deleteAll(tcs);
+		List<TagChecker> tcers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(sessionEpreuveId);
+		tagCheckerRepository.deleteAll(tcers);
+		List<SessionLocation> sls =  sessionLocationRepository.findSessionLocationBySessionEpreuveId(sessionEpreuveId);
+		sessionLocationRepository.deleteAll(sls);
+		se.setDateImport(new Date());
+	}
+	
+	private void processSessionEpreuve(SessionEpreuve se, Campus campus, Context ctx) {
+		se.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+		Calendar c = Calendar.getInstance();
+	    c.setTime(se.getHeureEpreuve());
+	    c.add(Calendar.MINUTE, -15);
+	    Date heureConvocation = c.getTime();
+	    se.setHeureConvocation(heureConvocation);
+		se.setContext(ctx);
+		se.setStatut(Statut.STANDBY);
+		if(se.getTypeBadgeage()==null) {
+			se.setTypeBadgeage(TypeBadgeage.SESSION);
+		}
+		if(campus != null && !campus.equals(se.getCampus())){
+			se.setCampus(campus);
+		}
+		se.setDateImport(new Date());
+		sessionEpreuveRepository.save(se);
+	}
+	
+	private void processTypeSession(AdeResourceBean ade, SessionEpreuve se, Context ctx) {
+		TypeSession typeSession = null;
+		String typeEvent = ade.getTypeEvent();
+		if(typeEvent == null) {
+			if(!typeSessionRepository.findByKey("n/a").isEmpty()) {
+				typeSession = typeSessionRepository.findByKey("n/a").get(0);
+			}else {
+				typeSession = new TypeSession();
+				typeSession.setKey("n/a");
+				typeSession.setLibelle("n/a");
+				typeSession.setAddByAdmin(true);
+				typeSession.setComment("Ajouté d'Ade Campus");
+				typeSession.setContext(ctx);
+				typeSession.setDateModification(new Date());
+				typeSession = typeSessionRepository.save(typeSession);
+			}
+		}else {
+			List<TypeSession> typeSessions = typeSessionRepository.findByKey(typeEvent);
+			if(!typeSessions.isEmpty()) {
+				typeSession = typeSessions.get(0);
+			}else {
+				typeSession = new TypeSession();
+				typeSession.setKey(ade.getTypeEvent());
+				typeSession.setLibelle(ade.getTypeEvent());
+				typeSession.setAddByAdmin(true);
+				typeSession.setComment("Ajouté d'Ade Campus");
+				typeSession.setContext(ctx);
+				typeSession.setDateModification(new Date());
+				typeSession = typeSessionRepository.save(typeSession);
+			}
+		}
+		se.setTypeSession(typeSession);
+	}
+	
+	private void processStudents(SessionEpreuve se, AdeResourceBean ade, String sessionId, List<Long> groupes, Context ctx) {
+		if(appliConfigService.isMembersAdeImport()) {
+			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+			if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
+				List<String> allMembers = new ArrayList<>();
+				for(Map<Long, String> map : listAdeTrainees) {
+					for (Entry<Long, String> entry : map.entrySet()) {
+						List<String> membersOfEvent = getMembersOfEvent(sessionId, entry.getKey().toString(), "members");
+						if(!membersOfEvent.isEmpty()) {
+							allMembers.addAll(membersOfEvent);
+						}
+					}
+				}
+				List <String> allCodes = new ArrayList<>();
+				if(!allMembers.isEmpty()) {
+					for(String id : allMembers) {
+						allCodes.add(getMembersOfEvent(sessionId, id, "code").get(0));
+					}
+				}
+				Map<String, LdapUser> users = ldapService.getLdapUsersFromNumList(allCodes, "supannEtuId");
+				if(!allCodes.isEmpty()) {
+					for (String code : allCodes) {
+						List<Person> persons = personRepository.findByNumIdentifiant(code);
+						Person person = null;
+						if(!persons.isEmpty()) {
+							person = persons.get(0);
+						}else {
+							person = new Person();
+							person.setContext(ctx);
+							if(!users.isEmpty()) {
+								person.setEppn(users.get(code).getEppn());
+								person.setNumIdentifiant(code);
+								person.setType("student");
+								personRepository.save(person);
+							}else {
+								log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+							}
+						}
+						TagCheck tc = new TagCheck();
+						//A voir 
+						//tc.setCodeEtape(codeEtape);
+						tc.setContext(ctx);
+						tc.setPerson(person);
+						tc.setSessionEpreuve(se);
+						tagCheckRepository.save(tc);
+						if(!groupes.isEmpty()) {
+							groupeService.addPerson(person, groupes);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) throws ParseException {
+		List<Map<Long, String>> listAdeClassRooms = ade.getClassrooms();
+		if(listAdeClassRooms!= null && !listAdeClassRooms.isEmpty()) {
+			String firstId = listAdeClassRooms.get(0).keySet().toArray()[0].toString();
+			String fatherIdClassroom = getFatherIdResource(sessionId, firstId, "classroom", "true");
+			for(Map<Long, String> map : listAdeClassRooms) {
+				for (Entry<Long, String> entry : map.entrySet()) {
+					List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, fatherIdClassroom, entry.getKey().toString(), null);
+					if(!adeClassroomBeans.isEmpty()) {
+						for(AdeClassroomBean bean : adeClassroomBeans) {
+							Location location = null;
+							Long adeClassRoomId = bean.getIdClassRoom();
+							if(!locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).isEmpty()){
+								location = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).get(0);
+							}else {
+								location = new Location();
+								location.setAdeClassRoomId(adeClassRoomId);
+								location.setAdresse(bean.getChemin());
+								location.setCampus(ade.getSessionEpreuve().getCampus());
+								location.setCapacite(bean.getSize());
+								location.setContext(ctx);
+								location.setNom(bean.getNom());
+								locationRepository.save(location);
+							}
+							SessionLocation sl = new SessionLocation();
+							sl.setCapacite(location.getCapacite());
+							sl.setContext(ctx);
+							sl.setLocation(location);
+							sl.setSessionEpreuve(se);
+							sl.setPriorite(1);
+							SessionLocation savesl = sessionLocationRepository.save(sl);
+							sls.add(savesl);
+						}
+					}
+			    }
+			}
+		}
+	}
+	
+	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) {
+		List<Map<Long, String>> listAdeInstructors = ade.getInstructors();
+		if(listAdeInstructors!= null &&!listAdeInstructors.isEmpty()) {
+			String firstId = listAdeInstructors.get(0).keySet().toArray()[0].toString();
+			String fatherIdInstructor = getFatherIdResource(sessionId, firstId, "instructor", "true");
+			for(Map<Long, String> map : listAdeInstructors) {
+				for (Entry<Long, String> entry : map.entrySet()) {
+					List<AdeInstructorBean> adeInstructorBeans = getListInstructors(sessionId, fatherIdInstructor, entry.getKey().toString());
+					for(AdeInstructorBean bean : adeInstructorBeans) {
+						Long adeInstructorId = bean.getIdInstructor();
+						UserApp userApp = null;
+						List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
+						if(!ldapUsers.isEmpty()) {
+							userApp = userAppRepository.findByEppnAndContext(ldapUsers.get(0).getEppn(), ctx);
+							if(userApp != null) {
+								userApp.setAdeInstructorId(adeInstructorId);
+							}else {
+								userApp = new UserApp();
+								userApp.setContext(ctx);
+								userApp.setAdeInstructorId(adeInstructorId);
+								userApp.setDateCreation(new Date());
+								userApp.setContextPriority(0);
+								userApp.setEppn(ldapUsers.get(0).getEppn());
+								userApp.setUserRole(Role.MANAGER);
+							}
+							userAppRepository.save(userApp);
+						}
+						//On associe à un surveillant
+						if(!sls.isEmpty()) {
+							for(SessionLocation sl : sls) {
+								if(userApp != null) {
+									TagChecker tc =  new TagChecker();
+									tc.setContext(ctx);
+									tc.setUserApp(userApp);
+									tc.setSessionLocation(sl);
+									tagCheckerRepository.save(tc);
+								}else {
+									log.warn("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
+											", n'est pas dans le ldap "  );
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, 
 			String codeComposante, List<String> idList) throws IOException, ParserConfigurationException, SAXException, ParseException{
         List<AdeResourceBean> adeResourceBeans = new ArrayList<>();
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<LdapUser> ldapUsers = ldapService.getUsers(auth.getName());
+
 		if("myEvents".equals(codeComposante)) {
+	        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			List<LdapUser> ldapUsers = ldapService.getUsers(auth.getName());
 			if(!ldapUsers.isEmpty()) {
 				String supannEmpId = ldapUsers.get(0).getNumPersonnel();
 				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, false);
 			}	
-		}else if(idList !=null && !idList.isEmpty()) {
+		}else if(idList !=null && !idList.isEmpty()){
 			for(String id : idList) {
 		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, false);
 		        adeResourceBeans.addAll(beansTrainee);
@@ -1015,13 +960,12 @@ public class AdeService {
 		}
 	}
 	
-	public String formatDate(String date) {
+	public static String formatDate(String date) {
 		String [] splitDate = date.split("-");
 		return splitDate[1].concat("/").concat(splitDate[2]).concat("/").concat(splitDate[0]);
 	}
 	
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync) throws IOException, ParserConfigurationException, SAXException, ParseException {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String sessionId = getSessionId(false, emargementContext);
 		Map<Long, List<SessionEpreuve>> mapSE = seList.stream().filter(t -> t.getAdeProjectId() != null)
 		        .collect(Collectors.groupingBy(t -> t.getAdeProjectId()));
@@ -1037,8 +981,7 @@ public class AdeService {
 	        
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true);
 			if(!beans.isEmpty()) {
-				String eppn = (auth!=null)?  auth.getName() : "system";
-				saveEvents(beans, sessionId, emargementContext, null, eppn, true, typeSync, null);
+				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
 			}
 	    }
 	}
@@ -1142,5 +1085,47 @@ public class AdeService {
 	        	removeAttributes((Element) childNode);
 	        }
 	    }
+	}
+	
+	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
+			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
+			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax)
+			throws IOException, ParserConfigurationException, SAXException, ParseException {
+		int nbImports = 0;
+		if (idEvents != null) {
+			String sessionId = getSessionId(false, emargementContext);
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if(idProject == null) {
+				idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0)
+									.getValue();
+			}
+			if (getConnectionProject(idProject, sessionId) == null) {
+				sessionId = getSessionId(true, emargementContext);
+				getConnectionProject(idProject, sessionId);
+				log.info("Récupération du projet Ade " + idProject);
+			}
+			if(beans == null) {
+				beans = getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe,
+						codeComposante, idList);
+			}
+
+			if (!beans.isEmpty()) {
+				List<Long> groupes = new ArrayList<>();
+				if (appliConfigService.isAdeCampusGroupeAutoEnabled()) {
+					if (existingGroupe != null) {
+						groupes.addAll(existingGroupe);
+					}
+					if (!newGroupe.isEmpty()) {
+						Groupe groupe = groupeService.createNewGroupe(newGroupe, emargementContext,
+								sessionEpreuveService.getCurrentanneUniv(), auth.getName());
+						groupes.add(groupe.getId());
+					}
+				}
+				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax);
+			} else {
+				log.info("Aucun évènement à importer");
+			}
+		}
+		return nbImports;
 	}
 }

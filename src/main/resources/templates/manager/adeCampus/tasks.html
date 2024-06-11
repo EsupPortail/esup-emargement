@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header">
+	    			<div class="row">
+			    		<div class="col-4">
+					    	<h2>Ade Campus<small class="h5"> - synchro</small></h2>
+					    </div>
+					    <div class="col-8">
+						    <div class="row float-end">
+								<div class="col-auto">
+									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
+								</div>						    
+								<div class="col-auto">
+									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
+								</div>
+								<div class="col-auto">
+									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
+										class="btn btn-info">ADE</a>
+								</div>									
+						    </div>
+					    </div> 
+	    			</div>
+		    	</div>
+	 			<div class="card-body" id="adeTasks">
+	 			<div class="alert alert-info">
+					<span class="fw-bold">Exécution de l'import : </span> <span class="me-5" th:text="${cronExpression}"></span>
+					<span class="fw-bold">Durée de l'import : </span> <span th:text="${dureeMaxImport}"></span>
+				</div>
+				<table class="table table-bordered table-striped tableFoo" id="grid"
+					style="width: 100%">
+					<thead>
+						<tr>
+							<th>Statut</th>
+							<th>Libellé</th>
+							<th>Site</th>
+							<th>Début</th>
+							<th>Fin</th>
+							<th>Params</th>
+							<th>Création</th>
+							<th>Début import</th>
+							<th>Fin import</th>
+							<th>Nb évènements</th>
+							<th>Nb imports</th>
+							<th class="text-center">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="task : ${tasksList}">
+							<td th:text="${#messages.msg('task.' + task.status.name())}"></td>
+							<td th:text="${task.libelle}"></td>
+							<td th:text="${task.campus.site}"></td>
+							<td th:text="${#dates.format(task.dateDebut,'dd-MM-yyyy')}"></td>
+							<td th:text="${#dates.format(task.dateFin,'dd-MM-yyyy')}"></td>							
+							<td th:text="${task.param}"></td>
+							<td th:text="${#dates.format(task.dateCreation, 'dd/MM/YY')}"></td>
+							<td th:text="${#dates.format(task.dateExecution, 'dd/MM/YY HH:mm:ss')}"></td>
+							<td th:text="${#dates.format(task.dateFinExecution, 'dd/MM/YY HH:mm:ss')}"></td>
+							<td class="text-center" th:text="${task.nbItems}"></td>
+							<td class="text-center" th:text="${task.nbModifs}"></td>
+							<td class="text-center">
+							<form th:action="@{/{ctx}/manager/adeCampus/task/importEvents(ctx=${eContext})}" method="post">
+								<input type="hidden" name="task" th:value="${task.id}">
+								<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${task.id }"  class="center ms-2" title="Supprimer">
+									<i class="fa fa-trash text-danger"></i></a>
+								<button th:if="${task.status.name() ne 'ENDED'}" type="submit" class="btn btn-success btn-sm ms-2" title="Import manuel"><i class="fa-solid fa-hand"></i></button>
+							</form>
+
+								<div class="modal fade in" th:id="modal-warning+${task.id}" >
+								    <div class="modal-dialog">
+								        <div class="modal-content">
+								        	<form id="command" th:action="@{/{ctx}/manager/adeCampus/tasks/delete/{id}(id=${task.id},ctx=${eContext})}" method="POST">
+									        	<input type="hidden" name="_method" value="delete" />
+									            <div class="modal-header">
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									            </div>
+									            <div class="modal-body">
+									                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette tâche: <br />
+									                	 <span th:text="${task.libelle}" class="font-weight-bold"></span> ?</div>
+									            </div>
+									            <div class="modal-footer">
+									                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+									                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+									            </div>
+								            </form>
+								        </div>
+								    </div>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>
