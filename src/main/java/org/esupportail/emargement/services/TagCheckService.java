@@ -499,11 +499,31 @@ public class TagCheckService {
 		int count = 0;
 		
 		if(!tagChecks.isEmpty()) {
+			// récupération des informations du LDAP pour tous les inscrits
+			List<String> eppnList = tagChecks.stream().filter(tagCheck -> tagCheck.getPerson()!=null)
+					.map(tagCheck -> tagCheck.getPerson().getEppn())
+					.collect(Collectors.toList());
+			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
+
+			Map<String, LdapUser> mapTagCheckerLdapUsers = new HashMap<>();
+			if(setTagChecker) {
+				// récupération des informations du LDAP pour tous les surveillants
+				List<String> tagCheckerList = tagChecks.stream().filter(tagCheck -> tagCheck.getTagChecker() != null)
+						.map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
+						.collect(Collectors.toList());
+				mapTagCheckerLdapUsers = ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName");
+			}
+
+			Map<String, LdapUser> mapTcProxyLdapUsers = new HashMap<>();
+			if(setProxy) {
+				// récupération des informations du LDAP pour toutes les procurations
+				List<String> tcProxyList = tagChecks.stream().filter(tagCheck -> tagCheck.getProxyPerson() != null)
+						.map(tagCheck -> tagCheck.getProxyPerson().getEppn())
+						.collect(Collectors.toList());
+				mapTcProxyLdapUsers = ldapService.getLdapUsersFromNumList(tcProxyList, "eduPersonPrincipalName");
+			}
+
 			for(TagCheck tc : tagChecks) {
-				List<String> eppnList = tagChecks.stream().filter(tagCheck -> tagCheck.getPerson()!=null)
-					    .map(tagCheck -> tagCheck.getPerson().getEppn())
-					    .collect(Collectors.toList());
-				Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
 				if(tc.getPerson()!=null) {
 					LdapUser ldapUser = mapLdapUsers.get(tc.getPerson().getEppn());
 					if(ldapUser!=null) {
@@ -517,35 +537,27 @@ public class TagCheckService {
 				}else if(tc.getGuest()!=null) {
 					tc.setNomPrenom(tc.getGuest().getNom().concat(tc.getGuest().getPrenom()));
 				}
-				if(setTagChecker) {
-					List<String> tagCheckerList = tagChecks.stream().filter(tagCheck -> tagCheck.getTagChecker() != null)
-						    .map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
-						    .collect(Collectors.toList());
-					Map<String, LdapUser> mapTagCheckerLdapUsers = ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName");
-					if(tc.getTagChecker()!=null) {
-						if(!mapTagCheckerLdapUsers.isEmpty()) {
-							LdapUser ldapUser = mapTagCheckerLdapUsers.get(tc.getTagChecker().getUserApp().getEppn());
+
+				if(setTagChecker && tc.getTagChecker()!=null) {
+					tc.getTagChecker().getUserApp().setNom("");
+					tc.getTagChecker().getUserApp().setPrenom("");
+					if(!mapTagCheckerLdapUsers.isEmpty()) {
+						LdapUser ldapUser = mapTagCheckerLdapUsers.get(tc.getTagChecker().getUserApp().getEppn());
+						if (ldapUser!=null) {
 							tc.getTagChecker().getUserApp().setNom(ldapUser.getName());
 							tc.getTagChecker().getUserApp().setPrenom(ldapUser.getPrenom());
-						}else {
-							tc.getTagChecker().getUserApp().setNom("");
-							tc.getTagChecker().getUserApp().setPrenom("");				
 						}
 					}
 				}
-				if(setProxy) {
-					List<String> tcProxyList = tagChecks.stream().filter(tagCheck -> tagCheck.getProxyPerson() != null)
-						    .map(tagCheck -> tagCheck.getProxyPerson().getEppn())
-						    .collect(Collectors.toList());
-					Map<String, LdapUser> mapTcProxyLdapUsers = ldapService.getLdapUsersFromNumList(tcProxyList, "eduPersonPrincipalName");
-					if(tc.getProxyPerson()!=null) {
-						if(!mapTcProxyLdapUsers.isEmpty()) {
-							LdapUser ldapUser = mapTcProxyLdapUsers.get(tc.getProxyPerson().getEppn());
+
+				if(setProxy && tc.getProxyPerson()!=null) {
+					tc.getProxyPerson().setNom("");
+					tc.getProxyPerson().setPrenom("");
+					if(!mapTcProxyLdapUsers.isEmpty()) {
+						LdapUser ldapUser = mapTcProxyLdapUsers.get(tc.getProxyPerson().getEppn());
+						if (ldapUser!=null) {
 							tc.getProxyPerson().setNom(ldapUser.getName());
 							tc.getProxyPerson().setPrenom(ldapUser.getPrenom());
-						}else {
-							tc.getProxyPerson().setNom("");
-							tc.getProxyPerson().setPrenom("");		
 						}
 					}
 				}
