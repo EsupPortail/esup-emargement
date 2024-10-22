@@ -15,12 +15,54 @@
 						    <div class="row float-end">
 						    	<div class="col-auto">
 							    	<button class="btn btn-info ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
+							    	 <a href="#"  data-bs-toggle="modal" data-bs-target="#adeModalAgents" class="btn btn-primary ms-2" title="Ajout depuis ADE">ADE</a>
 							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ms-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
 						    	</div>
 						    </div>
 					    </div>
 	    			</div>
-	    		 </div>           	
+	    		 </div>
+	    		<div class="alert alert-info" th:if="${#ctx.containsVariable('message')}" th:text="${message}"></div>
+				<div class="modal fade" id="adeModalAgents" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<form th:action="@{/{ctx}/admin/userApp/importInstructors(ctx=${eContext})}" method="post">
+								<div class="modal-header">
+									<h1 class="modal-title fs-5" id="exampleModalLabel">Ajout depuis ADE</h1>
+									<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								</div>
+								<div class="modal-body">
+									<table class="table table-bordered table-striped caption-top" id="composantesTable">
+										<thead>
+											<tr>
+												<th></th>
+												<th>Libellé</th>
+											</tr>
+										</thead>
+										<tr th:each="element : ${comps}" class="selected">
+											<td><input name="comp" type="radio"
+													th:value="${element.key}"
+													 required/>
+											</td>
+											<td class="d-none"></td>
+											<td th:text="${element.key}"></td>
+										</tr>
+									</table>
+									<div class="form-check">
+									  <input class="form-check-input" name="update" type="checkbox" value="" id="flexCheckDefault" checked="checked">
+									  <label class="form-check-label" for="flexCheckDefault">
+									    Mettre à jour le champ spécialité si utilisateur existant.
+									  </label>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+									<button type="submit" class="btn btn-primary">Valider</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
   				<div class="card-body">
 		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
@@ -42,9 +84,10 @@
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
-									<th th:if="${isAdeCampusEnabled}" scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="context">Ade</a></th>
+									<th scope="col"><a class="sorted" sd:pagination-sort="speciality">Spécialité</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
+
 									<th scope="col" class="center">Actions</th>
 								</tr>
 							</thead>
@@ -54,14 +97,13 @@
 									<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
 									<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
 									<td th:text="${userApp.userRole}">Rôle</td>
-									<th class="center" th:if="${isAdeCampusEnabled}"><span th:if="${userApp.adeInstructorId != null}"><i class="fa fa-check text-success"></i></span></th>
+									<td th:text="${userApp.speciality}"></td>									
 									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
 									<td class="center"><a th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-										<a class="ms-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
+										<a class="ms-2" th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
 											<i class="fa fa-pen text-warning"></i>
 										</a>
-										<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-pen disabled ms-2"></i>
 										<a class="ms-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${userApp.id }">
 											<i class="fa fa-trash text-danger"></i></a>
 											<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-trash disabled ms-2"></i>

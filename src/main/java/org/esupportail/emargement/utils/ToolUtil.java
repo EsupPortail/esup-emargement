@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.domain.SessionEpreuve;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -84,15 +83,14 @@ public class ToolUtil {
 	    }
 	}
 	
-	public String getDureeEpreuve(SessionEpreuve se) {
-		
+	public String getDureeEpreuve(Date heureEpreuve, Date finEpreuve, Long duration) {
 		String duree ="";
-		
-		Date heureEpreuve = se.getHeureEpreuve();
-		Date finEpreuve = se.getFinEpreuve();
-		//Date dureeEpreuve = sameSe.getDureeEpreuve();
-		long diff = finEpreuve.getTime() - heureEpreuve.getTime();
-		
+		long diff = 0;
+		if (duration == null) {
+			diff = finEpreuve.getTime() - heureEpreuve.getTime();
+		}else {
+			diff = Long.valueOf(duration)*60*1000;
+		}
 		long diffMinutes = diff / (60 * 1000) % 60;
 		long diffHours = diff / (60 * 60 * 1000) % 24;
 		if(diffHours != 0) {
@@ -144,53 +142,6 @@ public class ToolUtil {
 		return base64Image; 
 	}
 	
-    public static Date[] getIntervalDates(String intervalType) {
-        Calendar calendar = Calendar.getInstance();
-        int today = calendar.get(Calendar.DAY_OF_WEEK);
-        int firstDayOfWeek = Calendar.MONDAY;
-        
-        if ("week".equalsIgnoreCase(intervalType)) {
-            int daysToAdd;
-            if (today == firstDayOfWeek) {
-                daysToAdd = 0;
-            } else {
-                daysToAdd = firstDayOfWeek - today;
-                if (daysToAdd > 0) {
-                    daysToAdd -= 7;
-                }
-            }
-
-            calendar.add(Calendar.DAY_OF_WEEK, daysToAdd);
-            resetTime(calendar, true);
-
-            Date startDate = calendar.getTime();
-
-            calendar.add(Calendar.DAY_OF_WEEK, 6);
-            resetTime(calendar, false);
-
-            Date endDate = calendar.getTime();
-
-            return new Date[] {startDate, endDate};
-        } else if ("month".equalsIgnoreCase(intervalType)) {
-            int firstDayOfMonth = calendar.getActualMinimum(Calendar.DAY_OF_MONTH);
-            int lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-            calendar.set(Calendar.DAY_OF_MONTH, firstDayOfMonth);
-            resetTime(calendar, true);
-
-            Date startDate = calendar.getTime();
-
-            calendar.set(Calendar.DAY_OF_MONTH, lastDayOfMonth);
-            resetTime(calendar, false); 
-
-            Date endDate = calendar.getTime();
-
-            return new Date[] {startDate, endDate};
-        } else {
-            throw new IllegalArgumentException("Invalid interval type. Supported types: 'week' or 'month'.");
-        }
-    }
-    
     private static void resetTime(Calendar calendar, boolean resetToStartOfDay) {
         if (resetToStartOfDay) {
             calendar.set(Calendar.HOUR_OF_DAY, 0);

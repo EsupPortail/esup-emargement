@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.transaction.Transactional;
 
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.AppliConfig.TypeConfig;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AppliConfigService {
@@ -41,8 +41,8 @@ public class AppliConfigService {
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
-		BEFORE_START_EMARGER_LINK, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
-		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE
+		BEFORE_START_EMARGER_LINK, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
+		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER
 	}
 	
 	public List<String> getTypes() {
@@ -52,9 +52,8 @@ public class AppliConfigService {
 	protected AppliConfig getAppliConfigByKey(AppliConfigKey appliConfigKey) {
 		if(!appliConfigRepository.findAppliConfigByKey(appliConfigKey.name()).isEmpty()) {
 			return	appliConfigRepository.findAppliConfigByKey(appliConfigKey.name()).get(0);
-		}else {
-			return null;
 		}
+		return null;
 	}
 	
 	protected AppliConfig getAppliConfigByKeyAndContext(AppliConfigKey appliConfigKey, Context context) {
@@ -221,6 +220,11 @@ public class AppliConfigService {
 		return splitConfigValues(appliConfig);
 	}
 	
+	public  String getProjetAde() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_PROJET);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
 	public Boolean isEsupSignatureEnabled() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ESUPSIGNATURE_ENABLED);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
@@ -244,6 +248,11 @@ public class AppliConfigService {
 	public String getQrCodeChange() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.QRCODE_CHANGE);
 		return appliConfig==null ? "5" : appliConfig.getValue();
+	}
+	
+	public Boolean isTagCheckerDisplayed() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.DISPLAY_TAGCHECKER);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

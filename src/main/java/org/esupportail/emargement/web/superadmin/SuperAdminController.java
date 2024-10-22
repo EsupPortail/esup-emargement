@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
@@ -65,13 +64,13 @@ public class SuperAdminController {
 	UserAppService userAppService;
 	
 	@Resource
+	LdapService ldapService;
+	
+	@Resource
 	ContextService contexteService;
 	
 	@Resource
 	LogService logService;
-
-	@Resource
-	LdapService ldapService;
 	
 	@Resource
 	AppliConfigService appliConfigService;
@@ -124,7 +123,6 @@ public class SuperAdminController {
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		return "superadmin/admins/list";
 	}
-	
 	
 	@GetMapping(value = "/superadmin/admins/{id}", produces = "text/html")
     public String show(@PathVariable("id") String id, Model uiModel) {
@@ -239,14 +237,13 @@ public class SuperAdminController {
     	return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
     }
     
-    @GetMapping("/superadmin/admins/searchUsersLdap")
+    @GetMapping("/searchUsersLdap")
     @ResponseBody
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
     	List<LdapUser> userAppsList = new ArrayList<>();
     	userAppsList = ldapService.search(searchValue);
-    	
         return userAppsList;
     }
 }

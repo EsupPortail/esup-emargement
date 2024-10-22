@@ -1,18 +1,14 @@
 package org.esupportail.emargement.web.manager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
@@ -109,7 +105,7 @@ public class TagCheckerController {
 	}
 	
 	@GetMapping(value = "/manager/tagChecker/sessionEpreuve/{id}", produces = "text/html")
-    public String listTagCheckerBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
+    public String listTagCheckerBySessionEpreuve(@PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
     		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable) {
 
 		Page<TagChecker> tagCheckerPage = tagCheckerService.getListTagCheckerBySessionEpreuve(sessionEpreuve, pageable);
@@ -137,7 +133,6 @@ public class TagCheckerController {
     public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
     	
     	TagChecker tagChecker = new TagChecker();
-    	Map<String, String> map = new HashMap<String, String>();
     	if(id !=null) {
     		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     		List<SessionLocation> allSl = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
@@ -146,22 +141,22 @@ public class TagCheckerController {
     		allUserApps = userAppService.setNomPrenom(allUserApps, false);
     		allUserApps.sort(Comparator.comparing(UserApp::getNom));
     		uiModel.addAttribute("allUserApps", allUserApps);
-    	   
-        	List<TagChecker>  all = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(id);
-        	List<UserApp> userApps = all.stream().map(tc -> tc.getUserApp()).distinct().collect(Collectors.toList());
-        	if(!userApps.isEmpty()) {
-	        	for(UserApp user : userApps) {
-	        		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserApp(id, user);
-	        		List<String> locations = new ArrayList<String>();
-	        		for(TagChecker tc : tcs) {
-	        			locations.add(tc.getSessionLocation().getLocation().getNom());
-	        		}
-	        		Collections.sort(locations);
-	        		map.put(user.getEppn(), StringUtils.join(locations,","));
-	        	}
-        	}
+    		
+    		List<TagChecker> tcs = tagCheckerRepository.findAll();
+    		List<TagChecker> distinctTagCheckers = tcs.stream()
+    			    .filter(tc -> tc.getUserApp() != null && tc.getUserApp().getEppn() != null)
+    			    .collect(Collectors.toMap(
+    			        tc -> tc.getUserApp().getEppn(),
+    			        tc -> tc,
+    			        (existing, replacement) -> existing
+    			    ))
+    			    .values()
+    			    .stream()
+    			    .sorted(Comparator.comparing(tc -> tc.getUserApp().getEppn())) // Sort by eppn
+    			    .collect(Collectors.toList());
+    		uiModel.addAttribute("tcs", distinctTagCheckers);
+    		
     	}
-    	uiModel.addAttribute("map", map);
     	populateEditForm(uiModel, tagChecker, id);
         return "manager/tagChecker/create";
     }
@@ -188,7 +183,7 @@ public class TagCheckerController {
     
     @PostMapping("/manager/tagChecker/create")
     public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam(value="users", required = false) List<Long> users, 
-    		@RequestParam("sessionEpreuve") Long sessionEpreuve, @RequestParam(value ="allLocations", required = false) String allLocations, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    		@RequestParam("sessionEpreuve") Long sessionEpreuve, @RequestParam(value ="allLocations", required = false) String allLocations, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
             return "manager/tagChecker/create";
@@ -235,7 +230,7 @@ public class TagCheckerController {
     }
     
     @PostMapping(value = "/manager/tagChecker/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	TagChecker tagChecker = tagCheckerRepository.findById(id).get();
     	String seId = tagChecker.getSessionEpreuve().getId().toString();
     	if(sessionEpreuveService.isSessionEpreuveClosed(tagChecker.getSessionEpreuve())) {
@@ -283,10 +278,10 @@ public class TagCheckerController {
 	@Transactional
 	@PostMapping(value = "/manager/tagChecker/sendConsignes", produces = "text/html")
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam("subject") String subject, @RequestParam("bodyMsg") String bodyMsg, 
-    		@RequestParam(value = "sessionEpreuveId") Long sessionEpreuveId,  @RequestParam("htmltemplatePdf") String htmltemplatePdf, Model uiModel) throws Exception {
+    		@RequestParam(value = "sessionEpreuveId") Long sessionEpreuveId,  @RequestParam("htmltemplatePdf") String htmltemplatePdf) throws Exception {
 		
 		if(appliConfigService.isSendEmails()){
-			tagCheckerService.sendEmailConsignes(subject, bodyMsg, sessionEpreuveId, htmltemplatePdf, emargementContext);
+			tagCheckerService.sendEmailConsignes(subject, bodyMsg, sessionEpreuveId, htmltemplatePdf);
 		}else {
 			log.info("Envoi de mail désactivé :  ");
 		}

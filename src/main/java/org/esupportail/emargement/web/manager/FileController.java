@@ -3,30 +3,33 @@ package org.esupportail.emargement.web.manager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
 
 import org.apache.commons.io.IOUtils;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.services.ContextService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -39,15 +42,24 @@ public class FileController {
 	@Resource
 	ContextService contexteService;
 	
+	private final static String ITEM = "file";
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
+    
+	@ModelAttribute("active")
+	public static String getActiveMenu() {
+		return ITEM;
+	}
+	
 	@GetMapping(value = "/manager/file")
-	public String list(Model model) {
-		
+	public String list(Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
+		model.addAttribute("files", storedFileRepository.findAll(pageable));
 		return "manager/file/list";
 	}
 	
 	@Transactional
 	@PostMapping(value = "/manager/file/uploadFile")
-	public String uploadFile(@PathVariable String emargementContext, @RequestParam("uploadingFile") MultipartFile file,  RedirectAttributes redirectAttributes) throws IOException {
+	public String uploadFile(@RequestParam("uploadingFile") MultipartFile file) throws IOException {
 		
 		StoredFile storedfile= new StoredFile();
 		storedfile.setSendTime(new Date());
@@ -63,7 +75,7 @@ public class FileController {
 	}
 	
 	@RequestMapping(value="/manager/file/{id}")
-	public void getPhoto(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException {
+	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		StoredFile storedFile = storedFileRepository.findById(id).get();
 		if(storedFile != null) {
 			Long size = storedFile.getFileSize();

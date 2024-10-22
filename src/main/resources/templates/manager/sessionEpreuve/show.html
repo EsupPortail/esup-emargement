@@ -20,6 +20,7 @@
 			            	<span class="badge" th:classappend ="
 							  ${(sessionEpreuve.statut.name() == 'STANDBY' ? 'bg-warning': '') + 
                                 (sessionEpreuve.statut.name() == 'OPENED' ? 'bg-success': '')  + 
+                                (sessionEpreuve.statut.name() == 'CANCELLED' ? 'bg-primary': '')  + 
                                 (sessionEpreuve.statut.name() == 'CLOSED' ? 'bg-danger': '')}"
                                 th:text="(${sessionEpreuve.statut}==null)? '': #{'session.statut.' + 
 									${#strings.toLowerCase(sessionEpreuve.statut)}}">
@@ -59,7 +60,7 @@
 			            <dd class="col-sm-10">
 				            <span th:if="${attachments!=null and !attachments.empty}" >
 					            <span th:each="att : ${attachments}">
-				            		<span><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${att.id},ctx=${eContext})}" 
+				            		<span><a th:href="@{/{ctx}/manager/storedFile/{id}/photo(id=${att.id},ctx=${eContext})}" 
 				            		th:text="${att.filename}" target="_blank"></a></span><br />
 					            </span>
 				            </span>

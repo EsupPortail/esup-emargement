@@ -18,7 +18,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.cas.ServiceProperties;
 import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
@@ -67,7 +66,7 @@ public class CasConfig {
 	}
 
 	@Bean
-	public AuthenticationEntryPoint authenticationEntryPoint(ServiceProperties sP) {
+	public CasAuthenticationEntryPoint authenticationEntryPoint(ServiceProperties sP) {
 		CasAuthenticationEntryPoint entryPoint = new CasAuthenticationEntryPoint();
 		entryPoint.setLoginUrl(url + "/login");
 		entryPoint.setServiceProperties(sP);

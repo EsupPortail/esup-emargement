@@ -10,10 +10,14 @@ import java.io.Reader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Year;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,15 +25,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.EsupSignature;
@@ -43,9 +48,11 @@ import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
@@ -73,6 +80,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -94,6 +102,9 @@ public class TagCheckService {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
 	
 	@Autowired
 	ContextRepository contextRepository;
@@ -139,7 +150,7 @@ public class TagCheckService {
     
     @Resource   
     TagCheckerService tagCheckerService;
-	
+    
 	@Resource
 	LogService logService;
 
@@ -262,6 +273,15 @@ public class TagCheckService {
     	return allTagChecks;
     }
     
+    public Map<String, List<Absence>> getMapAbsences(Date dateDebut, Date dateFin){
+    	///where date between 
+    	
+		Map<String, List<Absence>> mapEtp = absenceRepository.findAbsencesWithinDateRange(dateDebut, dateFin!=null? dateFin : dateDebut).stream()
+				.collect(Collectors.groupingBy(abs -> abs.getPerson().getEppn()));
+		
+		return mapEtp;
+    }
+    
     public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, 
     		String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Long sessionLocationId) throws Exception {
     	List<List<String>> rows  = new ArrayList<>();
@@ -271,7 +291,7 @@ public class TagCheckService {
     	}else if(finalList != null) {
     		rows = finalList;
     	}
-    	if(rows != null) {	    	
+    	if(rows != null) {
 	    	List<TagCheck> tcToSave = new ArrayList<>();
 	    	List<String> unknowns = new ArrayList<>();
 	    	List<String> missingData = new ArrayList<>();
@@ -286,6 +306,7 @@ public class TagCheckService {
 		    	if(rows.size()>0) {
 		    		int i = 0; int j = 0; int k = 0; int l=0;
 		    		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+		    		Map<String, List<Absence>> absences = getMapAbsences(se.getDateExamen(), se.getDateFin());
 		    		for(List<String> row : rows) {
 			    		if(se != null) {
 			    			TagCheck tc = new TagCheck();
@@ -316,7 +337,6 @@ public class TagCheckService {
 											}else {
 												person = new Person();
 												person.setNumIdentifiant(line);
-												person.setType("student");
 												person.setContext(contexteService.getcurrentContext());
 												person.setEppn(eppn);
 												person.setType("student");
@@ -378,6 +398,9 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
+									if(absences.get(eppn)!=null) {
+										tc.setAbsence(Motif.JUSTIFIE);
+									}
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
 					    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
@@ -494,77 +517,73 @@ public class TagCheckService {
 		personService.deleteUnusedPersons(contextRepository.findByContextKey(ContextHelper.getCurrentContext()));
     }
     
-	public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy){
-		
-		int count = 0;
-		
-		if(!tagChecks.isEmpty()) {
-			// récupération des informations du LDAP pour tous les inscrits
-			List<String> eppnList = tagChecks.stream().filter(tagCheck -> tagCheck.getPerson()!=null)
-					.map(tagCheck -> tagCheck.getPerson().getEppn())
-					.collect(Collectors.toList());
-			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
+    public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy) {
+        int count = 0;
 
-			Map<String, LdapUser> mapTagCheckerLdapUsers = new HashMap<>();
-			if(setTagChecker) {
-				// récupération des informations du LDAP pour tous les surveillants
-				List<String> tagCheckerList = tagChecks.stream().filter(tagCheck -> tagCheck.getTagChecker() != null)
-						.map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
-						.collect(Collectors.toList());
-				mapTagCheckerLdapUsers = ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName");
-			}
+        if (!tagChecks.isEmpty()) {
+            List<String> eppnList = tagChecks.stream()
+                .filter(tagCheck -> tagCheck.getPerson() != null)
+                .map(tagCheck -> tagCheck.getPerson().getEppn())
+                .collect(Collectors.toList());
 
-			Map<String, LdapUser> mapTcProxyLdapUsers = new HashMap<>();
-			if(setProxy) {
-				// récupération des informations du LDAP pour toutes les procurations
-				List<String> tcProxyList = tagChecks.stream().filter(tagCheck -> tagCheck.getProxyPerson() != null)
-						.map(tagCheck -> tagCheck.getProxyPerson().getEppn())
-						.collect(Collectors.toList());
-				mapTcProxyLdapUsers = ldapService.getLdapUsersFromNumList(tcProxyList, "eduPersonPrincipalName");
-			}
+            List<String> tagCheckerList = setTagChecker ? tagChecks.stream()
+                .filter(tagCheck -> tagCheck.getTagChecker() != null)
+                .map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
+                .collect(Collectors.toList()) : Collections.emptyList();
 
-			for(TagCheck tc : tagChecks) {
-				if(tc.getPerson()!=null) {
-					LdapUser ldapUser = mapLdapUsers.get(tc.getPerson().getEppn());
-					if(ldapUser!=null) {
-						tc.getPerson().setCivilite(ldapUser.getCivilite());
-						tc.getPerson().setNom(ldapUser.getName());
-						tc.getPerson().setPrenom(ldapUser.getPrenom());
-						tc.setNomPrenom(ldapUser.getName().concat(ldapUser.getPrenom()));
-					}else {
-						tc.setNomPrenom("");
-					}
-				}else if(tc.getGuest()!=null) {
-					tc.setNomPrenom(tc.getGuest().getNom().concat(tc.getGuest().getPrenom()));
-				}
+            List<String> tcProxyList = setProxy ? tagChecks.stream()
+                .filter(tagCheck -> tagCheck.getProxyPerson() != null)
+                .map(tagCheck -> tagCheck.getProxyPerson().getEppn())
+                .collect(Collectors.toList()) : Collections.emptyList();
 
-				if(setTagChecker && tc.getTagChecker()!=null) {
-					tc.getTagChecker().getUserApp().setNom("");
-					tc.getTagChecker().getUserApp().setPrenom("");
-					if(!mapTagCheckerLdapUsers.isEmpty()) {
-						LdapUser ldapUser = mapTagCheckerLdapUsers.get(tc.getTagChecker().getUserApp().getEppn());
-						if (ldapUser!=null) {
-							tc.getTagChecker().getUserApp().setNom(ldapUser.getName());
-							tc.getTagChecker().getUserApp().setPrenom(ldapUser.getPrenom());
-						}
-					}
-				}
+            Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
+            Map<String, LdapUser> mapTagCheckerLdapUsers = setTagChecker 
+                ? ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName") 
+                : Collections.emptyMap();
+            Map<String, LdapUser> mapTcProxyLdapUsers = setProxy 
+                ? ldapService.getLdapUsersFromNumList(tcProxyList, "eduPersonPrincipalName") 
+                : Collections.emptyMap();
 
-				if(setProxy && tc.getProxyPerson()!=null) {
-					tc.getProxyPerson().setNom("");
-					tc.getProxyPerson().setPrenom("");
-					if(!mapTcProxyLdapUsers.isEmpty()) {
-						LdapUser ldapUser = mapTcProxyLdapUsers.get(tc.getProxyPerson().getEppn());
-						if (ldapUser!=null) {
-							tc.getProxyPerson().setNom(ldapUser.getName());
-							tc.getProxyPerson().setPrenom(ldapUser.getPrenom());
-						}
-					}
-				}
-			}
-		}
-		return count;
-	}
+            for (TagCheck tc : tagChecks) {
+                if (tc.getPerson() != null) {
+                    LdapUser ldapUser = mapLdapUsers.get(tc.getPerson().getEppn());
+                    if (ldapUser != null) {
+                        tc.getPerson().setCivilite(ldapUser.getCivilite());
+                        tc.getPerson().setNom(ldapUser.getName());
+                        tc.getPerson().setPrenom(ldapUser.getPrenom());
+                        tc.setNomPrenom(ldapUser.getName().concat(ldapUser.getPrenom()));
+                    } else {
+                        tc.setNomPrenom("");
+                    }
+                } else if (tc.getGuest() != null) {
+                    tc.setNomPrenom(tc.getGuest().getNom().concat(tc.getGuest().getPrenom()));
+                }
+
+                if (setTagChecker && tc.getTagChecker() != null) {
+                    LdapUser ldapUser = mapTagCheckerLdapUsers.get(tc.getTagChecker().getUserApp().getEppn());
+                    if (ldapUser != null) {
+                        tc.getTagChecker().getUserApp().setNom(ldapUser.getName());
+                        tc.getTagChecker().getUserApp().setPrenom(ldapUser.getPrenom());
+                    } else {
+                        tc.getTagChecker().getUserApp().setNom("");
+                        tc.getTagChecker().getUserApp().setPrenom("");
+                    }
+                }
+
+                if (setProxy && tc.getProxyPerson() != null) {
+                    LdapUser ldapUser = mapTcProxyLdapUsers.get(tc.getProxyPerson().getEppn());
+                    if (ldapUser != null) {
+                        tc.getProxyPerson().setNom(ldapUser.getName());
+                        tc.getProxyPerson().setPrenom(ldapUser.getPrenom());
+                    } else {
+                        tc.getProxyPerson().setNom("");
+                        tc.getProxyPerson().setPrenom("");
+                    }
+                }
+            }
+        }
+        return count;
+    }
 	
 	public String snTagChecks(List<Long> tagCheckIds){
 		
@@ -624,18 +643,21 @@ public class TagCheckService {
 		String civilite = (tc.getPerson() != null && tc.getPerson().getCivilite() != null)? tc.getPerson().getCivilite() : "";
 		String nom = (tc.getPerson() != null)? tc.getPerson().getNom() : tc.getGuest().getNom();
 		String prenom = (tc.getPerson() != null)? tc.getPerson().getPrenom() : tc.getGuest().getPrenom();
+		SessionEpreuve se = tc.getSessionEpreuve();
+		SessionLocation sl = tc.getSessionLocationExpected();
 		finalString = htmltemplate.replace(wrapChar.concat("civilite").concat(wrapChar), civilite);
 		finalString = finalString.replace(wrapChar.concat("prenom").concat(wrapChar), prenom);
 		finalString = finalString.replace(wrapChar.concat("nom").concat(wrapChar), nom);
-		finalString = finalString.replace(wrapChar.concat("nomSession").concat(wrapChar), tc.getSessionEpreuve().getNomSessionEpreuve());
-		finalString = finalString.replace(wrapChar.concat("dateExamen").concat(wrapChar), String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen()));
-		finalString = finalString.replace(wrapChar.concat("heureConvocation").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getHeureConvocation()));
-		finalString = finalString.replace(wrapChar.concat("debutEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getHeureEpreuve()));
-		finalString = finalString.replace(wrapChar.concat("finEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", tc.getSessionEpreuve().getFinEpreuve()));
-		finalString = finalString.replace(wrapChar.concat("dureeEpreuve").concat(wrapChar), toolUtil.getDureeEpreuve(tc.getSessionEpreuve()));
-		finalString = finalString.replace(wrapChar.concat("site").concat(wrapChar), tc.getSessionEpreuve().getCampus().getSite());
-		finalString = finalString.replace(wrapChar.concat("salle").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getNom());
-		finalString = finalString.replace(wrapChar.concat("adresse").concat(wrapChar), tc.getSessionLocationExpected().getLocation().getAdresse());
+		finalString = finalString.replace(wrapChar.concat("nomSession").concat(wrapChar), se.getNomSessionEpreuve());
+		finalString = finalString.replace(wrapChar.concat("dateExamen").concat(wrapChar), String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()));
+		finalString = finalString.replace(wrapChar.concat("heureConvocation").concat(wrapChar), String.format("%1$tH:%1$tM", se.getHeureConvocation()));
+		finalString = finalString.replace(wrapChar.concat("debutEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", se.getHeureEpreuve()));
+		finalString = finalString.replace(wrapChar.concat("finEpreuve").concat(wrapChar), String.format("%1$tH:%1$tM", se.getFinEpreuve()));
+		finalString = finalString.replace(wrapChar.concat("dureeEpreuve").concat(wrapChar), toolUtil.getDureeEpreuve(se.getHeureEpreuve(),
+				se.getFinEpreuve(), null));
+		finalString = finalString.replace(wrapChar.concat("site").concat(wrapChar), se.getCampus().getSite());
+		finalString = finalString.replace(wrapChar.concat("salle").concat(wrapChar), sl.getLocation().getNom());
+		finalString = finalString.replace(wrapChar.concat("adresse").concat(wrapChar), sl.getLocation().getAdresse());
 		
 		return finalString;
 	}
@@ -710,6 +732,7 @@ public class TagCheckService {
 		
 		boolean isOk = false;
 		boolean isSessionLibre = false;
+		boolean isTagCheckerTagged = false;
 		log.info("tagaction pour l'eppn : " + eppn);
 		String locationNom = esupNfcTagLog.getLocation();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -720,6 +743,9 @@ public class TagCheckService {
 		String idSession = splitLocationNom[3];
 		Long id = Long.valueOf(idSession);
 		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
+		if(appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().isEmpty()) {
+			isTagCheckerTagged = true;
+		}
 		if(sessionEpreuve != null) {
 			Groupe gpe = sessionEpreuve.getBlackListGroupe();
 			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);		
@@ -736,13 +762,14 @@ public class TagCheckService {
 				SessionLocation sessionLocationBadged =  null;
 				TagChecker tagChecker = null;
 				Context ctx = sessionEpreuve.getContext();
+				sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
+				Long sessionLocationBadgedId = sessionLocationBadged.getId();
 				if(sessionEpreuve.getIsSessionLibre()) {
 					isSessionLibre = true;
-					sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
 					tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(esupNfcTagLog.getEppnInit(), null).getContent().get(0);
 				}
 				
-				if (tc ==1 || isSessionLibre) {
+				if (tc ==1 || isSessionLibre || isTagCheckerTagged) {
 					Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected (sessionLocationBadged);
 					String msgError = "";
 					TagCheck newTagCheck = new TagCheck();
@@ -751,7 +778,7 @@ public class TagCheckService {
 						try {
 							if(totalPresent >= sessionLocationBadged.getCapacite()) {
 								TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
-								if(tagCheck != null) {
+								if(tagCheck != null && !isTagCheckerTagged) {
 									saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, TypeEmargement.CARD);
 									isOk = true;
 								}else {
@@ -761,7 +788,7 @@ public class TagCheckService {
 								if(!isBlackListed) {
 									newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker,isSessionLibre, TypeEmargement.CARD);
 									newTagCheck.setIsBlacklisted(false);
-									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadged.getId());
+									count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadgedId);
 								}else {
 									msgError = eppn;
 								}
@@ -774,6 +801,11 @@ public class TagCheckService {
 					}else{
 						isOk = true;
 					}
+					if(isTagCheckerTagged) {
+						String presence ="true,tagchecker," + eppn + "," + sessionLocationBadgedId;
+						tagCheckerService.updatePresentsTagCkeckers(presence, null, TypeEmargement.CARD);
+						isOk = true;
+					}
 				}else {
 					try {
 						String comment = "";
@@ -784,7 +816,7 @@ public class TagCheckService {
 						Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, id);
 						Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
 						SessionLocation sl = null;
-						Long seId = null;
+						List<Long> seId = null;
 						if(sessionLocationId != null) {
 							if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
 								sl = sessionLocationRepository.findById(sessionLocationId).get();
@@ -796,17 +828,19 @@ public class TagCheckService {
 						else if (sessionLocationId == null && countSe>0) {//On regarde si il est est dans une autre session aujourd'hui
 							//comparaison avec les heures de début et de fin
 							LocalTime now = LocalTime.now();
-							seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
-							String lieu = " Autre session dans la journée";
+							seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now);
 							if(seId != null) {
-								SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-								lieu = " --> Session : "+ otherSe.getNomSessionEpreuve();
-								List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-								if(!list.isEmpty()) {
-									if(list.get(0).getSessionLocationExpected() !=null) {
-										String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
-										lieu = lieu.concat(" , lieu : ").concat(location);
-									}
+								String lieu = "";
+								for(Long sessionId : seId) {
+									List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionId, eppn, null).getContent();
+									if(!list.isEmpty()) {
+										TagCheck tagCheck = list.get(0);
+										if(tagCheck.getSessionLocationExpected() !=null) {
+											lieu = lieu.concat(" --> Session(s) : "+ tagCheck.getSessionEpreuve().getNomSessionEpreuve());
+											String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
+											lieu = lieu.concat(" , lieu : ").concat(location);
+										}
+									}	
 								}
 								comment = "Inconnu dans cette session " + lieu;
 							}else {
@@ -855,10 +889,16 @@ public class TagCheckService {
 					boolean isBlacklisted = true;
 					if(!isBlackListed) {
 						isBlacklisted = false;
-				    	presentTagCheck.setTagDate(new Date());
-				    	presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
 						TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
-				    	presentTagCheck.setTagChecker(tagChecker);
+						if(sessionEpreuve.getIsSecondTag()!= null && sessionEpreuve.getIsSecondTag()) {
+							presentTagCheck.setTagDate2(new Date());
+							presentTagCheck.setTypeEmargement2(TypeEmargement.CARD);
+							presentTagCheck.setTagChecker2(tagChecker);
+						}else {
+							presentTagCheck.setTagDate(new Date());
+							presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
+							presentTagCheck.setTagChecker(tagChecker);
+						}
 				    	presentTagCheck.setSessionLocationBadged(sl);
 				    	presentTagCheck.setNbBadgeage(this.getNbBadgeage(presentTagCheck, true));
 				    	Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
@@ -885,6 +925,12 @@ public class TagCheckService {
 			    	}
 			    	presentTagCheck.setIsBlacklisted(isBlacklisted);
 			    	dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sl, msgError);
+				}else {
+					if(isTagCheckerTagged) {
+						String presence ="true,tagchecker," + eppn + "," + sl.getId();
+						tagCheckerService.updatePresentsTagCkeckers(presence, null, TypeEmargement.CARD);
+						isOk = true;
+					}
 				}
 			}
 		}
@@ -947,9 +993,15 @@ public class TagCheckService {
 			unknownTc.setSessionLocationBadged(sessionLocationBadged);
 			unknownTc.setIsUnknown(true);
 		}
-		unknownTc.setTagChecker(tagChecker);
-		unknownTc.setTagDate(new Date());
-		unknownTc.setTypeEmargement(typeEmargement);
+		if(sessionEpreuve.getIsSecondTag()!= null && sessionEpreuve.getIsSecondTag()) {
+			unknownTc.setTagDate2(new Date());
+			unknownTc.setTypeEmargement2(TypeEmargement.CARD);
+			unknownTc.setTagChecker2(tagChecker);
+		}else {
+			unknownTc.setTagDate(new Date());
+			unknownTc.setTypeEmargement(TypeEmargement.CARD);
+			unknownTc.setTagChecker(tagChecker);
+		}
 		unknownTc.setNbBadgeage(getNbBadgeage(unknownTc, true));
 		TagCheck tc =tagCheckRepository.save(unknownTc);
 		return tc;
@@ -1173,8 +1225,8 @@ public class TagCheckService {
 							identifiant = tc.getGuest().getEmail();
 							typeIndividu = "Ex";
 						}
-						if (BooleanUtils.isTrue(tc.getIsExempt())) {
-							dateEmargement = "Exempt";
+						if(tc.getAbsence()!=null) {
+	        				dateEmargement = tc.getAbsence().name();
 						} else if (tc.getTagDate() != null) {
 							dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
 							if (tc.getIsUnknown()) {
@@ -1248,87 +1300,75 @@ public class TagCheckService {
 	       
 		}else if("CSV".equals(type)){
 			try {
-				
-				String filename =  nomFichier.concat(".csv");
+			    String filename = nomFichier.concat(".csv");
 
-				response.setContentType("text/csv");
-				response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-				        "attachment; filename=\"" + filename + "\"");
-				response.setCharacterEncoding("UTF-8");
+			    response.setContentType("text/csv");
+			    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+			    response.setCharacterEncoding("UTF-8");
 
-				//create a csv writer
-				CSVWriter writer = new CSVWriter(response.getWriter());
-				String [] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé", "Exempt", "Tiers-temps"};
-				writer.writeNext(headers);
-				for(TagCheck tc : list) {
-					List <String> line = new ArrayList<>();
-					String dateSession = String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateExamen());
-					String dateFin = (tc.getSessionEpreuve().getDateFin() != null)? " / " + String.format("%1$td-%1$tm-%1$tY", tc.getSessionEpreuve().getDateFin()) : "";
-	        		String presence = "Absent";
-	        		String date  = "--";
-	        		String badged  = "--";
-	        		String attendu  = "--";
-	        		String tiersTemps  = "--";
-	        		String typeEmargement = "--";
-	        		String nom = "";
-	        		String prenom = "";
-	        		String identifiant = "";
-	        		String numIdentifiant = "";
-	        		String isExempt = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
-	        		if(tc.getPerson() !=null ) {
-	        			nom = tc.getPerson().getNom();
-	        			prenom = tc.getPerson().getPrenom();
-	        			identifiant = tc.getPerson().getEppn();
-	        			numIdentifiant = tc.getPerson().getNumIdentifiant();
-	        		}else if(tc.getGuest() !=null ) {
-	        			nom = tc.getGuest().getNom();
-	        			prenom = tc.getGuest().getPrenom();
-	        			identifiant = tc.getGuest().getEmail();
-	        		}
-	        		if(tc.getTagDate() != null) {
-	        			presence = "Présent";
-	        			date = String.format("%1$tH:%1$tM:%1$tS", tc.getTagDate());
-	        		}
-	        		if(tc.getSessionLocationExpected()!=null) {
-	        			attendu = tc.getSessionLocationExpected().getLocation().getNom();
-	        		}		        		
-	        		if(tc.getSessionLocationBadged()!=null) {
-	        			badged = tc.getSessionLocationBadged().getLocation().getNom();
-	        		}
-	        		if(tc.getIsTiersTemps()) {
-	        			tiersTemps = "Oui";
-	        		}
-	        		if(tc.getTypeEmargement()!=null) {
-	        			typeEmargement = messageSource.getMessage("typeEmargement.".concat( tc.getTypeEmargement().name().toLowerCase()), null, null);
-	        		}
-					line.add(tc.getSessionEpreuve().getNomSessionEpreuve());
-					line.add(dateSession + dateFin);
-					line.add(numIdentifiant);
-					line.add(identifiant);
-					line.add(nom);
-					line.add(prenom);
-					line.add(presence);
-					line.add(date);
-					line.add(typeEmargement);
-					line.add(attendu);
-					line.add(badged);
-					line.add(isExempt);
-					line.add(tiersTemps);
-					writer.writeNext(line.toArray(new String[1]));
-				}
-		        // closing writer connection 
-		        writer.close(); 
-				log.info("Extraction csv :  " + list.size() + "résultats" );
-				logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction csv :" +  list.size() + " résultats" , null,
-								null, emargementContext, null);
+			    // Create a CSV writer
+			    CSVWriter writer = new CSVWriter(response.getWriter());
+			    
+			    // Define headers
+			    String[] headers = { "Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement", 
+			                         "Type", "Lieu attendu", "Lieu badgé", "Absence", "Tiers-temps" };
+			    writer.writeNext(headers);
+
+			    for (TagCheck tc : list) {
+			        String dateSession = formatDate(tc.getSessionEpreuve().getDateExamen());
+			        String dateFin = (tc.getSessionEpreuve().getDateFin() != null) ? " / " + formatDate(tc.getSessionEpreuve().getDateFin()) : "";
+			        String presence = (tc.getTagDate() != null) ? "Présent" : "Absent";
+			        String date = (tc.getTagDate() != null) ? formatTime(tc.getTagDate()) : "--";
+			        String badged = (tc.getSessionLocationBadged() != null) ? tc.getSessionLocationBadged().getLocation().getNom() : "--";
+			        String attendu = (tc.getSessionLocationExpected() != null) ? tc.getSessionLocationExpected().getLocation().getNom() : "--";
+			        String tiersTemps = (tc.getIsTiersTemps()) ? "Oui" : "--";
+			        String typeEmargement = (tc.getTypeEmargement() != null) ? messageSource.getMessage("typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) : "--";
+			        String nom = (tc.getPerson() != null) ? tc.getPerson().getNom() : (tc.getGuest() != null) ? tc.getGuest().getNom() : "";
+			        String prenom = (tc.getPerson() != null) ? tc.getPerson().getPrenom() : (tc.getGuest() != null) ? tc.getGuest().getPrenom() : "";
+			        String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn() : (tc.getGuest() != null) ? tc.getGuest().getEmail() : "";
+			        String numIdentifiant = (tc.getPerson() != null) ? tc.getPerson().getNumIdentifiant() : "";
+			        String absence = (tc.getAbsence() != null) ? tc.getAbsence().name() : "";
+
+			        String[] line = {
+			            tc.getSessionEpreuve().getNomSessionEpreuve(),
+			            dateSession + dateFin,
+			            numIdentifiant,
+			            identifiant,
+			            nom,
+			            prenom,
+			            presence,
+			            date,
+			            typeEmargement,
+			            attendu,
+			            badged,
+			            absence,
+			            tiersTemps
+			        };
+			        
+			        writer.writeNext(line);
+			    }
+			    
+			    // Close the writer after all rows are written
+			    writer.close();
+			    
+			    log.info("Extraction CSV: " + list.size() + " résultats");
+			    logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction CSV: " + list.size() + " résultats", null, null, emargementContext, null);
+
 			} catch (Exception e) {
-				log.error("Erreur lors de lxtraction csv");
-				logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de lxtraction csv" , null, null, emargementContext, null);
-				e.printStackTrace();
+			    log.error("Erreur lors de l'extraction CSV", e);  // Log the exception for better traceability
+			    logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction CSV", null, null, emargementContext, null);
+			    e.printStackTrace();
 			}
 		}
-		
 		return pdfBytes;
+	}
+	
+	private String formatDate(Date date) {
+	    return String.format("%1$td-%1$tm-%1$tY", date);
+	}
+	
+	private String formatTime(Date date) {
+	    return String.format("%1$tH:%1$tM:%1$tS", date);
 	}
 	
 	public String getContextWs(EsupNfcTagLog esupNfcTagLog) throws ParseException {
@@ -1539,13 +1579,23 @@ public class TagCheckService {
 	public int getNbBadgeage(TagCheck tc, boolean isPresent) {
 		int previousNb = (tc.getNbBadgeage() == null)? 0 : tc.getNbBadgeage();
 		int nbBadgeage = 0;
+		String typeEmargement = null;
+		Date tagDate = null;
 		if(isPresent) {
-			if(tc.getTypeEmargement().name().startsWith(TypeEmargement.QRCODE.name())) {
-				if(tc.getTagDate() == null) {
+			SessionEpreuve se = tc.getSessionEpreuve();
+			if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+				typeEmargement= tc.getTypeEmargement2().name();
+				tagDate = tc.getTagDate2();
+	    	}else {
+	    		typeEmargement= tc.getTypeEmargement().name();
+	    		tagDate = tc.getTagDate();
+	    	}
+			if(typeEmargement.startsWith(TypeEmargement.QRCODE.name())) {
+				if(tagDate == null) {
 					nbBadgeage = previousNb + 1;
 				}else {
 					Date newDate = new Date();
-					Long seconds = ChronoUnit.SECONDS.between(tc.getTagDate().toInstant(), newDate.toInstant());
+					Long seconds = ChronoUnit.SECONDS.between(tagDate.toInstant(), newDate.toInstant());
 					if(seconds>60) {
 						nbBadgeage = previousNb + 1;
 					}
@@ -1576,7 +1626,7 @@ public class TagCheckService {
 				String strDateConvocation = (tc.getDateEnvoiConvocation() != null)? dateFormat.format(tc.getDateEnvoiConvocation()) : "";
 				bean.setDateEmargement(strDateEmargment);
 				bean.setDateEnvoiConvocation(strDateConvocation);
-				bean.setEstExempte(BooleanUtils.toString(tc.getIsExempt(), "Oui", "Non"));
+				bean.setAbsence(tc.getAbsence()!=null? tc.getAbsence().name() :"");
 				bean.setEstInconnu(BooleanUtils.toString(tc.getIsUnknown(), "Oui", "Non"));
 				bean.setLieuAttendu((tc.getSessionLocationExpected()!=null)? 
 						tc.getSessionLocationExpected().getLocation().getNom() :"");
@@ -1756,4 +1806,88 @@ public class TagCheckService {
 
 			return pdfBytes;
 	}
+	
+	public void setNbHoursSession(List<TagCheck> tcs) {
+		for(TagCheck tc : tcs) {
+			SessionEpreuve se = tc.getSessionEpreuve();
+			long diffInMillis = se.getFinEpreuve().getTime() - se.getHeureEpreuve().getTime();
+			se.setNbHours(formatTime(diffInMillis));
+		}
+	}
+	
+	public String formatTime(long diffInMillis) {
+	    long hoursBetween = TimeUnit.MILLISECONDS.toHours(diffInMillis);
+	    long minutesBetween = TimeUnit.MILLISECONDS.toMinutes(diffInMillis) % 60;
+		return String.format("%02d:%02d", hoursBetween, minutesBetween);
+	}
+
+    public Map<String, String> getPersonWithTotalDuration(List<TagCheck> tcs) {
+        Map<String, Long> result = new HashMap<>();
+        for (TagCheck tc : tcs) {
+            Person person = tc.getPerson();
+            String eppn = person.getEppn();
+            SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
+            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+                Date heureDebut = sessionEpreuve.getHeureEpreuve();
+                Date heureFin = sessionEpreuve.getFinEpreuve();
+                if (heureDebut != null && heureFin != null) {
+                    long durationMillis = heureFin.getTime() - heureDebut.getTime();
+                    long durationMinutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis);
+                    result.put(eppn, result.getOrDefault(eppn, 0L) + durationMinutes);
+                }
+            }
+        }
+        Map<String, String> stringMap = result.entrySet() .stream() .collect(Collectors.toMap( 
+        		Map.Entry::getKey,  entry -> toolUtil.getDureeEpreuve(null, null, (entry.getValue()))));
+
+        return stringMap;
+    }
+    
+    private LocalDate convertToLocalDate(Date date) {
+        return Instant.ofEpochMilli(date.getTime())
+                      .atZone(ZoneId.systemDefault())
+                      .toLocalDate();
+    }
+
+    public Map<String, Long> getPersonWithTotalDays(List<TagCheck> tcs) {
+        Map<String, Long> result = new HashMap<>();
+        for (TagCheck tc : tcs) {
+            Person person = tc.getPerson();
+            String eppn = person.getEppn();
+            SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
+            long totalDaysForTagCheck = 0;
+            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+                Date startDate = sessionEpreuve.getDateExamen();
+                Date endDate = sessionEpreuve.getDateFin();
+                if(endDate == null) {
+                	endDate = startDate;
+                }
+                if (startDate != null && endDate != null) {
+                    LocalDate startLocalDate = convertToLocalDate(startDate);
+                    LocalDate endLocalDate = convertToLocalDate(endDate);
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startLocalDate, endLocalDate);
+                    if (daysBetween == 0) {
+                        daysBetween = 1;
+                    }
+                    totalDaysForTagCheck += daysBetween;
+                    result.put(eppn, result.getOrDefault(eppn, 0L) + totalDaysForTagCheck);
+                }
+            }
+        }
+        return result;
+    }
+
+    public Map<String, Long> getPersonWithTotalSessionCount(List<TagCheck> tcs) {
+        Map<String, Long> result = new HashMap<>();
+        for (TagCheck tc : tcs) {
+            Person person = tc.getPerson();
+            String eppn = person.getEppn();
+            SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
+            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+            	long sessionCountForTagCheck = 1;
+                result.put(eppn, result.getOrDefault(eppn, 0L) + sessionCountForTagCheck);
+            }
+        }
+        return result;
+    }
 }

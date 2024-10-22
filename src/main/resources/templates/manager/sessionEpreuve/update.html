@@ -60,29 +60,26 @@
 		                    </div>
 		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs jours)</small></label>
 		                    <div class="col-lg-4">
-		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control datetimepicker-input"
+		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
 		                        	th:value="${#dates.format(strDateFin, 'yyyy-MM-dd')}" id="dateFinSessionEpreuve">
 		                    </div>       
 	                    </div> 
 	                   <div class="row mb-3">
 		                   <label for="heureConvocation" class="col-lg-2 form-label">Convocation</label>
 		                   <div class="col-lg-10">
-		                        <input type="time" th:field="*{heureConvocation}" class="form-control datetimepicker-input" id="heureConvocation"
-		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureConvocation" required="required">
+		                        <input type="time" th:field="*{heureConvocation}" class="form-control" id="heureConvocation" required="required">
 		                    </div>
 	                    </div>
 	                    <div class="row mb-3">
 		                    <label for="heureEpreuve" class="col-lg-2 form-label">Début</label>
 	                       	<div class="col-lg-10">
-		                        <input type="time" th:field="*{heureEpreuve}" class="form-control datetimepicker-input" id="heureEpreuve"
-		                        	data-bs-toggle="datetimepicker" data-bs-target="#heureEpreuve" required="required">
+		                        <input type="time" th:field="*{heureEpreuve}" class="form-control" id="heureEpreuve" required="required">
 	                        </div>
 	                    </div>
 	                    <div class="row mb-3">
 	                        <label for="finEpreuve" class="col-lg-2 form-label">Fin</label>
 	                        <div class="col-lg-10">
-	                        	<input type="time" th:field="*{finEpreuve}" class="datetimepicker-input form-control" id="finEpreuve"
-	                        		data-bs-toggle="datetimepicker" data-bs-target="#finEpreuve" required="required">
+	                        	<input type="time" th:field="*{finEpreuve}" class="form-control" id="finEpreuve" required="required">
 	                        </div>
 	                    </div>
 	                    <div class="row mb-3">

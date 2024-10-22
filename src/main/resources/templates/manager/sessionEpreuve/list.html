@@ -7,7 +7,10 @@
 		<div class="container-fluid">
          	<div class="card">
 	    		<div class="card-header">
-	    			<div  class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
+	    			<div class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
+	    			<div class="alert alert-primary alert-dismissible fade show font-weight-bold" th:if="${bilanCsv}" >
+	    				<span th:text="${bilanCsv}"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	    			</div>
 	    			<div class="row">
 			    		<div class="col-auto">
 					    	<h2>Sessions</h2>
@@ -41,6 +44,15 @@
 												  	id="btnradio4"  value="all" autocomplete="off">
 												  <label class="btn btn-outline-primary" for="btnradio4">Tout</label>											  
 												</div>
+											</div>
+											<div class="col-auto">
+												<select class="form-select" name="view" title="Choisir évènements">
+													<option value="all" th:selected="${view eq 'all'}">Tout</option>
+													<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
+													<th:block th:if="${userApp!= null and userApp.speciality ne null}">
+														<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
+													</th:block>
+												</select>
 											</div>
 											<div class="col-auto">
 												<select class="form-select" title="Tous les sites" th:field="*{campus}">
@@ -77,14 +89,85 @@
 													class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
 											</div>
 											<div class="col-auto">
+												<a class="btn btn-info ms-1" title="Import CSV" data-bs-toggle="modal" data-bs-target="#importCsvModal"><i class="fa-solid fa-file-import"></i></a>
 												<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
 												<a class="btn btn-success ms-1"th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}"><i class="fas fa-hands-wash"></i></a>
-									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" 
+									    			class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+									    		<a class="btn btn-danger ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="Actions"
+									    		data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-tasks"></i></a>
 										    </div>
 										</div>
 									</form>
 								</div>
-
+								<!-- Modal -->
+								<div class="modal fade" id="importCsvModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+								  <div class="modal-dialog modal-lg">
+								    <div class="modal-content">
+								      <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/importCsv(ctx=${eContext})}"
+											enctype="multipart/form-data" method="post">
+									      <div class="modal-header">
+									        <h1 class="modal-title fs-5" id="exampleModalLabel">Import sessions</h1>
+									        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									      </div>
+											<div class="modal-body">
+												<p>Lla preimére ligne du CSV doit-être :</p>
+												<strong class="bg-secondarys">nom,type,site,date_debut,date_fin,heure_debut,heure_fin,commentaire,statut,session_libre</strong><br />
+												<ul>
+													<li>Le type de session doit être un des codes du menu 'admin'</li>
+													<li>les dates de début et de fin doivent-être au format dd/MM/yyyy</li>
+													<li>les heures de début et de fin doivent-être au format HH:mm</li>
+													<li>Le commentaire, le statut et la session_libre ne sont pas obligatoires</li>
+													<li>Si le statut est vide, il sera valué à "En attente", si valué à "O" à "Ouvert"</li>
+													<li>Session libre si valué à "O"</li>
+												</ul>
+												<div class="row mb-3">
+													<label for="files" class="col-lg-2 form-label">Fichier</label>
+													<div class="col-lg-10">
+														<input type="file" id="files" name="files" class="file" multiple="multiple">
+													</div>
+												</div>
+											</div>
+									      <div class="modal-footer">
+									        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+									        <button type="submit" class="btn btn-success">Envoyer</button>
+									      </div>
+								      </form>
+								    </div>
+								  </div>
+								</div>
+								<div class="modal fade" id="exampleModal" tabindex="-1"  aria-hidden="true">
+								  <div class="modal-dialog">
+								  <form th:action="@{/{ctx}/manager/sessionEpreuve/actions(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+								  	<input type="hidden" id="checkedValues" name="checkedValues" value="">
+								    <div class="modal-content">
+								      <div class="modal-header">
+								        <h1 class="modal-title fs-5">ACTIONS</h1>
+								        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								      </div>
+								      <div class="modal-body">
+								      	<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
+										<div class="form-check">
+										  <input class="form-check-input" type="radio" name="action" id="action1" value="delete" checked>
+										  <label class="form-check-label" for="action1">
+										    Supprimer les sessions
+										  </label>
+										</div>
+										<div class="form-check">
+										  <input class="form-check-input" type="radio" name="action" value="close" id="action2" >
+										  <label class="form-check-label" for="action2">
+										    Clôturer les sessions
+										  </label>
+										</div>
+								      </div>
+								      <div class="modal-footer">
+								        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+								        <button  type="submit" class="btn btn-success">Valider</button>
+								      </div>
+								    </div>
+								    </form>
+								  </div>
+								</div>
 						    </div>
 					    </div> 
 	    			</div>
@@ -93,6 +176,7 @@
 						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
 							<thead class ="center sticky-top">
 								<tr>
+									<th scope="col"><input type="checkbox" id="selectAllCheckbox"></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateExamen">Date</a></th>
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
@@ -117,6 +201,7 @@
 							</thead>
 							<tbody class ="center">
 								<tr th:each="sessionEpreuve : ${sessionEpreuvePage}" th:classappend="${sessionEpreuve.isSessionEpreuveClosed} ? table-danger : ''" th:id="${sessionEpreuve.id}">
+									<td scope="col"><input type="checkbox" th:value="${sessionEpreuve.id}" class="checkboxes" name="checkedValues"></td>
 									<td>
 										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
 										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd-MM-yyyy')}"></span>
@@ -127,6 +212,7 @@
 										<span class="badge"  th:classappend ="
 													  ${(sessionEpreuve.statut.name() == 'STANDBY' ? 'bg-warning': '') + 
 						                                (sessionEpreuve.statut.name() == 'OPENED' ? 'bg-success': '')  + 
+						                                (sessionEpreuve.statut.name() == 'CANCELLED' ? 'bg-primary': '')  + 
 						                                (sessionEpreuve.statut.name() == 'CLOSED' ? 'bg-danger': '')}"
 						                                th:text="(${sessionEpreuve.statut}==null)? '': #{'session.statut.' + 
 										${#strings.toLowerCase(sessionEpreuve.statut)}}"></span>

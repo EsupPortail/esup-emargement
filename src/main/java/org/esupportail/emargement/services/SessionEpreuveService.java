@@ -1,6 +1,10 @@
 package org.esupportail.emargement.services;
 import java.io.IOException;
-import java.text.ParseException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -19,6 +23,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
@@ -27,6 +34,7 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
+import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
@@ -34,6 +42,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
+import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -41,6 +50,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -72,6 +82,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
+
+	@Autowired
+	private CampusRepository campusRepository;
 	
 	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
@@ -84,6 +97,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	ContextRepository contextRepository;
+	
+	@Autowired
+	TypeSessionRepository typeSessionRepository;
 	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
@@ -110,7 +126,13 @@ public class SessionEpreuveService {
 	StoredFileService storedFileService;
 	
 	@Resource
+	ContextService contextService;
+	
+	@Resource
 	LogService logService;
+	
+	@Resource
+	ImportExportService importExportService;
 	
 	@Value("${app.url}")
 	private String appUrl;
@@ -138,7 +160,7 @@ public class SessionEpreuveService {
 			session.setNbTagCheckerSession(nbTagCheckerSession);
 			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
-			session.setDureeEpreuve(toolUtil.getDureeEpreuve(session));
+			session.setDureeEpreuve(toolUtil.getDureeEpreuve(session.getHeureEpreuve(), session.getFinEpreuve(), null));
 			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId(), TypeEmargement.CARD.name(), session.getContext().getId()));
 			session.setNbStoredFiles(storedFileRepository.countBySessionEpreuve(session));
 			session.setNbUnknown(unknown);
@@ -385,7 +407,7 @@ public class SessionEpreuveService {
 		SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
 		String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
     	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
-    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));;
+    			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_");		
 		tagCheckService.setNomPrenomTagChecks(list, false, false);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
@@ -463,7 +485,7 @@ public class SessionEpreuveService {
 	        		String prenom = "";
 	        		String identifiant = "";
 	        		String typeIndividu = "";
-	        		String signature = (BooleanUtils.isTrue(tc.getIsExempt()))? "Exempt" : "";
+	        		String signature = tc.getAbsence()!=null? tc.getAbsence().name() : "";
 	        		String groupe = "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();
@@ -537,7 +559,7 @@ public class SessionEpreuveService {
     }
 	
 	@Scheduled(cron = "0 0 7 * * ?")//Tous les jours à 10h
-	public void closeSessions() throws ParseException {
+	public void closeSessions(){
 		List<AppliConfig> configs =  appliConfigRepository.findAppliConfigByKey(AppliConfigKey.AUTO_CLOSE_SESSION.name());
 		for(AppliConfig config : configs) {
 			if("true".equals(config.getValue())) {
@@ -571,10 +593,10 @@ public class SessionEpreuveService {
 		if(!prefs.isEmpty()) {
 			pref = prefs.get(0);
 		}
-		List<SessionEpreuve> newList = new ArrayList<SessionEpreuve>();
+		List<SessionEpreuve> newList = new ArrayList<>();
 		for (TagChecker tc :  tagCheckerList.getContent()) {
 			SessionEpreuve se = tc.getSessionLocation().getSessionEpreuve();
-			if(!newList.contains(se) && !Statut.CLOSED.equals(se.getStatut())) {
+			if(!newList.contains(se) && !Statut.CLOSED.equals(se.getStatut()) && !Statut.CANCELLED.equals(se.getStatut())) {
 				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
 					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
 					int checkIfDateFinIsOk = -1;
@@ -596,7 +618,7 @@ public class SessionEpreuveService {
 	
 	public List<String> getYears(String ctx) {
 		
-		List<String> years = new ArrayList<String>();
+		List<String> years = new ArrayList<>();
 
 		Context context = contextRepository.findByContextKey(ctx);
 		List<String> anneeUnivs = null;
@@ -638,7 +660,7 @@ public class SessionEpreuveService {
 		return currentYear;
 	}
 	
-	 public SessionEpreuve duplicateSessionEpreuve(Long id) throws IOException {
+	 public SessionEpreuve duplicateSessionEpreuve(Long id){
 		SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
 		Context context = originalSe.getContext();
         SessionEpreuve newSe = new SessionEpreuve();
@@ -658,7 +680,7 @@ public class SessionEpreuveService {
         newSe.setStatut(originalSe.getStatut());
         String newNomEpreuve = "";
         int  x = 0 ;
-        Long count = new Long(0);
+        Long count = 0L;
         do {
           x++;
         } while (count!=0);
@@ -740,13 +762,13 @@ public class SessionEpreuveService {
 	 public boolean isSessionEpreuveClosed(SessionEpreuve se) {
 		 if(Statut.CLOSED.equals(se.getStatut())) {
 			 return true;
-		 }else {
-			 return false;
 		 }
+		return false;
 	 }
+	 
 	 public HashMap<String,String> getTypesSession(Long ctxId){
 		 
-		 HashMap<String,String> map = new HashMap<String, String>();
+		 HashMap<String,String> map = new HashMap<>();
 		 List<Object[]> list = sessionEpreuveRepository.findDistinctTypeSession(ctxId);
 		 for(Object obj[] : list) {
 			 map.put(obj[0].toString(), obj[1].toString());
@@ -787,4 +809,81 @@ public class SessionEpreuveService {
 	   }
 		 return date;
 	 }
+
+	public String importSessionsCsv(SequenceInputStream sequenceInputStream, String emargementContext) throws Exception {
+		String bilanImport = "";
+		String erreurs = "";
+		int i = 0; int j=0;
+		try (Reader reader = new InputStreamReader(sequenceInputStream, StandardCharsets.UTF_8);
+				CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withHeader())) {
+			for (CSVRecord record : csvParser) {
+				boolean isRowOk = true;
+				isRowOk = !record.get("nom").isEmpty() ? true : false;
+				isRowOk = !record.get("type").isEmpty()
+						&& !typeSessionRepository.findByKey(record.get("type")).isEmpty() ? true : false;
+				isRowOk = !record.get("site").isEmpty()
+						&& !campusRepository.findBySite(record.get("site")).isEmpty() ? true : false;
+				isRowOk = !record.get("date_debut").isEmpty() ? true : false;
+				isRowOk = !record.get("heure_debut").isEmpty() ? true : false;
+				isRowOk = !record.get("heure_fin").isEmpty() ? true : false;
+
+				if (isRowOk) {
+					SessionEpreuve se = new SessionEpreuve();
+					String nomSession = record.get("nom");
+					Date dateExamen = new SimpleDateFormat("dd/MM/yy").parse(record.get("date_debut"));
+					Date heureDebut = new SimpleDateFormat("HH:mm").parse(record.get("heure_debut"));
+					Date heureFin = new SimpleDateFormat("HH:mm").parse(record.get("heure_fin"));
+					if(sessionEpreuveRepository.countByNomSessionEpreuveAndDateExamenAndHeureEpreuveAndFinEpreuve(nomSession, dateExamen, 
+							heureDebut, heureFin)>0) {
+						erreurs +=  record.get("nom") + " ";
+						j++;
+					}else {
+						se.setNomSessionEpreuve(nomSession);
+						se.setTypeSession(typeSessionRepository.findByKey(record.get("type")).get(0));
+						se.setCampus(campusRepository.findBySite(record.get("site")).get(0));
+						se.setDateExamen(dateExamen);
+						se.setDateCreation(new Date());
+						se.setTypeBadgeage(TypeBadgeage.SESSION);
+						se.setContext(contextService.getcurrentContext());
+						if (!record.get("date_fin").isEmpty()) {
+							se.setDateFin(new SimpleDateFormat("dd/MMM/yy").parse(record.get("date_fin")));
+						}
+						se.setHeureEpreuve(heureDebut);
+						Calendar c = Calendar.getInstance();
+						c.setTime(se.getHeureEpreuve());
+						c.add(Calendar.MINUTE, -15);
+						Date heureConvocation = c.getTime();
+						se.setHeureConvocation(heureConvocation);
+						se.setFinEpreuve(heureFin);
+						if (!record.get("commentaire").isEmpty()) {
+							se.setComment(record.get("commentaire"));
+						}
+						if (!record.get("statut").isEmpty() && "O".equalsIgnoreCase(record.get("statut"))) {
+							se.setStatut(Statut.OPENED);
+						} else {
+							se.setStatut(Statut.STANDBY);
+						}
+						if (!record.get("session_libre").isEmpty()
+								&& "O".equalsIgnoreCase(record.get("session_libre"))) {
+							se.setIsSessionLibre(true);
+						} else {
+							se.setIsSessionLibre(false);
+						}
+						se.setAnneeUniv(String.valueOf(getCurrentanneUniv()));
+						sessionEpreuveRepository.save(se);
+						i++;
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("CSV d'imort de sesions non conforme", e);
+			j++;
+			erreurs = "Mauvais format de données dans le CSV";
+			logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.FAILED, "Mauvais format de données" , null, null, emargementContext, null);
+		}
+		bilanImport = i + " importé(s) avec succès. - Erreur(s) : "  + j + " , "  + erreurs;
+		log.info(bilanImport);
+		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Import CSV : " + i , null, null, emargementContext, null);
+		return bilanImport;
+	}
 }

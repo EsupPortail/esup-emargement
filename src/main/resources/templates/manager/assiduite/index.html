@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid" id="assiduitePage">
+			<div class="card">
+				<div class="card-header">
+					<div class="row">
+			    		<div class="col">
+					    	<h2>Assiduité</h2>
+					    </div>
+					</div>
+				</div>
+  				<div class="card-body">
+  					<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch" th:object="${assiduiteBean}">
+						<div class="row">
+							<div class="col-auto">
+								<div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
+								    <i class="fa fa-calendar"></i>&nbsp;
+								    <span></span> <i class="fa fa-caret-down"></i>
+								</div>
+							</div>
+							<input type="hidden" id="datesRange" name="datesRange" th:value="${datesRangeSelect}" class="clearable">
+							<div class="col-auto">
+								<select class="form-select assiduiteControl" th:field="*{situation}">
+									<option value="absence">Absence</option>
+									<option value="presence">Présence</option>
+								</select>
+							</div>
+							<div class="col-auto">
+								<select class="form-select assiduiteControl clearable" th:field="*{motif}">
+									<option value="">--- Motif ---</option>
+									<option value="JUSTIFIE">Justifié</option>
+									<option value="RETARD">Retard</option>
+									<option value="EXCLUS">Exclus</option>
+								</select>
+							</div>
+							<div class="col-auto">
+								<div class="input-group">
+									<span class="input-group-text clearable">Nom / Code</span> <input
+										type="search" class="form-control assiduiteControl clearable" placeholder="Recherche obligatoire" id="searchAssiduite" th:value="${assiduiteBean.searchField}">
+										<input type="hidden" th:field="*{searchField}" class="clearable"/>
+										<input type="hidden" th:field="*{searchValue}" class="clearable"/>
+								</div>
+							</div>
+							<div class="col">
+								<div class="input-group mb-3">
+									<select th:field="*{groupe}" class="assiduiteControl clearable">
+										<option value="">--Choisir--</option>
+										<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"></option>
+									</select>
+								</div>
+							</div>
+							<div class="col-auto">
+								<a class="btn btn-danger btn-sm mt-1 me-5"
+									id="clearFilters"><i class="fas fa-undo"></i></a>
+							</div>
+						</div>
+					</form>
+					<th:block th:if="${assiduiteBean.situation eq 'absence'}">
+						<table class="table table-hover table-striped table-bordered table-sm assiduite" style="width:100%" th:attr="data-export-title=${activite}">
+							<thead>
+								<tr>
+									<th>Session</th>
+									<th>Type</th>
+									<th>Date</th>
+									<th>Début</th>
+									<th>Fin</th>
+									<th>Civilité</th>
+									<th>Nom</th>
+									<th>Prénom</th>
+									<th>Num Etu</th>
+									<th>Groupe</th>
+									<!-- >th class="text-center">Surveillant</th-->
+									<th class="text-center">Absence</th>
+									<th class="text-center">Cumul absences (heures)</th>
+									<th class="text-center">Cumul absences (jours)</th>
+									<th class="text-center">Cumul absences (sessions)</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="tc : ${absencesPage}" th:with="individu=${(tc.person != null) ? tc.person : tc.guest},
+									sessionEpreuve=${tc.sessionEpreuve}">
+									<td>
+										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
+											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
+							            <th:block th:if="${tc.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+									</td>
+									<td th:text="${sessionEpreuve.typeSession.key}"></td>
+									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
+									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
+									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
+									<td th:text="${individu.civilite}"></td>
+									<td>
+										<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+									</td>
+									<td th:text="${individu.prenom}"></td>
+									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
+									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
+									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
+									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
+									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
+									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
+									<td class="text-center" th:text="${mapSessions.get(tc.person.eppn)}"></td>
+								</tr>
+							</tbody>
+						</table>
+					</th:block>
+					<th:block th:if="${assiduiteBean.situation eq 'presence'}">
+						<table class="table table-hover table-striped table-bordered assiduite2" style="width:100%">
+							<thead class="sticky-top">
+								<tr>
+									<th scope="col">Nom</th>
+									<th scope="col">Prénom</th>
+									<th scope="col">Session</th>
+									<th scope="col">Type</th>
+									<th scope="col">Groupe</th>
+									<th scope="col" class="dateItem">Date</th>
+									<th>Durée</th>
+									<th scope="col">Tiers-temps</th>
+									<th scope="col">Absence</th>
+									<th th:if="${isConvocationEnabled}" scope="col">Envoi convocation</th>								
+									<th scope="col">Emargement</th>
+									<th scope="col">Repartition</th>
+									<th scope="col" class="dateItem">Badgeage</th>
+									<th scope="col">Surveillant</th>
+									<th scope="col" class="exclude">Voir</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="tagCheck : ${absencesPage}" th:id="${tagCheck.id}"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'table-success' : '') +
+										(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre? 'table-warning' : '')}"
+									th:with="individu=${(tagCheck.person != null) ? tagCheck.person : tagCheck.guest}, sessionEpreuve=${tagCheck.sessionEpreuve}">
+									<td>
+										<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+									</td>
+									<td th:text="${individu.prenom}"></td>
+									<td> 
+										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
+									</td>
+									<td th:text="${sessionEpreuve.typeSession.key}"></td>
+									<td>
+										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
+									</td>
+									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
+									<td th:text="${sessionEpreuve.nbHours}"></td>
+									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
+									<td class="text-danger fw-bold" th:text="${tagCheck.absence != null ? tagCheck.absence.name() : ''}"></td>
+									<td th:if="${isConvocationEnabled}" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
+									<td class="center checkedByCard" th:attr="data-filter=${tagCheck.typeEmargement}">
+											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
+												<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+												<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+												<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+												<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
+												<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+												<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>												
+												<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+											 </span>
+									</td>
+									<td th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
+									<td th:text="${#dates.format(tagCheck.tagDate, 'dd-MM-yy HH:mm')}"></td>
+									<td th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.eppn : ''}"></td>
+									<td class="center">
+										<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" title ="Voir session">
+											<i class="fa fa-list text-primary ms-2"></i></a>											
+										<a th:if="${tagCheck.tagDate != null}" 
+										  	th:href="@{/{ctx}/manager/individu/attestation/preview/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Voir l'attestation">
+											<i class="fa-solid fa-file-pdf text-info ms-2" ></i></a>
+										<a th:if="${isEsupSignatureEnabled and tagCheck.tagDate != null and mapTc.get(tagCheck.id) ==null}" 
+											th:href="@{/{ctx}/manager/individu/attestation/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Signer attestation">
+											<i class="fa-solid fa-file-pdf text-danger ms-2" ></i></a>											
+										<a th:if="${isEsupSignatureEnabled and mapTc.get(tagCheck.id) !=null and 
+												mapTc.get(tagCheck.id).statutSignature.name() ne 'ENDED' }" 
+											th:href="@{/{ctx}/manager/esupsignature/status/{signId}?from={eppn}
+												(signId=${mapTc.get(tagCheck.id).signRequestId},ctx=${eContext}, eppn=${tagCheck.person.eppn})}"
+											title ="Récupérer d'esup-signature">
+											<i class="fa fa-refresh text-primary ms-2"></i></a>
+										<a th:if="${mapTc.get(tagCheck.id)!=null and mapTc.get(tagCheck.id).storedFileId != null}" target="_blank" 
+										th:href="@{/{ctx}/manager/storedFile/{id}/photo(id=${mapTc.get(tagCheck.id).storedFileId},ctx=${eContext})}">
+											<i class="fa-solid fa-file-pdf text-success ms-2" title ="Voir attestation signée"></i></a>
+									</td>
+								</tr>
+							</tbody>
+						</table>			
+					</th:block>	
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

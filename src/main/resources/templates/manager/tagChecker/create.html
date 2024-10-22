@@ -39,22 +39,23 @@
 						</div>
 						<div class="row mb-3">
 	                    	<label for="userApp" class="col-lg-2 form-label">Agent</label>
-	                    	<div class="col-lg-10">
+	                    	<div class="col-lg-5">
+								<div th:if="${not #lists.isEmpty(tcs)}"class="mb-3 . notUsed">
+									<select id="my-select2" name="users" multiple="multiple">
+										<option th:each="tc : ${tcs}" 
+												th:value="${tc.userApp.id}"
+												th:text="${tc.userApp.nom + ' ' + tc.userApp.prenom}"/>
+									</select>	
+								</div>
+							</div>
+	                    	<div class="col-lg-5">
 								<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
 								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 . notUsed">
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="selectAll">
-										<label class="text-primary font-weight-bold">Tout sélectionner</label>
-									</div>
-									<div th:each="userApp : ${allUserApps}">
-										<div class="form-check">
-										  <input class="form-check-input" name="users" type="checkbox" th:value="${userApp.id}" th:id="${'box' + userApp.id}">
-										  <label class="form-check-label" th:text="${userApp.nom + ' ' + userApp.prenom}">
-										  </label>
-										   <a class="contextualHelp ms-2" data-bs-toggle="tooltip" th:title="${map.get(userApp.eppn)}">
-			                    			<i class="fas fa-circle-info"></i></a>
-										</div>
-									</div>
+									<select id="my-select" name="users" multiple="multiple">
+										<option th:each="userApp : ${allUserApps}" 
+												th:value="${userApp.id}"
+												th:text="${userApp.nom + ' ' + userApp.prenom}"/>
+									</select>
 								</div>
 							</div>
 						</div>

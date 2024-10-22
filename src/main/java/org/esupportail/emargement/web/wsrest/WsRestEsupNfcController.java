@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -80,14 +79,12 @@ public class WsRestEsupNfcController {
 		boolean isTagable =  tagCheckService.tagAction(eppn, esupNfcTagLog,"isTagable") ;
 
 		if(isTagable){
-			return new ResponseEntity<String>("OK", responseHeaders, HttpStatus.OK);
-		}else {
-			log.warn("Erreur 'isTagable' des Ws Rest pour l'eppn : " + eppn );
-			logService.log(ACTION.WSREST_ISTAGABLE, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
-			return new ResponseEntity<String>("Personne non trouvée", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("OK", responseHeaders, HttpStatus.OK);
 		}
+		log.warn("Erreur 'isTagable' des Ws Rest pour l'eppn : " + eppn );
+		logService.log(ACTION.WSREST_ISTAGABLE, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
+		return new ResponseEntity<>("Personne non trouvée", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-
 	
 	/**
 	 * Example :
@@ -102,17 +99,16 @@ public class WsRestEsupNfcController {
 		boolean isOk =  tagCheckService.tagAction(eppn, esupNfcTagLog, "validateTag") ;
 
 		if(isOk){
-			return new ResponseEntity<String>("OK", responseHeaders, HttpStatus.OK);
-		} else {
-			log.warn("Erreur 'validateTag' des Ws Rest pour l'eppn : " + eppn );
-			logService.log(ACTION.WSREST_VALIDATETAG, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
-			return new ResponseEntity<String>("Erreur de validation de présence", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>("OK", responseHeaders, HttpStatus.OK);
 		}
+		log.warn("Erreur 'validateTag' des Ws Rest pour l'eppn : " + eppn );
+		logService.log(ACTION.WSREST_VALIDATETAG, RETCODE.FAILED, "Eppn : " + eppn, eppn, null, contextService.getDefaultContext(), esupNfcTagLog.getEppnInit());
+		return new ResponseEntity<>("Erreur de validation de présence", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	@RequestMapping(value="/display",  method=RequestMethod.POST)
 	@ResponseBody
-	public String display(@RequestBody EsupNfcTagLog taglog, Model uiModel) {
+	public String display(@RequestBody EsupNfcTagLog taglog) {
 		String photo64 = presenceService.getBase64Photo(taglog);
 		String image ="";
 
@@ -128,11 +124,8 @@ public class WsRestEsupNfcController {
 			    		+ "src = 'data:image/jpeg;base64, " + photo64 + "' /></p>" + close;
 			}
 		} catch (Exception e) {
-			log.info("Pas d'affichage d'image");
+			log.info("Pas d'affichage d'image", e);
 		}
 		return image;
 	}
-	
-
-
 }

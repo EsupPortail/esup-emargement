@@ -27,8 +27,8 @@ public class ApogeeService {
 	
 	//Réquete 0 : Récupération de la liste des composantes 
 	public List<ApogeeBean> getComposantes(){
-		List<Map<String, Object>> composantes = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> abComposantes = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> composantes = new ArrayList<>();
+		List<ApogeeBean> abComposantes = new ArrayList<>();
 		
 		String query = "SELECT COMPOSANTE.COD_CMP, COMPOSANTE.LIB_CMP FROM APOGEE.COMPOSANTE COMPOSANTE "
 				+ "WHERE (COMPOSANTE.TEM_EN_SVE_CMP='O') ORDER BY COMPOSANTE.LIB_CMP";
@@ -51,8 +51,8 @@ public class ApogeeService {
 	
 	//Requête 1 :  Récupération de la liste des diplômes de la composante choisie en  Requete 0
 	public List<ApogeeBean> getElementsPedagogiques(ApogeeBean apogeeBean){
-		List<Map<String, Object>> inscrits = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> elementsPedagogiques = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> inscrits = new ArrayList<>();
+		List<ApogeeBean> elementsPedagogiques = new ArrayList<>();
 		String query = "SELECT DISTINCT (IAE.COD_ETP||'-'||IAE.COD_VRS_VET) as code, vet.lib_web_vet as lib " + 
 						"FROM ETAPE ETP , INS_ADM_ETP IAE INNER JOIN VERSION_ETAPE VET " +
 						"ON (IAE.COD_ETP = VET.COD_ETP AND IAE.COD_VRS_VET = VET.COD_VRS_VET) " + 
@@ -81,8 +81,8 @@ public class ApogeeService {
 	
 	//Requête 2 :  Récupération des matières après avoir choisi le diplôme en Requête 1
 	public List<ApogeeBean> getMatieres(ApogeeBean apogeeBean){
-		List<Map<String, Object>> matieres = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> elementsPedagogiques = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> matieres = new ArrayList<>();
+		List<ApogeeBean> elementsPedagogiques = new ArrayList<>();
 		
 		String query = "SELECT DISTINCT ELEMENT_PEDAGOGI.COD_ELP, ELEMENT_PEDAGOGI.LIB_ELP " +
 					   "FROM APOGEE.ELEMENT_PEDAGOGI ELEMENT_PEDAGOGI, APOGEE.IND_CONTRAT_ELP IND_CONTRAT_ELP " +
@@ -136,8 +136,8 @@ public class ApogeeService {
 	
 	//Requete 4   : Récupération de la liste étudiants
 	public List<ApogeeBean> getAutorisesEpreuve(ApogeeBean apogeeBean){
-		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> autorisesEpreuve = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> results = new ArrayList<>();
+		List<ApogeeBean> autorisesEpreuve = new ArrayList<>();
 		
 		String query = "SELECT INDIVIDU.COD_ETU, INDIVIDU.LIB_NOM_PAT_IND, INDIVIDU.LIB_PR1_IND, INDIVIDU.DATE_NAI_IND " + 
 						"FROM INDIVIDU, RESULTAT_ELP " + 
@@ -175,8 +175,8 @@ public class ApogeeService {
 	
 	//Requete 5  : Récupération  des groupes de TD d’une matière
 	public List<ApogeeBean> getGroupes(ApogeeBean apogeeBean){
-		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> groupesTD = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> results = new ArrayList<>();
+		List<ApogeeBean> groupesTD = new ArrayList<>();
 		String query = "SELECT DISTINCT GROUPE.COD_GPE, GROUPE.LIB_GPE FROM APOGEE.GPE_OBJ, APOGEE.GROUPE, " +
 				 		"APOGEE.IND_AFFECTE_GPE WHERE GPE_OBJ.COD_GPE = GROUPE.COD_GPE AND IND_AFFECTE_GPE.COD_GPE = GROUPE.COD_GPE " +
 				 		"AND IND_AFFECTE_GPE.COD_ANU= ? AND GPE_OBJ.COD_ELP= ? ORDER BY GROUPE.COD_GPE";
@@ -219,8 +219,8 @@ public class ApogeeService {
 	
 	//Requete 7   : Récupération de la liste étudiants d'un groupe
 	public List<ApogeeBean> getAutorisesEpreuveGroupe(ApogeeBean apogeeBean){
-		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> autorisesEpreuve = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> results = new ArrayList<>();
+		List<ApogeeBean> autorisesEpreuve = new ArrayList<>();
 		
 		String query = "SELECT INDIVIDU.COD_ETU, INDIVIDU.LIB_NOM_PAT_IND, INDIVIDU.LIB_PR1_IND, INDIVIDU.DATE_NAI_IND "
 				+ "FROM APOGEE.GPE_OBJ GPE_OBJ, APOGEE.GROUPE GROUPE, APOGEE.IND_AFFECTE_GPE IND_AFFECTE_GPE, "
@@ -255,8 +255,8 @@ public class ApogeeService {
 	
 	//Requete 8  : Récupération des étudiants d'une composante
 	public List<ApogeeBean> getAutorisesEpreuveComposante(ApogeeBean apogeeBean){
-		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> autorisesEpreuve = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> results = new ArrayList<>();
+		List<ApogeeBean> autorisesEpreuve = new ArrayList<>();
 		
 		String query = "SELECT DISTINCT INDIVIDU.COD_ETU, INDIVIDU.LIB_NOM_PAT_IND, INDIVIDU.LIB_PR1_IND, INDIVIDU.DATE_NAI_IND " + 
 				"FROM INDIVIDU INNER JOIN INS_ADM_ETP IAE ON (INDIVIDU.COD_IND = IAE.COD_IND) " + 
@@ -310,8 +310,8 @@ public class ApogeeService {
 	
 	//Requete 10  : Récupération de la liste étudiants d'une étape(diplome)
 	public List<ApogeeBean> getAutorisesEpreuveDiplome(ApogeeBean apogeeBean){
-		List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
-		List<ApogeeBean> autorisesEpreuve = new ArrayList<ApogeeBean>();
+		List<Map<String, Object>> results = new ArrayList<>();
+		List<ApogeeBean> autorisesEpreuve = new ArrayList<>();
 		
 		String query = "SELECT DISTINCT INDIVIDU.COD_ETU, INDIVIDU.LIB_NOM_PAT_IND, INDIVIDU.LIB_PR1_IND, INDIVIDU.DATE_NAI_IND " + 
 				"FROM INDIVIDU, RESULTAT_VET " + 
@@ -383,8 +383,8 @@ public class ApogeeService {
 	
 	public List<ApogeeBean> getListeFutursInscrits(ApogeeBean apogeeBean) {
 		
-		List<ApogeeBean> futursInscrits = new ArrayList<ApogeeBean>();
-		List<ApogeeBean> autorisesEpreuve = new ArrayList<ApogeeBean>();
+		List<ApogeeBean> futursInscrits = new ArrayList<>();
+		List<ApogeeBean> autorisesEpreuve = new ArrayList<>();
 		int countAutorisesEpreuve = 0;
 		if(apogeeBean.getCodEtp()==null || apogeeBean.getCodEtp().isEmpty()) {
 			if(apogeeBean.getCodCmp()!=null || !apogeeBean.getCodCmp().isEmpty()) {
@@ -422,9 +422,9 @@ public class ApogeeService {
 	
     public  List<List<String>> getListeFutursInscritsDirectImport(List<ApogeeBean> futursInscrits){
     	
-		List<List<String>> finalList = new ArrayList<List<String>>();
+		List<List<String>> finalList = new ArrayList<>();
 		for(ApogeeBean ab : futursInscrits ) {
-			List<String> strings = new ArrayList<String>();
+			List<String> strings = new ArrayList<>();
 			strings.add(ab.getCodEtu());
 			finalList.add(strings);
 		}
@@ -453,7 +453,7 @@ public class ApogeeService {
     }
     
     public List<ApogeeBean> searchList(String param, ApogeeBean apogeeBean) {
-    	List<ApogeeBean> list= new ArrayList<ApogeeBean>();
+    	List<ApogeeBean> list= new ArrayList<>();
     	switch(param){
 	    	case "diplome":
 	    		list =  getElementsPedagogiques(apogeeBean);
@@ -470,7 +470,7 @@ public class ApogeeService {
     }
     
     public Map<String,String> getMapEtapes(ApogeeBean apogeebean, List<ApogeeBean> futursInscrits){
-    	Map<String,String> mapEtapes = new HashMap<String,String>();
+    	Map<String,String> mapEtapes = new HashMap<>();
     	List<ApogeeBean> list = getElementsPedagogiques(apogeebean);
     	Map<String, String> mapEtp = list.stream().collect(
     			Collectors.toMap(ApogeeBean::getCodEtp, ApogeeBean::getLibEtp));

@@ -17,10 +17,12 @@
         selectAll='[[${selectAll}]]';
         rootUrl='[[@{/}]]';
 		seId='[[${seId}]]';
+		typePj='[[${typePj}]]';
 		currentLocation = '[[${currentLocation}]]';
 		category6 = '[[${category6}]]';
 		qrcodeChange = '[[${qrcodeChange}]]';
 		triBadgeage = '[[${triBadgeage}]]';
+		datesRangeSelect = '[[${datesRangeSelect}]]';
    		 /*]]>*/
 		</script>
 		
@@ -28,7 +30,7 @@
 		<script th:src="@{/webjars/awesomplete/awesomplete.min.js}"></script>
 		<script th:src="@{/webjars/popper.js/umd/popper.min.js}"></script>
 		<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
-		<script th:src="@{/webjars/chartjs/dist/chart.min.js}"></script>
+		<script th:src="@{/webjars/chartjs/dist/chart.umd.js}"></script>
 		<script th:src="@{/webjars/fullcalendar/main.min.js}"></script>
 		<script th:src="@{/webjars/fullcalendar/locales/fr.js}"></script>
 		<script th:src="@{/webjars/momentjs/min/moment.min.js}"></script>
@@ -52,6 +54,7 @@
 		<script th:src="@{/webjars/jszip/jszip.min.js}"></script>
 		<script th:src="@{/webjars/pdfmake/build/pdfmake.min.js}"></script>
 		<script th:src="@{/webjars/pdfmake/build/vfs_fonts.js}"></script>
+		<script th:src="@{/webjars/datatables-buttons/js/buttons.bootstrap5.min.js}"></script>
 		<script th:src="@{/webjars/datatables-buttons/js/buttons.html5.min.js}"></script>
 		<script th:src="@{/webjars/datatables-buttons/js/buttons.print.min.js}"></script>
 		<script th:src="@{/webjars/jstree/jstree.min.js}"></script>
@@ -62,6 +65,8 @@
 		</script>
 		<script th:src="@{/webjars/suneditor/dist/suneditor.min.js}"></script>
 		<script th:src="@{/resources/js/jquery.cascadingdropdown.min.js}"></script>
+		<script th:src="@{/webjars/bootstrap-daterangepicker/js/bootstrap-daterangepicker.js}"></script>
+		<script th:src="@{/resources/js/sol.js}"></script>
 		<script th:src="@{/resources/js/app.js}"></script>
 		
 		<link th:href="@{/webjars/awesomplete/awesomplete.css}" rel="stylesheet">
@@ -78,6 +83,8 @@
 		<link th:href="@{/webjars/datatables-buttons/css/buttons.dataTables.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/datatables.net-datetime/dist/dataTables.dateTime.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/suneditor/dist/css/suneditor.min.css}" rel="stylesheet">
+		<link th:href="@{/webjars/bootstrap-daterangepicker/css/bootstrap-daterangepicker.css}" rel="stylesheet">
+		<link th:href="@{/resources/css/sol.css}" rel="stylesheet">
 		<link th:href="@{/resources/css/app.css}" rel="stylesheet">
 		<title th:text="#{${'title.' + active}(${title})}">Application Emargement</title>
 	</head>

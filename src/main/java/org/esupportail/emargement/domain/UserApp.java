@@ -39,6 +39,8 @@ public class UserApp {
     @Transient
     private String prenom;
     
+    private String speciality;
+    
     private int contextPriority = 0;
     
 	public static enum Role {
@@ -53,8 +55,6 @@ public class UserApp {
     
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm")
     private Date dateCreation;
-    
-    private Long adeInstructorId;
 
     public Long getId() {
 		return id;
@@ -136,11 +136,11 @@ public class UserApp {
 		this.civilite = civilite;
 	}
 
-	public Long getAdeInstructorId() {
-		return adeInstructorId;
+	public String getSpeciality() {
+		return speciality;
 	}
 
-	public void setAdeInstructorId(Long adeInstructorId) {
-		this.adeInstructorId = adeInstructorId;
+	public void setSpeciality(String speciality) {
+		this.speciality = speciality;
 	}
 }

@@ -16,6 +16,8 @@ public interface UserAppRepository extends JpaRepository<UserApp, Long>{
 	
 	UserApp findByEppnAndContext(String eppn, Context context);
 	
+	UserApp findByEppnAndContextKey(String eppn, String key);
+	
 	Page<UserApp> findByEppnAndContext(String eppn, Context contex, Pageable pageablet);
 	
 	Long countByEppnAndContext(String eppn, Context context);

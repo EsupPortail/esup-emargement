@@ -46,7 +46,6 @@
 							<div class="row">
 								<div th:class="${!#lists.isEmpty(valuesFormation)? 'col' : 'col-12'}">
 									<select class="form-select mb-2" id="codeComposante1">
-										<option value="">----Composantes----</option>
 										<option value="myEvents" th:selected="${codeComposante eq 'myEvents'}">Mes évènements</option>
 										<option th:each="value : ${values}" th:if="${!#lists.isEmpty(values)}"
 											th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
@@ -61,6 +60,8 @@
 											th:selected="${#strings.substringAfter(value,'@@') eq codeFormation}"></option>
 									</select>
 								</div>
+								<div th:if="${#lists.isEmpty(values)}" class="alert alert-warning">
+									Vous pouvez choisir les composantes dans l'onglet "Paramètres"</div>
 							</div>
 							<div class="d-flex justify-content-center mt-3 d-none" id="spinnerComps">
 							  <div class="spinner-border spinner-border-sm text-primary" role="status">
@@ -75,16 +76,10 @@
 							    <span class="sr-only">Loading...</span>
 							  </div>
 							</div>
-				 			<div th:if="${#ctx.containsVariable('noProject')}" class="alert alert-warning fw-bold" >
-				 			Vous devez choisir un projet dans les paramètres pour pouvoir continuer
-				 			</div>
 		 					<div th:unless="${#ctx.containsVariable('noProject')}">
-				 				<div th:if="${#lists.isEmpty(values)}" class="alert alert-warning">
-									Veuillez choisir les composantes de la liste dans l'onglet "Paramètres"</div>
-								<div th:unless="${#lists.isEmpty(values)}">
 			 						<form th:action="@{/{ctx}/manager/adeCampus(ctx=${eContext})}" id="displayEvents" class="float-start">
 										<input type="hidden" name ="idList" id="idList" required="required"/>
-										<input type="hidden" name="codeComposante" id="hiddenCodeComposante"/>
+										<input type="hidden" name="codeComposante" id="hiddenCodeComposante" value="myEvents"/>
 			 							<div id="toolbar float-start">
 											<div class="row">
 												<div class="col-auto">
@@ -117,70 +112,69 @@
 											</div>
 										</div>
 									</form>
-										<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
-											<input type="hidden" name ="libelles" id="textListTask" required="required"/>
-											<input type="hidden" name ="params" id="idListTask" required="required"/>
-											<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
-											<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
-											<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
-											<input type="hidden" name ="idProject" id="idProject" th:value="${idProject}"/>
-											<input type="hidden" name ="idList" id="idListImport"/>
-											<input type="hidden" name ="nbItems" id="nbItems" value=""/>
-											<div class="row mb-3 p-1 bg-light">
-												<div class="col-auto">
-													<select class="form-select form-select-sm" id="campus" name="campus" required>
-														<option value="">--Choisir site d'import--</option>
-														<option th:each="campus : ${campuses}" th:value="${campus.id}" th:text="${campus.site}"></option>
-													</select>
-												</div>
-												<div class="col-auto">
-													<button th:if="${isCreateGroupeAdeEnabled}" class="btn btn-sm btn-info mt-1" type="button"
-														data-bs-toggle="collapse" data-bs-target="#collapseExample">
-														Groupe
-													</button>
-												</div>
-												<div class="col-auto">
-													<button id="importBtn" class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
-													<button th:formaction="@{/{ctx}/manager/adeCampus/createTask(ctx=${eContext})}" class="btn btn-warning btn-sm btn-outline mt-1" type="submit">Planifier</button>
-												</div>
+									<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
+										<input type="hidden" name ="libelles" id="textListTask" required="required"/>
+										<input type="hidden" name ="params" id="idListTask" required="required"/>
+										<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
+										<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
+										<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
+										<input type="hidden" name ="idProject" id="idProject" th:value="${idProject}"/>
+										<input type="hidden" name ="idList" id="idListImport"/>
+										<input type="hidden" name ="nbItems" id="nbItems" value=""/>
+										<div class="row mb-3 p-1 bg-light">
+											<div class="col-auto">
+												<select class="form-select form-select-sm" id="campus" name="campus" required>
+													<option value="">--Choisir site d'import--</option>
+													<option th:each="campus : ${campuses}" th:value="${campus.id}" th:text="${campus.site}"></option>
+												</select>
 											</div>
-											<div class="collapse" id="collapseExample">
-												<div class="alert alert-info">
-													<div class="row">
-														<div class="col-5">
-															<select id="blackListGroupe" name="existingGroupe" class="form-check" multiple>
-																<option th:each="groupe : ${allGroupes}" th:value="${groupe.id}" 
-																th:text="${groupe.nom}"></option>
-															</select>
-														</div>
-														<div class="col-auto">
-															<input type="text" class="form-control" name="newGroupe" placeholder="Nouveau groupe.." value="">
-														</div>
+											<div class="col-auto">
+												<button th:if="${isCreateGroupeAdeEnabled}" class="btn btn-sm btn-info mt-1" type="button"
+													data-bs-toggle="collapse" data-bs-target="#collapseExample">
+													Groupe
+												</button>
+											</div>
+											<div class="col-auto">
+												<button id="importBtn" class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+												<button th:formaction="@{/{ctx}/manager/adeCampus/createTask(ctx=${eContext})}" class="btn btn-warning btn-sm btn-outline mt-1" type="submit">Planifier</button>
+											</div>
+										</div>
+										<div class="collapse" id="collapseExample">
+											<div class="alert alert-info">
+												<div class="row">
+													<div class="col-5">
+														<select id="blackListGroupe" name="existingGroupe" class="form-check" multiple>
+															<option th:each="groupe : ${allGroupes}" th:value="${groupe.id}" 
+															th:text="${groupe.nom}"></option>
+														</select>
+													</div>
+													<div class="col-auto">
+														<input type="text" class="form-control" name="newGroupe" placeholder="Nouveau groupe.." value="">
 													</div>
 												</div>
-											</div>				
-											<table class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
-												<thead>
-												<tr>
-													<th><input type="checkbox" id="checkAll"></th>
-													<th>Id</th>
-													<th class="dateItem">Maj</th>
-													<th>Import</th>
-													<th>Type</th>
-													<th>Nom</th>
-													<th class="dateItem">Date</th>
-													<th>Début</th>
-													<th>Fin</th>
-													<th>Groupe</th>
-													<th>Enseignants</th>
-													<th>Salles</th>
-													<th>Formation</th>
-												</tr>
-												</thead>
-												<tbody id="tableEvents"></tbody>
-											</table>
-										</form>
-									</div>
+											</div>
+										</div>				
+										<table class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
+											<thead>
+											<tr>
+												<th><input type="checkbox" id="checkAll"></th>
+												<th>Id</th>
+												<th class="dateItem">Maj</th>
+												<th>Import</th>
+												<th>Type</th>
+												<th>Nom</th>
+												<th class="dateItem">Date</th>
+												<th>Début</th>
+												<th>Fin</th>
+												<th>Groupe</th>
+												<th>Enseignants</th>
+												<th>Salles</th>
+												<th>Formation</th>
+											</tr>
+											</thead>
+											<tbody id="tableEvents"></tbody>
+										</table>
+									</form>
 								</div>
 							</div>
 						</div>

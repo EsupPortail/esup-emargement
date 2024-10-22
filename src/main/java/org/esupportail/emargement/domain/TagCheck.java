@@ -30,6 +30,9 @@ public class TagCheck implements ContextSupport {
 	
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date tagDate;
+    
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date tagDate2;
 
     @ManyToOne
     private Person person;
@@ -47,6 +50,9 @@ public class TagCheck implements ContextSupport {
 
     @ManyToOne
     private TagChecker tagChecker;
+    
+    @ManyToOne
+    private TagChecker tagChecker2;
 
     @ManyToOne
     private SessionEpreuve sessionEpreuve;
@@ -59,17 +65,27 @@ public class TagCheck implements ContextSupport {
     
     public static enum TypeEmargement {
         CARD, LINK, MANUAL, QRCODE, QRCODE_SESSION, QRCODE_USER, QRCODE_CARD
-    };
+    }
+    
+    public static enum Motif {
+       JUSTIFIE, RETARD, EXCLUS
+    }
     
     @Column
     @Enumerated(EnumType.STRING)
     private TypeEmargement typeEmargement;
     
+    @Column
+    @Enumerated(EnumType.STRING)
+    private TypeEmargement typeEmargement2;
+    
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Motif absence;
+    
     private String numAnonymat;
     
     private Boolean isUnknown = false;
-    
-    private Boolean isExempt = false;
     
     @ManyToOne
     private Person proxyPerson;
@@ -240,14 +256,6 @@ public class TagCheck implements ContextSupport {
 		this.guest = guest;
 	}
 
-	public Boolean getIsExempt() {
-		return isExempt;
-	}
-
-	public void setIsExempt(Boolean isExempt) {
-		this.isExempt = isExempt;
-	}
-
 	public String getNomPrenom() {
 		return nomPrenom;
 	}
@@ -270,5 +278,37 @@ public class TagCheck implements ContextSupport {
 
 	public void setIsBlacklisted(Boolean isBlacklisted) {
 		this.isBlacklisted = isBlacklisted;
+	}
+
+	public Motif getAbsence() {
+		return absence;
+	}
+
+	public void setAbsence(Motif absence) {
+		this.absence = absence;
+	}
+
+	public Date getTagDate2() {
+		return tagDate2;
+	}
+
+	public void setTagDate2(Date tagDate2) {
+		this.tagDate2 = tagDate2;
+	}
+
+	public TypeEmargement getTypeEmargement2() {
+		return typeEmargement2;
+	}
+
+	public void setTypeEmargement2(TypeEmargement typeEmargement2) {
+		this.typeEmargement2 = typeEmargement2;
+	}
+
+	public TagChecker getTagChecker2() {
+		return tagChecker2;
+	}
+
+	public void setTagChecker2(TagChecker tagChecker2) {
+		this.tagChecker2 = tagChecker2;
 	}
 }

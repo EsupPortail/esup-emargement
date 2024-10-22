@@ -1,20 +1,25 @@
 package org.esupportail.emargement.web.admin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
+import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
@@ -36,6 +41,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.xml.sax.SAXException;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -62,10 +69,16 @@ public class UserAppController {
 	AppliConfigRepository appliConfigRepository;
 	
 	@Autowired
+	PrefsRepository prefsRepository;
+	
+	@Autowired
 	UserAppRepositoryCustom userAppRepositoryCustom;
 	
 	@Resource
 	UserAppService userAppService;
+	
+	@Resource
+	AdeService adeService;
 	
 	@Resource
 	LogService logService;
@@ -90,14 +103,13 @@ public class UserAppController {
 	ToolUtil toolUtil;
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
 	@GetMapping(value = "/admin/userApp")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="eppn") String eppn,  
-			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) {
-		
+			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException {
 		Long count = userAppRepository.count();
 		
 		int size = pageable.getPageSize();
@@ -117,7 +129,14 @@ public class UserAppController {
 			model.addAttribute("eppn", eppn);
 			model.addAttribute("collapse", "show");
 		}
-		
+		String sessionId = adeService.getSessionId(false, emargementContext);
+		String idProject = appliConfigService.getProjetAde();
+		if(adeService.getConnectionProject(idProject, sessionId)==null) {
+			sessionId = adeService.getSessionId(true, emargementContext);
+			adeService.getConnectionProject(idProject, sessionId);
+			log.info("Récupération du projet Ade " + idProject);
+		}
+		model.addAttribute("comps", adeService.getItemsFromtInstructors(sessionId, null));
         model.addAttribute("userAppPage", userAppPage);
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("itsme", userAppService.getUserAppEppn());
@@ -126,9 +145,61 @@ public class UserAppController {
 		return "admin/userApp/list";
 	}
 	
+	@Transactional
+	@PostMapping(value = "/admin/userApp/importInstructors")
+	public String importInstructors(@PathVariable String emargementContext, @RequestParam(value="comp") String comp,
+			@RequestParam(value="update", required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
+		String sessionId = adeService.getSessionId(false, emargementContext);
+		Map<String,String> insts = adeService.getItemsFromtInstructors(sessionId, comp.concat("."));
+		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
+		Context ctx = contextRepository.findByContextKey(emargementContext);
+		List<UserApp> users =  userAppRepository.findByContext(ctx);
+		String message = comp;
+		int i = 0;
+		int j = 0;
+		for (Map.Entry<String, LdapUser> entry : map.entrySet()) {
+			String eppn = entry.getValue().getEppn();
+			LdapUser ldapUser = entry.getValue();
+			if(!users.stream()
+            .anyMatch(user -> eppn.equals(user.getEppn()))) {
+				UserApp userApp = new UserApp();
+				ldapUser.getEppn();
+				userApp = new UserApp();
+				userApp.setContext(ctx);
+				String temp = insts.get(ldapUser.getNumPersonnel());
+				String splitInst[] = temp.split("\\.");
+				if(splitInst.length > 1) {
+					userApp.setSpeciality(splitInst[1]);
+				}
+				userApp.setDateCreation(new Date());
+				userApp.setContextPriority(0);
+				userApp.setEppn(eppn);
+				userApp.setUserRole(Role.MANAGER);
+				userAppRepository.save(userApp);
+				i++;
+			}else {
+				if(update !=null) {
+					UserApp userApp = userAppRepository.findByEppnAndContextKey(eppn, emargementContext);
+					String temp = insts.get(ldapUser.getNumPersonnel());
+					String splitInst[] = temp.split("\\.");
+					if(splitInst.length > 1) {
+						userApp.setSpeciality(splitInst[1]);
+					}
+					userAppRepository.save(userApp);
+					j++;
+				}
+			}
+		}
+		message += (i>0)? " Ajoutés : " + i : "" ;
+		message += (j>0)? " - Mises à jour : " + j : "";
+		redirectAttributes.addFlashAttribute("message", message);
+		logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, i + " ajouts depuis ADE", "", null, emargementContext, null);
+		return String.format("redirect:/%s/admin/userApp", emargementContext);
+	}
+	
 	@GetMapping(value = "/admin/userApp/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
-		List<UserApp> users = new ArrayList<UserApp>();
+		List<UserApp> users = new ArrayList<>();
 		users.add(userAppRepository.findById(id).get());
 		
         uiModel.addAttribute("userApp", userAppService.setNomPrenom(users, true).get(0));
@@ -146,7 +217,7 @@ public class UserAppController {
     @GetMapping(value = "/admin/userApp/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
     	UserApp userApp = userAppRepository.findById(id).get();
-    	List<UserApp> userApps = new ArrayList<UserApp>();
+    	List<UserApp> userApps = new ArrayList<>();
     	userApps.add(userApp);
     	populateEditForm(uiModel, userAppService.setNomPrenom(userApps, true).get(0), emargementContext);
         return "admin/userApp/update";
@@ -171,7 +242,7 @@ public class UserAppController {
     
     @PostMapping("/admin/userApp/create")
     public String create(@PathVariable String emargementContext, @RequestParam(value="myEppn", required = false) String myEppn, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, 
-    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors() || userApp.getEppn().isEmpty()&& myEppn == null) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "admin/userApp/create";
@@ -188,20 +259,19 @@ public class UserAppController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, agent déjà existant : " + userApp.getEppn());
         	return String.format("redirect:/%s/admin/userApp?form", emargementContext);
-        }else {
-        	if(myEppn != null) {
-        		userApp.setEppn(myEppn);
-        	}
-        	userApp.setContext(context);
-            userAppRepository.save(userApp);
-            log.info("ajout agent : " + userApp.getEppn());
-            logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", userApp.getEppn(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/userApp", emargementContext);
         }
+    	if(myEppn != null) {
+    		userApp.setEppn(myEppn);
+    	}
+    	userApp.setContext(context);
+        userAppRepository.save(userApp);
+        log.info("ajout agent : " + userApp.getEppn());
+        logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", userApp.getEppn(), null, emargementContext, null);
+        return String.format("redirect:/%s/admin/userApp", emargementContext);
     }
     
     @PostMapping("/admin/userApp/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "admin/userApp/update";
@@ -210,6 +280,7 @@ public class UserAppController {
         userApp.setDateCreation(new Date());
         UserApp oldUserApp = userAppRepository.findById(id).get();
     	oldUserApp.setUserRole(userApp.getUserRole());
+    	oldUserApp.setSpeciality(userApp.getSpeciality());
         userAppRepository.save(oldUserApp);
         log.info("Maj agent : " + userApp.getEppn());
         logService.log(ACTION.UPDATE_AGENT, RETCODE.SUCCESS, oldUserApp.getUserRole().name().concat(" --> ").concat(userApp.getUserRole().name()), userApp.getEppn(), null, emargementContext, null);
@@ -217,7 +288,7 @@ public class UserAppController {
     }
     
     @PostMapping(value = "/admin/userApp/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	try {
 			userAppRepository.delete(userApp);
@@ -231,17 +302,6 @@ public class UserAppController {
 		}
 
         return String.format("redirect:/%s/admin/userApp", emargementContext);
-    }
-    
-    @GetMapping("/admin/userApp/searchUsersLdap")
-    @ResponseBody
-    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
-    	userAppsList = ldapService.search(searchValue);
-    	
-        return userAppsList;
     }
     
     @GetMapping("/admin/userApp/search")

@@ -1,14 +1,10 @@
 package org.esupportail.emargement.web.admin;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.repositories.CampusRepository;
@@ -17,9 +13,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.EventService;
 import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LocationService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -47,8 +41,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import net.fortuna.ical4j.data.ParserException;
-
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
@@ -65,10 +57,7 @@ public class LocationController {
 	
 	@Autowired
 	CampusRepository campusRepository;
-	
-	@Resource
-	LocationService locationService;
-	
+
 	@Resource
 	LogService logService;
 	
@@ -80,9 +69,6 @@ public class LocationController {
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
-	
-	@Resource
-	EventService eventService;
 	
 	@Autowired
 	ToolUtil toolUtil;
@@ -126,9 +112,8 @@ public class LocationController {
     }
 	
     @GetMapping(value = "/admin/location", params = "form", produces = "text/html")
-    public String createForm(Model uiModel) throws IOException, ParserException {
+    public String createForm(Model uiModel) {
     	Location location = new Location();
-    	uiModel.addAttribute("eventLocations", locationService.getSuggestedLocation());
     	populateEditForm(uiModel, location);
         return "admin/location/create";
     }
@@ -148,7 +133,7 @@ public class LocationController {
     
     @PostMapping("/admin/location/create")
     public String create(@PathVariable String emargementContext, @Valid Location location, BindingResult bindingResult, Model uiModel, 
-    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
+    		final RedirectAttributes redirectAttributes){
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, location);
             return "admin/location/create";
@@ -160,17 +145,16 @@ public class LocationController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, lieu déjà existant : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
         	return String.format("redirect:/%s/admin/location?form", emargementContext);
-        }else {
-        	location.setContext(contexteService.getcurrentContext());
-        	locationRepository.save(location);
-        	log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-        	logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/location", emargementContext);
         }
+		location.setContext(contexteService.getcurrentContext());
+		locationRepository.save(location);
+		log.info("ajout d'un lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+		logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/admin/location", emargementContext);
     }
     
     @PostMapping("/admin/location/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) throws IOException {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes){
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, location);
             return "admin/location/update";
@@ -200,7 +184,7 @@ public class LocationController {
     }
     
     @PostMapping(value = "/admin/location/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	Location location = locationRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
@@ -223,24 +207,5 @@ public class LocationController {
 		List<Location> locations= locationRepositoryCustom.findAll(searchString, emargementContext);
     	
         return locations;
-    }
-    
-    @GetMapping("/admin/location/addAll")
-    @Transactional
-    public String addAll(@PathVariable String emargementContext,  final RedirectAttributes redirectAttributes) throws IOException, ParserException{
-		List<String> nomLocations = locationService.getSuggestedLocation();
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if(!nomLocations.isEmpty()) {
-			for(String nom : nomLocations) {
-				Location location = new Location();
-				location.setNom(nom);
-				location.setContext(contexteService.getcurrentContext());
-				locationRepository.save(location);
-			}
-			logService.log(ACTION.AJOUT_LOCATION, RETCODE.SUCCESS, StringUtils.join(nomLocations, ","), auth.getName(), null, emargementContext, null);
-			log.info("Ajout de lieux venants d'ics");
-		}
-		redirectAttributes.addAttribute("msgModal", "ddd");
-		return String.format("redirect:/%s/admin/location", emargementContext);
     }
 }

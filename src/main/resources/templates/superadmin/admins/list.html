@@ -37,7 +37,6 @@
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="context">Contexte</a></th>
-									<th th:if="${isAdeCampusEnabled}" scope="col" class="center d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="context">Ade</a></th>
 									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
 									<th th:if="${currentKey != 'all'}"  scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
 									<th class ="center" scope="col">Actions</th>
@@ -50,7 +49,6 @@
 									<td th:text="${userApp.prenom}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
 									<td th:text="${userApp.userRole}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Rôle</td>
 									<th th:text="${userApp.context.key}">Contexte</th>
-									<th class="center" th:if="${isAdeCampusEnabled}"><span th:if="${userApp.adeInstructorId != null}"><i class="fa fa-check text-success"></i></span></th>
 									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:if="${currentKey != 'all'}" th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
 									<td th:if="${currentKey != 'all'}"  class ="center">

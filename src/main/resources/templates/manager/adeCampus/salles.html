@@ -51,7 +51,7 @@
 							</form>
 							<form th:action="@{/{ctx}/manager/adeCampus/importClassrooms(ctx=${eContext})}" method="post">
 								<input type="hidden" name="codeSalle" th:value="${codeSalle}" />
-								<div id="toolbar float-start">
+								<div id="toolbar float-start mb-2">
 									<div class="row">
 										<div class="col-auto">
 											<label class="col-form-label col-form-label-sm ms-2">Site d'import:</label>
@@ -69,23 +69,19 @@
 										</div>
 									</div>
 								</div>
-	
-								<table data-toggle="table" data-pageSize="10" data-pagination="true" data-search="true"
-											data-search-accent-neutralise="true" data-search-highlight="true" data-show-search-clear-button="true" 
-											data-sort-name="date" data-sort-order="desc" data-click-to-select="true" data-toolbar="#toolbar"
-											 data-buttons="buttons"  data-id-field="id"  class="table table-bordered table-striped caption-top">
-										<thead>
+								<table class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
+									<thead>
 										<tr>
-											<th data-checkbox="true">Id</th>
-											<th data-sortable="true" data-field="id">Id</th>
+											<th><input type="checkbox" id="checkAll"></th>
+											<th>Id</th>
 											<th>Maj</th>
 											<th>Nom</th>
 											<th>Type</th>
 											<th>Capacité</th>
 											<th>Chemin</th>
 										</tr>
-										</thead>
-										<tbody>
+									</thead>
+									<tbody>
 									    <tr th:each="element : ${listeSalles}" th:class="${element.isAlreadyimport}? table-success : table-light">
 									        <td></td>
 									        <td th:text="${element.idClassRoom}"></td>
@@ -95,8 +91,8 @@
 											<td th:text="${element.size}"></td>
 											<td th:text="${element.chemin}"></td>
 									    </tr>
-									    </tbody>
-									</table>
+								    </tbody>
+								</table>
 							</form>
 						</div>
 		 			</div>

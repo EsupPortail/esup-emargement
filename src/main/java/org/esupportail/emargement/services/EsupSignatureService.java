@@ -182,10 +182,14 @@ public class EsupSignatureService {
 		String urlStatus = String.format("%s/ws/signrequests/status/%s", urlEsupsignature, esupSignature.getSignRequestId());
 		ResponseEntity<String> status = restTemplate.getForEntity(urlStatus, String.class);
 		String statut = status.getBody();
-		esupSignature.setStatutSignature(StatutSignature.valueOf(statut.toUpperCase()));
-		esupSignature.setDateModification(new Date());
-		esupSignatureRepository.save(esupSignature);
-		log.info("Vérification statut, SignRequestId : " + esupSignature.getSignRequestId());
+		if(statut != null) {
+			esupSignature.setStatutSignature(StatutSignature.valueOf(statut.toUpperCase()));
+			esupSignature.setDateModification(new Date());
+			esupSignatureRepository.save(esupSignature);
+			log.info("Vérification statut, SignRequestId : " + esupSignature.getSignRequestId());
+		}else {
+			log.info("Aucun statut récupéré pour SignRequestId : " + esupSignature.getSignRequestId());
+		}
 	}
 
 	public String getRecipientEmails() {
@@ -193,7 +197,7 @@ public class EsupSignatureService {
 		String strEmails = "";
 		List<String> emails = appliConfigService.getEsupSignatureEmails();
 		if(!emails.isEmpty()) {
-			List<String> formattedEmails = new ArrayList<String>();
+			List<String> formattedEmails = new ArrayList<>();
 			for(String email : emails) {
 				formattedEmails.add("1*".concat(email));
 			}

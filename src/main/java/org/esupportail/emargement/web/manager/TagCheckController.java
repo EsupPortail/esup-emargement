@@ -338,9 +338,9 @@ public class TagCheckController {
     	}else {
     		tc.setContext(contexteService.getcurrentContext());
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
-    		tc.setIsExempt(tagCheck.getIsExempt());
     		tc.setComment(tagCheck.getComment());
     		tc.setSessionLocationExpected(tagCheck.getSessionLocationExpected());
+    		tc.setAbsence(tagCheck.getAbsence());
     		tagCheckService.save(tc, emargementContext);
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);

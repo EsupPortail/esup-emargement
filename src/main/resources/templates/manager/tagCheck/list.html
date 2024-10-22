@@ -36,6 +36,10 @@
 		    			<div class="col">
 		    				<div class="row float-end">
 								<div class="col-auto">
+	    							<a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+	    							title="Ajouter des surveillants" class="btn btn-success me-2">Ajouter des lieux</a>
+									<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+	    								title="Ajouter des surveillants" class="btn btn-secondary me-2">Ajouter des surveillants</a>
 									<button th:if="${countTagChecks>0}" class="btn btn-info" type="button" data-bs-toggle="collapse" 
 										data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
 									<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" 
@@ -127,7 +131,7 @@
 									<th th:if="${isGroupeDisplayed}" scope="col" class="d-none d-xl-table-cell">Groupe</th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >N° étudiant</th>							
 									<th scope="col" class="d-none d-xl-table-cell text-center" >Temps aménagé</th>
-									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="isExempt">Exempt</a></th>
+									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="absence">Absence</a></th>
 									<th th:if="${isConvocationEnabled}" scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateEnvoiConvocation">Envoi convocation</a></th>								
 									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected">Répartition</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationBadged">Lieu badgé</a></th>
@@ -136,7 +140,7 @@
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
 									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
-									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="isExempt">Commentaire</a></th>
+									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="comment">Commentaire</a></th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -167,7 +171,7 @@
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
+									<td class="text-center d-none d-xl-table-cell" th:text="${tagCheck.absence}"></td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" 
@@ -203,8 +207,8 @@
 											            </div>
 											            <div class="modal-body">
 											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'individu : <br />
-											                	 <span th:if="${tagCheck.person != null}" th:text="${tagCheck.person.eppn}" class="font-weight-bold"></span>
-											                	 <span th:if="${tagCheck.guest != null}" th:text="${tagCheck.guest.email}" class="font-weight-bold"></span> ?</div>
+											                	 <span th:if="${tagCheck.person != null}" th:text="${tagCheck.person.eppn}" class="fw-bold"></span>
+											                	 <span th:if="${tagCheck.guest != null}" th:text="${tagCheck.guest.email}" class="fw-bold"></span> ?</div>
 											            </div>
 											            <div class="modal-footer">
 											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>

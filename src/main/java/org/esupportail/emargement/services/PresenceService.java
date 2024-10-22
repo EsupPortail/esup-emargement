@@ -18,7 +18,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -38,6 +37,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -83,6 +83,9 @@ public class PresenceService {
 	@Autowired
 	PersonRepository personRepository;
 	
+	@Autowired
+	UserAppRepository userAppRepository;
+	
 	@Autowired	
 	ContextRepository contextRepository;
 	
@@ -118,6 +121,9 @@ public class PresenceService {
 	
 	@Resource
 	LogService logService;
+	
+	@Resource
+	UserAppService userAppService;
 	
 	@Resource
 	GroupeService groupeService;
@@ -248,8 +254,8 @@ public class PresenceService {
 	        			identifiant = tc.getGuest().getEmail();
 	        			typeIndividu = "Ex";
 	        		}
-	        		if(BooleanUtils.isTrue(tc.getIsExempt())) {
-        				dateEmargement = "Exempt";
+	        		if(tc.getAbsence()!=null) {
+        				dateEmargement = tc.getAbsence().name();
 	        		}else if(tc.getTagDate() != null) {
 	        			dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
 	        			if(tc.getIsUnknown()) {
@@ -325,7 +331,7 @@ public class PresenceService {
 		boolean isQrCodeUser = presence.startsWith("qrcodeUser");
 		boolean isQrcodeSession = presence.startsWith("qrcodeSession");
 		boolean isQrcodeCarte = false;
-		List<TagCheck> list = new ArrayList<TagCheck>();
+		List<TagCheck> list = new ArrayList<>();
 		Context ctx = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(isValidEppn(presence)) {
@@ -409,8 +415,8 @@ public class PresenceService {
 			    	List<SessionLocation> sls = sessionLocationRepository.findByContextAndId(ctx, sessionLocationId);
 			    	sessionLocation = sls.get(0);
 			    	sessionEpreuve = sessionLocation.getSessionEpreuve();
-			    	Long seId = null;
-			    	List<TagCheck> tcs = new ArrayList<TagCheck>();
+			    	List<Long> seId = null;
+			    	List<TagCheck> tcs = new ArrayList<>();
 			    	if(!sessionEpreuve.isSessionLibre) {
 						try {
 							tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
@@ -420,18 +426,19 @@ public class PresenceService {
 					    		Date today = dateFormat.parse(dateFormat.format(new Date()));
 								LocalTime now = LocalTime.now();
 								seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, today, now); 
-								String lieu = " Autre session dans la journée";
 								if(seId != null) {
-									SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-									lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
-									List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-									if(!list2.isEmpty()) {
-										if(list2.get(0).getSessionLocationExpected() !=null) {
-											String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
-											lieu = lieu.concat(" , lieu : ").concat(location);
-										}
+									String lieu = "";
+									for(Long sessionId : seId) {
+										List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionId, eppn, null).getContent();
+										if(!list2.isEmpty()) {
+											TagCheck tagCheck = list2.get(0);
+											if(tagCheck.getSessionLocationExpected() !=null) {
+												lieu = lieu.concat(" --> Session(s) : "+ tagCheck.getSessionEpreuve().getNomSessionEpreuve());
+												String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
+												lieu = lieu.concat(" , lieu : ").concat(location);
+											}
+										}	
 									}
-									comment = "Inconnu dans cette session " + lieu;
 									isUnknown = true;
 								}else {
 									comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
@@ -470,16 +477,18 @@ public class PresenceService {
 								//On regarde si il est est dans une autre session aujourd'hui
 								LocalTime now = LocalTime.now();
 								seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now); 
-								String lieu = " Autre session dans la journée";
 								if(seId != null) {
-									SessionEpreuve otherSe = sessionEpreuveRepository.findById(seId).get();
-									lieu = " Attendu --> Session : "+ otherSe.getNomSessionEpreuve();
-									List<TagCheck> list2 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(otherSe.getId(), eppn, null).getContent();
-									if(!list2.isEmpty()) {
-										if(list2.get(0).getSessionLocationExpected() !=null) {
-											String location = list2.get(0).getSessionLocationExpected() .getLocation().getNom();
-											lieu = lieu.concat(" , lieu : ").concat(location);
-										}
+									String lieu = "";
+									for(Long sessionId : seId) {
+										List<TagCheck> list3 = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionId, eppn, null).getContent();
+										if(!list3.isEmpty()) {
+											TagCheck tagCheck = list3.get(0);
+											if(tagCheck.getSessionLocationExpected() !=null) {
+												lieu = lieu.concat(" --> Session(s) : "+ tagCheck.getSessionEpreuve().getNomSessionEpreuve());
+												String location = list.get(0).getSessionLocationExpected() .getLocation().getNom();
+												lieu = lieu.concat(" , lieu : ").concat(location);
+											}
+										}	
 									}
 									comment = "Inconnu dans cette session " + lieu;
 									isUnknown = true;
@@ -498,8 +507,6 @@ public class PresenceService {
 		    	}
 		    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
 		    		sessionLocationBadged = sessionLocation;
-		    	}else {
-		    		sessionLocationBadged = null;
 		    	}
 		    	if(isUnknown) {
 					TagCheck newTc = tagCheckService.saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, false, typeEmargement);
@@ -520,22 +527,43 @@ public class PresenceService {
 				    		presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndGuestEmailEquals(sessionLocationId, email).get(0);
 				    	}
 				    	presentTagCheck.setSessionEpreuve(se);
-				    	presentTagCheck.setTypeEmargement(typeEmargement);
+				    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+				    		presentTagCheck.setTypeEmargement2(typeEmargement);
+				    	}else {
+				    		presentTagCheck.setTypeEmargement(typeEmargement);
+				    	}
 				    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
 				    	
 				    	if(tagChecker != null) {
+					    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+					    		presentTagCheck.setTagChecker2(tagChecker);
+					    	}else {
+					    		presentTagCheck.setTagChecker(tagChecker);
+					    	}
 				    		presentTagCheck.setTagChecker(tagChecker);
 				    	}else if(isTagCheckerNeeded) {
 							tagChecker =  (isPresent)? tagCheckerRepository.findTagCheckerByUserAppEppnEquals(auth.getName(), null).getContent().get(0) : null;
-							presentTagCheck.setTagChecker(tagChecker);
+					    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+					    		presentTagCheck.setTagChecker2(tagChecker);
+					    	}else {
+					    		presentTagCheck.setTagChecker(tagChecker);
+					    	}
 				    	}
 						if(!isPresent) {
 							presentTagCheck.setProxyPerson(null);
-							presentTagCheck.setTypeEmargement(null);
+					    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+					    		presentTagCheck.setTypeEmargement2(null);
+					    	}else {
+					    		presentTagCheck.setTypeEmargement(null);
+					    	}
 							presentTagCheck.setNbBadgeage(null);
 						}
 				    	presentTagCheck.setSessionLocationBadged(sessionLocationBadged);
-				    	presentTagCheck.setTagDate(date);
+				    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+				    		presentTagCheck.setTagDate2(date);
+				    	}else {
+				    		presentTagCheck.setTagDate(date);
+				    	}
 				    	presentTagCheck.setContext((ctx != null)? ctx : contextService.getcurrentContext());
 				    	if(!isBlackListed && isPresent || !isBlackListed && !isPresent || isBlackListed && !isPresent) {
 				    		tagCheckRepository.save(presentTagCheck);
@@ -544,10 +572,14 @@ public class PresenceService {
 			    	list.add(presentTagCheck);
 			    	tagCheckService.setNomPrenomTagChecks(list, false, false);
 			    	if(presentTagCheck.getTagChecker() != null) {
-			        	List<TagChecker> tcList = new ArrayList<TagChecker>();
+			        	List<TagChecker> tcList = new ArrayList<>();
 			        	tcList.add(presentTagCheck.getTagChecker());
 				    	tagCheckerService.setNomPrenom4TagCheckers(tcList);
-				    	presentTagCheck.setTagChecker(tcList.get(0));
+				    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
+				    		presentTagCheck.setTagChecker2(tcList.get(0));
+				    	}else {
+				    		presentTagCheck.setTagChecker(tcList.get(0));
+				    	}
 			    	}
 					if(isBlackListed) {
 						msgError = presentTagCheck.getNomPrenom();
@@ -568,6 +600,10 @@ public class PresenceService {
 			        if(sessionLocationBadged != null) {
 			    		sessionLocationBadged.setNbPresentsSessionLocation(totalPresent);
 			    	}
+					if(appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().isEmpty()) {
+						String presence2 ="true,tagchecker," + eppn + "," + sessionLocationId;
+						tagCheckerService.updatePresentsTagCkeckers(presence2, null, typeEmargement);
+					}
 			        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, msgError);
 	    		}
 			}
@@ -639,11 +675,11 @@ public class PresenceService {
 			byte[] photo = null;
 			Boolean noPhoto = true;
 			HttpHeaders headers = new HttpHeaders();
-			ResponseEntity<byte[]> httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+			ResponseEntity<byte[]> httpResponse = new ResponseEntity<>(photo, headers, HttpStatus.OK);
 			if(!"inconnu".equals(eppn)) {
 				headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-				MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<String, Object>();
-				HttpEntity<Object> request = new HttpEntity<Object>(multipartMap, headers);
+				MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<>();
+				HttpEntity<Object> request = new HttpEntity<>(multipartMap, headers);
 				uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
 					noPhoto = false;
 					httpResponse = template.exchange(uri, HttpMethod.GET, request, byte[].class);
@@ -653,7 +689,7 @@ public class PresenceService {
 				ClassPathResource noImg = new ClassPathResource("NoPhoto.png");
 				try {
 					photo = IOUtils.toByteArray(noImg.getInputStream());
-					httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+					httpResponse = new ResponseEntity<>(photo, headers, HttpStatus.OK);
 				} catch (IOException e) {
 					log.info("IOException reading ", e);
 				}

@@ -2,14 +2,11 @@ package org.esupportail.emargement.services;
 
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.EsupSignature;
-import org.esupportail.emargement.domain.Event;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
@@ -28,7 +25,6 @@ import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
-import org.esupportail.emargement.repositories.EventRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
@@ -52,6 +48,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ContextService {
@@ -100,9 +97,6 @@ public class ContextService {
 	@Autowired
 	GroupeRepository groupeRepository;
 	
-	@Autowired	
-	EventRepository eventRepository;
-	
 	@Autowired
 	PrefsRepository prefsRepository;
 	
@@ -147,9 +141,8 @@ public class ContextService {
         Long id = ContextHelper.getCurrenyIdContext();
         if(id==null) {
         	return null;
-        }else {
-        	return contextRepository.findById(id).get();
         }
+		return contextRepository.findById(id).get();
 	}
 	
 	@Transactional
@@ -174,7 +167,7 @@ public class ContextService {
 		List<Location> locations = locationRepository.findLocationByContext(context);
 		locationRepository.deleteAll(locations);
 		List<Prefs> prefs = prefsRepository.findByContext(context);
-		prefsRepository.deleteAll(prefs);;
+		prefsRepository.deleteAll(prefs);
 		List<UserApp> userApps =  userAppRepository.findByContext(context);
 		userAppRepository.deleteAll(userApps);
 		List<Person> persons =  personRepository.findByContext(context);
@@ -185,8 +178,6 @@ public class ContextService {
 		bigFileRepository.deleteAll(bigFiles);
 		List<StoredFile> storedFiles = storedFileRepository.findByContext(context);
 		storedFileRepository.deleteAll(storedFiles);
-		List<Event> events = eventRepository.findByContext(context);
-		eventRepository.deleteAll(events);
 		List<TypeSession> typeSessions = typeSessionRepository.findByContext(context);
 		typeSessionRepository.deleteAll(typeSessions);
 		List<EsupSignature> signs = esupSignatureRepository.findByContext(context);

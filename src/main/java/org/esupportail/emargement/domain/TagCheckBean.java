@@ -24,7 +24,7 @@ public class TagCheckBean {
 
 	private String estInconnu;
 
-	private String estExempte;
+	private String absence;
 
 	private String procuration;
 
@@ -118,12 +118,12 @@ public class TagCheckBean {
 		this.estInconnu = estInconnu;
 	}
 
-	public String getEstExempte() {
-		return estExempte;
+	public String getAbsence() {
+		return absence;
 	}
 
-	public void setEstExempte(String estExempte) {
-		this.estExempte = estExempte;
+	public void setAbsence(String absence) {
+		this.absence = absence;
 	}
 
 	public String getProcuration() {
