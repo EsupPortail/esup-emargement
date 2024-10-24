@@ -180,7 +180,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
 	List<SessionEpreuve> findSessionEpreuveWithNoSessionLocation(Date date, Long contextId);
 	
-	@Query(value = "select * from session_epreuve where context_id =  :contextId and id in "
+	@Query(value = "select * from session_epreuve where context_id =  :contextId and statut NOT LIKE 'CANCELLED' and id in "
 			+ "(SELECT session_epreuve_id FROM tag_check where context_id = :contextId GROUP BY session_epreuve_id "
 			+ "HAVING COUNT(tag_date) = 0 OR COUNT(*) = SUM(CASE WHEN tag_date IS NULL THEN 1 ELSE 0 END)) "
 			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
