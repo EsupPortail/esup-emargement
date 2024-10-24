@@ -130,15 +130,14 @@ public class Individucontroller {
 			@RequestParam(defaultValue = "", value = "idGroupe") String idGroupe,
 			@RequestParam(defaultValue = "", value = "sessions") Long sessions,
 			@RequestParam(defaultValue = "", value = "sessionEpreuve") Long sessionEpreuveId,
-			@RequestParam(value = "annee", required = false) String annee,
-			@PageableDefault(direction = Direction.ASC, size = 10) Pageable p1) {
+			@RequestParam(value = "annee", required = false) String annee) {
 		if(!identifiantTagCheck.isEmpty()) {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
-				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(identifiantTagCheck, p1);
+				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(identifiantTagCheck, null);
 				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent(), false, false);
 			}else {
-				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, p1);
+				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, null);
 			}
 			List<EsupSignature> signList = esupSignatureRepository.findByTagCheckIn(pTagChecks.getContent());
 			Map<Long, EsupSignature> mapTc = new HashMap<>();
@@ -158,7 +157,7 @@ public class Individucontroller {
 				model.addAttribute("individu", tcs.get(0));	
 			}
 		}else if(!eppnTagChecker.isEmpty()) {
-			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, p1);
+			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, null);
 			tagCheckerService.setNomPrenom4TagCheckers(pTagCheckers.getContent());
 			model.addAttribute("tagCheckersPage", pTagCheckers.getContent());
 			if(!pTagCheckers.isEmpty()) {
