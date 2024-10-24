@@ -161,6 +161,8 @@ public class SessionEpreuveController {
 	private final static String SESSIONS_SORTBYSTATUT = "sessionsSortByStatut";
 	private final static String SESSIONS_SORTBYTYPE = "sessionsSortByType";
 	private final static String SESSIONS_SORTBYPERIOD = "sessionsSortByPeriod";
+	private final static String SESSIONS_SORTBYCAMPUS = "sessionsSortByCampus";
+	private final static String SESSIONS_SORTBYLISTE = "sessionsSortByListe";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -184,10 +186,13 @@ public class SessionEpreuveController {
 		.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact());
-	
+
 		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
 		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
 		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYPERIOD);
+		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYCAMPUS);
+		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYLISTE);
+
 		if(dateSessions == null) {
 			dateSessions = (prefsPeriod.isEmpty())? "all" : prefsPeriod.get(0).getValue();
 		}
@@ -197,6 +202,11 @@ public class SessionEpreuveController {
 			sessionSearch.setStatut((selectedStatut.isEmpty())? null : Statut.valueOf(selectedStatut));
 			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();
 			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
+			String selectedCampus= (prefsCampus.isEmpty())? "" : prefsCampus.get(0).getValue();
+			sessionSearch.setCampus((selectedCampus.isEmpty())? null : campusRepository.findById(Long.valueOf(selectedCampus)).get());
+			
+			String selectedListe= (prefsListe.isEmpty())? "" : prefsListe.get(0).getValue();
+			view = selectedListe.isEmpty()? "all" : selectedListe;
 		}else{
 			if(sessionSearch.getId()==null) {
 				String prefStatutValue = (sessionSearch.getStatut() == null)? "" : sessionSearch.getStatut().name();
@@ -205,6 +215,10 @@ public class SessionEpreuveController {
 				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext) ;
 				String prefPeriodValue = (dateSessions == null)? "all" : dateSessions;
 				preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, prefPeriodValue, auth.getName(), emargementContext) ;
+				String prefCampusValue = (sessionSearch.getCampus() == null)? "" : sessionSearch.getCampus().getId().toString();
+				preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS, prefCampusValue, auth.getName(), emargementContext) ;
+				String prefsListeValue = (view == null)? "" : view;
+				preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, prefsListeValue, auth.getName(), emargementContext) ;
 			}
 		}
 		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);
@@ -212,7 +226,7 @@ public class SessionEpreuveController {
 		if(sort.equals(Sort.unsorted())) {
 			sort = Sort.by(Sort.Order.desc("dateExamen"),Sort.Order.asc("heureEpreuve"), Sort.Order.asc("finEpreuve"));
 		}
-		
+
 		Page<SessionEpreuve> sessionEpreuvePage = null;
 		
 		if(sessionSearch.getId()!=null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent() ) {
@@ -516,7 +530,7 @@ public class SessionEpreuveController {
     
     @Transactional
     @GetMapping("/manager/sessionEpreuve/duplicate/{id}")
-    public String duplicateSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) throws IOException {
+    public String duplicateSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes){
     	
     	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id);
     	redirectAttributes.addFlashAttribute("duplicate", "duplicate");

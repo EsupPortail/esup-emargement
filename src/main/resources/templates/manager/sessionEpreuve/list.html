@@ -46,10 +46,10 @@
 												</div>
 											</div>
 											<div class="col-auto">
-												<select class="form-select" name="view" title="Choisir évènements">
+												<select class="form-select" id="view" name="view" title="Choisir évènements">
 													<option value="all" th:selected="${view eq 'all'}">Tout</option>
 													<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
-													<th:block th:if="${userApp!= null and userApp.speciality ne null}">
+													<th:block th:if="${userApp!= null and userApp.speciality ne null and userApp.speciality ne ''}">
 														<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
 													</th:block>
 												</select>
@@ -91,7 +91,7 @@
 											<div class="col-auto">
 												<a class="btn btn-info ms-1" title="Import CSV" data-bs-toggle="modal" data-bs-target="#importCsvModal"><i class="fa-solid fa-file-import"></i></a>
 												<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
-												<a class="btn btn-success ms-1" th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}" title="Nettoyage sessions"><i class="fas fa-hands-wash"></i></a>
+												<a class="btn btn-success ms-1"th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}" title="Nettoyage sessions"><i class="fas fa-hands-wash"></i></a>
 									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" 
 									    			class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
 									    		<a class="btn btn-danger ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="Actions"

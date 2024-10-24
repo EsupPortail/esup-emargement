@@ -1971,6 +1971,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#searchSessionEpreuve").val(null);
 			$("#statut").val("");
 			$("#typeSession").val("");
+			$("#campus").val("");
+			$("#view").val("");
+			var maxValue = -Infinity; 
+			$('#anneeUniv option').each(function() {
+			    var optionValue = parseFloat($(this).val()); // Convert to number
+			    if (!isNaN(optionValue) && optionValue > maxValue) {
+			        maxValue = optionValue;
+			    }
+			});
+			$('#anneeUniv').val(maxValue);
 			document.getElementById("formSearch").submit();
 		});
 		$("#sessionSearch .btn-check").on("change", function(event) {
