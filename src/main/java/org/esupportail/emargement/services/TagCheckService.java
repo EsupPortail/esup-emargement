@@ -181,19 +181,33 @@ public class TagCheckService {
 	
     public void resetSessionLocationExpected(Long sessionEpreuveId){
     	
-    	List<TagCheck> tagCkecks = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);    
+    	List<TagCheck> tagCkecks = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
+    	List<TagChecker> tagCkeckers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(sessionEpreuveId);    
     	
     	if(!tagCkecks.isEmpty()) {
     		for (TagCheck tc : tagCkecks) {
     			tc.setTagDate(null);
+    			tc.setTagDate2(null);
 				tc.setSessionLocationExpected(null);
 				tc.setSessionLocationBadged(null);
 				tc.setDateEnvoiConvocation(null);
 				tc.setTypeEmargement(null);
+				tc.setTypeEmargement2(null);
 				tc.setTagChecker(null);
+				tc.setTagChecker2(null);
 				tc.setNumAnonymat(null);
 				tc.setNbBadgeage(null);
 				tagCheckRepository.save(tc);
+    		}
+    	}
+    	if(!tagCkeckers.isEmpty()) {
+    		for (TagChecker tc : tagCkeckers) {
+    			tc.setTagDate(null);
+    			tc.setTagDate2(null);
+    			tc.setTagValidator(null);
+    			tc.setTagValidator2(null);
+    			tc.setTypeEmargement(null);
+    			tc.setTypeEmargement2(null);
     		}
     	}
     }
