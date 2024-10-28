@@ -8,13 +8,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -61,12 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -81,7 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,7 +83,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.zxing.WriterException;
 import com.itextpdf.text.Document;
 
@@ -173,7 +162,7 @@ public class PresenceController {
 	UserAppService userAppService;
 	
     @ModelAttribute("qrcodeChange")
-    public Integer qrcodeChange() throws IOException {
+    public Integer qrcodeChange(){
     	String qrcodeChange = appliConfigService.getQrCodeChange();
         return Integer.valueOf(qrcodeChange)*1000;
     }
@@ -196,11 +185,10 @@ public class PresenceController {
 	private String appUrl;
 
     @GetMapping("/supervisor/presence")
-    public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
+    public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve,
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
-    		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId, @RequestParam(value ="tc", required = false) Long tc,
-    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update,
-    		@PageableDefault(direction = Direction.ASC, sort = "person.eppn", size = 1)  Pageable pageable) throws JsonProcessingException {
+    		@RequestParam(value ="tc", required = false) Long tc,
+    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update){
     	ModelAndView uiModel= new ModelAndView("supervisor/list"); 
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
@@ -213,12 +201,11 @@ public class PresenceController {
 				msgError = eppn;
 			}
 			if(!isBlackListed && BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
-				List <Long> idsGpe = new ArrayList<Long>();
+				List <Long> idsGpe = new ArrayList<>();
 				idsGpe.add(gpe.getId());
 				groupeService.addMember(eppn,idsGpe);
 			}
     	}
-   //     uiModel.asMap().clear();
         boolean isSessionLibre = false;
         boolean isCapaciteFull = false;
 		Page<TagCheck> tagCheckPage = null;
@@ -228,7 +215,7 @@ public class PresenceController {
 		Long totalNonRepartis = Long.valueOf(0) ;
 		Long totalNotExpected = Long.valueOf(0) ;
 		String currentLocation = null;
-		Page <TagCheck> page = new PageImpl <TagCheck>(new ArrayList<TagCheck>());
+		
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -240,22 +227,8 @@ public class PresenceController {
     			totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
     			totalAll = tagCheckRepository.countBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(sessionLocationId, sessionLocationId);
     			if(totalExpected > 0) {
-    				int size = pageable.getPageSize();
-    				if( size == 1) {
-    					size = totalAll.intValue();
-    				}
-    				if(update!=null) {
-    					Sort sort = Sort.by(Sort.Order.asc("person.eppn"));
-    					if(!appliConfigService.isBadgeageSortAlpha()) {
-    						sort = Sort.by(Sort.Order.desc("tagDate"),Sort.Order.asc("person.eppn"));
-    					}
-    					pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-    				}
-    				
-		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, toolUtil.updatePageable(pageable, size), presentId, true);
-		    		//The list is not modifiable, obviously your client method is creating an unmodifiable list (using e.g. Collections#unmodifiableList etc.). Simply create a modifiable list before sorting:
-		    		List<TagCheck> modifiableList = new ArrayList<TagCheck>(tagCheckPage.getContent());
-		    		page = new PageImpl<TagCheck>(modifiableList, toolUtil.updatePageable(pageable, size), Long.valueOf(modifiableList.size()));
+     				
+		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, null, presentId, true);
 		        	
 		        	totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
 		        	totalNonRepartis = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNull(sessionEpreuve.getId());
@@ -275,26 +248,9 @@ public class PresenceController {
     		currentLocation = sessionLocationId.toString();
     		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
     		tagCheckService.setNomPrenomTagChecks(allTagChecks, false, false);
-    		Collections.sort(allTagChecks,  new Comparator<TagCheck>() {
-    			@Override
-                public int compare(TagCheck obj1, TagCheck obj2) {
-    				String nom1 = ""; String nom2 = "";
-    				if(obj1.getPerson() != null && obj1.getPerson().getNom() !=null) {
-    					nom1 = obj1.getPerson().getNom();
-    				}
-    				if(obj2.getPerson() != null && obj2.getPerson().getNom() !=null) {
-    						nom2 = obj2.getPerson().getNom();
-    				}
-    				if(obj1.getGuest() != null && obj1.getGuest().getNom() !=null) {
-    					nom1 = obj1.getGuest().getNom();
-    				}
-    				if(obj2.getGuest() != null && obj2.getGuest().getNom() !=null) {
-    						nom2 = obj2.getGuest().getNom();
-    				}
-    				return nom1.compareTo(nom2);
-    			}
-    		});
+
     		uiModel.addObject("allTagChecks", allTagChecks);
+    		uiModel.addObject("triBadgeage", appliConfigService.isBadgeageSortAlpha());
         }
         if(tc !=null) {
         	uiModel.addObject("tc", tagCheckRepository.findById(tc).get());
@@ -303,7 +259,7 @@ public class PresenceController {
 			uiModel.addObject("eppn", presentId);
 			uiModel.addObject("collapse", "show");
 		}
-		if(sessionEpreuve!=null && currentLocation != null) {
+		if(currentLocation != null) {
 			SessionLocation sl = sessionLocationRepository.findById(Long.valueOf(currentLocation)).get();
 			List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
 			sls.remove(sl);
@@ -327,14 +283,16 @@ public class PresenceController {
 	    	uiModel.addObject("isOver", isOver);
 	    	uiModel.addObject("maxProxyPerson", appliConfigService.getMaxProcurations());
 		}
-		if(sessionEpreuve != null ) {
-			isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
-		}
+		
+		isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
+		
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
 		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
 		String enableWebCam = (!prefsWebCam.isEmpty())? prefsWebCam.get(0).getValue() : "false";
-		uiModel.addObject("tagCheckPage", page);
+		if(tagCheckPage != null) {
+			uiModel.addObject("tagCheckPage", tagCheckPage.getContent());
+		}
 		uiModel.addObject("isCapaciteFull", isCapaciteFull);
         uiModel.addObject("currentLocation", currentLocation);
     	uiModel.addObject("nbTagChecksExpected", totalExpected);
@@ -366,7 +324,7 @@ public class PresenceController {
     @ResponseBody
     public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<SessionLocation> sessionLocationList = new ArrayList<SessionLocation>();
+    	List<SessionLocation> sessionLocationList = new ArrayList<>();
 		String eppnAuth = auth.getName();
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
@@ -381,8 +339,8 @@ public class PresenceController {
     }
     
     @GetMapping("/supervisor/exportPdf")
-    public void exportPdf(@PathVariable String emargementContext,HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) Long sessionLocationId, 
-    		@RequestParam(value ="sessionEpreuve" , required = false) Long sessionEpreuveId) throws Exception {
+    public void exportPdf(@PathVariable String emargementContext,HttpServletResponse response, @RequestParam(value ="sessionLocation", required = false) 
+    Long sessionLocationId)	throws Exception {
     	Document document = new Document();
     	presenceService.getPdfPresence(document, response, sessionLocationId, emargementContext, null);
     	document.close();
@@ -397,11 +355,11 @@ public class PresenceController {
 		byte[] photo = null;
 		Boolean noPhoto = true;
 		HttpHeaders headers = new HttpHeaders();
-		ResponseEntity<byte[]> httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+		ResponseEntity<byte[]> httpResponse = new ResponseEntity<>(photo, headers, HttpStatus.OK);
 		if(!"inconnu".equals(eppn)) {
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM));
-			MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<String, Object>();
-			HttpEntity<Object> request = new HttpEntity<Object>(multipartMap, headers);
+			MultiValueMap<String, Object> multipartMap = new LinkedMultiValueMap<>();
+			HttpEntity<Object> request = new HttpEntity<>(multipartMap, headers);
 			uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
 				noPhoto = false;
 				httpResponse = template.exchange(uri, HttpMethod.GET, request, byte[].class);
@@ -411,7 +369,7 @@ public class PresenceController {
 			ClassPathResource noImg = new ClassPathResource("NoPhoto.png");
 			try {
 				photo = IOUtils.toByteArray(noImg.getInputStream());
-				httpResponse = new ResponseEntity<byte[]>(photo, headers, HttpStatus.OK);
+				httpResponse = new ResponseEntity<>(photo, headers, HttpStatus.OK);
 			} catch (IOException e) {
 				log.info("IOException reading ", e);
 			}
@@ -451,7 +409,7 @@ public class PresenceController {
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
+    	List<LdapUser> userAppsList = new ArrayList<>();
     	userAppsList = ldapService.search(searchValue);
         return userAppsList;
     }
@@ -474,7 +432,7 @@ public class PresenceController {
     	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
     	String msgError = (isBlackListed) ? "&msgError=" + eppn : "";
     	if(!isBlackListed && sl.getSessionEpreuve().getBlackListGroupe()!=null && BooleanUtils.isTrue(sl.getSessionEpreuve().getIsSaveInExcluded())) {
-    		List <Long> idsGpe = new ArrayList<Long>();
+    		List <Long> idsGpe = new ArrayList<>();
     		idsGpe.add(sl.getSessionEpreuve().getBlackListGroupe().getId());
     		groupeService.addMember(eppn,idsGpe);
     	}
@@ -483,21 +441,10 @@ public class PresenceController {
     			sl.getSessionEpreuve().getId(), slId);
     }
     
-	@GetMapping(value = "/supervisor/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
-		List<TagCheck> allTagChecks = new ArrayList<>();
-		allTagChecks.add( tagCheckRepository.findById(id).get());
-		tagCheckService.setNomPrenomTagChecks(allTagChecks, false, false);
-        uiModel.addAttribute("tagCheck", allTagChecks.get(0));
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-        uiModel.addAttribute("active", ITEM);
-        return "supervisor/show";
-    }
-	
     @Transactional
     @PostMapping(value = "/supervisor/tagCheck/{id}")
     @ResponseBody
-    public Boolean delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public Boolean delete(@PathVariable("id") Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	boolean isOk = false;
     	if(sessionEpreuveService.isSessionEpreuveClosed(tagCheck.getSessionEpreuve())) {
@@ -530,7 +477,7 @@ public class PresenceController {
     @PostMapping("/supervisor/sendEmailPdf")
     public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
     		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam(value="emails", required = false) List<String> emails, @RequestParam(value="courriels", required = false) 
-    		String courriels, String comment, HttpServletResponse response, final RedirectAttributes redirectAttributes) throws IOException, MessagingException {
+    		String courriels, HttpServletResponse response, final RedirectAttributes redirectAttributes){
     	
     	if(emails!= null && !emails.isEmpty() || courriels !=null) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -605,7 +552,7 @@ public class PresenceController {
     }
 	
 	@RequestMapping(value = "/supervisor/qrCodePage/{id}")
-	public String displayQrCodePage(@PathVariable String emargementContext, @PathVariable("id") Long currentLocation,
+	public String displayQrCodePage(@PathVariable("id") Long currentLocation,
 			Model uiModel) {
 		SessionLocation sessionLocation = sessionLocationRepository.findById(currentLocation).get();
 		SessionEpreuve sessionEpreuve = sessionLocation.getSessionEpreuve();
@@ -617,9 +564,9 @@ public class PresenceController {
 	}
 	
 	
-	@PostMapping("/supervisor/tagCheck/updateComment/{id}")
+	@PostMapping("/supervisor/tagCheck/updateComment")
 	// @ResponseBody
-    public String updateComment(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc, String comment) {
+    public String updateComment(@PathVariable String emargementContext, @RequestParam("idComment") TagCheck tc, String comment) {
     	tc.setComment(comment);
     	tagCheckService.save(tc, emargementContext);
 

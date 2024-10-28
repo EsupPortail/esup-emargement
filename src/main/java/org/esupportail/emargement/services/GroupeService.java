@@ -16,6 +16,7 @@ import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -44,6 +45,9 @@ public class GroupeService {
 	PersonRepository personRepository;
 	
 	@Autowired
+	ContextRepository contextRepository;
+	
+	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Resource
@@ -62,7 +66,7 @@ public class GroupeService {
 	public List<Groupe> getNotEmptyGroupes(){
 		
 		List<Groupe> groupes =  groupeRepository.findAll(Sort.by(Sort.Direction.ASC, "nom"));
-		List<Groupe> notEmptyGroupes = new ArrayList<Groupe>();
+		List<Groupe> notEmptyGroupes = new ArrayList<>();
 		if(!groupes.isEmpty()) {
 			for(Groupe groupe : groupes) {
 				int  count = groupe.getPersons().size();
@@ -103,8 +107,8 @@ public class GroupeService {
 	
 	public void addMembersFromSessionEpreuve(List<Long> ids, List<Long> groupeIds) {
 		
-		List<Person> allPersons =new ArrayList<Person>();
-		List<Guest> allGuests =new ArrayList<Guest>();
+		List<Person> allPersons =new ArrayList<>();
+		List<Guest> allGuests =new ArrayList<>();
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
@@ -134,8 +138,8 @@ public class GroupeService {
 	
 	public void addMembersFromGroupe(List<Long> gr1Ids, List<Long> gr2Ids) {
 		
-		List<Person> allPersons =new ArrayList<Person>();
-		List<Guest> allGuests =new ArrayList<Guest>();
+		List<Person> allPersons =new ArrayList<>();
+		List<Guest> allGuests =new ArrayList<>();
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
 		
@@ -156,9 +160,9 @@ public class GroupeService {
 	
 	public List <AppUser> getMembers(Long id){
     	Groupe groupe = groupeRepository.findById(id).get();
-    	List<Person> personsList = new ArrayList<Person>(groupe.getPersons());
+    	List<Person> personsList = new ArrayList<>(groupe.getPersons());
     	personService.setNomPrenom(personsList);
-    	List<AppUser> appUsers = new ArrayList<AppUser>();
+    	List<AppUser> appUsers = new ArrayList<>();
     	for(Person p : personsList) {
     		AppUser appUser = new AppUser();
     		appUser.setPersonOrGuestId(p.getId());
@@ -171,7 +175,7 @@ public class GroupeService {
     		appUser.setType(p.getType());
     		appUsers.add(appUser);
     	}
-    	List<Guest> guestsList = new ArrayList<Guest>(groupe.getGuests());
+    	List<Guest> guestsList = new ArrayList<>(groupe.getGuests());
     	for(Guest g: guestsList) {
     		AppUser appUser = new AppUser();
     		appUser.setPersonOrGuestId(g.getId());
@@ -225,7 +229,7 @@ public class GroupeService {
 	}
 	
 	public List<String> getUsersForImport(List<Long> ids) {
-		List<String> listUsers = new ArrayList<String>();
+		List<String> listUsers = new ArrayList<>();
 		if(!ids.isEmpty()) {
 			for(Long id :ids) {
 				Groupe groupe = groupeRepository.findById(id).get();
@@ -248,7 +252,7 @@ public class GroupeService {
 	public String getNomFromGroupes(List<Long> ids) {
 		
 		String noms = "";
-		List<String> nomsList = new ArrayList<String>();
+		List<String> nomsList = new ArrayList<>();
 		for(Long id : ids) {
 			Groupe groupe = groupeRepository.findById(id).get();
 			nomsList.add(groupe.nom);
@@ -274,5 +278,16 @@ public class GroupeService {
 			}
 		}
 		return isBlackListed;
+	}
+	
+	public Groupe createNewGroupe(String newGroupeName, String emargementContext, int anneUniv, String userName) {
+	    Groupe groupe = new Groupe();
+	    groupe.setAnneeUniv(String.valueOf(anneUniv));
+	    groupe.setNom(newGroupeName);
+	    groupe.setDescription("import Campus ADE");
+	    groupe.setContext(contextRepository.findByContextKey(emargementContext));
+	    groupe.setDateCreation(new Date());
+	    groupe.setModificateur(userName);
+	    return groupeRepository.save(groupe);
 	}
 }

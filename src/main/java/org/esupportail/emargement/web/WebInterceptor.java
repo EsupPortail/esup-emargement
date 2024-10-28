@@ -5,7 +5,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.esupportail.emargement.config.EmargementConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
@@ -22,9 +21,6 @@ public class WebInterceptor implements HandlerInterceptor {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	@Resource
-	EmargementConfig config;
-	
 	@Autowired
 	ContextRepository contextRepository;
 	

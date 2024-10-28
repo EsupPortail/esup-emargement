@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.naming.InvalidNameException;
 
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ldap.query.ContainerCriteria;
 import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -125,11 +128,31 @@ public class LdapService {
 			List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
 			if(!ldapUsers.isEmpty()) {
 				return ldapUsers.get(0).getPrenomNom();
-			}else {
-				return eppn;
 			}
-		}else {
 			return eppn;
 		}
+		return eppn;
+	}
+	
+	public Map<String, LdapUser> getLdapUsersFromNumList(List<String> numList, String filter) {
+		if(!numList.isEmpty()) {
+			LdapQuery queryBuilder = LdapQueryBuilder.query().where(filter).is(numList.get(0));
+			for (int i = 1; i < numList.size(); i++) {
+				queryBuilder = ((ContainerCriteria) queryBuilder).or(filter).is(numList.get(i));
+			}
+	
+			Iterable<LdapUser> validators = ldapUserRepository.findAll(queryBuilder);
+	
+			if ("supannEtuId".equals(filter)) {
+				return StreamSupport.stream(validators.spliterator(), false)
+						.collect(Collectors.toMap(LdapUser::getNumEtudiant, Function.identity()));
+			} else if ("eduPersonPrincipalName".equals(filter)) {
+				return StreamSupport.stream(validators.spliterator(), false)
+						.collect(Collectors.toMap(LdapUser::getEppn, Function.identity()));
+			} else {
+				return new HashMap<>();
+			}
+		}
+		return new HashMap<>();
 	}
 }

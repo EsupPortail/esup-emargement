@@ -14,6 +14,10 @@
 					    <div class="col-8">
 						    <div class="row float-end">
 								<div class="col-auto">
+									<a title="Synchros" th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}"
+										class="btn btn-primary"><i class="fa-solid fa-tasks "></i></a>
+								</div>
+								<div class="col-auto">
 									<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
 										class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
 								</div>						    
@@ -34,6 +38,9 @@
 	    			</div>
 		    	</div>
 	 			<div class="card-body" id="gridEvents">
+	 				<div class="alert alert-danger text-center fw-bold" th:if="${#ctx.containsVariable('message')}">
+	 					Vous devez sélectionner obligatoirement les évènements Ade Campus avec des dates de début et de fin afin de planifier les tâches d'import.
+	 				</div>
 	 				<div class="row">
                     	<div class="col-xl-3 col-lg-3 col-sm-6 border-right vh-100">
 							<div class="row">
@@ -110,17 +117,32 @@
 											</div>
 										</div>
 									</form>
-									<div id="contentToRefresh">
 										<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
+											<input type="hidden" name ="libelles" id="textListTask" required="required"/>
+											<input type="hidden" name ="params" id="idListTask" required="required"/>
 											<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
 											<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
 											<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
+											<input type="hidden" name ="idProject" id="idProject" th:value="${idProject}"/>
 											<input type="hidden" name ="idList" id="idListImport"/>
-											<div id="toolbar float-start" class="mb-3">
-											<button th:if="${isCreateGroupeAdeEnabled}" class="btn btn-sm btn-info mt-1 me-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample">
-											  Groupe
-											</button>
-											 <button class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+											<input type="hidden" name ="nbItems" id="nbItems" value=""/>
+											<div class="row mb-3 p-1 bg-light">
+												<div class="col-auto">
+													<select class="form-select form-select-sm" id="campus" name="campus" required>
+														<option value="">--Choisir site d'import--</option>
+														<option th:each="campus : ${campuses}" th:value="${campus.id}" th:text="${campus.site}"></option>
+													</select>
+												</div>
+												<div class="col-auto">
+													<button th:if="${isCreateGroupeAdeEnabled}" class="btn btn-sm btn-info mt-1" type="button"
+														data-bs-toggle="collapse" data-bs-target="#collapseExample">
+														Groupe
+													</button>
+												</div>
+												<div class="col-auto">
+													<button id="importBtn" class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+													<button th:formaction="@{/{ctx}/manager/adeCampus/createTask(ctx=${eContext})}" class="btn btn-warning btn-sm btn-outline mt-1" type="submit">Planifier</button>
+												</div>
 											</div>
 											<div class="collapse" id="collapseExample">
 												<div class="alert alert-info">
@@ -128,7 +150,7 @@
 														<div class="col-5">
 															<select id="blackListGroupe" name="existingGroupe" class="form-check" multiple>
 																<option th:each="groupe : ${allGroupes}" th:value="${groupe.id}" 
-																th:text="${groupe.nom}"></option>																																																				th:value="${groupe.id}" th:text="${groupe.nom}"></option-->
+																th:text="${groupe.nom}"></option>
 															</select>
 														</div>
 														<div class="col-auto">
@@ -142,16 +164,15 @@
 												<tr>
 													<th><input type="checkbox" id="checkAll"></th>
 													<th>Id</th>
-													<th>Maj</th>
+													<th class="dateItem">Maj</th>
 													<th>Import</th>
 													<th>Type</th>
 													<th>Nom</th>
-													<th>Date</th>
+													<th class="dateItem">Date</th>
 													<th>Début</th>
 													<th>Fin</th>
 													<th>Groupe</th>
 													<th>Enseignants</th>
-													<th class="table-warning">Site</th>
 													<th>Salles</th>
 													<th>Formation</th>
 												</tr>

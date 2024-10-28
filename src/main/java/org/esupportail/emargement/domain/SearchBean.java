@@ -13,6 +13,8 @@ public class SearchBean {
 	Long id;
 	
 	Groupe groupe;
+	
+	SessionEpreuve sessionEpreuve;
 
 	public String getNom() {
 		return nom;
@@ -60,5 +62,13 @@ public class SearchBean {
 
 	public void setGroupe(Groupe groupe) {
 		this.groupe = groupe;
+	}
+
+	public SessionEpreuve getSessionEpreuve() {
+		return sessionEpreuve;
+	}
+
+	public void setSessionEpreuve(SessionEpreuve sessionEpreuve) {
+		this.sessionEpreuve = sessionEpreuve;
 	}
 }

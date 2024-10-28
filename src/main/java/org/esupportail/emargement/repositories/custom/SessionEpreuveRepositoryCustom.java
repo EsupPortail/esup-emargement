@@ -1,7 +1,6 @@
 package org.esupportail.emargement.repositories.custom;
 
 import java.text.Format;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +18,6 @@ import javax.persistence.criteria.Root;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -30,12 +28,12 @@ public class SessionEpreuveRepositoryCustom{
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	public List<SessionEpreuve> findAll(String searchString) throws ParseException{
+	public List<SessionEpreuve> findAll(String searchString){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionEpreuve> query = criteriaBuilder.createQuery(SessionEpreuve.class);
         Root<SessionEpreuve> c = query.from(SessionEpreuve.class);
         Join<SessionEpreuve, Campus> u = c.join("campus");
-        List<Predicate> orPredicates = new ArrayList<Predicate>();
+        List<Predicate> orPredicates = new ArrayList<>();
         if(searchString!=null) {
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(c.get("nomSessionEpreuve")),'%' + searchString.toLowerCase()  + '%'));
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(u.get("site")),'%' + searchString.toLowerCase()  + '%'));
@@ -44,11 +42,6 @@ public class SessionEpreuveRepositoryCustom{
         query.orderBy(criteriaBuilder.desc(c.get("dateExamen")));
         query.select(c);
         return entityManager.createQuery(query).getResultList();
-	}
-	
-	public Page<SessionEpreuve> findAll2(Example<SessionEpreuve> sessionQuery){
-		
-		return null;
 	}
 	
 	public Specification<SessionEpreuve> getSpecFromDatesAndExample(

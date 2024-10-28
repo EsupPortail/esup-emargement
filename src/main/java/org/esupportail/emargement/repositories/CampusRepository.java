@@ -15,6 +15,8 @@ public interface CampusRepository extends JpaRepository<Campus, Long> {
 	
 	List<Campus> findByContext(Context context);
 	
+	List<Campus> findByOrderBySite();
+	
 	//STATS
 	@Query(value = "select key, count(*) as count from campus, context where campus.context_id=context.id group by key order by key, count desc", nativeQuery = true)
 	List<Object[]> countCampusesByContext();

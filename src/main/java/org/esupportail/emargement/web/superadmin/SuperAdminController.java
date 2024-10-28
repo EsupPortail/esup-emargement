@@ -14,7 +14,6 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
@@ -55,15 +54,12 @@ public class SuperAdminController {
 	
 	@Autowired
 	UserAppRepository userAppRepository;
-
+	
 	@Autowired
 	ContextRepository contextRepository;
-	
+
 	@Autowired
 	UserAppRepositoryCustom userAppRepositoryCustom;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
 	
 	@Resource
 	UserAppService userAppService;
@@ -91,7 +87,7 @@ public class SuperAdminController {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 
@@ -112,7 +108,7 @@ public class SuperAdminController {
 				articlesList.size() :
 				pageable.getOffset() + pageable.getPageSize());
 				List<UserApp> subList = articlesList.subList(startIndex, endIndex);
-				userAppPage = new PageImpl<UserApp>(subList, pageable, articlesList.size());
+				userAppPage = new PageImpl<>(subList, pageable, articlesList.size());
 			}
 		}else {
 			userAppPage = userAppRepository.findByUserRoleAndContextKey(Role.ADMIN, key, pageable);
@@ -134,7 +130,7 @@ public class SuperAdminController {
     public String show(@PathVariable("id") String id, Model uiModel) {
 		
 		UserApp userApp = null;
-		List<UserApp> users = new ArrayList<UserApp>();
+		List<UserApp> users = new ArrayList<>();
 		if(toolUtil.isLong(id)) {
 			users.add(userAppRepository.findById(Long.valueOf(id)).get());
 		}else {
@@ -169,7 +165,7 @@ public class SuperAdminController {
     }
     
     @PostMapping("/superadmin/admins/create")
-    public String create(@PathVariable String emargementContext, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "superadmin/admins/create";
@@ -186,18 +182,17 @@ public class SuperAdminController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, agent déjà existant : " + userApp.getEppn());
         	return String.format("redirect:/%s/superadmin/admins?form", emargementContext);
-        }else {
-        	userApp.setContext(context);
-            userAppRepository.save(userApp);
-            log.info("ajout agent : " + userApp.getEppn());
-            logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", userApp.getEppn(), null, emargementContext, null);
-            redirectAttributes.addFlashAttribute("createOk", userApp);
-            return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
         }
+    	userApp.setContext(context);
+        userAppRepository.save(userApp);
+        log.info("ajout agent : " + userApp.getEppn());
+        logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", userApp.getEppn(), null, emargementContext, null);
+        redirectAttributes.addFlashAttribute("createOk", userApp);
+        return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
     }
     
     @PostMapping("/superadmin/admins/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "superadmin/admins/update";
@@ -217,20 +212,19 @@ public class SuperAdminController {
         	log.info("Erreur lors de la maj agent : " + userApp.getEppn());
         	logService.log(ACTION.UPDATE_AGENT, RETCODE.FAILED, "", userApp.getEppn(), null, emargementContext, null);
         	return String.format("redirect:/%s/superadmin/admins/%s?form", emargementContext, id);
-        }else {
-        	userApp.setUserRole(oldUserApp.getUserRole());
-        	userApp.setContext(context);
-        	userApp.setContextPriority(oldUserApp.getContextPriority());
-        	userApp.setLastConnexion(oldUserApp.getLastConnexion());
-            userAppRepository.save(userApp);
-            log.info("Maj agent : " + userApp.getEppn());
-            logService.log(ACTION.UPDATE_AGENT, RETCODE.SUCCESS, userApp.getUserRole().name().concat(" --> ").concat(userApp.getUserRole().name()), userApp.getEppn(), null, emargementContext, null);
-            return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, contextKey) ;
         }
+    	userApp.setUserRole(oldUserApp.getUserRole());
+    	userApp.setContext(context);
+    	userApp.setContextPriority(oldUserApp.getContextPriority());
+    	userApp.setLastConnexion(oldUserApp.getLastConnexion());
+        userAppRepository.save(userApp);
+        log.info("Maj agent : " + userApp.getEppn());
+        logService.log(ACTION.UPDATE_AGENT, RETCODE.SUCCESS, userApp.getUserRole().name().concat(" --> ").concat(userApp.getUserRole().name()), userApp.getEppn(), null, emargementContext, null);
+        return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, contextKey) ;
     }
     
     @PostMapping(value = "/superadmin/admins/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	try {
 			userAppRepository.delete(userApp);
@@ -250,7 +244,7 @@ public class SuperAdminController {
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
+    	List<LdapUser> userAppsList = new ArrayList<>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;

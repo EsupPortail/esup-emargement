@@ -36,9 +36,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
-import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -78,9 +76,6 @@ public class SessionEpreuveService {
 	private SessionLocationRepository sessionLocationRepository;
 	
 	@Autowired
-    LdapUserRepository ldapUserRepository;
-	
-	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
@@ -101,14 +96,11 @@ public class SessionEpreuveService {
 	@Autowired
 	StoredFileRepository storedFileRepository;
 	
-	@Autowired
-	BigFileRepository bigFileRepository;
-	
 	@Resource
 	SessionLocationService sessionLocationService;
 	
 	@Resource
-	LdapService ldapService;
+	EsupSignatureService esupSignatureService;
 		
 	@Resource
 	TagCheckService tagCheckService;
@@ -118,9 +110,6 @@ public class SessionEpreuveService {
 	
 	@Resource
 	StoredFileService storedFileService;
-	
-	@Resource
-	UserService userService;
 	
 	@Resource
 	LogService logService;
@@ -760,25 +749,6 @@ public class SessionEpreuveService {
 	        }
         }
         
-        /*
-        List<StoredFile> listSf = storedFileRepository.findBySessionEpreuve(originalSe);
-        
-        if(! listSf.isEmpty()) {
-        	for(StoredFile sf : listSf) {
-        		StoredFile storedFile = new StoredFile();
-     	        storedFile.setBigFile(sf.getBigFile());
-     	        storedFile.setContentType(sf.getContentType());
-     	        storedFile.setContext(context);
-     	        storedFile.setFilename(sf.getFilename());
-     	        storedFile.setFileSize(sf.getFileSize());
-     	        storedFile.setImageData(sf.getImageData());
-     	        storedFile.setSendTime(new Date());
-     	        storedFile.setSessionEpreuve(newSe);
-     	        storedFileRepository.save(storedFile);
-        	}
-        }*/
-        
-        
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
@@ -788,12 +758,21 @@ public class SessionEpreuveService {
 	 
 	 @Transactional
 	 public void delete(SessionEpreuve se) {
-		 
+		 Authentication auth = SecurityContextHolder.getContext().getAuthentication();		 
 		 tagCheckService.deleteAllTagChecksBySessionEpreuveId(se.getId());
 		 tagCheckerService.deleteAllTagCheckersBySessionEpreuveId(se.getId());
 		 sessionLocationService.deleteAllTLocationsBySessionEpreuveId(se.getId());
-		 sessionEpreuveRepository.delete(se);
+		 esupSignatureService.deleteAllBySessionEpreuve(se);
 		 storedFileService.deleteAllStoredFiles(se);
+		 sessionEpreuveRepository.delete(se);
+		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), auth.getName(), null, se.getContext().getKey(), null);
+	 }
+	 
+	 @Transactional
+	 public void deleteAll(List<SessionEpreuve> ses) {
+		 for(SessionEpreuve se : ses) {
+			 delete(se);
+		 }
 	 }
 	 
 	 public void addNbInscrits(List<SessionEpreuve> sessionEpreuveList) {

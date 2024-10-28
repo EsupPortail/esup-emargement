@@ -2,11 +2,14 @@ package org.esupportail.emargement.web.manager;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -14,18 +17,17 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AdeClassroomBean;
-import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Prefs;
+import org.esupportail.emargement.domain.Task;
+import org.esupportail.emargement.domain.Task.Status;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -33,10 +35,12 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.TaskRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
+import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -44,6 +48,8 @@ import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.SessionEpreuveService;
+import org.esupportail.emargement.services.TaskService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +67,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.xml.sax.SAXException;
 
 @Controller
@@ -83,13 +90,22 @@ public class AdeController {
 	@Resource
 	HelpService helpService;
 	
+	@Resource
+	TaskService taskService;
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Value("${emargement.ade.home.url}")
 	private String urlHomeAde;
+	
+	@Value("${emargement.ade.import.duree}")
+	private String dureeMaxImport;
+	
+	@Value("${emargement.ade.import.cron}")
+	private String cronAde;
     
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
@@ -108,6 +124,9 @@ public class AdeController {
 	
 	@Resource
 	LogService logService;
+	
+	@Resource
+	GroupeService groupeService;
 	
 	@Autowired
 	PrefsRepository prefsRepository;
@@ -146,10 +165,10 @@ public class AdeController {
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
-	LdapUserRepository ldapUserRepository;
-	
-	@Autowired
 	TagCheckRepository tagCheckRepository;
+	
+	@Autowired	
+	TaskRepository taskRepository;
 	
     @Resource 
     PreferencesService preferencesService;
@@ -163,10 +182,13 @@ public class AdeController {
     @Resource 
     LdapService ldapService;
     
+	@Autowired
+    ToolUtil toolUtil;
+    
 	//TO DO : spinner + logs + duplication nom
 	
 	@GetMapping(value = "/manager/adeCampus")
-	public String index(@PathVariable String emargementContext, Model uiModel) throws ParseException{
+	public String index(@PathVariable String emargementContext, Model uiModel){
 	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
@@ -191,7 +213,9 @@ public class AdeController {
 				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 				uiModel.addAttribute("valuesFormation", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
 				uiModel.addAttribute("existingSe", true);
+				uiModel.addAttribute("idProject", idProject);
 				uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
+				uiModel.addAttribute("campuses", campusRepository.findAll());
 				uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
 				uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
 			}
@@ -208,7 +232,7 @@ public class AdeController {
 			@RequestParam(value="idList", required = false) List<String> idList,
 			@RequestParam(value="codeComposante", required = false) String codeComposante, 
 			@RequestParam(value="strDateMin", required = false) String strDateMin,
-			@RequestParam(value="strDateMax", required = false) String strDateMax) throws ParseException{
+			@RequestParam(value="strDateMax", required = false) String strDateMax){
 	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
@@ -284,54 +308,32 @@ public class AdeController {
 	@PostMapping(value = "/manager/adeCampus/importEvents")
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
-			@RequestParam(value="campuses", required = false) List<String> campuses,
+			@RequestParam(value="campus", required = false) Campus campus,
 			@RequestParam(value="codeComposante") String codeComposante, @RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="existingSe", required = false) String existingSe,
 			@RequestParam(value="idList", required = false) List<String> idList,
 			@RequestParam(value="strDateMax", required = false) String strDateMax,
 			@RequestParam(value="existingGroupe", required = false) List<Long> existingGroupe,
 			@RequestParam(value="newGroupe", required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
-		if(idEvents!=null) {
-			String sessionId = adeService.getSessionId(false, emargementContext);
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
-			if(adeService.getConnectionProject(idProject, sessionId)==null) {
-				sessionId = adeService.getSessionId(true, emargementContext);
-				adeService.getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
-			List<AdeResourceBean> beans = adeService.getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe, codeComposante, idList);
-			
-			if(!beans.isEmpty()) {
-				List<Long> groupes = new ArrayList<>();
-				if(appliConfigService.isAdeCampusGroupeAutoEnabled()) {
-					if(existingGroupe!=null) {
-						groupes.addAll(existingGroupe);
-					}
-					if(!newGroupe.isEmpty()) {
-						Groupe groupe = new Groupe();
-						groupe.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
-						groupe.setNom(newGroupe);
-						groupe.setDescription("import Campus ADE");
-						groupe.setContext(contextRepository.findByContextKey(emargementContext));
-						groupe.setDateCreation(new Date());
-						groupe.setModificateur(auth.getName());
-						groupeRepository.save(groupe);
-						groupes.add(groupe.getId());
-					}		
-				}
-				adeService.saveEvents(beans, sessionId, emargementContext, campuses, auth.getName(), false, null, groupes);
-			}else {
-				log.info("Aucun évènement à importer");
-			}
-		}
+			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
+					codeComposante,	campus,  idList, null, null, null);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
 	}
 	
+	@Transactional
+	@PostMapping(value = "/manager/adeCampus/task/importEvents")
+	public String importEventFromTask(@PathVariable String emargementContext,@RequestParam(value="task") Task task) throws IOException, ParserConfigurationException, SAXException, ParseException {
+		Long dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Long.valueOf(dureeMaxImport);
+		String sessionId = adeService.getSessionId(false, emargementContext);
+		taskService.processTask(task, emargementContext, dureeMax, sessionId,1);
+		
+		return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
+	}
+	
 	@PostMapping(value = "/manager/adeCampus/savePref")
-	public String savePref(@PathVariable String emargementContext,String sessionId, @RequestParam("type") String type, 
+	public String savePref(@PathVariable String emargementContext, String sessionId, @RequestParam("type") String type, 
 			@RequestParam(value="btSelectItem", required = false) List<String> codeAde) throws IOException, ParserConfigurationException, SAXException  {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
@@ -372,7 +374,7 @@ public class AdeController {
 		}
 		return values;
 	}
-	
+
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/importClassrooms")
 	public String importClassrooms(@PathVariable String emargementContext, 
@@ -403,7 +405,7 @@ public class AdeController {
 		return String.format("redirect:/%s/manager/adeCampus/salles?codeSalle=%s", emargementContext, codeSalle);
 	}
 	
-	public List<String> getRootCategories(){
+	public static List<String> getRootCategories(){
 		return Arrays.asList(catArray);
 	}
 	
@@ -419,4 +421,79 @@ public class AdeController {
 			@RequestParam(value="category", required = false) String category) {
     	return adeService.getJsonfile(fatherId, emargementContext, category);
 	}
+	
+	@PostMapping(value = "/manager/adeCampus/createTask")
+	public String createTask(@PathVariable String emargementContext, @RequestParam(value ="params", required = false) String params,
+			@RequestParam("libelles") String libelles,
+			@RequestParam("campus") Campus campus,
+			@RequestParam("idProject") String idProject,
+			@RequestParam(value ="nbItems", required = false) String nbItems,
+			@RequestParam(value = "strDateMin", required = false) String strDateMin,
+			@RequestParam(value = "strDateMax", required = false) String strDateMax,
+			final RedirectAttributes redirectAttributes) throws ParseException {
+		if(params.length() == 0) {
+			redirectAttributes.addFlashAttribute("message","message");
+			return String.format("redirect:/%s/manager/adeCampus", emargementContext);
+		}
+		String [] splitParams  = params.split(",");
+		String [] splitLibelles  = libelles.split(",");
+		String [] splitNbItems  = nbItems.split(",");
+		Map<String, Integer> mapItems = new HashMap<>();
+		for(int i=0; i<splitNbItems.length; i++) {
+			String [] splitNumber  = splitNbItems[i].split("@");
+			mapItems.put(splitNumber[0].trim(), Integer.valueOf(splitNumber[1].trim()));
+		}
+		for(int i=0; i<splitParams.length; i++) {
+			String param = splitParams[i].trim();
+			String libelle = splitLibelles[i].trim();
+			if(mapItems.get(param) != null) {
+				if(taskRepository.findByContextKeyAndParam(emargementContext, param).isEmpty()){
+					Task task = new Task();
+					if (strDateMin != null) {
+						task.setDateDebut(new SimpleDateFormat("yyyy-MM-dd").parse(strDateMin));
+					}
+					if (strDateMax != null) {
+						task.setDateFin(new SimpleDateFormat("yyyy-MM-dd").parse(strDateMax));
+					}
+					task.setContext(contextRepository.findByKey(emargementContext));
+					task.setAdeProject(idProject);
+					task.setParam(param);
+					task.setLibelle(libelle);
+					task.setStatus(Status.NOTASK);
+					task.setNbModifs(0);
+					task.setDateCreation(new Date());
+					task.setCampus(campus);
+					task.setNbItems(mapItems.get(param));
+					taskRepository.save(task);
+					log.info("Tâche créée pour ce diplôme : " + libelle);
+					logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+							null, emargementContext, null);
+				}else {
+					log.info("Une tâche pour ce diplôme [" + libelle + "] existe déjà.");
+				}
+			}else {
+				log.info("Aucun évènement pour ce diplôme : " + libelle);
+			}
+		}
+		return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
+	}
+
+	@GetMapping(value = "/manager/adeCampus/tasks")
+	public String tasks(Model uiModel) {
+		uiModel.addAttribute("tasksList", taskRepository.findAll());
+		Integer dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Integer.valueOf(dureeMaxImport);
+		uiModel.addAttribute("dureeMaxImport", toolUtil.convertirSecondes(dureeMax));
+		uiModel.addAttribute("cronExpression", toolUtil.getCronExpression(cronAde));
+		return "manager/adeCampus/tasks";
+	}
+	
+    @Transactional
+    @PostMapping(value = "/manager/adeCampus/tasks/delete/{id}")
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Task task) {
+    	taskRepository.delete(task);
+    	logService.log(ACTION.TASK_DELETE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+				null, emargementContext, null);
+        return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
+    }
+	
 }

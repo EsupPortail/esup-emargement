@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments/head :: head"></head>
+
+<body>
+	<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+	<div th:replace="fragments/help :: help"></div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header">
+				<div class="row">
+					<div class="col">
+						<h2>Sessions passées</h2>
+					</div>
+					<div class="col">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/autoClose(ctx=${eContext})}">
+							<a class="btn btn-info float-end ms-1" th:href="@{/{ctx}/manager/sessionEpreuve/(ctx=${eContext})}" title="Sessions"><i class="fa-solid fa-house"></i></a>
+							<button class="btn  active mb-1 float-end" th:classappend="${autoClose eq 'true'}? 'btn-success' : 'btn-danger'"
+								onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">
+								<i th:if="${autoClose eq 'true'}" class="fas fa-door-closed" title="Desactiver la clotûre auomatique de sessions"></i>
+								<i th:unless="${autoClose eq 'true'}" class="fas fa-door-closed" title="Activer la clotûre auomatique de sessions"></i>
+							</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div class="card-body">
+				<div class="alert alert-info py-1 fw-bold text-center">
+					Cette interface affiche les anciennes sessions qui n'ont pas été utilisées et/ou qui n'ont pas été clôturées
+					afin de pouvoir les supprimer ou les clôturer. A noter que les <a th:href="@{/{ctx}/manager/stats(ctx=${eContext})}" >statistiques</a> ne sont effectuées que sur les sessions clôturées.
+				</div>
+				<div class="row">
+					<div class="col mb-2" th:if="${not #lists.isEmpty(noTagDate)}">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/noTagDate(ctx=${eContext})}" >
+							<h4>Sans emargement
+								<button class="btn btn-sm btn-danger float-end" 
+									onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">Tout supprimer</button>
+							</h4>
+						</form>
+					    <table class="table table-hover table-striped table-bordered tableCleanup" style="width:100%">
+					        <thead class="center sticky-top">
+					            <tr>
+					                <th class="dateItem">Date</th>
+					                <th>Nom</th>
+					                <th>Action</th>
+					            </tr>
+					        </thead>
+					        <tbody>
+					            <tr th:each="sessionEpreuve : ${noTagDate}">
+					                <td th:attr="data-order=${(sessionEpreuve.dateFin != null)? #dates.format(sessionEpreuve.dateFin,'dd/MM/yy') : #dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}">
+					                    <span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span><br/>
+					                    <span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin, 'dd/MM/yy')}"></span>
+					                </td>
+					                <td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+					                <td class="text-center">
+					                    <a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+					                    <a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+					                    <div class="modal fade in" th:id="'modal-warning' + ${sessionEpreuve.id}">
+					                        <div class="modal-dialog">
+					                            <div class="modal-content">
+					                                <form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+					                                    <input type="hidden" name="_method" value="delete" />
+					                                    <div class="modal-header">
+					                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					                                    </div>
+					                                    <div class="modal-body">
+					                                        <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+					                                            <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+					                                    </div>
+					                                    <div class="modal-footer">
+					                                        <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+					                                        <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+					                                    </div>
+					                                </form>
+					                            </div>
+					                        </div>
+					                    </div>
+					                </td>
+					            </tr>
+					        </tbody>
+					    </table>
+					</div>
+					<div class="col mb-2" th:if="${not #lists.isEmpty(noTagCheck)}">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/noTagCheck(ctx=${eContext})}" >
+							<h4>Sans inscrit
+								<button class="btn btn-sm btn-danger float-end" 
+									onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">Tout supprimer</button>
+							</h4>
+						</form>
+						<table class="table table-hover table-striped table-bordered tableCleanup" style="width:100%">
+							<thead class ="center sticky-top">
+								<tr>
+									<th class="dateItem">Date</th>
+									<th>Nom</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="sessionEpreuve : ${noTagCheck}" >
+									<td th:attr="data-order=${(sessionEpreuve.dateFin != null)? #dates.format(sessionEpreuve.dateFin,'dd/MM/yy') : #dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}">
+										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
+										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd/MM/yy')}"></span>
+									</td>	
+									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+					                <td class="text-center">
+					                    <a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+					                    <a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+					                    <div class="modal fade in" th:id="'modal-warning' + ${sessionEpreuve.id}">
+					                        <div class="modal-dialog">
+					                            <div class="modal-content">
+					                                <form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+					                                    <input type="hidden" name="_method" value="delete" />
+					                                    <div class="modal-header">
+					                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					                                    </div>
+					                                    <div class="modal-body">
+					                                        <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+					                                            <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+					                                    </div>
+					                                    <div class="modal-footer">
+					                                        <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+					                                        <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+					                                    </div>
+					                                </form>
+					                            </div>
+					                        </div>
+					                    </div>
+					                </td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="col mb-2" th:if="${not #lists.isEmpty(noTagChecker)}">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/noTagChecker(ctx=${eContext})}" >
+							<h4>Sans surveillant
+								<button class="btn btn-sm btn-danger float-end" 
+									onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">Tout supprimer</button>
+							</h4>
+						</form>
+						<table class="table table-hover table-striped table-bordered tableCleanup" style="width:100%">
+							<thead class ="center sticky-top">
+								<tr>
+									<th class="dateItem">Date</th>
+									<th>Nom</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="sessionEpreuve : ${noTagChecker}" >
+									<td th:attr="data-order=${(sessionEpreuve.dateFin != null)? #dates.format(sessionEpreuve.dateFin,'dd/MM/yy') : #dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}">
+										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
+										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd/MM/yy')}"></span>
+									</td>	
+									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+					                <td class="text-center">
+					                    <a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+					                    <a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+					                    <div class="modal fade in" th:id="'modal-warning' + ${sessionEpreuve.id}">
+					                        <div class="modal-dialog">
+					                            <div class="modal-content">
+					                                <form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+					                                    <input type="hidden" name="_method" value="delete" />
+					                                    <div class="modal-header">
+					                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					                                    </div>
+					                                    <div class="modal-body">
+					                                        <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+					                                            <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+					                                    </div>
+					                                    <div class="modal-footer">
+					                                        <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+					                                        <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+					                                    </div>
+					                                </form>
+					                            </div>
+					                        </div>
+					                    </div>
+					                </td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="col mb-2" th:if="${not #lists.isEmpty(noSessionLocation)}">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/noSessionLocation(ctx=${eContext})}" >
+							<h4>Sans lieu
+								<button class="btn btn-sm btn-danger float-end" 
+									onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">Tout supprimer</button>
+							</h4>
+						</form>
+						<table class="table table-hover table-striped table-bordered tableCleanup" style="width:100%">
+							<thead class ="center sticky-top">
+								<tr>
+									<th class="dateItem">Date</th>
+									<th>Nom</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="sessionEpreuve : ${noSessionLocation}" >
+									<td th:attr="data-order=${(sessionEpreuve.dateFin != null)? #dates.format(sessionEpreuve.dateFin,'dd/MM/yy') : #dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}">
+										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
+										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd/MM/yy')}"></span>
+									</td>	
+									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+					                <td class="text-center">
+					                    <a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+					                    <a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+					                    <div class="modal fade in" th:id="'modal-warning' + ${sessionEpreuve.id}">
+					                        <div class="modal-dialog">
+					                            <div class="modal-content">
+					                                <form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+					                                    <input type="hidden" name="_method" value="delete" />
+					                                    <div class="modal-header">
+					                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					                                    </div>
+					                                    <div class="modal-body">
+					                                        <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+					                                            <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+					                                    </div>
+					                                    <div class="modal-footer">
+					                                        <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+					                                        <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+					                                    </div>
+					                                </form>
+					                            </div>
+					                        </div>
+					                    </div>
+					                </td>			
+								</tr>
+							</tbody>
+						</table>							
+					</div>
+					<div class="col mb-2" th:if="${not #lists.isEmpty(notClosed)}">
+						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/notClosed(ctx=${eContext})}">
+							<h4>Non clôturées
+								<button class="btn btn-sm btn-danger float-end" 
+									onclick="return confirm('Confirmez-vous la clôture de ces sessions?');" type="submit">Tout clôturer</button>
+							</h4>
+						</form>
+						<table class="table table-hover table-striped table-bordered tableCleanup" style="width:100%">
+							<thead class ="center sticky-top">
+								<tr>
+									<th class="dateItem">Date</th>
+									<th>Nom</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="sessionEpreuve : ${notClosed}" >
+									<td th:attr="data-order=${(sessionEpreuve.dateFin != null)? #dates.format(sessionEpreuve.dateFin,'dd/MM/yy') : #dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}">
+										<span th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span><br/>
+										<span th:if="${sessionEpreuve.dateFin != null}" th:text="${#dates.format(sessionEpreuve.dateFin,'dd/MM/yy')}"></span>
+									</td>	
+									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+					                <td class="text-center">
+					                    <a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="center" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+					                    <a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" class="center ms-2" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+					                    <form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/changeStatut/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}">
+						                    <button class="btn center ms-2"
+											onclick="return confirm('Confirmez-vous la clôture de cette session?');" type="submit"><i class="fas fa-door-closed" title ="Clôturer"></i></button>
+											<input type="hidden" name="statut" value="CLOSED"/>
+										</form>
+					                    <div class="modal fade in" th:id="'modal-warning' + ${sessionEpreuve.id}">
+					                        <div class="modal-dialog">
+					                            <div class="modal-content">
+					                                <form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}?view=old(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+					                                    <input type="hidden" name="_method" value="delete" />
+					                                    <div class="modal-header">
+					                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					                                    </div>
+					                                    <div class="modal-body">
+					                                        <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+					                                            <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+					                                    </div>
+					                                    <div class="modal-footer">
+					                                        <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+					                                        <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+					                                    </div>
+					                                </form>
+					                            </div>
+					                        </div>
+					                    </div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>					
+				</div>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+
+</html>

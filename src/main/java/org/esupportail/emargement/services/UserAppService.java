@@ -6,7 +6,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
@@ -18,8 +20,6 @@ import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.SessionLocationRepository;
-import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.utils.ParamUtil;
@@ -36,13 +36,7 @@ public class UserAppService {
 	
 	@Autowired
 	private UserAppRepository userAppRepository;
-	
-	@Autowired
-	TagCheckerRepository tagCheckerRepository;
 
-	@Autowired
-	SessionLocationRepository sessionLocationRepository;
-	
 	@Autowired
 	private UserAppRepositoryCustom userAppRepositoryCustom;
 
@@ -58,27 +52,26 @@ public class UserAppService {
 	public List<Role> getAllRoles(String key,  UserApp userApp){
 		if("all".equals(key)) {
 			return  Arrays.asList(Role.ADMIN);
-		}else {
-			Context context = contextRepository.findByContextKey(key);
-			Role roleAuth = null;
-			String eppn = getUserAppEppn();
-			UserApp user = userAppRepository.findByEppnAndContext(eppn, context);
-			if(user!=null) {
-				roleAuth = user.getUserRole();
-			}
-			List<Role> newRoles = new ArrayList<Role>() ;
-			
-			if(Role.ADMIN.equals(roleAuth) || eppn.startsWith(paramUtil.getGenericUser())) {
-				newRoles = Arrays.asList(new Role[] {Role.ADMIN, Role.MANAGER, Role.SUPERVISOR});
-			}
-			return newRoles;
 		}
+		Context context = contextRepository.findByContextKey(key);
+		Role roleAuth = null;
+		String eppn = getUserAppEppn();
+		UserApp user = userAppRepository.findByEppnAndContext(eppn, context);
+		if(user!=null) {
+			roleAuth = user.getUserRole();
+		}
+		List<Role> newRoles = new ArrayList<>() ;
+		
+		if(Role.ADMIN.equals(roleAuth) || eppn.startsWith(paramUtil.getGenericUser())) {
+			newRoles = Arrays.asList(new Role[] {Role.ADMIN, Role.MANAGER, Role.SUPERVISOR});
+		}
+		return newRoles;
 	}
 
 	public List<UserApp> getUserApps(List<TagChecker> tagCheckers) {
 
 		List<UserApp> userApps = userAppRepository.findAll();
-		List<UserApp> userAppsUsed = new ArrayList<UserApp>();
+		List<UserApp> userAppsUsed = new ArrayList<>();
 
 		if (!tagCheckers.isEmpty()) {
 			for (TagChecker tagChecker : tagCheckers) {
@@ -101,24 +94,27 @@ public class UserAppService {
     }
     
 	public List<UserApp> setNomPrenom(List<UserApp>allUserApps, boolean isIncluded){
-		List<UserApp> newList = new ArrayList<UserApp>();
+		List<UserApp> newList = new ArrayList<>();
 		if(!allUserApps.isEmpty()) {
+			List<String> userAppList = allUserApps.stream().filter(userApp -> userApp.getEppn()!=null).map(userApp -> userApp.getEppn())
+					.collect(Collectors.toList());
+			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(userAppList, "eduPersonPrincipalName");
 			for(UserApp userApp : allUserApps) {
-				List<LdapUser> ldapUser = ldapService.getUsers(userApp.getEppn());
-				if(!ldapUser.isEmpty()) {
-					userApp.setNom(ldapUser.get(0).getName());
-					userApp.setPrenom(ldapUser.get(0).getPrenom());
+				LdapUser ldapUser = mapLdapUsers.get(userApp.getEppn());
+				if(ldapUser!=null) {
+					userApp.setNom(ldapUser.getName());
+					userApp.setPrenom(ldapUser.getPrenom());
 					newList.add(userApp);
 				}
-				if(!ldapUser.isEmpty() && isIncluded) {
+				if(ldapUser!=null && isIncluded) {
 					newList.add(userApp);
 				}
-				if(ldapUser.isEmpty() && isIncluded) {
+				if(ldapUser == null && isIncluded) {
 					userApp.setNom("--");
 					userApp.setPrenom("--");
 					newList.add(userApp);
 				}
-				if(ldapUser.isEmpty() && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
+				if(ldapUser == null && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
 					userApp.setNom(userApp.getContext().getKey());
 					userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 					newList.add(userApp);
@@ -130,7 +126,7 @@ public class UserAppService {
 	
 	public List<String> getUserContexts() {
 		
-		List<String> listContext = new ArrayList<String>();
+		List<String> listContext = new ArrayList<>();
 		if(!WebUtils.availableContexts().isEmpty()) {
 			for(String ctx : WebUtils.availableContexts()) {
 				if(!"all".equals(ctx)) {
@@ -210,7 +206,7 @@ public class UserAppService {
 		Context allContext = new Context();
 		allContext.setKey("ALL");
 		List<LdapUser> ldapUsers =  ldapService.getAllSuperAdmins();
-		List<UserApp> admins = new ArrayList<UserApp>();
+		List<UserApp> admins = new ArrayList<>();
 		for(LdapUser ldapUser : ldapUsers) {
 			UserApp admin = new UserApp();
 			admin.setContext(allContext);

@@ -38,6 +38,7 @@ import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.TagCheckerService;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -109,20 +110,24 @@ public class Individucontroller {
 	@Resource
 	HelpService helpService;
 	
+	@Autowired
+	ToolUtil toolUtil;
+	
 	@Value("${emargement.esupsignature.url}")
 	private String urlEsupsignature;
 	
 	private final static String ITEM = "individu";
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
-		return  ITEM;
+	public static String getActiveMenu() {
+		return ITEM;
 	}
 	
 	@GetMapping(value = "/manager/individu")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", 
 	value="eppnTagChecker") String eppnTagChecker, @RequestParam(defaultValue = "", value="idGroupe") String idGroupe, @RequestParam(defaultValue = "", value="sessions") Long sessions,
-			@RequestParam(value="annee", required = false) String annee, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1, HttpServletResponse response){
+			@RequestParam(defaultValue = "", value="sessionEpreuve") Long sessionEpreuveId,	@RequestParam(value="annee", required = false) String annee, 
+			@RequestParam(value="searchAbsences", required = false) String searchAbsences, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1){
 		if(!identifiantTagCheck.isEmpty()) {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
@@ -132,7 +137,7 @@ public class Individucontroller {
 				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(identifiantTagCheck, p1);
 			}
 			List<EsupSignature> signList = esupSignatureRepository.findByTagCheckIn(pTagChecks.getContent());
-			Map<Long, EsupSignature> mapTc = new HashMap();
+			Map<Long, EsupSignature> mapTc = new HashMap<>();
 			if(!signList.isEmpty()) {
 				for(EsupSignature sign : signList) {
 					if(sign.getTagCheck() != null) {
@@ -183,7 +188,7 @@ public class Individucontroller {
 				mapTcs = tcs.stream().filter(t -> t.getPerson() != null)
 				        .collect(Collectors.groupingBy(t -> t.getPerson()));
 			}
-			Map<Person, AssiduiteBean> mapAssiduite = new HashMap(); 
+			Map<Person, AssiduiteBean> mapAssiduite = new HashMap<>(); 
 			//voir cas guest
 			for (Person p : mapTcs.keySet()) {
 		        List<AssiduiteBean> listAssiduite =  tagCheckService.setListAssiduiteBean(mapTcs.get(p), groupe.getAnneeUniv()) ;
@@ -192,6 +197,31 @@ public class Individucontroller {
 			model.addAttribute("assiduiteMap", mapAssiduite);
 			model.addAttribute("annee", annee);
 			model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
+		}else if(sessionEpreuveId!=null) {
+			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
+			tagCheckService.setNomPrenomTagChecks(tcs, false, false);
+			model.addAttribute("activite", sessionEpreuveRepository.findById(sessionEpreuveId).get());	
+			model.addAttribute("activitePage", tcs);
+			model.addAttribute("nbBadgeage", tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(sessionEpreuveId));
+		}else if(searchAbsences!=null) {
+			List<TagCheck> tcs = new ArrayList<>();
+			if ("week".equals(searchAbsences) || "month".equals(searchAbsences)) {
+				Date[] weekDates = toolUtil.getIntervalDates(searchAbsences);
+				Date dateDebut = weekDates[0];
+				Date dateFin = weekDates[1];
+				tcs = tagCheckRepository
+						.findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+								dateDebut, dateFin, dateDebut, dateFin, dateDebut, dateFin);
+			} else if ("year".equals(searchAbsences)) {
+				tcs = tagCheckRepository.findByTagDateIsNullAndSessionEpreuveAnneeUniv(
+						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			} else if ("exempt".equals(searchAbsences)) {
+				tcs = tagCheckRepository.findByIsExemptTrueAndSessionEpreuveAnneeUniv(
+						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			}
+			tagCheckService.setNomPrenomTagChecks(tcs, true, true);
+			model.addAttribute("absencesPage", tcs);
+			model.addAttribute("choice", searchAbsences);
 		}
 		
 		model.addAttribute("types", personService.getTypesPerson());
@@ -200,12 +230,14 @@ public class Individucontroller {
 		return "manager/individu/index";
 	}
 	
+
+	
     @GetMapping("/manager/individu/search")
     @ResponseBody
     public TreeSet<SearchBean> searchLdap(@RequestParam("searchValue") String searchValue, @RequestParam("type") String type) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<SearchBean> searchBeans = new ArrayList<SearchBean>();
+    	List<SearchBean> searchBeans = new ArrayList<>();
     	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchValue, null);
     	List<TagCheck>  tagChecksList2 = tagCheckRepositoryCustom.findAll2(searchValue, null);
     	if("tagCheck".equals(type)) {
@@ -256,6 +288,15 @@ public class Individucontroller {
     			searchBeans.add(searchBean);
     		}
     	}
+    	if("sessionEpreuve".equals(type)) {
+    		List<SessionEpreuve> ses = sessionEpreuveRepository.findByNomSessionEpreuveLikeIgnoreCase("%" + searchValue + "%");
+    		for(SessionEpreuve se : ses) {
+    			SearchBean searchBean = new SearchBean();
+    			searchBean.setIdentifiant(se.getId().toString());
+    			searchBean.setSessionEpreuve(se);
+    			searchBeans.add(searchBean);
+    		}
+    	}
     	TreeSet<SearchBean> listWithoutDuplicates = searchBeans.stream()
                 .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(SearchBean::getIdentifiant))));
         return listWithoutDuplicates;
@@ -301,9 +342,7 @@ public class Individucontroller {
     }
     
     @GetMapping("/manager/individu/redirect/{id}")
-    public String redirectEsupsignature(@PathVariable String emargementContext, @PathVariable("id") Long signRequestId,
-    		HttpServletResponse response){
-
+    public String redirectEsupsignature(@PathVariable("id") Long signRequestId){
     	return String.format("redirect:%s/user/signrequests/%s", urlEsupsignature, signRequestId);
     }
 }

@@ -10,17 +10,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
-import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -32,7 +31,6 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -49,6 +47,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.UserService;
@@ -88,13 +87,10 @@ public class TagCheckController {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
-	
+
 	@Autowired
 	GroupeRepository groupeRepository;
-	
+
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
@@ -132,6 +128,9 @@ public class TagCheckController {
 	UserService userService;
 	
 	@Resource
+	PersonService personService;   
+	
+	@Resource
 	TagCheckService tagCheckService;
 	
 	@Autowired
@@ -160,7 +159,7 @@ public class TagCheckController {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	@Autowired
@@ -170,7 +169,7 @@ public class TagCheckController {
 	private String appUrl;
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
-    public String listTagCheckBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") Long id, Model model, 
+    public String listTagCheckBySessionEpreuve(@PathVariable("id") Long id, Model model, 
     		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person.eppn")  Pageable pageable, 
     			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
@@ -239,7 +238,7 @@ public class TagCheckController {
 	
 	@GetMapping(value = "/manager/tagCheck/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
-		List<TagCheck> tagChecks = new ArrayList<TagCheck>();
+		List<TagCheck> tagChecks = new ArrayList<>();
 		tagChecks.add( tagCheckRepository.findById(id).get());
 		tagCheckService.setNomPrenomTagChecks(tagChecks, false, false);
         uiModel.addAttribute("tagCheck", tagChecks.get(0));
@@ -265,7 +264,7 @@ public class TagCheckController {
     }
     
     void populateEditForm(Model uiModel, TagCheck TagCheck, Long id) {
-    	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
+    	List<SessionEpreuve> allSe = new ArrayList<>();
     	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     	List<SessionLocation>  sessionLocations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(id);
     	allSe.add(se);
@@ -278,7 +277,7 @@ public class TagCheckController {
     	uiModel.addAttribute("allSessionLocations", sessionLocations);
     	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
-        Map<String,String> mapEtapes = new HashMap<String,String>();
+        Map<String,String> mapEtapes = new HashMap<>();
         List<String> etapes = tagCheckService.findDistinctCodeEtapeSessionEpreuve(id);
         if(!etapes.isEmpty()) {
         	for(String etape : etapes) {
@@ -291,7 +290,7 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/create")
     @Transactional
-    public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest,  
+    public String create(@PathVariable String emargementContext, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel,  
     		final RedirectAttributes redirectAttributes) throws Exception {
     	
     	boolean isOk = true;
@@ -312,13 +311,13 @@ public class TagCheckController {
         	mapTempEtapes.put("addUser", tagCheck.getCodeEtape());
         }
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, mapTempEtapes, 
-    			tagCheck.getCheckLdap(), tagCheck.getPerson(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null, tagCheck.getGuest());
+    			tagCheck.getCheckLdap(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
     
     @PostMapping("/manager/tagCheck/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel) {
     	
     	boolean isOk = true;
     	TagCheck tc = tagCheckRepository.findById(id).get();
@@ -349,7 +348,7 @@ public class TagCheckController {
     
     @Transactional
     @PostMapping(value = "/manager/tagCheck/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	if(Statut.CLOSED.equals(tagCheck.getSessionEpreuve().getStatut())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
@@ -358,22 +357,15 @@ public class TagCheckController {
     		if(!list.isEmpty()) {
     			esupSignatureRepository.deleteAll(list);
     		}
-    		Person person = tagCheck.getPerson();
-    		if(person!=null) {
-	    		tagCheckRepository.delete(tagCheck);
-    		}else {
-    			Guest guest = tagCheck.getGuest();
-        		if(guest!=null) {
-    	    		tagCheckRepository.delete(tagCheck);
-        		}
-    		}
+    		tagCheckRepository.delete(tagCheck);
+    		personService.deleteUnusedPersons(contextRepository.findByContextKey(emargementContext));
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tagCheck.getSessionEpreuve().getId(), emargementContext);
     }
     
 	@Transactional
 	@GetMapping(value = "/manager/tagCheck/deleteAllTagChecks/{id}", produces = "text/html")
-    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id) {
 		tagCheckService.deleteAllTagChecksBySessionEpreuveId(id);
         return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
@@ -381,26 +373,24 @@ public class TagCheckController {
     @PostMapping("/manager/tagCheck/convocationForm")
     @Transactional
     public String convocationForm(@PathVariable String emargementContext, @RequestParam(value = "listeIds", required = false) List<Long> listeIds, @RequestParam(value = "sessionEpreuveId") SessionEpreuve sessionEpreuve, 
-    		@RequestParam(value = "submit") String submit, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    		@RequestParam(value = "submit") String submit, Model uiModel, final RedirectAttributes redirectAttributes) {
     	
     	
     	if("selected".equals(submit) && listeIds!= null && listeIds.isEmpty()) {
     		 redirectAttributes.addFlashAttribute("msgModal", "Vous n'avez pas sélectionné d'inscrits");
     		 return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, sessionEpreuve.getId());
     		
-    	}else {
-	    	uiModel.addAttribute("listeIds", listeIds);
-	    	uiModel.addAttribute("all", ("all".equals(submit)) ? true : false);
-	    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-	    	uiModel.addAttribute("tagChecks", tagCheckService.snTagChecks(listeIds));
-	    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
-	    	uiModel.addAttribute("convocationHtml", appliConfigService.getConvocationContenu());
-	    	uiModel.addAttribute("sujetMailConvocation", appliConfigService.getConvocationSujetMail());
-	    	uiModel.addAttribute("bodyMailConvocation", appliConfigService.getConvocationBodyMail());
-	    	uiModel.addAttribute("help", helpService.getValueOfKey("convocation"));
-	        return "manager/tagCheck/convocation";
-	        
     	}
+    	uiModel.addAttribute("listeIds", listeIds);
+    	uiModel.addAttribute("all", ("all".equals(submit)) ? true : false);
+    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+    	uiModel.addAttribute("tagChecks", tagCheckService.snTagChecks(listeIds));
+    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
+    	uiModel.addAttribute("convocationHtml", appliConfigService.getConvocationContenu());
+    	uiModel.addAttribute("sujetMailConvocation", appliConfigService.getConvocationSujetMail());
+    	uiModel.addAttribute("bodyMailConvocation", appliConfigService.getConvocationBodyMail());
+    	uiModel.addAttribute("help", helpService.getValueOfKey("convocation"));
+        return "manager/tagCheck/convocation";
     }
     
     @PostMapping("/manager/tagCheck/pdfConvocation")
@@ -410,8 +400,7 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/export")
     public void exportTagChecks(@PathVariable String emargementContext,@RequestParam("type") String type, @RequestParam("sessionId") Long id, 
-    		@RequestParam("tempsAmenage") String tempsAmenage, HttpServletResponse response){
-    	
+    		 HttpServletResponse response){
     	tagCheckService.exportTagChecks(type, id, response, emargementContext, null, false);
     }
     
@@ -420,7 +409,7 @@ public class TagCheckController {
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam("subject") String subject, @RequestParam("bodyMsg") String bodyMsg, 
     		@RequestParam(value="isSendToManager", defaultValue = "false") boolean isSendToManager,  @RequestParam(value="all", defaultValue = "false") boolean isAll,
     		@RequestParam(value = "listeIds", defaultValue = "") List<Long> listeIds,  @RequestParam("htmltemplatePdf") String htmltemplatePdf, @RequestParam("seId") 
-    		Long seId, Model uiModel) throws Exception {
+    		Long seId) throws Exception {
 
 		if(appliConfigService.isSendEmails()){
 			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId);
@@ -436,7 +425,7 @@ public class TagCheckController {
     public List<Person> searchLdap(@RequestParam("searchValue") String searchValue, @RequestParam("sessionId") Long sessionId) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<Person> persons = new ArrayList<Person>();
+    	List<Person> persons = new ArrayList<>();
     	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchValue, sessionId);
     	if(!tagChecksList.isEmpty()) {
     		tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false);
@@ -452,7 +441,7 @@ public class TagCheckController {
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
+    	List<LdapUser> userAppsList = new ArrayList<>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;
@@ -460,7 +449,7 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/sendLinkOrQrCode")
     public String sendLinkOrQrCode(@PathVariable String emargementContext, @RequestParam("seId") Long seId,  @RequestParam(value = "population", required = false) String population, 
-    		@RequestParam("type") String type, final RedirectAttributes redirectAttributes) throws MessagingException, IOException, WriterException {
+    		@RequestParam("type") String type, final RedirectAttributes redirectAttributes) throws MessagingException, IOException {
     	//On pourra rechercher par type ...
     	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
     	if(!tcs.isEmpty()) {
@@ -470,6 +459,10 @@ public class TagCheckController {
     		int nbMailNonEnvoye = 0;
     		Boolean isSuccess = true;
     		try {
+    			List<String> tagCheckList = tcs.stream().filter(tc->tc.getPerson()!=null)
+    					.map(tagCheck -> tagCheck.getPerson().getEppn()).collect(Collectors.toList());
+    			Map<String, LdapUser> mapTagCheckLdapUsers = ldapService.getLdapUsersFromNumList(tagCheckList,
+    					"eduPersonPrincipalName");
 				for(TagCheck tc : tcs) {
 					String mailAdresse =  null;
 					String eppn = "";
@@ -479,9 +472,11 @@ public class TagCheckController {
 						if("nonext".equals(population)) {
 							if(tc.getPerson() != null) {
 								eppn = tc.getPerson().getEppn();
-								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
-								nomPrenom = user.getPrenomNom();
-								mailAdresse = user.getEmail();
+								LdapUser user = mapTagCheckLdapUsers.get(eppn);
+								if(user!=null) {
+									nomPrenom = user.getPrenomNom();
+									mailAdresse = user.getEmail();
+								}
 							}
 						}if("ext".equals(population)) {
 							if(tc.getGuest() != null) {
@@ -492,9 +487,11 @@ public class TagCheckController {
 						else if("all".equals(population)) {
 							if(tc.getPerson() != null) {
 								eppn = tc.getPerson().getEppn();
-								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
-								mailAdresse = user.getEmail();
-								nomPrenom = user.getPrenomNom();
+								LdapUser user = mapTagCheckLdapUsers.get(eppn);
+								if(user!=null) {
+									mailAdresse = user.getEmail();
+									nomPrenom = user.getPrenomNom();
+								}
 							}else if(tc.getGuest() != null) {
 								mailAdresse = tc.getGuest().getEmail();
 								nomPrenom =  StringUtils.capitalize(tc.getGuest().getPrenom()) + " " + StringUtils.capitalize(tc.getGuest().getNom());
@@ -510,7 +507,7 @@ public class TagCheckController {
 							String body = appliConfigService.getQrCodebodyMail();
 							body = body.replaceAll("@@nom@@", nomPrenom);
 							body = body.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode@@@notime";
+							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode@@@notime@@@" + tc.getContext().getId();
 							String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 							InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
 							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
@@ -532,8 +529,10 @@ public class TagCheckController {
 								String link = appUrl + "/" + emargementContext + "/user?sessionToken=" + token;
 								String body = appliConfigService.getLinkEmailEmarger();
 								subject = subject.replaceAll("@@session@@", tc.getSessionEpreuve().getNomSessionEpreuve());
-								LdapUser user = ldapUserRepository.findByEppnEquals(eppn).get(0);
-								nomPrenom = user.getPrenomNom();
+								LdapUser user = mapTagCheckLdapUsers.get(eppn);
+								if(user!=null) {
+									nomPrenom = user.getPrenomNom();
+								}
 								if(tc.getSessionLocationBadged()== null) {
 									tc.setSessionToken(token);
 									tagCheckRepository.save(tc);
@@ -581,7 +580,7 @@ public class TagCheckController {
     }
     
 	@GetMapping(value = "/manager/tagCheck/esupsignature/{id}", produces = "text/html")
-    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, Model uiModel, @PathVariable String emargementContext, HttpServletResponse response) {
+    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, @PathVariable String emargementContext, HttpServletResponse response) {
 		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response, TypeSignature.SESSION);
 		return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, id);
 	}

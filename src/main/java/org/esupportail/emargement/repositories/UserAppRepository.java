@@ -20,13 +20,9 @@ public interface UserAppRepository extends JpaRepository<UserApp, Long>{
 	
 	Long countByEppnAndContext(String eppn, Context context);
 	
-	Page<UserApp> findAllByUserRole(Role role, Pageable pageable);
-	
 	Page<UserApp> findByUserRoleAndContextKey(Role role, String key, Pageable pageable);
 	
 	List<UserApp> findByContext(Context context);
-	
-	List<UserApp> findByAdeInstructorIdAndContext(Long id, Context context);
 	
 	@Query(value = "select * from user_app where eppn=:eppn and context_id=:contexId", nativeQuery = true)
 	UserApp findByEppnContext(String eppn, Long contexId);

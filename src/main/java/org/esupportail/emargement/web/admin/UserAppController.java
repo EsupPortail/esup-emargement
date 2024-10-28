@@ -13,7 +13,6 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
@@ -64,9 +63,6 @@ public class UserAppController {
 	
 	@Autowired
 	UserAppRepositoryCustom userAppRepositoryCustom;
-	
-	@Autowired
-    LdapUserRepository ldapUserRepository;
 	
 	@Resource
 	UserAppService userAppService;

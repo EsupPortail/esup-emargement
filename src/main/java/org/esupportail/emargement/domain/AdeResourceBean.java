@@ -8,6 +8,8 @@ public class AdeResourceBean {
 	
 	public Long eventId;
 	
+	public Long degreeId;
+	
 	public SessionEpreuve sessionEpreuve;
 	
 	public List<Map<Long,String>> instructors;
@@ -94,5 +96,13 @@ public class AdeResourceBean {
 
 	public void setTypeEvent(String typeEvent) {
 		this.typeEvent = typeEvent;
+	}
+
+	public Long getDegreeId() {
+		return degreeId;
+	}
+
+	public void setDegreeId(Long degreeId) {
+		this.degreeId = degreeId;
 	}
 }

@@ -38,7 +38,6 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -86,9 +85,6 @@ public class PresenceService {
 	
 	@Autowired	
 	ContextRepository contextRepository;
-	
-	@Autowired
-	UserAppRepository userAppRepository;
 	
 	@Autowired
 	private TagCheckerRepository tagCheckerRepository;
@@ -360,7 +356,7 @@ public class PresenceService {
 				presence = splitPresence[0];
 				eppn = toolUtil.decodeFromBase64(splitPresence[1]);
 			}
-			String temp = toolUtil.decodeFromBase64(presence.replace("qrcodeUser", "").replace("qrcodeSession", ""));
+			String temp = toolUtil.decodeFromBase64(presence.replace("qrcodeUser", "").replace("qrcodeSession", "").replace("qrcode", ""));
 			String [] splitTemp = temp.split("@@@");
 			presence = splitTemp[0];
 			String qrCodetimestamp = splitTemp[1];

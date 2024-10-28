@@ -46,13 +46,12 @@ public class SuController {
 	private final static String ITEM = "su";
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 
 	@GetMapping(value = "/superadmin/su")
-	public String list(@PathVariable String emargementContext, Model model) {
-		
+	public String list(Model model) {
 		List<String> contexts = contextRepository.findDistinctKey();
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("users", userAppService.allUserApps());
@@ -66,7 +65,7 @@ public class SuController {
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<LdapUser>();
+    	List<LdapUser> userAppsList = new ArrayList<>();
     	userAppsList = ldapService.search(searchValue);
     	
         return userAppsList;

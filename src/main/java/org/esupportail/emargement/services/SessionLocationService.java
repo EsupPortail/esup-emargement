@@ -51,8 +51,6 @@ public class SessionLocationService {
 	@Autowired
 	ToolUtil toolUtil;
 	
-	String delimiterLocation = " - Session : ";
-	
 	@Resource
 	LogService logService;
 	

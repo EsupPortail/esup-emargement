@@ -10,6 +10,7 @@ var allSelect = selectAll;
 var myChartBar = null;
 var suneditor0 = null;
 var selectCmp = null;
+var sortDate;
 //==jQuery remove()
 function remove(id) {
 	var elem = document.getElementById(id);
@@ -113,6 +114,13 @@ function getCalendar(calendarEl, urlEvents, editable) {
 	calendar.render();
 }
 
+function createDateFromString(dateString) {
+	const [day, month, year] = dateString.split('/').map(Number);
+	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
+
+	return new Date(adjustedYear, month - 1, day); // month is 0-indexed in JavaScript Date objects
+}
+
 function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 	var searchBox = document.getElementById(id);
 	if (searchBox != null) {
@@ -152,6 +160,20 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 									label: labelValue,
 									value: value.groupe.id + "//" + value.groupe.nom
 								});
+							}else if (id == "searchSession") { 
+								value = value.sessionEpreuve;
+								var realDate = value.dateExamen.substring(0, 10);
+								var splitDate = realDate.split("-");
+								var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
+								var heureExamen = value.heureEpreuve.substring(0, 5);
+								var heureFin = value.finEpreuve.substring(0, 5);
+								//console.log(value.heureEpreuve);
+								var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + 
+									value.campus.site + "<strong class='ms-2'>Date : </strong>" + frDate + "<strong class='ms-2'>Heure : </strong>" + heureExamen + " -" + heureFin;
+								list.push({
+									label: labelValue,
+									value: value.id
+								})
 							}
 							else if (id == "searchLocation") {
 								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Adresse : </strong>" +
@@ -404,6 +426,7 @@ function submitSearchForm(id, url, endUrl) {
 		var formSearch = document.getElementById("formSearch");
 		search.addEventListener("awesomplete-selectcomplete", function(event) {
 			var splitResult = this.value.split("//");
+			console.log(this.value);
 			search.value = splitResult[0].toString().trim();
 			formSearch.submit();
 		});
@@ -758,33 +781,7 @@ function getLocations(type) {
 		}
 	});
 }
-//Tri date ade Campus
-function datesSorter(a, b) {
-	var splitDate1 = a.split("-");
-	var splitDate2 = b.split("-");
-	var date1 = new Date(splitDate1[2], splitDate1[1], splitDate1[0]);
-	var date2 = new Date(splitDate2[2], splitDate2[1], splitDate2[0]);
-	if (date1 > date2) return 1;
-	if (date1 < date2) return -1;
-	return 0;
-}
 
-function getDateFromStringDateTime(str) {
-	var splitTime = str.split(" ");
-	var splitDate = splitTime[0].split("-");
-	temp = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
-	return new Date(temp + "T" + splitTime[1]);
-}
-
-function datesSorter2(a, b) {
-	var noDate = '1970-01-01T00:00';
-	var date1 = (a == "") ? new Date(noDate) : getDateFromStringDateTime(a);
-	var date2 = (b == "") ? new Date(noDate) : getDateFromStringDateTime(b);
-	if (date1 > date2) return 1;
-	if (date1 < date2) return -1;
-
-	return 0;
-}
 
 //jstree
 function openAndCheckNodes(nodeIds) {
@@ -837,6 +834,51 @@ function getQrCodeSession(url, idImg) {
 			console.error('Error:', error);
 		}
 	});
+}
+
+function initTablePresence(sortDate){
+	new DataTable("#tablePresence", {
+		responsive: true,
+		ordering: true,
+		paging: false,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}, order: [
+			sortDate // Adjust the column index if needed
+		],
+		columnDefs: [
+			{
+				targets: 4,
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY hh:mm:ss').unix();
+					}
+					return moment(data, 'DD/MM/YY hh:mm:ss').format('DD/MM/YY hh:mm:ss');
+				}
+			}
+		]
+	});
+}
+
+function getNbItems(table) {
+	var dataMap = {};
+	table.rows().every(function() {
+		var rowNode = this.node();
+		$(rowNode).find('.degree').each(function() {
+			var cellData = table.cell($(this).closest('td')).node().dataset.degree;
+			dataMap[cellData] = (dataMap[cellData] || 0) + 1;
+		});
+	});
+	var dataString = Object.keys(dataMap).map(function(key) {
+		return key + "@" + dataMap[key];
+	}).join(",");
+	return dataString;
 }
 
 //==jQuery document.ready
@@ -1207,10 +1249,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	} else if (document.getElementById("searchSessionEpreuve") != null) {
 		submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
 	} else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null
-		&& document.getElementById("searchIndividuGroupe") != null) {
+		&& document.getElementById("searchIndividuGroupe") != null && document.getElementById("searchSession") != null) {
 		submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
 		submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
 		submitSearchForm("searchIndividuGroupe", emargementContextUrl + "/manager/individu/search", "&type=groupe");
+		submitSearchForm("searchSession", emargementContextUrl + "/manager/individu/search", "&type=sessionEpreuve");
 	} else if (document.getElementById("searchIndividu") != null) {
 		searchUsersAutocomplete("searchIndividu", emargementContextUrl + "/manager/individu/search", "&type=tagCheck", 100);
 		searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {
@@ -1461,16 +1504,9 @@ document.addEventListener('DOMContentLoaded', function() {
 				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					displayToast();
+					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+					initTablePresence(sortDate);
 				});
-				setTimeout(function() {
-					if (!$("#collapseTable").hasClass("d-none")) {
-						var id = $("#collapseTable tr")[0].id;
-						if (tagCheck.id == id) {
-							$("#collapseTable table tbody").empty();
-							$("#" + id).clone().appendTo("#collapseTable table tbody");
-						}
-					}
-				}, 500);
 			}
 		}, false);
 
@@ -1772,7 +1808,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=enableWebcam&value=" + value, true);
 		request.onload = function() {
 			if (request.status >= 200 && request.status < 400) {
-				window.location.href = redirect;
+				if( value == "true"){
+					$("#webCamDiv").removeClass("d-none");
+				}else{
+					$("#webCamDiv").removeClass("d-none");
+					$("#webCamDiv").addClass("d-none");
+				}
 			}
 		}
 		request.send();
@@ -1971,12 +2012,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 		var r = [];
+		var text = [];
 		checkedNodes.forEach(function(nodeId) {
 			var node = data.instance.get_node(nodeId);
+			text.push(node.text);
 			r.push(node.id);
 		});
 		$("#idList").val(r.join(', '));
-		$("#idListImport").val(r.join(', '));
+		$("#idListImport").val(r.join(','));
+		$("#idListTask").val(r.join(', '));
+		$("#textListTask").val(text.join(', '));
 	}).jstree({
 		"checkbox": {
 			"keep_selected_style": false,
@@ -2055,8 +2100,7 @@ document.addEventListener('DOMContentLoaded', function() {
 								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
 							}
 						},
-						{ type: 'date-eu', targets: 6 },
-						{ type: 'date-eu', targets: 2 }
+						{ type: 'date-eu', targets: 'dateItem'}
 					],
 					select: {
 						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
@@ -2071,26 +2115,29 @@ document.addEventListener('DOMContentLoaded', function() {
 						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 					}
 				});
+				$("#nbItems").val(getNbItems(table));
 			},
 			error: function(error) {
 				console.log('Error: ' + error);
 			}
 		});
 	});
-
-	$("#displayEventsImport").submit(function(event) {
-		event.preventDefault();
-		$("#spinnerLoad").removeClass("d-none");
-		$.ajax({
-			url: emargementContextUrl + "/manager/adeCampus/importEvents",
-			type: "POST",
-			data: $("#displayEventsImport").serialize(), // Serialize form data
-			success: function() {
-				$('#displayEvents').submit();
-			},
-			error: function(error) {
-				console.log("Error: " + error);
-			}
+	
+	$("#importBtn").on('click', function() {
+		$("#displayEventsImport").submit(function(event) {
+			event.preventDefault();
+			$("#spinnerLoad").removeClass("d-none");
+			$.ajax({
+				url: emargementContextUrl + "/manager/adeCampus/importEvents",
+				type: "POST",
+				data: $("#displayEventsImport").serialize(), // Serialize form data
+				success: function() {
+					$('#displayEvents').submit();
+				},
+				error: function(error) {
+					console.log("Error: " + error);
+				}
+			});
 		});
 	});
 
@@ -2137,7 +2184,94 @@ document.addEventListener('DOMContentLoaded', function() {
 		$('#commentTagCheckModal').modal('show');
 	});
 	var title = '';
+	
+	//Recherche assiduité
+	if(document.getElementById("assiduitePage") != null){
+		let minDate, maxDate;
+		DataTable.ext.search.push(function(settings, data, dataIndex) {
+			let min = minDate.val();
+			let max = maxDate.val();
+			let date = new Date(newDate = createDateFromString(data[4]));
+			if (
+				(min === null && max === null) ||
+				(min === null && date <= max) ||
+				(min <= date && max === null) ||
+				(min <= date && date <= max)
+			) {
+				return true;
+			}
+			return false;
+		});
+		// Create date inputs
+		minDate = new DateTime('#min', {
+			format: 'DD/MM/YY'
+		});
+		maxDate = new DateTime('#max', {
+			format: 'DD/MM/YY'
+		});
+		var title = '';
+		var dataTableOptions = {
+			responsive: true,
+			ordering: true,
+			paging: true,
+			searching: true,
+			info: false,
+			language: {
+				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+			},
+			columnDefs: [
+				{
+					targets: 'dateItem',
+					type: 'datetime-moment', // Use the datetime-moment plugin
+					render: function(data, type, row) {
+						if (!data) { // Check if data is empty
+							return ''; // Return empty string if data is empty
+						}
+						if (type === 'sort' || type === 'type') {
+							return moment(data, 'DD/MM/YY').unix();
+						}
+						return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+					}
+				}
+			],
+			pageLength: -1,
+			lengthMenu: [
+				[10, 25, 50, -1],
+				[10, 25, 50, 'All']
+			],
+			dom: 'Bfrtilp',
+			buttons: [
+				{ extend: 'copy', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'csv', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'pdf', orientation: 'landscape', pageSize: 'LEGAL', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
+				{ extend: 'print', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } }
+			]
+		}
+		//assiduité absences
+		$("#searchAbsences").on('change', function() {
+			$("#formSearch").submit();
+		});
+	}
+
+	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
+
+	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		title = $(dataTable.table().node()).attr('data-export-title');
+	});
+	 
+	// Refilter the table
+	document.querySelectorAll('#min, #max').forEach((el) => {
+		el.addEventListener('change', () => table3.draw());
+	});
+	
+	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+	initTablePresence(sortDate);
+	
 	$('table.assiduite').DataTable( {
+	// BRICE fusion 1.0.7 
+	// $('.tableCleanup').DataTable({
 		responsive: true,
 		ordering: true,
 		paging: true,

@@ -4,14 +4,10 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
-import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -26,11 +22,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findByAdeEventId(Long id);
 	
-	Page<SessionEpreuve> findByNomSessionEpreuve(String nomSessionEpreuve, Pageable pageable);
-	
 	List<SessionEpreuve> findSessionEpreuveByStatutNotOrderByDateExamen(Statut statut);
-	
-	List<SessionEpreuve>  findSessionEpreuveByDateExamenAndCampusEqualsAndIdNot(Date date, Campus campus, Long id);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
@@ -43,10 +35,14 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve> findAllByDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate, Date endDate, Date startDateFin, Date endDateFin);
 	
 	List<SessionEpreuve> findAllByDateExamen(Date date);
+
+	List<SessionEpreuve> findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(Date startDate1, Date endDate1, Date startDate, Date endDate, Date startDateFin, Date endDateFin);
 	
 	Long countByDateExamenGreaterThanEqual(Date date);
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThan(Date date);
+	
+	List<SessionEpreuve> findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(Date date, Statut statut, Date date2, Statut statut2);
 	
 	List<SessionEpreuve> findAllByDateExamenOrDateFinNotNullAndDateFinLessThanEqualAndDateFinGreaterThanEqual(Date date, Date dateFin, Date dateFin2);
 	
@@ -56,13 +52,15 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAByAnneeUnivAndDateArchivageIsNotNull(String anneeUniv);
 	
-	Page<SessionEpreuve> findAllByAnneeUniv(String anneeUniv, Pageable pageable);
-	
-	Page<SessionEpreuve> findAllByOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Example<SessionEpreuve> sessionQuery, Pageable pageable);
-	
 	Long countByAnneeUniv(String anneeUniv);
 	
 	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
+	
+	List<SessionEpreuve> findDistinctByNomSessionEpreuveLikeIgnoreCase(String nom);
+	
+	List<SessionEpreuve> findByNomSessionEpreuveLikeIgnoreCase(String nom);
+	
+	List<SessionEpreuve> findByNomSessionEpreuve(String nom);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
@@ -162,4 +160,27 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findByContextOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Context ctx);
 
+	 @Query(value = "SELECT * FROM session_epreuve WHERE context_id = :contextId AND id NOT IN " +
+             "(SELECT DISTINCT session_epreuve_id FROM tag_check WHERE context_id = :contextId) " +
+             "AND ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) " +
+             "OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))",
+     nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagCheck(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id =  :contextId and id not in "
+			+ "(select distinct session_epreuve_id from tag_checker, session_location "
+			+ "where session_location.id = tag_checker.session_location_id and tag_checker.context_id =  :contextId  and session_location.context_id =  :contextId) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagChecker(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id = :contextId and id not in "
+			+ "(select distinct session_epreuve_id from session_location where context_id = :contextId) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoSessionLocation(Date date, Long contextId);
+	
+	@Query(value = "select * from session_epreuve where context_id =  :contextId and id in "
+			+ "(SELECT session_epreuve_id FROM tag_check where context_id = :contextId GROUP BY session_epreuve_id "
+			+ "HAVING COUNT(tag_date) = 0 OR COUNT(*) = SUM(CASE WHEN tag_date IS NULL THEN 1 ELSE 0 END)) "
+			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
+	List<SessionEpreuve> findSessionEpreuveWithNoTagDate(Date date, Long contextId);
 }

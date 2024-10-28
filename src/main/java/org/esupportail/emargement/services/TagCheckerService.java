@@ -2,6 +2,8 @@ package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -35,6 +37,9 @@ public class TagCheckerService {
 	@Resource
 	EmailService emailService;
 	
+	@Resource	
+	LdapService ldapService;
+	
 	@Resource
 	LdapUserRepository userLdapRepository;;
 	
@@ -43,9 +48,6 @@ public class TagCheckerService {
 	
 	@Resource	
 	AppliConfigService appliConfigService;
-	
-	@Resource
-	UserAppService userAppService;
 	
 	@Autowired
 	ParamUtil paramUtil;
@@ -59,14 +61,17 @@ public class TagCheckerService {
 		
 		List<SessionLocation> sessionLocations = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
 		Page<TagChecker> tagCheckers = tagCheckerRepository.findTagCheckerBySessionLocationIn(sessionLocations, pageable);
+		List<String> tcList = tagCheckers.stream().filter(tc->tc.getUserApp()!=null).map(tagChecker -> tagChecker.getUserApp().getEppn())
+				.collect(Collectors.toList());
+		Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
 		
 		for(TagChecker tagChecker: tagCheckers.getContent()) {
-			List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-			if(!userLdaps.isEmpty()) {
-				tagChecker.getUserApp().setNom(userLdaps.get(0).getName());
-				tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
+			LdapUser ldapUser = mapLdapUsers.get(tagChecker.getUserApp().getEppn());
+			if(ldapUser!=null) {
+				tagChecker.getUserApp().setNom(ldapUser.getName());
+				tagChecker.getUserApp().setPrenom(ldapUser.getPrenom());
 			}
-			if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
+			if(ldapUser==null && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 				tagChecker.getUserApp().setNom(tagChecker.getUserApp().getContext().getKey());
 				tagChecker.getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
 			}
@@ -76,31 +81,36 @@ public class TagCheckerService {
 	
 	public void setNomPrenom4TagCheckers(List<TagChecker> allTagCheckers) {		
 		if(!allTagCheckers.isEmpty()) {
+			List<String> tcList = allTagCheckers.stream().filter(tc->tc.getUserApp()!=null).map(tagChecker -> tagChecker.getUserApp().getEppn())
+					.collect(Collectors.toList());
+			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
 			for(TagChecker tagChecker: allTagCheckers) {
-				List<LdapUser> userLdaps= userLdapRepository.findByEppnEquals(tagChecker.getUserApp().getEppn());
-				if(!userLdaps.isEmpty()) {
-					tagChecker.getUserApp().setNom(userLdaps.get(0).getName());
-					tagChecker.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
+				LdapUser ldapUser = mapLdapUsers.get(tagChecker.getUserApp().getEppn());
+				if(ldapUser!=null) {
+					tagChecker.getUserApp().setNom(ldapUser.getName());
+					tagChecker.getUserApp().setPrenom(ldapUser.getPrenom());
 				}
-				if(userLdaps.isEmpty() && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
+				if(ldapUser==null && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
 					tagChecker.getUserApp().setNom(tagChecker.getContext().getKey());
 					tagChecker.getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
-
 				}
 			}
 		}
 	}
 	
 	public String getSnTagCheckers(SessionEpreuve se){
-		List<String> snTagChecks = new ArrayList<String>();
+		List<String> snTagChecks = new ArrayList<>();
 		String listTc = "";
-		List<TagChecker> tcList = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
-		if(!tcList.isEmpty()) {
-			for(TagChecker tc : tcList) {
-				List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tc.getUserApp().getEppn());
+		List<TagChecker> allTagCheckers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
+		if(!allTagCheckers.isEmpty()) {
+			List<String> tcList = allTagCheckers.stream().filter(tc->tc.getUserApp()!=null).map(tagChecker -> tagChecker.getUserApp().getEppn())
+					.collect(Collectors.toList());
+			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
+			for(TagChecker tc : allTagCheckers) {
+				LdapUser ldapUser = mapLdapUsers.get(tc.getUserApp().getEppn());
 				String sn = "";
-				if(!userLdaps.isEmpty()) {
-					sn = userLdaps.get(0).getPrenom().concat(" ").concat(userLdaps.get(0).getName());
+				if(ldapUser!=null) {
+					sn = ldapUser.getPrenom().concat(" ").concat(ldapUser.getName());
 					snTagChecks.add(sn);
 				}
 				
@@ -139,17 +149,19 @@ public class TagCheckerService {
 			List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(sessionEpreuveId);
 			
 			if(!tcs.isEmpty()) {
+				List<String> tcList = tcs.stream().filter(tc->tc.getUserApp()!=null).map(tagChecker -> tagChecker.getUserApp().getEppn())
+						.collect(Collectors.toList());
+				Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
 				for(TagChecker tc : tcs) {
-					List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(tc.getUserApp().getEppn());
-					if(!userLdaps.isEmpty()) {
+					LdapUser ldapUser = mapLdapUsers.get(tc.getUserApp().getEppn());
+					if(ldapUser!=null) {
 						try {
-							tc.getUserApp().setNom(userLdaps.get(0).getName());
-							tc.getUserApp().setPrenom(userLdaps.get(0).getPrenom());
-							tc.getUserApp().setCivilite(userLdaps.get(0).getCivilite());
+							tc.getUserApp().setNom(ldapUser.getName());
+							tc.getUserApp().setPrenom(ldapUser.getPrenom());
+							tc.getUserApp().setCivilite(ldapUser.getCivilite());
 							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
-							String email = userLdaps.get(0).getEmail();
 							if(appliConfigService.isSendEmails()){
-								emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "consignes.pdf", new String[0], null);
+								emailService.sendMessageWithAttachment(ldapUser.getEmail(), subject, bodyMsg, filePath, "consignes.pdf", new String[0], null);
 							}else {
 								log.info("Envoi de mail désactivé :  ");
 							}
@@ -167,4 +179,5 @@ public class TagCheckerService {
 		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(id);
 		tagCheckerRepository.deleteAll(tcs);
 	}
+
 }
