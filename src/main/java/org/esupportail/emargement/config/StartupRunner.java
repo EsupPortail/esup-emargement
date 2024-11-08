@@ -29,8 +29,6 @@ public class StartupRunner implements CommandLineRunner {
         List<Context> contexts = contextRepository.findAll();
         if(!contexts.isEmpty()) {
         	for (Context context : contexts) {
-        		Long test = appliConfigService.checkCategory(context, "ADE_ENABLED");
-        		System.out.println(test);
         		appliConfigService.updateAppliconfig(context);
         		typeSessionService.updateTypeSession(context.getKey());
         		if(context.getIsActif()==null) {
