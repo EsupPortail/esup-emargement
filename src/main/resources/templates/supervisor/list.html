@@ -298,7 +298,7 @@
 													antérieures</span></label>
 										</div>
 									</form>
-									<form th:action="@{/{ctx}/supervisor/updateSecondTag(ctx=${eContext})}"  method="post" id="formSecondTag">
+									<form th:if="${sessionLocation ne null}" th:action="@{/{ctx}/supervisor/updateSecondTag(ctx=${eContext})}"  method="post" id="formSecondTag">
 										<div class="form-check form-switch" th:if="${sessionEpreuve.id != null}">
 										  <input class="form-check-input" type="checkbox" role="switch" id="updateSecondTag"
 										  th:checked="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
