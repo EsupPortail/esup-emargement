@@ -7,7 +7,6 @@
 		<div class="container-fluid">
            	<div class="card">
 		    	<div class="card-header"><h2>Ajouter une configuration</h2></div>
-		    	<div  class="alert alert-danger" th:if="${error}">Le site avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/admin/appliConfig/create(ctx=${eContext})}" th:object="${appliConfig}" method="post" id="configForm">
 	                    <div class="form-group row">

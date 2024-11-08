@@ -30,11 +30,12 @@ public class AppliConfig {
     
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+    
+    private String category;
 
     public static enum TypeConfig {
-
         HTML, TEXT, BOOLEAN
-    };
+    }
     
     @Column
     @Enumerated(EnumType.STRING)
@@ -88,5 +89,13 @@ public class AppliConfig {
 
 	public void setContext(Context context) {
 		this.context = context;
-	} 
+	}
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
+	}
 }

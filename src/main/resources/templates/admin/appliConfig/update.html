@@ -13,9 +13,14 @@
 	    				</div>
 					</div>
 				</div>           	
-		    	<div  class="alert alert-danger" th:if="${error}">Le site avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/admin/appliConfig/update/{id}(ctx=${eContext}, id=${appliConfig.id})}" th:object="${appliConfig}" method="post" id="configForm">
+	                    <div class="row mb-3">
+		                    <label for="key" class="col-lg-2 form-label">Catégorie</label>
+		                    <div class="col-lg-10">
+		                     	<input type="text"  class="form-control" th:value="${appliConfig.category}" disabled="disabled">
+		                    </div>
+	                    </div>
 	                    <div class="row mb-3">
 	                    	<label for="key" class="col-lg-2 form-label">Clé</label>
 	                    	<div class="col-lg-10">

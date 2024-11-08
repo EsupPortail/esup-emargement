@@ -1,7 +1,9 @@
 package org.esupportail.emargement.web.admin;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.AppliConfig;
@@ -17,10 +19,6 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +30,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -61,23 +60,23 @@ public class AppliConfigController {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
 	@GetMapping(value = "/admin/appliConfig")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 50, direction = Direction.ASC, sort = "key")  Pageable pageable) {
-		
-        Page<AppliConfig> appliConfigPage = appliConfigRepository.findAll(pageable);
-        Context context = contextRepository.findByContextKey(emargementContext);
-        model.addAttribute("appliConfigPage", appliConfigPage);
+	public String list(Model model, @RequestParam(required = false, value = "cat") String cat) {
+		List<String> configs = appliConfigRepository.findAllByOrderByCategory().stream().map(a -> a.getCategory()).distinct().collect(Collectors.toList());
+		String currentCat = cat== null? configs.get(0) : cat;
+        model.addAttribute("cats", configs);
+        model.addAttribute("currentCat", currentCat);
+        model.addAttribute("appliConfigPage", appliConfigRepository.findAllByCategoryOrderByKey(currentCat));
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
-        model.addAttribute("checkConfig", appliConfigService.checkAppliconfig(context));
 		return "admin/appliConfig/list";
 	}
 	
 	@GetMapping(value = "/admin/appliConfig/updateConfigs")
-	public String updateConfigs(@PathVariable String emargementContext, Model model, final RedirectAttributes redirectAttributes) {
+	public String updateConfigs(@PathVariable String emargementContext, final RedirectAttributes redirectAttributes) {
 		Context context = contextRepository.findByContextKey(emargementContext);
 		redirectAttributes.addFlashAttribute("nbUpdate", appliConfigService.updateAppliconfig(context));
 		return String.format("redirect:/%s/admin/appliConfig", emargementContext);
@@ -109,7 +108,7 @@ public class AppliConfigController {
     }
     
     @PostMapping("/admin/appliConfig/create")
-    public String create(@PathVariable String emargementContext, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, appliConfig);
             return "admin/appliConfig/create";
@@ -121,18 +120,17 @@ public class AppliConfigController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, config déjà existante : " + "Key : ".concat(appliConfig.getKey()));
         	return "admin/appliConfig/list";
-        }else {
-        	appliConfig.setContext(contexteService.getcurrentContext());
-            appliConfigRepository.save(appliConfig);
-            log.info("Création config : " + "Key : ".concat(appliConfig.getKey()));
-            logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
-            		emargementContext, null);
-            return String.format("redirect:/%s/admin/appliConfig", emargementContext);
         }
+		appliConfig.setContext(contexteService.getcurrentContext());
+		appliConfigRepository.save(appliConfig);
+		log.info("Création config : " + "Key : ".concat(appliConfig.getKey()));
+		logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
+				emargementContext, null);
+		return String.format("redirect:/%s/admin/appliConfig", emargementContext);
     }
     
     @PostMapping("/admin/appliConfig/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, appliConfig);
             return "admin/appliConfig/update";
@@ -146,11 +144,11 @@ public class AppliConfigController {
         log.info("Maj config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
         logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
         		emargementContext, null);
-        return String.format("redirect:/%s/admin/appliConfig", emargementContext);
+        return String.format("redirect:/%s/admin/appliConfig?cat=%s", emargementContext, original.getCategory());
     }
     
     @PostMapping(value = "/admin/appliConfig/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	AppliConfig appliConfig = appliConfigRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
