@@ -29,7 +29,7 @@
 				    <li class="nav-item dropdown" th:if="${isAdmin or isManager}">
 				     	<a class="nav-link dropdown-toggle" 
 				        		th:classappend="${active == 'tagChecker' or active == 'tagCheck' or active == 'stats'  or active == 'calendrier' 
-				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' or active == 'event' 
+				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' 
 				        						or active == 'extraction' or active == 'person' or active == 'esupsignature' 
 				        						or active == 'groupe' or active == 'adeCampus' or active == 'assiduite'
 				        						or active == 'absence' or active == 'file'} ? 'active font-weight-bold' : ''" 
@@ -88,6 +88,9 @@
 				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 				      	<a class="nav-link" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/logs(ctx=${eContext})}">Logs</a>
 				      </li>
+					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+					   <a class="nav-link" th:classappend="${active == 'sessions'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/sessions(ctx=${eContext})}">Sessions</a>
+					  </li>
 				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 				      	<a class="nav-link" th:classappend="${active == 'help'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/help(ctx=${eContext})}">Aide</a>
 				      </li>
@@ -104,7 +107,8 @@
 							<select name="emargementContext" id="selectContext"
 								class="form-select">
 								<optgroup label="Contextes">
-									<option th:each="c : ${availableContexts}" th:text="${c}"
+									<option th:each="c : ${availableContexts}" 
+										th:text="${c}" 
 										th:selected="${c==eContext}"></option>
 								</optgroup>
 								<optgroup label="Gestion"

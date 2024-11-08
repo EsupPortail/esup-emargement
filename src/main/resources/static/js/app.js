@@ -2418,7 +2418,33 @@ document.addEventListener('DOMContentLoaded', function() {
 		$("#formSecondTag").submit();
 	});
 	
-	initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents')
-	initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés')
-
+	initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
+	initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
+	
+	$('#tableSessionsHttp').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		dom: 'frtilp',
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		},columnDefs: [
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY HH:mm:ss').unix();
+					}
+					return moment(data, 'DD/MM/YY HH:mm:ss').format('DD/MM/YY HH:mm:ss');
+				}
+			},
+			{ targets: 'no-sort', orderable: false }
+		]
+	});
 });

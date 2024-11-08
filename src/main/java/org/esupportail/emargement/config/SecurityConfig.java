@@ -1,10 +1,11 @@
-package org.esupportail.emargement.config;
+ package org.esupportail.emargement.config;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.security.ContextCasAuthenticationProvider;
 import org.esupportail.emargement.security.UserDetailsServiceImpl;
@@ -21,10 +22,15 @@ import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 
 @EnableWebSecurity
 @Configuration
@@ -51,45 +57,46 @@ public class SecurityConfig {
         this.singleSignOutFilter = ssF;
         this.sP = sP;
     }
-
+    
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception {
         http
-            .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)
+             .exceptionHandling()
+             .authenticationEntryPoint(authenticationEntryPoint)
             .and()
-            .authorizeRequests()
-                .regexMatchers("/login").authenticated()
+                .authorizeRequests()
+                    .regexMatchers("/login").authenticated()
+                    .regexMatchers("/all/.*").hasRole("SUPER_ADMIN")
+                    .regexMatchers("/[^/]*/admin(/.*|/?)").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                    .regexMatchers("/[^/]*/manager(/.*|/?)").hasAnyRole("ADMIN", "MANAGER")
+                    .regexMatchers("/[^/]*/supervisor(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR")
+                    .regexMatchers("/[^/]*/user(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR", "USER")
+                    .regexMatchers("/wsrest/.*").access(createHasIpRangeExpression())
+                    .regexMatchers("/webjars/.*", "/resources/.*", "/js/.*", "/css/.*", "/images/.*", "/favicon.ico").permitAll()
             .and()
-            .authorizeRequests()
-                .regexMatchers("/all/.*").hasRole("SUPER_ADMIN")
+                .logout()
+                    .logoutSuccessUrl("/logout")
             .and()
-            .authorizeRequests()
-                .regexMatchers("/[^/]*/admin(/.*|/?)").hasAnyRole("SUPER_ADMIN", "ADMIN")
-            .and()
-            .authorizeRequests()
-                .regexMatchers("/[^/]*/manager(/.*|/?)").hasAnyRole("ADMIN", "MANAGER")
-            .and()
-            .authorizeRequests()
-                .regexMatchers("/[^/]*/supervisor(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR")
-            .and()
-            .authorizeRequests()
-                .regexMatchers("/[^/]*/user(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR", "USER")
-            .and()
-            .logout()
-                .logoutSuccessUrl("/logout")
-            .and()
-            .authorizeRequests()
-                .regexMatchers("/webjars/.*", "/resources/.*", "/js/.*", "/css/.*", "/images/.*", "/favicon.ico").permitAll()
-            .and()
-            .authorizeRequests()
-                .regexMatchers("/wsrest/.*").access(createHasIpRangeExpression())
-            .and()
-            .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
-            .addFilterBefore(logoutFilter, LogoutFilter.class)
+                .addFilterBefore(concurrentSessionFilter(sessionRegistry), ConcurrentSessionFilter.class)
+                .addFilterBefore(singleSignOutFilter, CasAuthenticationFilter.class)
+                .addFilterBefore(logoutFilter, LogoutFilter.class)
             .csrf().disable();
 
         return http.build();
+    }
+    
+    @Bean
+    public ConcurrentSessionFilter concurrentSessionFilter(SessionRegistry sessionRegistry) {
+        return new ConcurrentSessionFilter(sessionRegistry, sessionInformationExpiredStrategy());
+    }
+
+    // Define the strategy to handle expired sessions
+    @Bean
+    public SessionInformationExpiredStrategy sessionInformationExpiredStrategy() {
+        return event -> {
+            HttpServletResponse response = event.getResponse();
+            response.sendRedirect("/session-expired");  // Redirect or handle the session invalidation
+        };
     }
 
     @Bean
@@ -104,10 +111,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CasAuthenticationFilter casAuthenticationFilter() throws Exception {
+    public CasAuthenticationFilter casAuthenticationFilter(CustomAuthenticationSuccessHandler successHandler) throws Exception {
         CasAuthenticationFilter filter = new CasAuthenticationFilter();
         filter.setServiceProperties(sP);
         filter.setAuthenticationManager(authenticationManager());
+        filter.setAuthenticationSuccessHandler(successHandler); 
         return filter;
     }
     
@@ -131,5 +139,15 @@ public class SecurityConfig {
     @Bean
     public HttpSessionRequestCache requestCache() {
     	return new HttpSessionRequestCache();
-    }  
+    }
+    
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+    
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 }
