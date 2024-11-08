@@ -47,7 +47,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	UserAppRepository userAppRepository;
 	
 	@Autowired
-	PersonRepository personRepository;;
+	PersonRepository personRepository;
 	
 	@Autowired
 	EmargementConfig config;
@@ -67,10 +67,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String eppn) throws UsernameNotFoundException {
 
-		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<String, Set<GrantedAuthority>>();
-		List<String> availableContexts = new ArrayList<String>(); 
-		Map<String, Long> availableContextIds = new HashMap<String, Long>();
-		Set<GrantedAuthority> rootAuthorities = new HashSet<GrantedAuthority>();
+		Map<String, Set<GrantedAuthority>> contextAuthorities = new HashMap<>();
+		List<String> availableContexts = new ArrayList<>(); 
+		Map<String, Long> availableContextIds = new HashMap<>();
+		Set<GrantedAuthority> rootAuthorities = new HashSet<>();
 
 		boolean isSuperAdmin = ldapService.checkIsUserInGroupSuperAdminLdap(eppn);
 		if(isSuperAdmin) {
@@ -79,7 +79,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			contextAuthorities.put("all", rootAuthorities);
 		}
 
-		List<Context> allcontexts = new ArrayList<Context>();
+		List<Context> allcontexts = new ArrayList<>();
 		if(eppn.startsWith(paramUtil.getGenericUser())) {
 			String ctxSplit [] = eppn.split("_");
 			Context ctx = contextRepository.findByContextKey(ctxSplit[1]);
@@ -89,26 +89,28 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 		
 		for(Context context: allcontexts) {
-			String contextKey = context.getKey();
-			Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(rootAuthorities);
-			Set<GrantedAuthority>  extraRoles = getEmargementAdditionalRoles(eppn, context);
-			authorities.addAll(getEmargementAdditionalRoles(eppn, context));
-			if(!extraRoles.isEmpty()) {
-				authorities.addAll(extraRoles);
-				if(!authorities.isEmpty()) {
-					availableContexts.add(contextKey);
+			if(context.getIsActif()) {
+				String contextKey = context.getKey();
+				Set<GrantedAuthority> authorities = new HashSet<>(rootAuthorities);
+				Set<GrantedAuthority>  extraRoles = getEmargementAdditionalRoles(eppn, context);
+				authorities.addAll(getEmargementAdditionalRoles(eppn, context));
+				if(!extraRoles.isEmpty()) {
+					authorities.addAll(extraRoles);
+					if(!authorities.isEmpty()) {
+						availableContexts.add(contextKey);
+					}
+					contextAuthorities.put(contextKey, authorities);
+					Long id = null;
+					id = contextRepository.findByContextKey(contextKey).getId();
+					availableContextIds.put(contextKey, id);
 				}
-				contextAuthorities.put(contextKey, authorities);
-				Long id = null;
-				id = contextRepository.findByContextKey(contextKey).getId();
-				availableContextIds.put(contextKey, id);
 			}
 		}
 
 		// TODO : simplifier et factoriser le code avec ContextUserDetailsService.loadUserDetails
 		//contexte par défaut en premier
 		List<Object[]> list = contextRepository.findByEppn(eppn);
-		HashMap<String,String> map = new HashMap<String, String>();
+		HashMap<String,String> map = new HashMap<>();
 		for(Object[] o : list) {
 			map.put(o[1].toString(), o[0].toString());
 		}
@@ -144,8 +146,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	
 	protected Set<GrantedAuthority> getEmargementAdditionalRoles(String eppn, Context context) {
 
-		Set<GrantedAuthority> extraRoles = new HashSet<GrantedAuthority>();
-		
+		Set<GrantedAuthority> extraRoles = new HashSet<>();
 		UserApp userApp = null;
 		
 		if(eppn.startsWith(paramUtil.getGenericUser())) {
