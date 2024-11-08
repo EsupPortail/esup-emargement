@@ -354,5 +354,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 		    nativeQuery = true
 		)
 		List<TagCheck> findByDates(String eppn, Date dateDebut, Date dateFin, LocalTime heureDebut, LocalTime heurefin);
-}
 
+	List<TagCheck> findBySessionEpreuveIdAndPersonEppn(Long id, String eppn);
+}

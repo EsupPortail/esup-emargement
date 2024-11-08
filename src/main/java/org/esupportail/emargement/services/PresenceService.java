@@ -667,8 +667,17 @@ public class PresenceService {
 		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
 		Context ctx = sessionEpreuve.getContext();
 		List<AppliConfig> list = appliConfigRepository.findAppliConfigByKeyAndContext(AppliConfigKey.ENABLE_PHOTO_ESUPNFCTAG.name(), ctx);
-		log.info(list.get(0).getValue());
-		if(!list.isEmpty() && list.get(0).getValue().equals("true")) {
+        //Si c'est le surveillant qui a badgé la personne: on affiche la photo
+		boolean isOk = false;
+		String eppnTagChecker = taglog.getEppnInit();
+		List<TagCheck> tcs = tagCheckRepository.findBySessionEpreuveIdAndPersonEppn(id, taglog.getEppn());
+		if (!tcs.isEmpty()) {
+           TagChecker tagChecker = sessionEpreuve.getIsSecondTag() ? tcs.get(0).getTagChecker2() : tcs.get(0).getTagChecker();
+           if (tagChecker != null && tagChecker.getUserApp() != null && eppnTagChecker.equals(tagChecker.getUserApp().getEppn())) {
+               isOk = true;
+           }
+		}
+		if(!list.isEmpty() && list.get(0).getValue().equals("true") && isOk) {
 			String eppn = taglog.getEppn();
 			RestTemplate template = new RestTemplate();
 			String uri = null;
