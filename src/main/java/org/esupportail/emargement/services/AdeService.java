@@ -99,8 +99,6 @@ public class AdeService {
 	
 	private final static String ADE_STORED_SESSION = "adeStoredSession";
 	
-	private final static String ADE_STORED_PROJET = "adeStoredProjet";
-	
 	private final static String pathCopyFile = "/opt/ade";
 	
 	@Value("${emargement.ade.api.url}")
@@ -271,7 +269,6 @@ public class AdeService {
 							if (node2.getParentNode().equals(node)) {
 								Element element2 = (Element) node2; 
 								AdeInstructorBean adeInstructorBean = new AdeInstructorBean();
-								adeInstructorBean.setIdInstructor(Long.valueOf(element2.getAttribute("id")));
 								adeInstructorBean.setEmail(element2.getAttribute("email"));
 								adeInstructorBean.setNom(element2.getAttribute("name"));
 								adeInstructorBean.setPath(element2.getAttribute("path"));
@@ -285,6 +282,49 @@ public class AdeService {
 			log.error("Erreur lors de la récupération de la liste des enseignants, url : " + urlInstructors, e);
 		}
 		return adeBeans;
+	}
+	
+	public Map<String,String> getItemsFromtInstructors(String sessionId, String choice) {
+		String detail = "12";
+		String urlInstructors = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=instructor";
+		Map<String,String> items = new HashMap<>();
+		try {
+			Document doc = getDocument(urlInstructors);
+			doc.getDocumentElement().normalize();
+			NodeList list = doc.getElementsByTagName("instructors");
+			if(list.getLength() == 0) {
+				log.info("Aucun enseignant trouvé!");
+			}else {
+				for (int temp = 0; temp < list.getLength(); temp++) {
+					Node node = list.item(temp);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						Element element = (Element) node; 
+						NodeList branches = element.getElementsByTagName("instructor");
+						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
+							Node node2 = branches.item(temp2);
+							if (node2.getParentNode().equals(node)) {
+								Element element2 = (Element) node2;
+								if(choice == null) {
+									String name = element2.getAttribute("name");
+									if(element2.getAttribute("fatherName").equals("") && element2.getAttribute("path").equals("")){
+										items.put(name,name);
+									}	
+								}else {
+									if(element2.getAttribute("path").contains(choice) && !element2.getAttribute("code").equals("")) {
+										items.put(element2.getAttribute("code"), element2.getAttribute("path"));
+									}
+									
+								}
+
+							}
+						}
+					}
+				}
+			}
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			log.error("Erreur lors de la récupération de la liste des enseignants, url : " + urlInstructors, e);
+		}
+		return sortByValue(items);
 	}
 	
 	public Map<String, String> getClassroomsList(String sessionId) {
@@ -668,40 +708,42 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			SessionEpreuve se = ade.getSessionEpreuve();
-			boolean isUpdateOk = false;
-			Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
-			if(update && se.getDateExamen().compareTo(today)>=0) {
-				if(se.getDateImport() != null && ade.getLastUpdate().compareTo(se.getDateImport())>=0) {
-					clearSessionRelatedData(se);
-					isUpdateOk = true;
-				}else{
-					log.info("Aucune maj de l'évènement car il est déjà à jour , id stocké : " + ade.getEventId());
+			if(sessionEpreuveRepository.countByAdeEventId(ade.eventId)==0 && !update || update){
+				SessionEpreuve se = ade.getSessionEpreuve();
+				boolean isUpdateOk = false;
+				Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
+				if(update && se.getDateExamen().compareTo(today)>=0) {
+					if(se.getDateImport() != null && ade.getLastUpdate().compareTo(se.getDateImport())>=0) {
+						clearSessionRelatedData(se);
+						isUpdateOk = true;
+					}else{
+						log.info("Aucune maj de l'évènement car il est déjà à jour , id stocké : " + ade.getEventId());
+					}
+				}else if(update && se.getDateExamen().compareTo(today)<0) {
+					log.info("Aucune maj de l'évènement car l'èvènement est passé , id stocké : " + ade.getEventId());
+				}else {
+					se.setAdeProjectId(Long.parseLong(idProject));
+					se.setDateCreation(new Date());
 				}
-			}else if(update && se.getDateExamen().compareTo(today)<0) {
-				log.info("Aucune maj de l'évènement car l'èvènement est passé , id stocké : " + ade.getEventId());
-			}else {
-				se.setAdeProjectId(Long.parseLong(idProject));
-				se.setDateCreation(new Date());
-			}
-			if(!update || update && isUpdateOk){
-				processSessionEpreuve(se, campus, ctx);
-				processTypeSession(ade, se, ctx);
-				sessionEpreuveRepository.save(se);
-				processStudents(se, ade, sessionId, groupes, ctx);
-				List<SessionLocation> sls = new ArrayList<>();
-				processLocations(se, ade, sessionId, ctx, sls);
-				//repartition
-				sessionEpreuveService.executeRepartition(se.getId(), "alpha");
-				processInstructors(ade, sessionId, ctx, sls);
-				i++;
-				dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
-				if(update && isUpdateOk){
-					maj++;
-				}
-				if(dureeMax != null && time.getTime() > dureeMax*1000) {
-					log.info("Temps d'import ADE Campus dépassé : " + time.getTime() + "secondes");
-					break;
+				if(!update || update && isUpdateOk){
+					processSessionEpreuve(se, campus, ctx);
+					processTypeSession(ade, se, ctx);
+					sessionEpreuveRepository.save(se);
+					processStudents(se, ade, sessionId, groupes, ctx);
+					List<SessionLocation> sls = new ArrayList<>();
+					processLocations(se, ade, sessionId, ctx, sls);
+					//repartition
+					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
+					processInstructors(ade, sessionId, ctx, sls);
+					i++;
+					dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
+					if(update && isUpdateOk){
+						maj++;
+					}
+					if(dureeMax != null && time.getTime() > dureeMax*1000) {
+						log.info("Temps d'import ADE Campus dépassé : " + time.getTime() + "secondes");
+						break;
+					}
 				}
 			}
 		}
@@ -711,9 +753,12 @@ public class AdeService {
 			log.info("Bilan syncrhonisation ADE : " + maj + " importé(s)");
 			logService.log(ACTION.ADE_SYNC, RETCODE.SUCCESS, typeSync + " - Nb maj sessions : " + maj, eppn, null, emargementContext, eppn);
 		}else {
-			logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
+			if(i>0) {
+				logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
+			}
 		}
 		return i;
+
 	}
 	
 	private void clearSessionRelatedData(SessionEpreuve se) {
@@ -882,18 +927,18 @@ public class AdeService {
 				for (Entry<Long, String> entry : map.entrySet()) {
 					List<AdeInstructorBean> adeInstructorBeans = getListInstructors(sessionId, fatherIdInstructor, entry.getKey().toString());
 					for(AdeInstructorBean bean : adeInstructorBeans) {
-						Long adeInstructorId = bean.getIdInstructor();
 						UserApp userApp = null;
 						List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
 						if(!ldapUsers.isEmpty()) {
 							userApp = userAppRepository.findByEppnAndContext(ldapUsers.get(0).getEppn(), ctx);
-							if(userApp != null) {
-								userApp.setAdeInstructorId(adeInstructorId);
-							}else {
+							if(userApp == null) {
 								userApp = new UserApp();
 								userApp.setContext(ctx);
-								userApp.setAdeInstructorId(adeInstructorId);
 								userApp.setDateCreation(new Date());
+								String splitInst[] = bean.getPath().split("\\.");
+								if(splitInst.length > 1) {
+									userApp.setSpeciality(splitInst[1]);
+								}
 								userApp.setContextPriority(0);
 								userApp.setEppn(ldapUsers.get(0).getEppn());
 								userApp.setUserRole(Role.MANAGER);
@@ -1096,8 +1141,7 @@ public class AdeService {
 			String sessionId = getSessionId(false, emargementContext);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(idProject == null) {
-				idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0)
-									.getValue();
+				idProject = appliConfigService.getProjetAde();
 			}
 			if (getConnectionProject(idProject, sessionId) == null) {
 				sessionId = getSessionId(true, emargementContext);

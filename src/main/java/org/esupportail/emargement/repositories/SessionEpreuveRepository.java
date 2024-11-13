@@ -20,9 +20,13 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Long countByAdeEventId(Long id);
 	
+	Long countByNomSessionEpreuveAndDateExamenAndHeureEpreuveAndFinEpreuve(String nomSessionEpreuve, Date dateExamen, Date heureDebut, Date heureFin);
+	
 	List<SessionEpreuve> findByAdeEventId(Long id);
 	
-	List<SessionEpreuve> findSessionEpreuveByStatutNotOrderByDateExamen(Statut statut);
+	List<SessionEpreuve> findByIdIn(List<Long> id);
+	
+	List<SessionEpreuve> findSessionEpreuveByStatutNotInOrderByDateExamen(List<Statut> statuts);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
@@ -74,10 +78,13 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve> getAllSessionEpreuveForCalendar(Date startDate, Date endDate);
 	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
-			+ "where tag_check.person_id = person.id "
-			+ "and session_epreuve.id = tag_check.session_epreuve_id "
-			+ "and person.eppn= :eppn and date_examen= :date and  heure_epreuve <= :now and fin_epreuve >= :now", nativeQuery = true)
-	Long getSessionEpreuveIdExpected(String eppn, Date date, LocalTime now);
+	        + "where tag_check.person_id = person.id "
+	        + "and session_epreuve.id = tag_check.session_epreuve_id "
+	        + "and person.eppn = :eppn "
+	        + "and ((date_fin is null and date_examen = :date) or (date_examen <= :date and  date_fin >= :date)) "
+	        + "and heure_epreuve <= :now "
+	        + "and (fin_epreuve >= :now or fin_epreuve is null)", nativeQuery = true)
+	List<Long> getSessionEpreuveIdExpected(String eppn, Date date, LocalTime now);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "

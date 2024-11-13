@@ -47,7 +47,7 @@ public class SessionEpreuve implements ContextSupport {
     };
     
     public static enum Statut {
-       OPENED, STANDBY, CLOSED
+       OPENED, STANDBY, CLOSED, CANCELLED
      };
      
 	@Column
@@ -61,6 +61,8 @@ public class SessionEpreuve implements ContextSupport {
     private Campus campus;
     
     private String anneeUniv;
+    
+    private Boolean isSecondTag = false;
     
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateExamen;
@@ -135,6 +137,9 @@ public class SessionEpreuve implements ContextSupport {
     private @Transient
     Long nbStoredFiles;
     
+    private @Transient
+    String nbHours;
+    
     @Transient
     @JsonIgnore
     private List<MultipartFile> files;
@@ -149,9 +154,8 @@ public class SessionEpreuve implements ContextSupport {
     public boolean isSessionEpreuveClosed() {
     	if(Statut.CLOSED.equals(getStatut())){
     		return true;
-    	}else {
-    		return false;
     	}
+		return false;
     }
     
 	public Groupe getBlackListGroupe() {
@@ -442,4 +446,19 @@ public class SessionEpreuve implements ContextSupport {
 		this.adeProjectId = adeProjectId;
 	}
 
+	public String getNbHours() {
+		return nbHours;
+	}
+
+	public void setNbHours(String nbHours) {
+		this.nbHours = nbHours;
+	}
+
+	public Boolean getIsSecondTag() {
+		return isSecondTag;
+	}
+
+	public void setIsSecondTag(Boolean isSecondTag) {
+		this.isSecondTag = isSecondTag;
+	}
 }

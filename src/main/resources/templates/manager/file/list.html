@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+				<div class="card-header">
+					<div class="row">
+			    		<div class="col">
+					    	<h2>Pièces jointes</h2>
+					    </div>
+					    <div class="col">
+							<div class="col-auto">
+								<a th:href="@{/{ctx}/manager/event?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter un évènement">
+								<i class="fa fa-plus fa-lg"></i></a>
+							</div>								
+					    </div>
+					</div>
+				</div>
+  				<div class="card-body">
+					<table class="table table-hover table-striped table-bordered">
+						<thead class ="center sticky-top">
+							<tr>
+								<th scope="col">Date</th>
+								<th scope="col">Nom</th>
+								<th scope="col">Session</th>
+								<th scope="col">Commentaire</th>
+								<th scope="col">Actions</th>
+							</tr>
+						</thead>
+						<tbody class ="center">
+						<tr th:each="file : ${files}">
+							<td th:text="${#dates.format(file.sendTime, 'dd-MM-yyyy HH:mm')}"></td>
+							<td th:text="${file.filename}"></td>
+							<td th:text="${file.sessionEpreuve ne null ? file.sessionEpreuve.nomSessionEpreuve : '' }"></td>
+							<td></td>
+							<td>
+								<a target="_blank" 
+								th:href="@{/{ctx}/manager/file/{id}(ctx=${eContext},id=${file.id})}" title="Voir fichier">
+								<i class="fa-solid fa-file-pdf fa-2xl text-danger ms-2" ></i></a>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+					<nav th:replace="fragments/pagination :: pagination"></nav>
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -13,6 +13,8 @@ public interface LdapUserRepository extends LdapRepository<LdapUser> {
 	
 	List<LdapUser> findByNomPrenomContainingIgnoreCase(String cn);
 	
+	List<LdapUser> findByNomPrenomContainingIgnoreCaseOrNumEtudiantContainingIgnoreCase(String cn, String num);
+	
 	List<LdapUser> findByEmailContainingIgnoreCase(String email);
 	
 }

@@ -1,5 +1,6 @@
 package org.esupportail.emargement.repositories;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +34,9 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullOrderByPersonEppn(Long id);
 	
 	Page<TagCheck> findTagCheckByPersonEppn(String eppn, Pageable pageable);
+	
+	Page<TagCheck> findTagCheckByPersonEppnAndSessionEpreuveDateExamenBetweenOrSessionEpreuveDateFinBetween(String eppn, Pageable pageable,
+			Date dateDebut1, Date dateFin1, Date dateDebut2, Date dateFin2);
 	
 	Long countTagCheckByPersonEppn(String eppn);
 	
@@ -143,9 +147,12 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<TagCheck> findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
 			Date from, Date to, Date from1, Date to1, Date from2, Date to2);
 	
+	List<TagCheck> findByTagDateIsNotNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNotNullAndSessionEpreuveDateFinBetweenOrTagDateIsNotNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+			Date from, Date to, Date from1, Date to1, Date from2, Date to2);
+	
 	List<TagCheck> findByTagDateIsNullAndSessionEpreuveAnneeUniv(String anneeUniv);
 	
-	List<TagCheck> findByIsExemptTrueAndSessionEpreuveAnneeUniv(String anneeUniv);
+	List<TagCheck> findByAbsenceIsNotNullAndSessionEpreuveAnneeUniv(String anneeUniv);
 	
 	Long countTagCheckBySessionEpreuveIdAndPersonEppnEquals(Long id, String eppn);
 	
@@ -327,7 +334,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "AND tag_check.context_id=:context and  type_emargement is not null AND statut = 'CLOSED' and annee_univ like :anneeUniv group by type_emargement", nativeQuery = true)
 	List<Object[]> countTagChecksByTypeBadgeage(Long context, String anneeUniv);
 	
-	@Query(value = "select event_count, count(*) as users_count  from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "
+	@Query(value = "select event_count, count(*) as users_count from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "
 			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null AND statut = 'CLOSED'"
 			+ "and annee_univ like :anneeUniv  group by eppn) t group by event_count", nativeQuery = true)
 	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context, String anneeUniv);
@@ -336,5 +343,21 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "(select person_id from groupe_person where groupe_id= :gpeId)", nativeQuery = true)
 	List<Long> findSessionEpreuveIdByTagCheckGroupe(Long gpeId);
 	
+	@Query(
+		    value = "SELECT t.* " +
+		            "FROM tag_check t " +
+		            "JOIN person p ON t.person_id = p.id " +
+		            "JOIN session_epreuve s ON t.session_epreuve_id = s.id " +
+		            "WHERE p.eppn = :eppn " +
+		            "AND ( " +
+		                    "(s.date_examen BETWEEN :dateDebut AND :dateFin) " +
+		                    "OR " + 
+		                    "(s.date_fin BETWEEN :dateDebut AND :dateFin) " +
+		                ") " +
+		            "AND s.heure_epreuve BETWEEN :heureDebut AND :heurefin " +
+		            "AND s.fin_epreuve BETWEEN :heureDebut AND :heurefin " ,
+		    nativeQuery = true
+		)
+		List<TagCheck> findByDates(String eppn, Date dateDebut, Date dateFin, LocalTime heureDebut, LocalTime heurefin);
 }
 

@@ -3,7 +3,6 @@ package org.esupportail.emargement.web.admin;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
@@ -60,12 +59,12 @@ public class TypeSessionController {
 	LogService logService;
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
 	@GetMapping(value = "/admin/typeSession")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.ASC, sort = "key")  Pageable pageable) {
+	public String list(Model model, @PageableDefault(size = 20, direction = Direction.ASC, sort = "key")  Pageable pageable) {
 		
         Page<TypeSession> typeSessionPage = typeSessionRepository.findAll(pageable);
         model.addAttribute("typeSessionPage", typeSessionPage);
@@ -77,7 +76,7 @@ public class TypeSessionController {
 	}
 	
 	@GetMapping(value = "/admin/typeSession/updateTypes")
-	public String updateTypes(@PathVariable String emargementContext, Model model, final RedirectAttributes redirectAttributes) {
+	public String updateTypes(@PathVariable String emargementContext,final RedirectAttributes redirectAttributes) {
 		redirectAttributes.addFlashAttribute("nbUpdate", typeSessionService.updateTypeSession(emargementContext));
 		return String.format("redirect:/%s/admin/typeSession", emargementContext);
 	}
@@ -97,7 +96,7 @@ public class TypeSessionController {
     }
     
     @PostMapping("/admin/typeSession/create")
-    public String create(@PathVariable String emargementContext, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
         	uiModel.addAttribute("typeSession", typeSession);
             return "admin/typeSession/create";
@@ -109,21 +108,20 @@ public class TypeSessionController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, code session déjà existant : " + "Key : ".concat(typeSession.getKey()));
         	return String.format("redirect:/%s/admin/typeSession?form", emargementContext);
-        }else {
-        	typeSession.setDateModification(new Date());
-        	typeSession.setAddByAdmin(false);
-        	Context context = contextRepository.findByKey(emargementContext);
-        	typeSession.setContext(context);
-        	typeSessionRepository.save(typeSession);
-            log.info("Création type de session : " + "Key : ".concat(typeSession.getKey()));
-            logService.log(ACTION.AJOUT_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), auth.getName(), null,
-            		emargementContext, null);
-            return String.format("redirect:/%s/admin/typeSession", emargementContext);
         }
+		typeSession.setDateModification(new Date());
+		typeSession.setAddByAdmin(false);
+		Context context = contextRepository.findByKey(emargementContext);
+		typeSession.setContext(context);
+		typeSessionRepository.save(typeSession);
+		log.info("Création type de session : " + "Key : ".concat(typeSession.getKey()));
+		logService.log(ACTION.AJOUT_TYPESESSION, RETCODE.SUCCESS, "Key : ".concat(typeSession.getKey()).concat(" libellé : ").concat(typeSession.getLibelle()), auth.getName(), null,
+				emargementContext, null);
+		return String.format("redirect:/%s/admin/typeSession", emargementContext);
     }
     
     @PostMapping("/admin/typeSession/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
         	uiModel.addAttribute("typeSession", typeSession);
             return "superadmin/help/update";
@@ -147,7 +145,7 @@ public class TypeSessionController {
     }
 	
     @PostMapping(value = "/admin/typeSession/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	TypeSession typeSession = typeSessionRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
@@ -162,5 +160,4 @@ public class TypeSessionController {
 		}
     	return String.format("redirect:/%s/admin/typeSession", emargementContext);
     }
-
 }

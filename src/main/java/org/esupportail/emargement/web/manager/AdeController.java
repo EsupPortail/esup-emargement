@@ -75,15 +75,11 @@ import org.xml.sax.SAXException;
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class AdeController {
 	
-	private final static String [] catArray = {"category5", "category6", "category7", "category8"};
-	
 	private final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
 	
 	private final static String ADE_STORED_SALLE = "adeStoredSalle";
 	
 	private final static String ADE_STORED_FORMATION = "adeStoredFormation";
-	
-	private final static String ADE_STORED_PROJET = "adeStoredProjet";
 	
 	private final static String ITEM = "adeCampus";
 	
@@ -193,33 +189,20 @@ public class AdeController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext);
-			List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET);
-			if(prefsAdeStored.isEmpty()) {
-				uiModel.addAttribute("noProject","noProject");
-				uiModel.addAttribute("type", "composante");
-				uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
-				uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
-				uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
-				uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
-				uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
-				uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
-			}else {
-				String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
-				if(adeService.getConnectionProject(idProject, sessionId)==null) {
-					sessionId = adeService.getSessionId(true, emargementContext);
-					adeService.getConnectionProject(idProject, sessionId);
-					log.info("Récupération du projet Ade " + idProject);
-				}
-				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
-				uiModel.addAttribute("valuesFormation", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
-				uiModel.addAttribute("existingSe", true);
-				uiModel.addAttribute("idProject", idProject);
-				uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
-				uiModel.addAttribute("campuses", campusRepository.findAll());
-				uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
-				uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
+			String idProject = appliConfigService.getProjetAde();
+			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+				sessionId = adeService.getSessionId(true, emargementContext);
+				adeService.getConnectionProject(idProject, sessionId);
+				log.info("Récupération du projet Ade " + idProject);
 			}
-	
+			uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+			uiModel.addAttribute("valuesFormation", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
+			uiModel.addAttribute("existingSe", true);
+			uiModel.addAttribute("idProject", idProject);
+			uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
+			uiModel.addAttribute("campuses", campusRepository.findAll());
+			uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
+			uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
 		} catch (Exception e) {
 			log.error("Erreur lors de la récupération des évènements", e);
 		}
@@ -237,36 +220,22 @@ public class AdeController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext);
-			List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET);
-			if(prefsAdeStored.isEmpty()) {
-				uiModel.addAttribute("noProject","noProject");
-				uiModel.addAttribute("type", "composante");
-				uiModel.addAttribute("currentComposante", codeComposante);			
-				uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
-				uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
-				uiModel.addAttribute("mapProjets", adeService.getProjectLists(sessionId));
-				uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
-				uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
-				uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
-			}else {
-				String idProject = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_PROJET).get(0).getValue();
-				if(adeService.getConnectionProject(idProject, sessionId)==null) {
-					sessionId = adeService.getSessionId(true, emargementContext);
-					adeService.getConnectionProject(idProject, sessionId);
-					log.info("Récupération du projet Ade " + idProject);
-				}
-				uiModel.addAttribute("currentComposante", codeComposante);
-				if("myEvents".equals(codeComposante) || idList.size()>0) {
-					uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList));
-				}
-				uiModel.addAttribute("strDateMin", strDateMin);
-				uiModel.addAttribute("strDateMax", strDateMax);
-				uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
-				uiModel.addAttribute("codeComposante", codeComposante);
-				uiModel.addAttribute("campuses", campusRepository.findAll());
-				uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
+			String idProject = appliConfigService.getProjetAde();
+			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+				sessionId = adeService.getSessionId(true, emargementContext);
+				adeService.getConnectionProject(idProject, sessionId);
+				log.info("Récupération du projet Ade " + idProject);
 			}
-	
+			uiModel.addAttribute("currentComposante", codeComposante);
+			if("myEvents".equals(codeComposante) || idList.size()>0) {
+				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList));
+			}
+			uiModel.addAttribute("strDateMin", strDateMin);
+			uiModel.addAttribute("strDateMax", strDateMax);
+			uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
+			uiModel.addAttribute("codeComposante", codeComposante);
+			uiModel.addAttribute("campuses", campusRepository.findAll());
+			uiModel.addAttribute("values", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 		} catch (Exception e) {
 			log.error("Erreur lors de la récupération des évènements", e);
 		}
@@ -285,20 +254,18 @@ public class AdeController {
 		uiModel.addAttribute("valuesComposantes", getValuesPref(auth.getName(), ADE_STORED_COMPOSANTE));
 		uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
 		uiModel.addAttribute("valuesFormations", getValuesPref(auth.getName(), ADE_STORED_FORMATION));
-		uiModel.addAttribute("valueProject", (!getValuesPref(auth.getName(), ADE_STORED_PROJET).isEmpty())? getValuesPref(auth.getName(), ADE_STORED_PROJET).get(0) :"");
-		uiModel.addAttribute("rootCategories", getRootCategories());
-		uiModel.addAttribute("categories", catAde);
+		uiModel.addAttribute("valueProject", appliConfigService.getProjetAde());
 		return "manager/adeCampus/params";
 	}
 	
-	@RequestMapping(value = "/manager/adeCampus/salles", produces = "text/html")
+	@GetMapping(value = "/manager/adeCampus/salles", produces = "text/html")
     public String displaySalles(@PathVariable String emargementContext, Model uiModel, @RequestParam(value="codeSalle", required = false) String codeSalle) 
     		throws IOException, ParserConfigurationException, SAXException, ParseException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String sessionId = adeService.getSessionId(false, emargementContext);
 		uiModel.addAttribute("valuesSalles", getValuesPref(auth.getName(), ADE_STORED_SALLE));
 		uiModel.addAttribute("listeSalles", adeService.getListClassrooms(sessionId, codeSalle, null, null));
-		uiModel.addAttribute("valueProject", (!getValuesPref(auth.getName(), ADE_STORED_PROJET).isEmpty())? getValuesPref(auth.getName(), ADE_STORED_PROJET).get(0) :"");
+		uiModel.addAttribute("valueProject", appliConfigService.getProjetAde());
 		uiModel.addAttribute("codeSalle", codeSalle);
 		uiModel.addAttribute("campuses", campusRepository.findAll());		
 		return "manager/adeCampus/salles";
@@ -333,17 +300,11 @@ public class AdeController {
 	}
 	
 	@PostMapping(value = "/manager/adeCampus/savePref")
-	public String savePref(@PathVariable String emargementContext, String sessionId, @RequestParam("type") String type, 
+	public String savePref(@PathVariable String emargementContext, @RequestParam("type") String type, 
 			@RequestParam(value="btSelectItem", required = false) List<String> codeAde) throws IOException, ParserConfigurationException, SAXException  {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
 		preferencesService.updatePrefs(type, StringUtils.join(codeAde, ";;"), eppn, emargementContext);
-		if(ADE_STORED_PROJET.equals(type)){
-			if(sessionId == null) {
-				sessionId= adeService.getSessionId(true, emargementContext);
-			}
-			adeService.getConnectionProject(codeAde.get(0), sessionId);
-		}
 		return String.format("redirect:/%s/manager/adeCampus/params", emargementContext);
 	}
 	
@@ -403,10 +364,6 @@ public class AdeController {
 		}
 		logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import salles : " + adeClassroomBeans.size(), auth.getName(), null, emargementContext, auth.getName());
 		return String.format("redirect:/%s/manager/adeCampus/salles?codeSalle=%s", emargementContext, codeSalle);
-	}
-	
-	public static List<String> getRootCategories(){
-		return Arrays.asList(catArray);
 	}
 	
 	@GetMapping(value = "/manager/adeCampus/disconnect")
@@ -495,5 +452,4 @@ public class AdeController {
 				null, emargementContext, null);
         return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
     }
-	
 }

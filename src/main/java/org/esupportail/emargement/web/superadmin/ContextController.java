@@ -3,8 +3,6 @@ package org.esupportail.emargement.web.superadmin;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Context;
@@ -17,6 +15,7 @@ import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.TypeSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,10 +63,13 @@ public class ContextController {
 	ContextService contextService;
 	
 	@Resource
+	TypeSessionService typeSessionService;
+	
+	@Resource
 	AppliConfigService appliConfigService;
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
@@ -99,7 +102,7 @@ public class ContextController {
     
     @Transactional
     @PostMapping("/superadmin/context/create")
-    public String create(@PathVariable String emargementContext, @Valid Context context, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid Context context, BindingResult bindingResult, Model uiModel,final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, context);
             return "superadmin/appliConfig/create";
@@ -111,25 +114,25 @@ public class ContextController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, context déjà existant : " + "Key : ".concat(context.getKey()));
         	return String.format("redirect:/%s/superadmin/context?form", emargementContext);
-        }else {
-        	String eppn = auth.getName();
-        	context.setCreateur(eppn);
-        	context.setDateCreation(new Date());
-        	contextRepository.save(context);
-        	appliConfigService.updateAppliconfig(context);
-        	ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
-        	userDetails.getAvailableContexts().add(context.getKey());
-        	userDetails.getAvailableContextIds().put(context.getKey(),context.getId());
-            log.info("Création contexte : " + "Url : ".concat(context.getKey()));
-            logService.log(ACTION.AJOUT_CONTEXTE, RETCODE.SUCCESS, "Url : ".concat(context.getKey()).concat(" value : ").
-            		concat(context.getKey()), eppn, null, 
-            		emargementContext, null);
-            return String.format("redirect:/%s/superadmin/context", emargementContext);
         }
+		String eppn = auth.getName();
+		context.setCreateur(eppn);
+		context.setDateCreation(new Date());
+		contextRepository.save(context);
+		appliConfigService.updateAppliconfig(context);
+		typeSessionService.updateTypeSession(context.getKey());
+		ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
+		userDetails.getAvailableContexts().add(context.getKey());
+		userDetails.getAvailableContextIds().put(context.getKey(),context.getId());
+		log.info("Création contexte : " + "Url : ".concat(context.getKey()));
+		logService.log(ACTION.AJOUT_CONTEXTE, RETCODE.SUCCESS, "Url : ".concat(context.getKey()).concat(" value : ").
+				concat(context.getKey()), eppn, null, 
+				emargementContext, null);
+		return String.format("redirect:/%s/superadmin/context", emargementContext);
     }
     
     @PostMapping("/superadmin/context/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Context context, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Context context, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, context);
             return "superadmin/appliConfig/update";
@@ -143,19 +146,18 @@ public class ContextController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la maj, context déjà existant : " + "Clé : ".concat(context.getKey()));
         	return String.format("redirect:/%s/superadmin/context/%s?form", emargementContext, id);
-        }else {
-        	String eppn = auth.getName();
-        	context.setId(originaLContext.getId());
-        	context.setCreateur(originaLContext.getCreateur());
-        	context.setDateCreation(originaLContext.getDateCreation());
-        	context.setDateModification(new Date());
-        	contextRepository.save(context);
-            log.info("Maj contexte : " + " Url : ".concat(context.getKey()));
-            logService.log(ACTION.UPDATE_CONTEXTE, RETCODE.SUCCESS, "Clé : ".concat(context.getKey()).concat(" value : ").
-            		concat(context.getKey()), eppn, null, 
-            		emargementContext, null);
-            return String.format("redirect:/%s/superadmin/context", emargementContext);
         }
+		String eppn = auth.getName();
+		context.setId(originaLContext.getId());
+		context.setCreateur(originaLContext.getCreateur());
+		context.setDateCreation(originaLContext.getDateCreation());
+		context.setDateModification(new Date());
+		contextRepository.save(context);
+		log.info("Maj contexte : " + " Url : ".concat(context.getKey()));
+		logService.log(ACTION.UPDATE_CONTEXTE, RETCODE.SUCCESS, "Clé : ".concat(context.getKey()).concat(" value : ").
+				concat(context.getKey()), eppn, null, 
+				emargementContext, null);
+		return String.format("redirect:/%s/superadmin/context", emargementContext);
     }
     
 	@GetMapping(value = "/superadmin/context/{id}", produces = "text/html")
@@ -165,7 +167,7 @@ public class ContextController {
     }
 	
     @PostMapping(value = "/superadmin/context/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, @RequestParam("deleteContext") boolean deleteContext, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, @RequestParam("deleteContext") boolean deleteContext,final RedirectAttributes redirectAttributes) {
     	Context context = contextRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	if(deleteContext) {

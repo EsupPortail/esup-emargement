@@ -10,6 +10,11 @@
 	    			<div class="row">
 			    		<div class="col-4">
 					    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
+					    	<span class="fw-bold h5">Projet : </span>
+						    <th:block th:each="element : ${mapProjets}" class="selected">
+						    	<span th:if="${valueProject != null and 
+									#strings.contains(valueProject, element.key)}" th:text="${element.value}"/></span>
+						    </th:block>
 					    </div>
 					    <div class="col-8">
 						    <div class="row float-end">
@@ -31,98 +36,6 @@
 		    	</div>
 	 			<div class="card-body">
 	 				<div class="row">
-			 			<div class="col">
-			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-			 					<input type="hidden" name="type" value="adeStoredProjet"/>
-								<table class="table table-bordered table-striped caption-top" id="projetsTable">
-								<caption><span class="fw-bold h4">Projets</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
-									<thead>
-									<tr>
-										<th data-radio="true"></th>
-										<th>Libellé</th>
-									</tr>
-									</thead>
-								    <tr th:each="element : ${mapProjets}" class="selected">
-								    	<td><input name="btSelectItem" type="radio" th:value="${element.key}" 
-								    	th:checked="${valueProject != null and 
-											#strings.contains(valueProject, element.key)}"/></td>
-								    	<td th:text="${element.value}"></td>
-								    </tr>
-								</table>
-							</form>
-							<table class="table table-bordered table-striped caption-top" id="apiTable">
-								<caption><span class="fw-bold h4">WEB-APi</span> 
-								<button class="btn btn-success btn-sm float-end" type="button" data-bs-toggle="modal" 
-								data-bs-target="#apiModal">Modifier</button></caption>
-								<thead>
-								<tr>
-									<th>Ressource</th>
-									<th>Catégorie</th>
-									<th>Description</th>
-								</tr>
-								</thead>
-							    <tr>
-							    	<td>trainee</td>
-							    	<td>Groupes</td>
-							    	<td>Groupes d'étudiants ADE venant d'une autre source (Apogée) ou non.</td>
-							    </tr>
-							    <tr>
-							    	<td>instructor</td>
-							    	<td>Enseignants</td>
-							    	<td>enseignant lié à l'évènement</td>
-							    </tr>
-							    <tr>
-									<td>classroom</td>
-							    	<td>Salles</td>
-							    	<td>Salles renseignées dans ADE</td>
-							    </tr>
-							    <tr>
-							    	<td>
-							    		<span th:text="${categories[0]}"></span> 
-									</td>
-							    	<td>Etudiants</td>
-							    	<td>Liste des étudiants</td>									    	
-							    </tr>									    
-							    <tr>
-							    	<td>
-									  <span th:text="${categories[1]}"></span> 
-									</td>
-							    	<td>Formations</td>
-							    	<td>Liste des formations</td>									    	
-							    </tr>
-							</table>
-							<div class="modal fade" id="apiModal">
-							  <div class="modal-dialog">
-							    <div class="modal-content">
-							      <div class="modal-header">
-							        <h5 class="modal-title">Définir les catégories</h5>
-							        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-							      </div>
-							      <form th:action="@{/{ctx}/manager/adeCampus/saveConfig(ctx=${eContext})}" method="post">
-								      <div class="modal-body">
-								      	<div class="alert alert-info text-center">
-								      		Ces modifications seropnt valables pour tout le contexte.
-								      	</div>
-						        		<label class="col-form-label col-form-label-sm ms-2">Etudiants</label> 
-						        		<select class="form-select" id="selectEtudiants" name="catEtu">
-						        			<option th:each="cat : ${rootCategories}" th:value="${cat}"
-												th:text="${cat}" th:selected="${cat eq categories[0]}"></option>
-										</select>
-						        		<label class="col-form-label col-form-label-sm ms-2">Formations</label> 
-						        		<select class="form-select" id="selectFormatons" name="catForm">
-											<option th:each="cat : ${rootCategories}" th:value="${cat}"
-												th:text="${cat}" th:selected="${cat eq categories[1]}"></option>
-										</select>											
-								      </div>
-								      <div class="modal-footer">
-								        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-								        <button type="submit" class="btn btn-primary">Enregistrer</button>
-								      </div>
-							      </form>
-							    </div>
-							  </div>
-							</div>
-						</div>
 			 			<div class="col">
 			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
 			 					<input type="hidden" name="type" value="adeStoredComposante"/>

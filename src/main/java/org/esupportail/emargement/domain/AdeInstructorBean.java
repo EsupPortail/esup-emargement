@@ -10,14 +10,6 @@ public class AdeInstructorBean {
 	
 	public String path;
 
-	public Long getIdInstructor() {
-		return idInstructor;
-	}
-
-	public void setIdInstructor(Long idInstructor) {
-		this.idInstructor = idInstructor;
-	}
-
 	public String getEmail() {
 		return email;
 	}

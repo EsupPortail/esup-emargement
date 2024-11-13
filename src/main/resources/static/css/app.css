@@ -179,9 +179,8 @@ border-top-color:
     text-align: center;
     font-size: 45px;
     line-height: 90px;
-    background: 
     rgba(0,0,0,0.2);
-        background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.2);
 }
 info-box-text {
     display: block;
@@ -288,7 +287,6 @@ dl dd:after {
     height: auto !important;
 }
 
-
 /* Pour le plan */
 #places {
         height:70vh;
@@ -311,4 +309,26 @@ dl dd:after {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+
+/* Increase font size for the entire date range picker */
+.daterangepicker {
+    font-size: 15px; /* Adjust the size as needed */
+}
+
+/* Optional: Increase the size of specific buttons if needed */
+.daterangepicker .ranges ul li, /* Range list items */
+.daterangepicker .drp-buttons .btn { /* Apply/Cancel buttons */
+    font-size: 15px; /* Adjust the size as needed */
+}
+
+/* Increase font size for the calendar inside the date picker */
+.daterangepicker .calendar-table {
+    font-size: 15px; /* Adjust the size as needed */
+}
+
+/* Style for the main button and the dropdown toggle */
+.dt-button-split-drop {
+	line-height: 0.8em;
+	margin:0!important;
+    padding: 0.2rem 0.4rem!important; /* Adjust padding for a smaller size */
 }

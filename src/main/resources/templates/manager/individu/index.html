@@ -9,29 +9,14 @@
 				<div class="card-header">
 					<div class="row">
 		    			<div class="col">
-				    		<h2>Assiduité</h2>
+				    		<h2>Recherche</h2>
 				   		</div>
-				   		<div class="col">
-		    				<div class="row float-end">
-		    					<a class=" contextualHelp" data-bs-toggle="tooltip" title="En vert : session émargée en tant que personne connue
-		    					En orange : session émargée par erreur ou dans la mauvaise salle.">
-		                    		<i class="fas fa-question-circle"></i></a>
-		    				</div>
-		    			</div>
 	    			</div>
 			   </div>
   				<div class="card-body">
-  					<form th:action="@{|/${eContext}/manager/individu|}" id="formSearch">
+  					<form th:action="@{|/${eContext}/manager/individu|}" id="formSearch" class="mb-3">
 						<div class="row">
-							<div class="col">
-								<select class="form-select" id="searchAbsences" name="searchAbsences">
-									<option>--- Choisir les absences ---</option>
-									<option value="week" th:selected="${choice eq 'week'}">Absences de cette semaine</option>
-									<option value="month" th:selected="${choice eq 'month'}">Absences du mois</option>
-									<option value="year" th:selected="${choice eq 'year'}">Absences de l'année universitaire</option>
-									<option value="exempt" th:selected="${choice eq 'exempt'}">Absences justifiées</option>
-								</select>
-							</div>
+							<input type="hidden" id="datesRange" name="datesRange">
 							<div class="col">
 								<input type="text" placeholder="Recherche Session" name="sessionEpreuve" value="" 
 									class="form-control form-control-underlined border-primary" id="searchSession" >
@@ -84,7 +69,7 @@
 								</tbody>
 							</table>
 						</div>
-						<table class="table table-hover table-striped table-bordered assiduite"
+						<table class="table table-hover table-striped table-bordered assiduite2"
 							th:attr="data-export-title=${individu.person.eppn +  '_details_par_annee'}" style="width:100%">
 							<thead class="sticky-top">
 								<tr>
@@ -93,12 +78,13 @@
 									<th scope="col">Type</th>
 									<th scope="col">Groupe</th>
 									<th scope="col" class="dateItem">Date</th>
+									<th>Durée</th>
 									<th scope="col">Tiers-temps</th>
-									<th scope="col">Exempté</th>
+									<th scope="col">Absence</th>
 									<th th:if="${isConvocationEnabled}" scope="col">Envoi convocation</th>								
 									<th scope="col">Emargement</th>
 									<th scope="col">Repartition</th>
-									<th scope="col" class="dateItem">Date</th>
+									<th scope="col" class="dateItem">Badgeage</th>
 									<th scope="col">Surveillant</th>
 									<th scope="col" class="exclude">Voir</th>
 								</tr>
@@ -109,6 +95,7 @@
 									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
 									<td> 
 										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></a>
+										<th:block th:if="${tagCheck.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>
 									<td>
@@ -119,8 +106,9 @@
 										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
 									</td>	
+									<td th:text="${tagCheck.sessionEpreuve.nbHours}"></td>
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td th:attr="data-filter=${(tagCheck.isExempt!=null and tagCheck.isExempt)? 'Oui' : ''}"><i th:if="${tagCheck.isExempt}" class="fa fa-check text-success"></i></td>
+									<td class="text-danger fw-bold" th:text="${tagCheck.absence != null ? tagCheck.absence.name() : ''}"></td>
 									<td th:if="${isConvocationEnabled}" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
 									<td class="center checkedByCard" th:attr="data-filter=${tagCheck.typeEmargement}">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
@@ -145,14 +133,14 @@
 										<a th:if="${isEsupSignatureEnabled and tagCheck.tagDate != null and mapTc.get(tagCheck.id) ==null}" 
 											th:href="@{/{ctx}/manager/individu/attestation/{id}(id=${tagCheck.id},ctx=${eContext})}" title ="Signer attestation">
 											<i class="fa-solid fa-file-pdf text-danger ms-2" ></i></a>											
-										<a th:if="${isEsupSignatureEnabled and mapTc.get(tagCheck.id) !=null and 
+										<a th:if="${isEsupSignatureEnabled and mapTc.get(tagCheck.id) !=null and mapTc.get(tagCheck.id).statutSignature!=null and 
 												mapTc.get(tagCheck.id).statutSignature.name() ne 'ENDED' }" 
 											th:href="@{/{ctx}/manager/esupsignature/status/{signId}?from={eppn}
 												(signId=${mapTc.get(tagCheck.id).signRequestId},ctx=${eContext}, eppn=${tagCheck.person.eppn})}"
 											title ="Récupérer d'esup-signature">
 											<i class="fa fa-refresh text-primary ms-2"></i></a>
 										<a th:if="${mapTc.get(tagCheck.id)!=null and mapTc.get(tagCheck.id).storedFileId != null}" target="_blank" 
-										th:href="@{/{ctx}/manager/sessionEpreuve/{id}/photo(id=${mapTc.get(tagCheck.id).storedFileId},ctx=${eContext})}">
+										th:href="@{/{ctx}/manager/storedFile/{id}/photo(id=${mapTc.get(tagCheck.id).storedFileId},ctx=${eContext})}">
 											<i class="fa-solid fa-file-pdf text-success ms-2" title ="Voir attestation signée"></i></a>
 									</td>
 								</tr>
@@ -209,6 +197,7 @@
 									<td> 
 										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagChecker.sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></a>
+										<th:block th:if="${tagChecker.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
@@ -266,6 +255,7 @@
 							<span th:text="${activite.nomSessionEpreuve + #dates.format(activite.dateExamen, ' dd/MM/yy') + 
 													#dates.format(activite.heureEpreuve, ' HH:mm') + '-' + #dates.format(activite.finEpreuve, 'HH:mm')}"></span>
 							 <span class="badge text-bg-success ms-3"><span th:text="${nbBadgeage}"></span> / <span th:text="${#lists.size(activitePage)}"></span></span>
+							 <th:block th:if="${activite.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 						</div>
 					</div>
 					<div th:if="${#lists.isEmpty(activitePage) and #ctx.containsVariable('activite')}">
@@ -281,7 +271,7 @@
 									<th>Num Etu</th>
 									<th>Groupe</th>
 									<th class="text-center">Emargement</th>
-									<th class="text-center">Exempt</th>
+									<th class="text-center">Absence</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -292,7 +282,7 @@
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 									<td class="text-center" th:text="${(tc.tagDate!=null)?  'Présent' : ''}"></td>
-									<td class="text-center" th:text="${(tc.isExempt)? 'Exempt' : ''}"></td>
+									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -305,6 +295,7 @@
 							<thead>
 								<tr>
 									<th>Session</th>
+									<th>Type</th>
 									<th>Date</th>
 									<th>Début</th>
 									<th>Fin</th>
@@ -314,7 +305,10 @@
 									<th>Num Etu</th>
 									<th>Groupe</th>
 									<!-- >th class="text-center">Surveillant</th-->
-									<th class="text-center">Exempt</th>
+									<th class="text-center">Absence</th>
+									<th class="text-center">Cumul absences (heures)</th>
+									<th class="text-center">Cumul absences (jours)</th>
+									<th class="text-center">Cumul absences (sessions)</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -324,18 +318,23 @@
 										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
 									</td>
+									<td th:text="${sessionEpreuve.typeSession.key}"></td>
 									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
 									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
 									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
 									<td th:text="${individu.civilite}"></td>
 									<td>
 										<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+										<th:block th:if="${sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${individu.prenom}"></td>
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
-									<td class="text-center" th:text="${(tc.isExempt)? 'Exempt' : ''}"></td>
+									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
+									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
+									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
+									<td class="text-center" th:text="${mapSessions.get(tc.person.eppn)}"></td>
 								</tr>
 							</tbody>
 						</table>

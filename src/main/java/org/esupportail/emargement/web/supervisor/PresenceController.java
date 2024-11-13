@@ -27,6 +27,8 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagCheck.Motif;
+import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -50,6 +52,7 @@ import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
+import org.esupportail.emargement.services.TagCheckerService;
 import org.esupportail.emargement.services.UserAppService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
@@ -130,6 +133,9 @@ public class PresenceController {
 	PreferencesService preferencesService;
 	
 	@Resource
+	TagCheckerService tagCheckerService;
+	
+	@Resource
 	LogService logService;
 
 	@Resource
@@ -187,24 +193,30 @@ public class PresenceController {
     @GetMapping("/supervisor/presence")
     public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve,
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
-    		@RequestParam(value ="tc", required = false) Long tc,
+    		@RequestParam(value ="tc", required = false) Long tc, @RequestParam(value ="tcer", required = false) String tcer, 
     		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update){
     	ModelAndView uiModel= new ModelAndView("supervisor/list"); 
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
-    		TagCheck tagCheck = tagCheckRepository.findById(update).get();
-    		uiModel.addObject("tagCheck", tagCheck);
-	    	Groupe gpe = sessionEpreuve.getBlackListGroupe();
-	    	String eppn = (tagCheck.getPerson()!=null)? tagCheck.getPerson().getEppn() : tagCheck.getGuest().getEmail();
-			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
-			if(isBlackListed) {
-				msgError = eppn;
-			}
-			if(!isBlackListed && BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
-				List <Long> idsGpe = new ArrayList<>();
-				idsGpe.add(gpe.getId());
-				groupeService.addMember(eppn,idsGpe);
-			}
+    		if(tcer!=null) {
+        		TagChecker tagChecker = tagCheckerRepository.findById(update).get();
+        		uiModel.addObject("tagChecker", tagChecker);	
+    		}else {
+        		TagCheck tagCheck = tagCheckRepository.findById(update).get();
+        		uiModel.addObject("tagCheck", tagCheck);
+    	    	Groupe gpe = sessionEpreuve.getBlackListGroupe();
+    	    	String eppn = (tagCheck.getPerson()!=null)? tagCheck.getPerson().getEppn() : tagCheck.getGuest().getEmail();
+    			boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
+    			if(isBlackListed) {
+    				msgError = eppn;
+    			}
+    			if(!isBlackListed && BooleanUtils.isTrue(sessionEpreuve.getIsSaveInExcluded())) {
+    				List <Long> idsGpe = new ArrayList<>();
+    				idsGpe.add(gpe.getId());
+    				groupeService.addMember(eppn,idsGpe);
+    			}
+    		}
+    		uiModel.addObject("sessionEpreuve", sessionEpreuve);
     	}
         boolean isSessionLibre = false;
         boolean isCapaciteFull = false;
@@ -247,8 +259,6 @@ public class PresenceController {
 	        }
     		currentLocation = sessionLocationId.toString();
     		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
-    		tagCheckService.setNomPrenomTagChecks(allTagChecks, false, false);
-
     		uiModel.addObject("allTagChecks", allTagChecks);
     		uiModel.addObject("triBadgeage", appliConfigService.isBadgeageSortAlpha());
         }
@@ -261,6 +271,9 @@ public class PresenceController {
 		}
 		if(currentLocation != null) {
 			SessionLocation sl = sessionLocationRepository.findById(Long.valueOf(currentLocation)).get();
+			List<TagChecker> tagCheckers = tagCheckerRepository.findBySessionLocation(sl);
+			tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+			uiModel.addObject("tagCheckers", tagCheckers);
 			List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
 			sls.remove(sl);
 			if(!sls.isEmpty()) {
@@ -317,6 +330,7 @@ public class PresenceController {
 		uiModel.addObject("enableWebcam", Boolean.valueOf(enableWebCam));
 		uiModel.addObject("msgError", ldapService.getPrenomNom(msgError));
 		uiModel.addObject("emails",  appliConfigService.getListeGestionnaires());
+		uiModel.addObject("displayTagCheckers",  appliConfigService.isTagCheckerDisplayed());
         return uiModel;
     }
     
@@ -366,7 +380,7 @@ public class PresenceController {
 				if(httpResponse.getBody() == null) noPhoto = true;
 		}
 		if (noPhoto) {
-			ClassPathResource noImg = new ClassPathResource("NoPhoto.png");
+			ClassPathResource noImg = new ClassPathResource("nophoto.png");
 			try {
 				photo = IOUtils.toByteArray(noImg.getInputStream());
 				httpResponse = new ResponseEntity<>(photo, headers, HttpStatus.OK);
@@ -563,14 +577,61 @@ public class PresenceController {
 		return "supervisor/qrCodeSession";
 	}
 	
-	
 	@PostMapping("/supervisor/tagCheck/updateComment")
-	// @ResponseBody
     public String updateComment(@PathVariable String emargementContext, @RequestParam("idComment") TagCheck tc, String comment) {
     	tc.setComment(comment);
     	tagCheckService.save(tc, emargementContext);
 
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
+    }
+	
+	@PostMapping("/supervisor/tagCheck/updateAbsence")
+    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("absence") String absence, @RequestParam("tc") TagCheck tc) {
+    	if(!absence.isEmpty()) {
+			tc.setAbsence(Motif.valueOf(absence));
+	    	tagCheckService.save(tc, emargementContext);
+    	}
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
+    }
+	
+	@PostMapping("/supervisor/checkAll/{id}")
+    public String checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam("check") String check) {
+		if("true".equals(check)) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			String eppn = auth.getName();
+			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sl.getId());
+			int i =0;
+			for(TagCheck tc : tcs) {
+				if(tc.getTagDate()==null) {
+					tc.setSessionLocationBadged(sl);
+					tc.setTagDate(new Date());
+					tc.setTypeEmargement(TypeEmargement.MANUAL);
+					tc.setTagChecker(tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().get(0));
+					tagCheckRepository.save(tc);
+					i++;
+				}
+			}
+			if(i>0) {
+				log.info("Emargement par lot de " + i + " participant(s) de la salle : " + sl.getLocation().getNom() +  " de la session : " +  
+					sl.getSessionEpreuve().getNomSessionEpreuve() + ", par  : " + eppn);
+			}else {
+				log.info("Aucun émargement effectué car tous les participants avaient déjà émargé");
+			}
+		}
+
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			sl.getSessionEpreuve().getId(), sl.getId());
+    }
+	
+
+	@PostMapping("/supervisor/updateSecondTag")
+    public String updateSecondTag(@PathVariable String emargementContext, @RequestParam("id") SessionLocation sl) {
+		SessionEpreuve se = sl.getSessionEpreuve();
+    	se.setIsSecondTag(se.getIsSecondTag()!=null && se.getIsSecondTag()? false : true);
+    	sessionEpreuveRepository.save(se);
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			se.getId(), sl.getId());
     }
 }

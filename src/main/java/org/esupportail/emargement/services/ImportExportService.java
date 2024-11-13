@@ -67,8 +67,8 @@ public class ImportExportService {
 	
 	public List<SessionEpreuve> getNotFreeSessionEpreuve(){
 		List<SessionEpreuve> newSe = new LinkedList<SessionEpreuve>();
-		
-		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByStatutNotOrderByDateExamen(Statut.CLOSED);
+		Statut statuts [] = {Statut.CLOSED, Statut.CANCELLED};
+		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByStatutNotInOrderByDateExamen(Arrays.asList(statuts));
 		if(!se.isEmpty()) {
 			for (SessionEpreuve item : se) {
 				newSe.add(item);

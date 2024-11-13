@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Ajouter une absence</h2></div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/manager/absence/create(ctx=${eContext})}" th:object="${absence}" method="post" enctype="multipart/form-data">
+	                     <div class="row mb-3">
+	                        <label for="eppn"  class="col-lg-2 form-label">Personne</label>
+	                        <div class="col-lg-4">
+								<input type="email" th:id="eppn" th:name="person.eppn" class="form-control" 
+								placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" required="required">
+								<p id="resultEppn" class="fw-bold text-danger mt-2 mb-0"></p>
+	                        </div>
+	                    </div>
+	                    <div class="row mb-3">
+							<label for="dateExamen" class="col-lg-2 form-label">Date de début</label>
+		                    <div class="col-lg-4">
+		                        <input type="date"  id="strDateDebut" placeholder="dd/MM/YYYY" name="strDateDebut" class="form-control" required="required">
+		                    </div>
+	                    </div>
+	                    <div class="row mb-3">		                    
+		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin</label>
+		                    <div class="col-lg-4">
+		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
+		                        	required="required">
+		                    </div>
+	                    </div>
+	                    <div class="row mb-3">
+		                    <label for="heureDebut" class="col-lg-2 form-label">Heure de début</label>
+	                       	<div class="col-lg-10">
+		                        <input type="time" th:field="*{heureDebut}" class="form-control" id="heureDebut"
+		                        	required="required">
+	                        </div>
+	                    </div>
+	                    <div class="row mb-3">
+	                        <label for="finEpreuve" class="col-lg-2 form-label">Heure de fin</label>
+	                        <div class="col-lg-10">
+	                        	<input type="time" th:field="*{heureFin}" class="form-control" id="heureFin"
+	                        		required="required">
+	                        </div>
+	                    </div>	                    
+	                    <div class="row mb-3">
+		                    <label for="file" class="col-lg-2 form-label">Pièces jointes</label>
+		                    <div class="col-lg-10">
+			                    <div class="file-loading">
+				 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+				 				</div>
+			 				</div>
+						</div>
+						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label" th:for="${isValidated}">
+						        Validation
+						    </label>
+							<div class="col-lg-10">
+								 <div class="form-check">
+								      <input class="form-check-input" type="checkbox" checked="checked" th:field="*{isValidated}">
+								</div>
+						    </div>					
+						</div>						
+	                    <div class="row mb-3">
+	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
+	                        <div class="col-lg-10">
+	                        	<textarea th:field="*{commentaire}" class="form-control" required="required"></textarea>
+	                        </div>
+	                    </div>
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

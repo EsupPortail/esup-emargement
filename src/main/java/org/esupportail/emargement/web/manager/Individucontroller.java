@@ -124,10 +124,14 @@ public class Individucontroller {
 	}
 	
 	@GetMapping(value = "/manager/individu")
-	public String list(@PathVariable String emargementContext, Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String identifiantTagCheck, @RequestParam(defaultValue = "", 
-	value="eppnTagChecker") String eppnTagChecker, @RequestParam(defaultValue = "", value="idGroupe") String idGroupe, @RequestParam(defaultValue = "", value="sessions") Long sessions,
-			@RequestParam(defaultValue = "", value="sessionEpreuve") Long sessionEpreuveId,	@RequestParam(value="annee", required = false) String annee, 
-			@RequestParam(value="searchAbsences", required = false) String searchAbsences, @PageableDefault(direction = Direction.ASC,  size = 10)  Pageable p1){
+	public String list(@PathVariable String emargementContext, Model model,
+			@RequestParam(defaultValue = "", value = "eppnTagCheck") String identifiantTagCheck,
+			@RequestParam(defaultValue = "", value = "eppnTagChecker") String eppnTagChecker,
+			@RequestParam(defaultValue = "", value = "idGroupe") String idGroupe,
+			@RequestParam(defaultValue = "", value = "sessions") Long sessions,
+			@RequestParam(defaultValue = "", value = "sessionEpreuve") Long sessionEpreuveId,
+			@RequestParam(value = "annee", required = false) String annee,
+			@PageableDefault(direction = Direction.ASC, size = 10) Pageable p1) {
 		if(!identifiantTagCheck.isEmpty()) {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(identifiantTagCheck)>0) {
@@ -145,11 +149,13 @@ public class Individucontroller {
 					}
 				}
 			}
-			model.addAttribute("assiduiteList",tagCheckService.setListAssiduiteBean(pTagChecks.getContent(), null));
-			model.addAttribute("tagChecksPage", pTagChecks.getContent());
+			List<TagCheck> tcs = pTagChecks.getContent();
+			tagCheckService.setNbHoursSession(tcs);
+			model.addAttribute("tagChecksPage", tcs);
+			model.addAttribute("eppnTagCheck", identifiantTagCheck); 
 			model.addAttribute("mapTc", mapTc);
 			if(!pTagChecks.isEmpty()) {
-				model.addAttribute("individu", pTagChecks.getContent().get(0));	
+				model.addAttribute("individu", tcs.get(0));	
 			}
 		}else if(!eppnTagChecker.isEmpty()) {
 			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnTagChecker, p1);
@@ -157,7 +163,7 @@ public class Individucontroller {
 			model.addAttribute("tagCheckersPage", pTagCheckers.getContent());
 			if(!pTagCheckers.isEmpty()) {
 				model.addAttribute("individu", pTagCheckers.getContent().get(0));	
-			}			
+			}
 		}else if(sessions!=null) {
 			List<Long> seIds = tagCheckRepository.findSessionEpreuveIdByTagCheckGroupe(sessions);
 			List<SessionEpreuve> ses = new ArrayList<>();
@@ -168,8 +174,7 @@ public class Individucontroller {
 			}
 			model.addAttribute("groupe", groupeRepository.findById(sessions).get());	
 			model.addAttribute("sePage", ses);
-		}
-		else if(!idGroupe.isEmpty()) {
+		}else if(!idGroupe.isEmpty()) {
 			Long id = Long.valueOf(idGroupe);
 			Page<AppUser> usersGroupePage = new PageImpl<>(groupeService.getMembers(id));
 			model.addAttribute("usersGroupePage", usersGroupePage.getContent());
@@ -203,34 +208,12 @@ public class Individucontroller {
 			model.addAttribute("activite", sessionEpreuveRepository.findById(sessionEpreuveId).get());	
 			model.addAttribute("activitePage", tcs);
 			model.addAttribute("nbBadgeage", tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(sessionEpreuveId));
-		}else if(searchAbsences!=null) {
-			List<TagCheck> tcs = new ArrayList<>();
-			if ("week".equals(searchAbsences) || "month".equals(searchAbsences)) {
-				Date[] weekDates = toolUtil.getIntervalDates(searchAbsences);
-				Date dateDebut = weekDates[0];
-				Date dateFin = weekDates[1];
-				tcs = tagCheckRepository
-						.findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
-								dateDebut, dateFin, dateDebut, dateFin, dateDebut, dateFin);
-			} else if ("year".equals(searchAbsences)) {
-				tcs = tagCheckRepository.findByTagDateIsNullAndSessionEpreuveAnneeUniv(
-						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
-			} else if ("exempt".equals(searchAbsences)) {
-				tcs = tagCheckRepository.findByIsExemptTrueAndSessionEpreuveAnneeUniv(
-						String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
-			}
-			tagCheckService.setNomPrenomTagChecks(tcs, true, true);
-			model.addAttribute("absencesPage", tcs);
-			model.addAttribute("choice", searchAbsences);
 		}
-		
 		model.addAttribute("types", personService.getTypesPerson());
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
 		return "manager/individu/index";
 	}
-	
-
 	
     @GetMapping("/manager/individu/search")
     @ResponseBody
@@ -315,7 +298,7 @@ public class Individucontroller {
 					String urlStatus = String.format("%s/ws/signrequests/status/%s", urlEsupsignature, id);
 					ResponseEntity<String> status = restTemplate.getForEntity(urlStatus, String.class);
 					String statut = status.getBody();
-					if(!esupsignature.getStatutSignature().name().equals(statut) && "completed".equals(statut)){
+					if(esupsignature.getStatutSignature()!=null && !esupsignature.getStatutSignature().name().equals(statut) && "completed".equals(statut)){
 						//On charge le statut
 						esupsignature.setStatutSignature(StatutSignature.valueOf(statut.toUpperCase()));
 						esupsignature.setDateModification(new Date());

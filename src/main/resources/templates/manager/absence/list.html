@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+			<div class="card">
+				<div class="card-header">
+					<div class="row">
+			    		<div class="col">
+					    	<h2>Absences</h2>
+					    </div>
+					    <div class="col">
+							<div class="col-auto">
+								<a th:href="@{/{ctx}/manager/absence?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter une absence">
+								<i class="fa fa-plus fa-lg"></i></a>
+							</div>								
+					    </div>
+					</div>
+				</div>
+  				<div class="card-body">
+					<table class="table table-hover table-striped table-bordered tableCleanup">
+						<thead class ="center sticky-top">
+							<tr>
+								<th scope="col">Civilité</th>
+								<th scope="col">Nom</th>
+								<th scope="col">Prénom</th>
+								<th scope="col">Code</th>
+								<th scope="col" class="dateItem">Date de début</th>
+								<th scope="col" class="dateItem">Date de fin</th>
+								<th scope="col">Heure de début</th>
+								<th scope="col">Heure de fin</th>
+								<th scope="col">PJ</th>
+								<th scope="col">Validation</th>
+								<th scope="col" class="no-sort">Actions</th>
+							</tr>
+						</thead>
+						<tbody class ="center">
+							<tr th:each="absence : ${absences}" th:with="ind=${absence.person}">
+								<td th:text="${ind.civilite}"></td>
+								<td th:text="${ind.nom}"></td>
+								<td th:text="${ind.prenom}"></td>
+								<td th:text="${ind.numIdentifiant}"></td>
+								<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
+								<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>
+								<td th:text="${#dates.format(absence.heureDebut, 'HH:mm')}"></td>
+								<td th:text="${#dates.format(absence.heureFin, 'HH:mm')}"></td>
+								<td th:text="${absence.nbStoredFiles}"></td>
+								<td th:attr="data-order=${absence.isValidated}"><i th:class="${absence.isValidated} ? 'fa fa-check text-success' :''"></i></td>
+								<td>
+									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 
+											th:attr="data-bs-target='#modal-warning'+${absence.id }"><i class="fa fa-trash text-danger ms-2"></i></a>
+									<a th:href="@{/{ctx}/manager/absence/{id}?form(id=${absence.id},ctx=${eContext})}" 
+											class="center ms-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>								
+									<div class="modal modal-warning fade in" th:id="modal-warning+${absence.id}" >
+									    <div class="modal-dialog">
+									        <div class="modal-content">
+									        	<form id="command" th:action="@{/{ctx}/manager/absence/{id}(id=${absence.id},ctx=${eContext})}" method="POST">
+										        	<input type="hidden" name="_method" value="delete" />
+										            <div class="modal-header">
+										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										            </div>
+													<div class="modal-body">
+														<div class="alert alert-danger text-center">
+															Confirmez-vous la suppression l'absence de: <br /> <span
+															th:if="${ind != null}"
+															th:text="${ind.prenom + ' ' + ind.nom}"
+															class="fw-bold"></span>
+														</div>
+													</div>
+													<div class="modal-footer">
+														<button type="button" class="btn btn-outline pull-left"
+															data-bs-dismiss="modal">Fermer</button>
+														<button type="submit"
+															class="btn btn-outline pull-left btn-danger">Valider</button>
+													</div>
+												</form>
+									        </div>
+									    </div>
+									</div>				
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+  			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

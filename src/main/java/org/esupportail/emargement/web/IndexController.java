@@ -8,9 +8,11 @@ import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.PresenceService;
+import org.esupportail.emargement.services.TagCheckerService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +42,15 @@ public class IndexController {
     
 	@Resource
 	PresenceService presenceService;
+	
+	@Resource
+	TagCheckerService tagCheckerService;
     
 	@Autowired
 	ToolUtil toolUtil;
     
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return  ITEM;
 	}
 	
@@ -101,10 +106,9 @@ public class IndexController {
 			} else {
 				if (authorities.contains(new SimpleGrantedAuthority("ROLE_USER"))) {
 					return String.format("redirect:/%s/user", emargementContext);
-				}else {
-					model.addAttribute("index","index");
-					return "index";
 				}
+				model.addAttribute("index","index");
+				return "index";
 			}
 		}
 		
@@ -119,9 +123,18 @@ public class IndexController {
     @GetMapping(value = {"updatePresents", "{emargementContext}/updatePresents"})
     @ResponseBody
     public  List<TagCheck>  updatePresents(@PathVariable(required = false) String emargementContext, 
-    		@RequestParam(value ="presence") String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) throws InterruptedException, ParseException {
+    		@RequestParam(value ="presence") String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) throws ParseException {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
         return presenceService.updatePresents(presence, location) ;
+    }
+    
+    @GetMapping(value = {"updatePresentsTagChecker", "{emargementContext}/updatePresentsTagChecker"})
+    @ResponseBody
+    public  List<TagChecker>  updatePresentsTagChecker(@PathVariable(required = false) String emargementContext, 
+    		@RequestParam(value ="presence") String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) {
+    	HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Type", "application/json; charset=utf-8");
+        return tagCheckerService.updatePresentsTagCkeckers(presence, location, null) ;
     }
 }

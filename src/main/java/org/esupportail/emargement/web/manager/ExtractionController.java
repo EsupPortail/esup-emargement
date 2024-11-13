@@ -1,10 +1,10 @@
 package org.esupportail.emargement.web.manager;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,19 +52,17 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class ExtractionController {
 
-	enum ExtractionType {apogee, ldap, csv, groupes};
+	enum ExtractionType {apogee, ldap, csv, groupes}
 
 	@Autowired(required = false)
 	ApogeeService apogeeService;
-	
+
 	@Resource
 	LogService logService;
 	
@@ -103,7 +101,7 @@ public class ExtractionController {
 	private final static String ITEM = "extraction";
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 
@@ -139,7 +137,7 @@ public class ExtractionController {
 	}
 	
 	@PostMapping(value = "/manager/extraction/search")
-	public void search(@PathVariable String emargementContext, ApogeeBean apogeebean, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public void search(@PathVariable String emargementContext, ApogeeBean apogeebean, HttpServletResponse response){
 		if(apogeeService == null) {
 			log.warn("Apogée non configurée");
 			return;
@@ -156,7 +154,7 @@ public class ExtractionController {
 			CSVWriter writer = new CSVWriter(response.getWriter()); 
 			
 			for(ApogeeBean inscrit : inscrits) {
-				List <String> line = new ArrayList<String>();
+				List <String> line = new ArrayList<>();
 				line.add(inscrit.getCodEtu());
 				writer.writeNext(line.toArray(new String[1]));
 			}
@@ -173,7 +171,7 @@ public class ExtractionController {
 	}
 	
 	@PostMapping(value = "/manager/extraction/csvFromLdap")
-	public void csvFromLdap(@PathVariable String emargementContext, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public void csvFromLdap(@PathVariable String emargementContext, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, HttpServletResponse response){
 		try {
 			if(!usersGroupLdap.isEmpty()) {
 				String filename = "users.csv";
@@ -186,7 +184,7 @@ public class ExtractionController {
 				CSVWriter writer = new CSVWriter(response.getWriter()); 
 				
 				for(String inscrit : usersGroupLdap) {
-					List <String> line = new ArrayList<String>();
+					List <String> line = new ArrayList<>();
 					line.add(inscrit);
 					writer.writeNext(line.toArray(new String[1]));
 				}
@@ -204,7 +202,7 @@ public class ExtractionController {
 	}
 	
 	@PostMapping(value = "/manager/extraction/csvFromGroupe")
-	public void csvFromGroup(@PathVariable String emargementContext, @RequestParam(value = "groupe") List<Long> ids, HttpServletResponse response) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException {
+	public void csvFromGroup(@PathVariable String emargementContext, @RequestParam(value = "groupe") List<Long> ids, HttpServletResponse response) {
 		try {
 			if(!ids.isEmpty()) {
 				String filename = "users.csv";
@@ -216,14 +214,14 @@ public class ExtractionController {
 				//create a csv writer
 				CSVWriter writer = new CSVWriter(response.getWriter()); 
 				
-				List<Person> allPersons =new ArrayList<Person>();
+				List<Person> allPersons =new ArrayList<>();
 				for(Long id : ids) {
 					Groupe groupe = groupeRepository.findById(id).get();
 					allPersons.addAll(groupe.getPersons());
 				}
 				
 				for(Person person : allPersons) {
-					List <String> line = new ArrayList<String>();
+					List <String> line = new ArrayList<>();
 					line.add(person.getNumIdentifiant());
 					writer.writeNext(line.toArray(new String[1]));
 				}
@@ -261,7 +259,7 @@ public class ExtractionController {
     						@RequestParam(value = "sessionEpreuveGroupe", required = false) Long sessionEpreuveGroupe,
     						@RequestParam(value = "sessionEpreuve", required = false) Long sessionEpreuveApogee){
 		Long seId = null;
-		List<SessionLocation>  locations = new ArrayList<SessionLocation>();
+		List<SessionLocation>  locations = new ArrayList<>();
 		if(sessionEpreuveLdap != null) {
 			seId = sessionEpreuveLdap;
 		}else if(sessionEpreuveCsv != null) {
@@ -301,7 +299,8 @@ public class ExtractionController {
 		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
-    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByStatutNotOrderByDateExamen(Statut.CLOSED));
+    	Statut statuts [] = {Statut.CLOSED, Statut.CANCELLED};
+    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByStatutNotInOrderByDateExamen(Arrays.asList(statuts)));
 		if(apogeeService != null) {
 			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 		} else {
@@ -317,7 +316,7 @@ public class ExtractionController {
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
     public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files,  @RequestParam("sessionEpreuveCsv") Long id, @RequestParam(value= "sessionLocationCsv", required = false) Long slId,
     		final RedirectAttributes redirectAttributes) throws Exception {
-    	List<InputStream> streams = new ArrayList<InputStream>();
+    	List<InputStream> streams = new ArrayList<>();
     	for(MultipartFile file : files) {
     		streams.add(file.getInputStream());
     	}

@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TypeSessionService {
@@ -43,12 +43,12 @@ public class TypeSessionService {
 		Collections.sort(list);
 		return list;
 	}
-	
+
 	@Transactional
 	public int updateTypeSession(String emargementcontext) {
 		List <String> list = getTypeSessionCategories();
 		int nb= 0;
-		if(!list.isEmpty()) {
+		if(!list.isEmpty() && typeSessionRepository.findByContextKey(emargementcontext).isEmpty()) {
 			for(String key : list) {
 				TypeSession typeSession = new TypeSession();
 				typeSession.setDateModification(new Date());
@@ -60,7 +60,7 @@ public class TypeSessionService {
 				typeSessionRepository.save(typeSession);
 				nb++;
 			}
-			log.info("Ajout de rubriques d'aide : " + StringUtils.join(list, ", "));
+			log.info("Ajout de types de session : " + StringUtils.join(list, ", "));
 			logService.log(ACTION.AJOUT_TYPESESSION, RETCODE.SUCCESS, "Ajout de types de session : " + StringUtils.join(list, ", "), null,  null, "all", null);
 		}
 		return nb;

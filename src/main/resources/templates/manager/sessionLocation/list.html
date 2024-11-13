@@ -15,12 +15,13 @@
 							<small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
 							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>					    		
 		    			</div>
-						<div class="col">
-						    <div class="row float-end me-2">
-								<a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}"  th:if="${!isSessionEpreuveClosed}" title="Ajouter un lieu de session" 
-		    					class="btn btn-primary">
-		    					<i class="fa fa-plus fa-lg"></i></a>							    
-	    					</div>
+						<div class="col" th:if="${!isSessionEpreuveClosed}">
+							<a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" title="Ajouter un lieu de session" 
+	    						class="btn btn-primary float-end me-2"><i class="fa fa-plus fa-lg"></i></a>						
+	    					<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+	    						title="Ajouter des surveillants" class="btn btn-secondary float-end me-2">Ajouter des surveillants</a>
+	    					<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+	    						title="Ajouter des inscrits" class="btn btn-warning float-end me-2">Ajouter des inscrits</a>
 						</div>		    			
 		    		</div>
 	    		</div>         	

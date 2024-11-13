@@ -2,6 +2,7 @@ package org.esupportail.emargement.repositories;
 
 import java.util.List;
 
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
@@ -15,5 +16,9 @@ public interface StoredFileRepository extends JpaRepository<StoredFile, Long>{
 	
 	List<StoredFile> findBySessionEpreuve(SessionEpreuve se);
 	
+	List<StoredFile> findByAbsence(Absence absence);
+	
 	Long countBySessionEpreuve(SessionEpreuve se);
+	
+	Long countByAbsence(Absence absence);
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -41,6 +42,11 @@ public class StoredFileService {
 	
 	public void deleteAllStoredFiles(SessionEpreuve se) {
 		List<StoredFile> sfs = storedFileRepository.findBySessionEpreuve(se);
+		storedFileRepository.deleteAll(sfs);
+	}
+	
+	public void deleteAllStoredFiles(Absence absence) {
+		List<StoredFile> sfs = storedFileRepository.findByAbsence(absence);
 		storedFileRepository.deleteAll(sfs);
 	}
 }

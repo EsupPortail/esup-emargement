@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
+import net.fortuna.ical4j.data.ParserException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
@@ -18,7 +18,6 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
 import org.esupportail.emargement.services.CampusService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.EventService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LocationService;
 import org.esupportail.emargement.services.LogService;
@@ -47,8 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import net.fortuna.ical4j.data.ParserException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -85,9 +83,6 @@ public class LocationController {
 	@Autowired
 	StoredFileRepository storedFileRepository;
 
-	@Resource
-	EventService eventService;
-
 	@Autowired
 	ToolUtil toolUtil;
 
@@ -113,7 +108,9 @@ public class LocationController {
 		if( size == 1 && count>0) {
 			size = count.intValue();
 		}
-		Page<Location> locationPage = locationRepository.findAll(toolUtil.updatePageable(pageable, size));
+		// Pour remonter le plan dans la liste
+		// Page<Location> locationPage = locationRepository.findAll(toolUtil.updatePageable(pageable, size));
+		Page<Location> locationPage = locationService.findAll(toolUtil.updatePageable(pageable, size));
 		if(location != null) {
 			locationPage = locationRepository.findByNom(location, toolUtil.updatePageable(pageable, size));
 			model.addAttribute("location", location);
@@ -241,14 +238,14 @@ public class LocationController {
 		}        
 	}
 
-	@PostMapping(value = "/admin/location/{id}")
-	public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
-		Location location = locationRepository.findById(id).get();
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		try {
-			locationRepository.delete(location);
-			log.info("Suppression du lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
-			logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
+    @PostMapping(value = "/admin/location/{id}")
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    	Location location = locationRepository.findById(id).get();
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	try {
+    		locationRepository.delete(location);
+    		log.info("Suppression du lieu : " + location.getNom().concat(" - ").concat(location.getCampus().getSite()));
+    		logService.log(ACTION.DELETE_LOCATION, RETCODE.SUCCESS, location.getNom().concat(" - ").concat(location.getCampus().getSite()), auth.getName(), null, emargementContext, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			redirectAttributes.addFlashAttribute("item", location.getNom());

@@ -2,6 +2,7 @@ package org.esupportail.emargement.services;
 
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.domain.TagChecker;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,10 @@ public class DataEmitterService {
 	
 	public void sendDataImport(String nbImportSession) {
 		this.eventPublisher.publishEvent(SseEvent.of("nbImportSession", nbImportSession));
+	}
+	
+	public void sendTagChecker(TagChecker tagChecker) {
+		this.eventPublisher.publishEvent(SseEvent.of("tagChecker", tagChecker));
 	}
 
 }

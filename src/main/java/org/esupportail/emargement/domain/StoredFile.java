@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -35,6 +36,12 @@ public class StoredFile {
 	
     @ManyToOne
     private SessionEpreuve sessionEpreuve;
+    
+    @ManyToOne
+    private Absence absence;
+     
+    @Column(columnDefinition = "TEXT")
+    private String comment;
 
     private String filename;
     
@@ -146,6 +153,20 @@ public class StoredFile {
 	public void setSessionEpreuve(SessionEpreuve sessionEpreuve) {
 		this.sessionEpreuve = sessionEpreuve;
 	}
-	
-}
 
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
+	public Absence getAbsence() {
+		return absence;
+	}
+
+	public void setAbsence(Absence absence) {
+		this.absence = absence;
+	}
+}

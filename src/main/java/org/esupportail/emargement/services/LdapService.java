@@ -54,7 +54,7 @@ public class LdapService {
 	}
 
 	public List<LdapUser> search(final String search) {
-		List<LdapUser> userList = ldapUserRepository.findByNomPrenomContainingIgnoreCase(search);
+		List<LdapUser> userList = ldapUserRepository.findByNomPrenomContainingIgnoreCaseOrNumEtudiantContainingIgnoreCase(search, search);
 		if (userList == null) {
 			userList = new ArrayList<LdapUser>();
 		}
@@ -149,7 +149,10 @@ public class LdapService {
 			} else if ("eduPersonPrincipalName".equals(filter)) {
 				return StreamSupport.stream(validators.spliterator(), false)
 						.collect(Collectors.toMap(LdapUser::getEppn, Function.identity()));
-			} else {
+			} else if ("supannEmpId".equals(filter)) {
+				return StreamSupport.stream(validators.spliterator(), false)
+						.collect(Collectors.toMap(LdapUser::getNumPersonnel, Function.identity()));
+			}else {
 				return new HashMap<>();
 			}
 		}

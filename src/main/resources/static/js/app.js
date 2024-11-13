@@ -2,6 +2,9 @@
 function insertBefore(el, referenceNode) {
 	referenceNode.parentNode.insertBefore(el, referenceNode);
 }
+function confirmSubmission() {
+  return confirm("Confirrmez-vous cette action?");
+}
 //Random id
 var ID = function() {
 	return '_' + Math.random().toString(36).substr(2, 9);
@@ -31,6 +34,49 @@ function rgb2hex(rgb) {
 		("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
 		("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
 		("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
+}
+
+function initSelectCheckBoxes(id, searchplaceholder) {
+	$('#' + id).searchableOptionList({
+		maxHeight: '250px',
+		showSelectAll: true,
+		texts: {
+			noItemsAvailable: 'Aucun rÃ©sultat',
+			selectAll: 'Tout sÃ©lectionner',
+			selectNone: 'Tout effacer',
+			searchplaceholder: searchplaceholder
+		}
+	});
+}
+
+function checkAll() {
+    var all = document.getElementById('selectAllCheckbox');
+    var hiddenInput = document.getElementById('checkedValues');
+    
+    // Helper function to update the hidden input with selected values
+    function updateHiddenInput() {
+        let checkedCheckboxes = document.querySelectorAll('.checkboxes:checked');
+        let values = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
+        hiddenInput.value = values.join(',');
+    }
+
+    if (all != null) {
+        all.addEventListener('change', function() {
+            let checkboxes = document.querySelectorAll('.checkboxes');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = all.checked;
+            });
+            updateHiddenInput();  // Update hidden input after checking/unchecking all
+        });
+    }
+
+    // Add event listeners to individual checkboxes
+    let checkboxes = document.querySelectorAll('.checkboxes');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            updateHiddenInput();  // Update hidden input after individual changes
+        });
+    });
 }
 
 //affinage repartition
@@ -141,13 +187,20 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 							var labelNumEtu = "";
 							var valueNumEtu = "";
 							if (id == "searchTagCheck" || id == "searchUserApp") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
+								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
 								list.push({
 									label: labelValue,
 									value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
 								});
+							} else if (id == "searchAssiduite") {
+								var labelValue = "<strong>Nom : </strong>" + value.name + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
+								valueNumEtu =  value.numEtudiant != null ? "//" + value.numEtudiant: "";
+								list.push({
+									label: labelValue,
+									value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
+								});
 							} else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
+								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
 									+ "<strong class='ms-2'>Type : </strong>" + value.typeObject;
 								list.push({
 									label: labelValue,
@@ -155,7 +208,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								});
 							}
 							else if (id == "searchIndividuGroupe") {
-								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> Année : </strong>" + value.groupe.anneeUniv
+								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> AnnÃ©e : </strong>" + value.groupe.anneeUniv
 								list.push({
 									label: labelValue,
 									value: value.groupe.id + "//" + value.groupe.nom
@@ -167,7 +220,6 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
 								var heureExamen = value.heureEpreuve.substring(0, 5);
 								var heureFin = value.finEpreuve.substring(0, 5);
-								//console.log(value.heureEpreuve);
 								var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + 
 									value.campus.site + "<strong class='ms-2'>Date : </strong>" + frDate + "<strong class='ms-2'>Heure : </strong>" + heureExamen + " -" + heureFin;
 								list.push({
@@ -196,7 +248,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								list.push(value);
 							} else {
 								if (value.numEtudiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numEtudiant;
+									labelNumEtu = "<strong class='ms-2'>NÂ° Identifiant : </strong>" + value.numEtudiant;
 									valueNumEtu = "//" + value.numEtudiant
 								}
 								if (value.name != null) {
@@ -207,7 +259,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 									});
 								}
 								if (value.numIdentifiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numIdentifiant;
+									labelNumEtu = "<strong class='ms-2'>NÂ° Identifiant : </strong>" + value.numIdentifiant;
 									valueNumEtu = "//" + value.numEtudiant
 								}
 							}
@@ -235,7 +287,7 @@ function changeSelectSessionEpreuve2(id, id2, url, change) {
 				var data = JSON.parse(this.response);
 				if (data.length == 0) {
 					$(".alertmsg").remove();
-					$("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associé à cette session</p>");
+					$("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associÃ© Ã  cette session</p>");
 					option = document.createElement('option');
 					option.value = "";
 					option.textContent = "";
@@ -330,14 +382,14 @@ function updatePresence(url, numEtu, currentLocation) {
 	var location = (currentLocation != null) ? "&currentLocation=" + currentLocation : "";
 	request.open('GET', url + "?presence=" + numEtu + location, true);
 	request.onload = function() {
-		if (request.status >= 200 && request.status < 400) {
+		if (request.status >= 200 && request.status < 400) {console.log(request.responseText);
 			if (document.getElementById("newbie") != null) {
 				const data = JSON.parse(request.responseText);
 				if (data != null) {
 					var tc = data[0];
 					var tagDate = moment(tc.tagDate).format('DD-MM-YYYY HH:mm:ss');
 					var info = moment(tc.sessionEpreuve.dateExamen).format('DD-MM-YYYY') + " // " +
-						tc.sessionEpreuve.nomSessionEpreuve + " // " + tc.sessionLocationBadged.location.nom;
+						tc.sessionEpreuve.nomSessionEpreuve + " // " ;
 					$("#norole").addClass("d-none");
 					$("#newbie").removeClass("d-none");
 					$("#tagDate").text(tagDate);
@@ -426,7 +478,6 @@ function submitSearchForm(id, url, endUrl) {
 		var formSearch = document.getElementById("formSearch");
 		search.addEventListener("awesomplete-selectcomplete", function(event) {
 			var splitResult = this.value.split("//");
-			console.log(this.value);
 			search.value = splitResult[0].toString().trim();
 			formSearch.submit();
 		});
@@ -449,9 +500,9 @@ for (var k = 0; k < 100; k++) {
 	generateStackColors.push('rgba(' + color + ', 0.6)');
 	generateBorderColors.push('rgba(' + color + ', 1)');
 }
-var monthsArray = ["Sept", "Oct", "Nov", "Déc", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Août"];
-const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'Déc'], [1, 'Jan'], [2, 'Fev'],
-[3, 'Mar'], [4, 'Avr'], [5, 'Mai'], [6, 'Juin'], [7, 'Juil'], [8, 'Août']
+var monthsArray = ["Sept", "Oct", "Nov", "DÃ©c", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "AoÃ»t"];
+const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'DÃ©c'], [1, 'Jan'], [2, 'Fev'],
+[3, 'Mar'], [4, 'Avr'], [5, 'Mai'], [6, 'Juin'], [7, 'Juil'], [8, 'AoÃ»t']
 ];
 let moisMap = new Map(moisArray);
 
@@ -461,7 +512,7 @@ function chartNoData(ctx, chart) {
 	ctx.textBaseline = 'middle';
 	ctx.font = "22px Arial";
 	ctx.fillStyle = "gray";
-	ctx.fillText('Aucune donnée disponible', chart.width / 2, chart.height / 2);
+	ctx.fillText('Aucune donnÃ©e disponible', chart.width / 2, chart.height / 2);
 	ctx.restore();
 }
 
@@ -736,24 +787,6 @@ function chartBar(data1, label1, id, transTooltip, formatDate, data2, label2) {
 		});
 	}
 }
-//Select event
-function setSelectEvent(id, idEvent) {
-	var url = emargementContextUrl + "/manager/event/selectEvent/";
-	var request = new XMLHttpRequest();
-	request.open('GET', url + id, true);
-	request.onload = function() {
-		if (request.status >= 200 && request.status < 400) {
-			$(idEvent).html();
-			$(idEvent).html(this.response);
-			new SlimSelect({
-				select: '#icsEvents'
-			})
-		} else {
-			console.log("erreur du serveur!");
-		}
-	};
-	request.send();
-}
 //Choix lieu import
 function getLocations(type) {
 	$('#formImportCascading' + type).cascadingDropdown({
@@ -837,7 +870,7 @@ function getQrCodeSession(url, idImg) {
 }
 
 function initTablePresence(sortDate){
-	new DataTable("#tablePresence", {
+	var table = new DataTable("#tablePresence", {
 		responsive: true,
 		ordering: true,
 		paging: false,
@@ -864,6 +897,26 @@ function initTablePresence(sortDate){
 			}
 		]
 	});
+	
+table.on('draw', function() {
+    // Find rows with the "priority" class
+    var priorityRows = $('#tablePresence tbody tr.priority');
+
+    // Get current sort order (asc/desc)
+    var currentOrder = table.order()[0][1]; // 'asc' or 'desc'
+    
+    // Sort the priority rows manually in the same order as the table
+    priorityRows.sort(function(a, b) {
+        var dateA = moment($(a).find('td:eq(4)').text(), 'DD/MM/YY hh:mm:ss').unix();
+        var dateB = moment($(b).find('td:eq(4)').text(), 'DD/MM/YY hh:mm:ss').unix();
+
+        if (currentOrder === 'asc') {
+            return dateA - dateB; // Ascending sort
+        } else {
+            return dateB - dateA; // Descending sort
+        }
+    }).prependTo('#tablePresence tbody'); // Move sorted priority rows to the top
+});
 }
 
 function getNbItems(table) {
@@ -887,22 +940,25 @@ document.addEventListener('DOMContentLoaded', function() {
 	var userAppEppn = document.getElementById("eppn");
 	var numIdentifiant = document.getElementById("numIdentifiant");
 	var superAdmin = document.getElementById("searchSuperAdmin");
-	var searchSuEppn = document.getElementById("searchSuEppn");
+	var searchAssiduite = document.getElementById("searchAssiduite");
 
 	if (userAppEppn != null) {
 		if (superAdmin != null) {
-			searchUsersAutocomplete("eppn", emargementContextUrl + "/superadmin/admins/searchUsersLdap", "", 100);
+			searchUsersAutocomplete("eppn", emargementContextUrl + "/searchUsersLdap", "", 100);
 		} else {
-			searchUsersAutocomplete("eppn", emargementContextUrl + "/admin/userApp/searchUsersLdap", "", 100);
+			searchUsersAutocomplete("eppn", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
 		}
 		userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
 			var splitEppn = this.value.split("//");
 			userAppEppn.value = splitEppn[0].toString().trim();
+			if(document.getElementById("resultEppn")!=null){
+				$("#resultEppn").html(splitEppn[1] + " " + splitEppn[2]);
+			}
 		});
 	}
 	//input num Etu
 	if (numIdentifiant != null) {
-		searchUsersAutocomplete("eppn", emargementContextUrl + "/manager/tagCheck/searchUsersLdap", "", 100);
+		searchUsersAutocomplete("eppn", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
 		if (userAppEppn != null) {
 			userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
 				var splitEppn = this.value.split("//");
@@ -910,6 +966,18 @@ document.addEventListener('DOMContentLoaded', function() {
 				numIdentifiant.value = (typeof splitEppn[3] == "undefined") ? "" : splitEppn[3].toString().trim();
 			});
 		}
+	}
+	
+	if (searchAssiduite != null){
+		searchUsersAutocomplete("searchAssiduite", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
+		searchAssiduite.addEventListener("awesomplete-selectcomplete", function(e) {
+			var splitEppn = this.value.split("//");
+			var split3 = (splitEppn[3] == undefined)? ''  : " // " + splitEppn[3];
+			searchAssiduite.value = splitEppn[1] + " " + splitEppn[2] + split3;
+			$("#searchField").val(splitEppn[1] + " " + splitEppn[2] + split3);
+			$("#searchValue").val(splitEppn[0]);
+			$("#formSearch").submit();
+		});
 	}
 
 	//select presence
@@ -983,6 +1051,11 @@ document.addEventListener('DOMContentLoaded', function() {
 			var isPresent = event.target.checked;
 			var isPresentValue = isPresent + ',' + event.target.value;
 			updatePresence(emargementContextUrl + "/updatePresents", isPresentValue, null);
+		}
+		if (event.target.matches('.presenceChecker')) {
+			var isPresent = event.target.checked;
+			var isPresentValue = isPresent + ',' + event.target.value;
+			updatePresence(emargementContextUrl + "/updatePresentsTagChecker", isPresentValue, null);
 		}
 		if (event.target.matches('#pdfPreview')) {
 			var htmltemplate = document.getElementById("htmltemplate");
@@ -1271,7 +1344,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	var helpForm = document.getElementById('helpForm');
 	if (helpForm != null) {
-		var areaEditor = document.getElementById("areaEditor");
 		var suneditor = createSunEditor('value');
 		helpForm.addEventListener('submit', function(e) {
 			e.preventDefault();
@@ -1398,12 +1470,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
-	if (document.getElementById('icsSelect') != null) {
-		new SlimSelect({
-			select: '#icsSelect',
-			showSearch: false
-		});
-	}
 	if (document.getElementById('suList') != null) {
 		new SlimSelect({
 			select: '#suList',
@@ -1491,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					displayedIdentity2.find('#prenomPresence3').text(prenom);
 					displayedIdentity2.find('#nomPresence3').text(nom);
 					if (person != null && person.numIdentifiant != null) {
-						displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+						displayedIdentity2.find('#numIdentifiantPresence2').text('NÂ° ' + person.numIdentifiant);
 					}
 					const toastLiveExample = document.getElementById(displayedIdentity);
 					const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
@@ -1535,6 +1601,20 @@ document.addEventListener('DOMContentLoaded', function() {
 					$("#customMsg").addClass("d-none");
 				}, 2000);
 			}
+		}, false);
+
+		eventSource.addEventListener('tagChecker', response => {
+				var tagChecker = JSON.parse(response.data);
+				var sessionId = tagChecker.sessionLocation.sessionEpreuve.id;
+				var urlLocation =  $_GET("location");
+				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
+					"&location=" + urlLocation + "&tcer=true&update=" + tagChecker.id;
+				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
+					backToTop();
+					displayToast();
+					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+					initTablePresence(sortDate);
+				});
 		}, false);
 
 		if (document.getElementById('searchTagCheck') != null) {
@@ -1588,64 +1668,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
-	//Remplissage form session à partir d'ics
-	var icsEvents = document.getElementById('icsEvents');
-	if (icsEvents != null) {
-		new SlimSelect({
-			select: '#icsEvents',
-			placeholder: 'Recherche épreuve'
-		});
-		var icsSelect = document.getElementById('icsSelect');
-		icsSelect.addEventListener("change", function() {
-			setSelectEvent(this.value, "#divEvents");
-		})
-
-		$(document).on("change", "#icsEvents", function() {
-			var url = emargementContextUrl + "/manager/event/searchEvent";
-			var request = new XMLHttpRequest();
-			request.open('GET', url + "?uid=" + this.value, true);
-			request.onload = function() {
-				if (request.status >= 200 && request.status < 400) {
-					var data = JSON.parse(this.response);
-					$("#nomSessionEpreuve").val(data.summary);
-					$("#dateSessionEpreuve").val(moment(data.startDate).format('YYYY-MM-DD'));
-					$("#heureConvocation").val(moment(data.startDate).subtract(30, 'minutes').format('HH:mm'));
-					$("#heureEpreuve").val(moment(data.startDate).format('HH:mm'));
-					$("#finEpreuve").val(moment(data.endDate).format('HH:mm'));
-				} else {
-					console.log("erreur du serveur!");
-				}
-			};
-			request.send();
-		});
-	}
-	//modal events
-	var modalEvent = document.getElementById('modal-event');
-	if (modalEvent != null) {
-		$('[id^=event]').on('click', function(e) {
-			var splitId = this.id.split("-");
-			setSelectEvent(splitId[1], "#modal-body-event");
-		})
-		$('#modal-event').on('shown.bs.modal', function(event) {
-			var button = $(event.relatedTarget) // Button that triggered the modal
-			var title = button.data('whatever') // Extract info from data-* attributes
-			var modal = $(this)
-			modal.find('.modal-title').text(title)
-		})
-	}
-
-	//Locations
-	var icsEventLocations = document.getElementById('icsEventLocations');
-	if (icsEventLocations != null) {
-		new SlimSelect({
-			select: '#icsEventLocations',
-			placeholder: 'Recherche Lieu'
-		})
-		icsEventLocations.addEventListener("change", function() {
-			$("#nom").val(this.value);
-		});
-	}
-
 	//select context
 	var selectContext = document.getElementById('selectContext');
 	if (selectContext != null) {
@@ -1659,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		})
 	}
 
-	//Changement année univ
+	//Changement annÃ©e univ
 	$("#anneeUnivSelect").on("change", function(e) {
 		var annee = this.value;
 		window.location.href = window.location.pathname + "?anneeUniv=" + annee;
@@ -1716,14 +1738,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			};
 			var urls = [];
 			var configsArray = [];
-			var rootUrlSe = emargementContextUrl + "/manager/sessionEpreuve/";
-			var deleteUrl = emargementContextUrl + "/manager/sessionEpreuve/storedFiles/delete";
+			var rootUrlSe = emargementContextUrl + "/manager/storedFile/";
+			var deleteUrl = emargementContextUrl + "/manager/storedFile/delete";
 			var request = new XMLHttpRequest();
-			request.open('GET', emargementContextUrl + "/manager/sessionEpreuve/storedFiles/" + seId, true);
+			request.open('GET', emargementContextUrl + "/manager/storedFile/" + typePj + "/" + seId, true);
 			request.onload = function() {
 				if (request.status >= 200 && request.status < 400) {
 					var data = JSON.parse(this.response);
-					var seId = "";
 					data.forEach(function(value, key) {
 						urls.push(rootUrlSe + value.id + "/photo");
 						const me = Object.create(config);
@@ -1739,7 +1760,6 @@ document.addEventListener('DOMContentLoaded', function() {
 							// me.width= "120px",
 							me.key = value.id
 						configsArray.push(me);
-						seId = value.sessionEpreuve.id;
 					});
 					$("#files").fileinput({
 						theme: "fas",
@@ -1777,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 
-	//Préférence : voir sessions antérieure
+	//PrÃ©fÃ©rence : voir sessions antÃ©rieure
 	$(document).on('change', '#oldSessionsCheck', function() {
 		var value = (this.checked) ? "true" : "false";
 		var redirect = window.location.origin + window.location.pathname;
@@ -1790,7 +1810,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		request.send();
 	});
-	//Foemulaire présence
+	//Foemulaire prÃ©sence
 	$("#presencePage #location").on("change", function() {
 		$("#presenceForm").submit();
 	});
@@ -1844,7 +1864,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 		let isCodeScanned = false;
 		function tick() {
-			loadingMessage.innerText = "⌛ Loading video..."
+			loadingMessage.innerText = "âŒ› Loading video..."
 			if (video.readyState === video.HAVE_ENOUGH_DATA) {
 				loadingMessage.hidden = true;
 				canvasElement.hidden = false;
@@ -2042,7 +2062,18 @@ document.addEventListener('DOMContentLoaded', function() {
 		info: false,
 		language: {
 			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		}
+		},
+		columnDefs: [
+			{
+				targets: 0,
+				orderable: false,
+				className: 'select-checkbox', 
+				render: function(data, type, row, meta) {
+					return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+				}
+			},
+			{ type: 'date-eu', targets: 'dateItem'}
+		]
 	});
 
 	$("#codeComposante1").on("change", function(event) {
@@ -2052,8 +2083,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (selectedData == "myEvents") {
 			$('#frmt').addClass("d-none");
 		} else {
-			$("#spinnerComps").removeClass("d-none");
-			updateJsTree(selectedData, "trainee");
+			if(selectedData!="") {
+				$("#spinnerComps").removeClass("d-none");
+				updateJsTree(selectedData, "trainee");
+			}
 		}
 		table.clear().draw();
 	});
@@ -2064,8 +2097,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (selectedData == "myEvents") {
 			$('#frmt').addClass("d-none");
 		} else {
-			$("#spinnerComps").removeClass("d-none");
-			updateJsTree(selectedData, category6);
+			if(selectedData!="") {
+				$("#spinnerComps").removeClass("d-none")
+				updateJsTree(selectedData, category6);
+			}
 		}
 		table.clear().draw();
 	});
@@ -2185,30 +2220,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	var title = '';
 	
-	//Recherche assiduité
-	if(document.getElementById("assiduitePage") != null){
-		let minDate, maxDate;
-		DataTable.ext.search.push(function(settings, data, dataIndex) {
-			let min = minDate.val();
-			let max = maxDate.val();
-			let date = new Date(newDate = createDateFromString(data[4]));
-			if (
-				(min === null && max === null) ||
-				(min === null && date <= max) ||
-				(min <= date && max === null) ||
-				(min <= date && date <= max)
-			) {
-				return true;
-			}
-			return false;
-		});
-		// Create date inputs
-		minDate = new DateTime('#min', {
-			format: 'DD/MM/YY'
-		});
-		maxDate = new DateTime('#max', {
-			format: 'DD/MM/YY'
-		});
+	//Recherche assiduitÃ©
+	if(document.getElementById("assiduitePage") != null || document.getElementById("recherchePage") != null){
 		var title = '';
 		var dataTableOptions = {
 			responsive: true,
@@ -2239,18 +2252,55 @@ document.addEventListener('DOMContentLoaded', function() {
 				[10, 25, 50, -1],
 				[10, 25, 50, 'All']
 			],
-			dom: 'Bfrtilp',
+			 dom: '<"d-flex justify-content-end"fB>rt<"bottom"lip><"clear">',
 			buttons: [
-				{ extend: 'copy', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
-				{ extend: 'csv', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
-				{ extend: 'pdf', orientation: 'landscape', pageSize: 'LEGAL', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } },
-				{ extend: 'print', exportOptions: { orthogonal: 'filter', columns: ':not(.exclude)' }, title: function() { return 'assiduite_' + title; } }
+			    {
+			        extend: 'csv',
+			        className: 'btn btn-success btn-sm ms-2', // if you want the same styling like before
+			        split: [
+			            {
+			                extend: 'pdf',
+			                orientation: 'landscape',
+			                pageSize: 'LEGAL',
+			                exportOptions: {
+			                    orthogonal: 'filter',
+			                    columns: ':not(.exclude)'
+			                },
+			                title: function() { return 'assiduite_' + title; }
+			            },
+			            {
+			                extend: 'excel',
+			                exportOptions: {
+			                    orthogonal: 'filter',
+			                    columns: ':not(.exclude)'
+			                },
+			                title: function() { return 'assiduite_' + title; }
+			            },
+			            {
+			                extend: 'copy',
+			                exportOptions: {
+			                    orthogonal: 'filter',
+			                    columns: ':not(.exclude)'
+			                },
+			                title: function() { return 'assiduite_' + title; }
+			            },
+			            {
+			                extend: 'print',
+			                exportOptions: {
+			                    orthogonal: 'filter',
+			                    columns: ':not(.exclude)'
+			                },
+			                title: function() { return 'assiduite_' + title; }
+			            }
+			        ],
+			        exportOptions: {
+			            orthogonal: 'filter',
+			            columns: ':not(.exclude)'
+			        },
+			        title: function() { return 'assiduite_' + title; }
+			    }
 			]
 		}
-		//assiduité absences
-		$("#searchAbsences").on('change', function() {
-			$("#formSearch").submit();
-		});
 	}
 
 	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
@@ -2279,7 +2329,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		info: false,
 		language: {
 			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		},
+		},columnDefs: [
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', // Use the datetime-moment plugin
+				render: function(data, type, row) {
+					if (!data) { // Check if data is empty
+						return ''; // Return empty string if data is empty
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY').unix();
+					}
+					return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+				}
+			},
+			{ targets: 'no-sort', orderable: false }
+		],
 		pageLength: -1,
 		lengthMenu: [
 	        [10, 25, 50, -1],
@@ -2383,4 +2448,84 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 else for(let i = 0; i > n; i--) places.lastElementChild.remove();
         }
-});
+    });
+
+	$(".searchEtu").on('click', function() {
+		$("#searchField").val(this.text);
+	});
+	
+	//Select sessionEpreuve 
+	checkAll();
+	
+	//AssiduitÃ© dateRange
+	var start = moment();
+    var end = moment();
+	if(datesRangeSelect != ''){
+		var splitRange = datesRangeSelect.split("@");
+		start = moment(splitRange[0], "YYYY-MM-DD");
+		end = moment(splitRange[1], "YYYY-MM-DD");
+	}
+
+    function cb(start, end) {
+		if (start && end) {
+	        $('#reportrange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
+	    }
+    }
+
+    $('#reportrange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+			"Aujourd'hui": [moment(), moment()],
+			"Hier": [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+			'Cette semaine': [
+	            moment().startOf('isoWeek'),  // Monday of the current week
+	            moment().endOf('isoWeek')     // Sunday of the current week
+	        ],
+			'Mois courant': [moment().startOf('month'), moment().endOf('month')],
+			'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+	        'AnnÃ©e universitaire': [
+	            // If current month is January-August, show the range of the previous September to this August
+	            moment().month(8).startOf('month').subtract(moment().month() < 8 ? 1 : 0, 'year').startOf('day'),
+	            moment().month(7).endOf('month').add(moment().month() >= 8 ? 1 : 0, 'year').endOf('day')
+	        ]
+        },
+	    locale: {
+	        customRangeLabel: 'Dates personnalisÃ©es',
+	        applyLabel: 'Valider',
+        	cancelLabel: 'Annuler'
+	    }
+    }, cb);
+
+    cb(start, end);
+    
+	$('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+		$("#datesRange").val(picker.startDate.format('YYYY-MM-DD') + "@" + picker.endDate.format('YYYY-MM-DD'));
+		$("#formSearch").submit();
+	});
+	
+	$(".assiduiteControl").on("change", function(event) {
+		$("#formSearch").submit();
+	});
+	
+	$('#searchAssiduite').focus(function() {
+		if ($(this).val() !== '') {
+			$(this).val(''); 
+			$("#searchField").val("");
+			$("#searchValue").val("");
+		}
+	});
+	if(document.getElementById("groupe") != null){
+		new SlimSelect({select: '#groupe'});
+	}
+	$("#clearFilters").on("click", function(event) {
+		window.location.href = window.location.origin + window.location.pathname;
+	});
+	$("#updateSecondTag").on("change", function(event) {
+		$("#formSecondTag").submit();
+	});
+	
+	initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents')
+	initSelectCheckBoxes('my-select2', 'Rechercher dans ceux dÃ©jÃ  utilisÃ©s')
+
+//});

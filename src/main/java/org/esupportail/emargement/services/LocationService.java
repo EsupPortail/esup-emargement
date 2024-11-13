@@ -39,13 +39,12 @@ public class LocationService {
 	private final File file;
 	private final Map<Long, Plan> plans;
 	private final LocationRepository repository;
-	private final EventService eventService;
 
 	@Autowired
 	LocationRepository locationRepository;
 
 	@Autowired 
-	public LocationService(PlanConfig conf, LocationRepository r, EventService eS) throws StreamReadException, DatabindException, IOException {
+	public LocationService(PlanConfig conf, LocationRepository r) throws StreamReadException, DatabindException, IOException {
 		Path path;
 		File file;
 		Map<Long, Plan> plans;
@@ -59,7 +58,6 @@ public class LocationService {
 		this.file = file;
 		this.plans = plans;
 		repository = r;
-		eventService = eS;
 	}
 
 	public boolean existsById(Long id) {
@@ -118,12 +116,12 @@ public class LocationService {
 
 	public List<String> getSuggestedLocation() throws IOException, ParserException {
 
-		List<String> locationsFromIcs = eventService.getLocationsFromICs(eventService.getAllUrlList());
+		// List<String> locationsFromIcs = eventService.getLocationsFromICs(eventService.getAllUrlList());
 		List<String> locations =  locationRepository.findAll().stream().map(l -> l.getNom().trim()).collect(Collectors.toList());
-		locationsFromIcs.removeAll(locations);
-		return locationsFromIcs;
+		// locationsFromIcs.removeAll(locations);
+		// return locationsFromIcs;
+		return locations;
 	}
-
 
 	public List<SessionEpreuve> findSessions(Long id) { return repository.findSessionByLocation_IdAndStatutNotClosed(id); }
 	public Page<Location> findByNomStartsWith(String nom, Pageable p) {

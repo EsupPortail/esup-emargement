@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Help;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class HelpService {
@@ -36,7 +36,7 @@ public class HelpService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public List<String> getHelpCategories(){
-		List<String> list = Arrays.asList("context", "admins", "help", "userApp", "campus", "location", "logs", "appliConfig", "tagCheck", "tagChecker", "event",
+		List<String> list = Arrays.asList("context", "admins", "help", "userApp", "campus", "location", "logs", "appliConfig", "tagCheck", "tagChecker",
 										"sessionEpreuve", "sessionLocation", "extraction", "repartition", "convocation", "consignes", "presence", "stats", "individu", 
 										"calendrier", "su", "dashboard", "groupe", "user", "apps", "archives", "typeSession", "adeCampus");
 		Collections.sort(list);
@@ -58,7 +58,7 @@ public class HelpService {
 		List <String> listKey = getHelpCategories();
 		List <Help> list = helpRepository.findAll();
 		List <String> currentKeys = list.stream().map(o -> o.getKey()).collect(Collectors.toList());
-		List <String> newListKey = new ArrayList<String>();
+		List <String> newListKey = new ArrayList<>();
 		
 		for (String key : listKey){
 			if(!currentKeys.contains(key)) {
