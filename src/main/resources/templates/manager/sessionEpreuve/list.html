@@ -11,165 +11,156 @@
 	    			<div class="alert alert-primary alert-dismissible fade show font-weight-bold" th:if="${bilanCsv}" >
 	    				<span th:text="${bilanCsv}"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 	    			</div>
-	    			<div class="row">
+	    			<div class="row align-items-center">
 			    		<div class="col-auto">
 					    	<h2>Sessions</h2>
 					    </div>
-					    <div class="col">
-						    <div class="row float-end">
-							    <div class="col-auto" id="sessionSearch">
-							    	<form action="#" id="formSearch" th:object="${sessionSearch}" th:action="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">
-										<input type="hidden" name="multiSearch" value="true" />
-										<div class="row float-end">
-											<div class="col-auto">
-												<input type="text" th:field="*{id}" pattern="[0-9.]+"
-													class="form-control" placeholder="Recherche sur  nom, site"
-													id="searchSessionEpreuve" >
-											</div>
-											<div class="col-auto">											
-												<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-												  <input th:checked="${dateSessions eq 'day'}" type="radio" class="btn-check" name="dateSessions" 
-												  	id="btnradio1" value="day" autocomplete="off">
-												  <label class="btn btn-outline-primary" for="btnradio1">Jour</label>
-												
-												  <input th:checked="${dateSessions eq 'week'}" type="radio" class="btn-check" name="dateSessions" 
-												  	id="btnradio2" value="week" autocomplete="off">
-												  <label class="btn btn-outline-primary" for="btnradio2">Semaine</label>
-												
-												  <input th:checked="${dateSessions eq 'month'}" type="radio" class="btn-check" name="dateSessions" 
-												  	id="btnradio3"  value="month" autocomplete="off">
-												  <label class="btn btn-outline-primary" for="btnradio3">Mois</label>
-												  
-												  <input th:checked="${dateSessions eq 'all'}" type="radio" class="btn-check" name="dateSessions" 
-												  	id="btnradio4"  value="all" autocomplete="off">
-												  <label class="btn btn-outline-primary" for="btnradio4">Tout</label>											  
-												</div>
-											</div>
-											<div class="col-auto">
-												<select class="form-select" name="view" title="Choisir évènements">
-													<option value="all" th:selected="${view eq 'all'}">Tout</option>
-													<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
-													<th:block th:if="${userApp!= null and userApp.speciality ne null}">
-														<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
-													</th:block>
-												</select>
-											</div>
-											<div class="col-auto">
-												<select class="form-select" title="Tous les sites" th:field="*{campus}">
-													<option value="">-- SITES --</option>
-												    <option th:each="campus : ${sites}" 
-												        th:value="${campus.id}" th:text="${campus.site}"></option>
-												</select>
-											</div>
-											<div class="col-auto"  th:if="${#maps.size(typesSession)>1}">
-												<select class="form-select" title="Tous les types" th:field="*{typeSession}">
-													<option value="">-- TYPES --</option>
-												    <option th:each="type : ${typesSession}" 
-												        th:value="${type.key}" th:text="${type.value}"></option>
-												</select>
-											</div>										
-											<div class="col-auto">
-												<select class="form-select" title="Tous les statuts" th:field="*{statut}">
-													<option value="">-- STATUTS --</option>
-												    <option th:each="statut1 : ${statuts}" 
-												        th:value="${statut1}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut1)}}"></option>
-												</select>
-											</div>
-											<div class="col-auto">
-												<select th:field="*{anneeUniv}"
-													class="form-select  col-auto">
-													<option th:each="year, iStat : ${years}"
-														th:value="${#strings.substringBefore(year,'/')}"
-														th:text="${year}"
-														></option>
-												</select>
-											</div>
-											<div class="col-auto mt-1">
-												<a title="Annuler recherche" id="resetSearch"
-													class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
-											</div>
-											<div class="col-auto">
-												<a class="btn btn-info ms-1" title="Import CSV" data-bs-toggle="modal" data-bs-target="#importCsvModal"><i class="fa-solid fa-file-import"></i></a>
-												<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
-												<a class="btn btn-success ms-1"th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}"><i class="fas fa-hands-wash"></i></a>
-									    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" 
-									    			class="btn btn-primary" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
-									    		<a class="btn btn-danger ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="Actions"
-									    		data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-tasks"></i></a>
-										    </div>
+					    <div class="col" id="sessionSearch">
+					    	<form id="formSearch" th:object="${sessionSearch}" class="row gx-2 gy-2 align-items-center justify-content-end" th:action="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">
+								<input type="hidden" name="multiSearch" value="true" />
+									<div class="col-12 col-md-auto">
+										<input type="text" th:field="*{id}" pattern="[0-9.]+"
+											class="form-control" placeholder="Recherche sur  nom, site"
+											id="searchSessionEpreuve" >
+									</div>
+									<div class="col-12 col-md-auto">
+										<div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+										  <input th:checked="${dateSessions eq 'day'}" type="radio" class="btn-check" name="dateSessions" 
+										  	id="btnradio1" value="day" autocomplete="off">
+										  <label class="btn btn-outline-primary" for="btnradio1">Jour</label>
+										  <input th:checked="${dateSessions eq 'week'}" type="radio" class="btn-check" name="dateSessions" 
+										  	id="btnradio2" value="week" autocomplete="off">
+										  <label class="btn btn-outline-primary" for="btnradio2">Semaine</label>
+										  <input th:checked="${dateSessions eq 'month'}" type="radio" class="btn-check" name="dateSessions" 
+										  	id="btnradio3"  value="month" autocomplete="off">
+										  <label class="btn btn-outline-primary" for="btnradio3">Mois</label>
+										  <input th:checked="${dateSessions eq 'all'}" type="radio" class="btn-check" name="dateSessions" 
+										  	id="btnradio4"  value="all" autocomplete="off">
+										  <label class="btn btn-outline-primary" for="btnradio4">Tout</label>
 										</div>
-									</form>
-								</div>
-								<!-- Modal -->
-								<div class="modal fade" id="importCsvModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-								  <div class="modal-dialog modal-lg">
-								    <div class="modal-content">
-								      <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/importCsv(ctx=${eContext})}"
-											enctype="multipart/form-data" method="post">
-									      <div class="modal-header">
-									        <h1 class="modal-title fs-5" id="exampleModalLabel">Import sessions</h1>
-									        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-									      </div>
-											<div class="modal-body">
-												<p>Lla preimére ligne du CSV doit-être :</p>
-												<strong class="bg-secondarys">nom,type,site,date_debut,date_fin,heure_debut,heure_fin,commentaire,statut,session_libre</strong><br />
-												<ul>
-													<li>Le type de session doit être un des codes du menu 'admin'</li>
-													<li>les dates de début et de fin doivent-être au format dd/MM/yyyy</li>
-													<li>les heures de début et de fin doivent-être au format HH:mm</li>
-													<li>Le commentaire, le statut et la session_libre ne sont pas obligatoires</li>
-													<li>Si le statut est vide, il sera valué à "En attente", si valué à "O" à "Ouvert"</li>
-													<li>Session libre si valué à "O"</li>
-												</ul>
-												<div class="row mb-3">
-													<label for="files" class="col-lg-2 form-label">Fichier</label>
-													<div class="col-lg-10">
-														<input type="file" id="files" name="files" class="file" multiple="multiple">
-													</div>
-												</div>
-											</div>
-									      <div class="modal-footer">
-									        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-									        <button type="submit" class="btn btn-success">Envoyer</button>
-									      </div>
-								      </form>
+									</div>
+									<div class="col-12 col-md-auto">
+										<select class="form-select" id="view" name="view" title="Choisir évènements">
+											<option value="all" th:selected="${view eq 'all'}">Tout</option>
+											<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
+											<th:block th:if="${userApp!= null and userApp.speciality ne null and userApp.speciality ne ''}">
+												<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
+											</th:block>
+										</select>
+									</div>
+									<div class="col-12 col-md-auto">
+										<select class="form-select" title="Tous les sites" th:field="*{campus}">
+											<option value="">-- SITES --</option>
+										    <option th:each="campus : ${sites}" 
+										        th:value="${campus.id}" th:text="${campus.site}"></option>
+										</select>
+									</div>
+									<div class="col-12 col-md-auto" th:if="${#maps.size(typesSession)>1}">
+										<select class="form-select" title="Tous les types" th:field="*{typeSession}">
+											<option value="">-- TYPES --</option>
+										    <option th:each="type : ${typesSession}" 
+										        th:value="${type.key}" th:text="${type.value}"></option>
+										</select>
+									</div>										
+									<div class="col-12 col-md-auto">
+										<select class="form-select" title="Tous les statuts" th:field="*{statut}">
+											<option value="">-- STATUTS --</option>
+										    <option th:each="statut1 : ${statuts}" 
+										        th:value="${statut1}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut1)}}"></option>
+										</select>
+									</div>
+									<div class="col-12 col-md-auto">
+										<select th:field="*{anneeUniv}"
+											class="form-select  col-auto">
+											<option th:each="year, iStat : ${years}"
+												th:value="${#strings.substringBefore(year,'/')}"
+												th:text="${year}"
+												></option>
+										</select>
+									</div>
+									<div class="col-12 col-md-auto">
+										<a title="Annuler recherche" id="resetSearch"
+											class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
+									</div>
+									<div class="col-12 col-md-auto d-flex align-items-center">
+										<a class="btn btn-info ms-1" title="Import CSV" data-bs-toggle="modal" data-bs-target="#importCsvModal"><i class="fa-solid fa-file-import"></i></a>
+										<a class="btn btn-warning ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON"><i class="fas fa-download"></i></a>
+										<a class="btn btn-success ms-1"th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}" title="Nettoyage sessions"><i class="fas fa-hands-wash"></i></a>
+							    		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" 
+							    			class="btn btn-primary ms-1" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+							    		<a class="btn btn-danger ms-1" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="Actions"
+							    		data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fas fa-tasks"></i></a>
 								    </div>
-								  </div>
-								</div>
-								<div class="modal fade" id="exampleModal" tabindex="-1"  aria-hidden="true">
-								  <div class="modal-dialog">
-								  <form th:action="@{/{ctx}/manager/sessionEpreuve/actions(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
-								  	<input type="hidden" id="checkedValues" name="checkedValues" value="">
-								    <div class="modal-content">
-								      <div class="modal-header">
-								        <h1 class="modal-title fs-5">ACTIONS</h1>
-								        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-								      </div>
-								      <div class="modal-body">
-								      	<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
-										<div class="form-check">
-										  <input class="form-check-input" type="radio" name="action" id="action1" value="delete" checked>
-										  <label class="form-check-label" for="action1">
-										    Supprimer les sessions
-										  </label>
+							</form>
+						</div>
+						<!-- Modal -->
+						<div class="modal fade" id="importCsvModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+						  <div class="modal-dialog modal-lg">
+						    <div class="modal-content">
+						      <form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/importCsv(ctx=${eContext})}"
+									enctype="multipart/form-data" method="post">
+							      <div class="modal-header">
+							        <h1 class="modal-title fs-5" id="exampleModalLabel">Import sessions</h1>
+							        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							      </div>
+									<div class="modal-body">
+										<p>Lla preimére ligne du CSV doit-être :</p>
+										<strong class="bg-secondarys">nom,type,site,date_debut,date_fin,heure_debut,heure_fin,commentaire,statut,session_libre</strong><br />
+										<ul>
+											<li>Le type de session doit être un des codes du menu 'admin'</li>
+											<li>les dates de début et de fin doivent-être au format dd/MM/yyyy</li>
+											<li>les heures de début et de fin doivent-être au format HH:mm</li>
+											<li>Le commentaire, le statut et la session_libre ne sont pas obligatoires</li>
+											<li>Si le statut est vide, il sera valué à "En attente", si valué à "O" à "Ouvert"</li>
+											<li>Session libre si valué à "O"</li>
+										</ul>
+										<div class="row mb-3">
+											<label for="files" class="col-lg-2 form-label">Fichier</label>
+											<div class="col-lg-10">
+												<input type="file" id="files" name="files" class="file" multiple="multiple">
+											</div>
 										</div>
-										<div class="form-check">
-										  <input class="form-check-input" type="radio" name="action" value="close" id="action2" >
-										  <label class="form-check-label" for="action2">
-										    Clôturer les sessions
-										  </label>
-										</div>
-								      </div>
-								      <div class="modal-footer">
-								        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-								        <button  type="submit" class="btn btn-success">Valider</button>
-								      </div>
-								    </div>
-								    </form>
-								  </div>
-								</div>
+									</div>
+							      <div class="modal-footer">
+							        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+							        <button type="submit" class="btn btn-success">Envoyer</button>
+							      </div>
+						      </form>
 						    </div>
-					    </div> 
+						  </div>
+						</div>
+						<div class="modal fade" id="exampleModal" tabindex="-1"  aria-hidden="true">
+						  <div class="modal-dialog">
+						  <form th:action="@{/{ctx}/manager/sessionEpreuve/actions(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+						  	<input type="hidden" id="checkedValues" name="checkedValues" value="">
+						    <div class="modal-content">
+						      <div class="modal-header">
+						        <h1 class="modal-title fs-5">ACTIONS</h1>
+						        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						      </div>
+						      <div class="modal-body">
+						      	<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
+								<div class="form-check">
+								  <input class="form-check-input" type="radio" name="action" id="action1" value="delete" checked>
+								  <label class="form-check-label" for="action1">
+								    Supprimer les sessions
+								  </label>
+								</div>
+								<div class="form-check">
+								  <input class="form-check-input" type="radio" name="action" value="close" id="action2" >
+								  <label class="form-check-label" for="action2">
+								    Clôturer les sessions
+								  </label>
+								</div>
+						      </div>
+						      <div class="modal-footer">
+						        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						        <button  type="submit" class="btn btn-success">Valider</button>
+						      </div>
+						    </div>
+						    </form>
+						  </div>
+						</div>
 	    			</div>
 				</div>         	
   				<div class="card-body">

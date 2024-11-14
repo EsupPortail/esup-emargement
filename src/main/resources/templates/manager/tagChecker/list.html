@@ -7,27 +7,29 @@
 		<div class="container-fluid">
          	<div class="card">
 	    		<div class="card-header">
-	    			<div class="row">
-			    		<div class="col">
-				    		<h2>Surveillants</h2>
-				    		<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-							#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
-							<small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
-							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>			    		
-		    			</div>
-						<div class="col">
-						    <div class="float-end">
-						    	<a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    							title="Ajouter des surveillants" class="btn btn-success me-2">Ajouter des lieux</a>
-	    						<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    						title="Ajouter des inscrits" class="btn btn-warning me-2">Ajouter des inscrits</a>
-					    		<a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-					    		class="btn btn-primary col-auto" th:if="${!isSessionEpreuveClosed}" title="Ajouter un surveillant"><i class="fa fa-plus fa-lg"></i></a>
-					    		<a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" 
-					    			th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" class="btn btn-info  col-auto  ms-2" title="Consignes"><i class="fa fa-envelope"></i></a>
-						    </div>
-						</div>		    			
-	    			</div>
+					<div class="row align-items-center">
+					    <div class="col-12 col-md">
+					        <h2>Surveillants</h2>
+					        <small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
+					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					    </div>
+					    <div class="col-12 col-md-auto">
+					        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+					            <div class="btn-group me-2">
+					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
+					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
+					                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
+					            </div>    
+					            <a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary" th:if="${!isSessionEpreuveClosed}" title="Ajouter un surveillant">
+					                <i class="fa fa-plus fa-lg"></i>
+					            </a>
+					            <a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-info ms-2" th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" title="Consignes">
+					                <i class="fa fa-envelope"></i>
+					            </a>
+					        </div>
+					    </div>
+					</div>
 				</div>         	
   				<div class="card-body">
 		    		<div class="alert alert-danger" th:if="${error}">Le surveillant <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 

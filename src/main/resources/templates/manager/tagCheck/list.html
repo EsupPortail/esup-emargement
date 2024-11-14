@@ -25,45 +25,36 @@
 					</div>
 				</div>
 	    		<div class="card-header">
-	    			<div class="row">
-		    			<div class="col">
-			    			<h2>Inscrits <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span></h2>
-					    	<span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-								#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span>
-							<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
-							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>
-						</div>
-		    			<div class="col">
-		    				<div class="row float-end">
-								<div class="col-auto">
-	    							<a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    							title="Ajouter des surveillants" class="btn btn-success me-2">Ajouter des lieux</a>
-									<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    								title="Ajouter des surveillants" class="btn btn-secondary me-2">Ajouter des surveillants</a>
-									<button th:if="${countTagChecks>0}" class="btn btn-info" type="button" data-bs-toggle="collapse" 
-										data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
-									<a th:if="${!isSessionEpreuveClosed and !isSessionLibre}" title="Ajouter un inscrit" 
-									th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-					    				class="btn btn-primary ms-2"><i class="fa fa-plus fa-lg"></i></a>
-									<a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed and !isSessionLibre}"
-										class="btn btn-warning ms-2" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary "></i></a>
-									<a	th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:if="${countTagChecks>0 and !isSessionEpreuveClosed}" 
-										class="btn btn-danger ms-2" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
-									<button th:if="${countTagChecks>0 and !isSessionEpreuveClosed and isConvocationEnabled}" title="Convocations" type="button" data-bs-toggle="modal" class="btn btn-secondary" data-bs-target="#convocModal"><i class="fa fa-envelope"></i></button>
-									<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" class="btn btn-secondary ms-2" title="Envoyer un qrCode de participation" data-bs-toggle="modal"  data-bs-target="#qrCodeModal"><i class="fas fa-qrcode"></i></button>
-									<button th:if="${countForButtonLinkOrQrCode > 0 and !isSessionEpreuveClosed and isLinkEmargerEnabled}" class="btn btn-info"  title="Envoyer un lien de particiaption à distance" data-bs-toggle="modal"  data-bs-target="#lienParticipationModal"><i class="fas fa-link"></i></button>
-									<button id="btnExport" th:if="${countTagChecks >0}" class="btn btn-success btnTooltip ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#exportCollapse" 
-										title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
-			    				</div>
-							</div>
-						</div>
-						<div class="alert alert-danger col-lg-12 mt-2 mb-0" th:if="${!isSessionLibre and (countRepartition > 0 or countUnknown > 0 or isConvocationEnabled and countConvocations > 0 
-									or countCheckedBycard > 0 or notInLdap > 0)}">
-							<span th:if="${countRepartition > 0}" class="font-weight-bold text-danger me-2" th:text="${'A répartir : ' + countRepartition}"></span>
-							<span th:if="${countUnknown > 0}" class="bg-warning p-2 font-weight-bold text-danger me-2" th:text="${'Intrus : ' + countUnknown}"></span>
-							<span th:if="${isConvocationEnabled and countConvocations > 0 and !isSessionLibre}" class="text-primary font-weight-bold " th:text="${'Convocations à envoyer : ' + countConvocations}"></span>
-							<span th:if="${notInLdap > 0}" class="text-info font-weight-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
-						</div>
+					<div class="row align-items-center">
+					    <div class="col-12 col-md">
+					        <h2>Inscrits <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span></h2>
+					        <span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' + sessionEpreuve.campus.site}"></span>
+					        <span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					    </div>
+					    <div class="col-12 col-md-auto">
+					        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+					            <div class="btn-group me-2">
+					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
+					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
+					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-secondary" title="Ajouter des surveillants">Ajout surveillants</a>
+					            </div>
+					            <button th:if="${countTagChecks > 0}" class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
+					            <a th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary ms-2" th:if="${!isSessionEpreuveClosed && !isSessionLibre}" title="Ajouter un inscrit"><i class="fa fa-plus fa-lg"></i></a>
+					            <a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning ms-2" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && !isSessionLibre}" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary"></i></a>
+					            <a th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-danger ms-2" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed}" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
+					            <button type="button" class="btn btn-secondary" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && isConvocationEnabled}" data-bs-toggle="modal" data-bs-target="#convocModal" title="Convocations"><i class="fa fa-envelope"></i></button>
+					            <button type="button" class="btn btn-secondary ms-2" th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed && isQrCodeEnabled}" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="Envoyer un QR Code de participation"><i class="fas fa-qrcode"></i></button>
+					            <button type="button" class="btn btn-info ms-2" th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed && isLinkEmargerEnabled}" data-bs-toggle="modal" data-bs-target="#lienParticipationModal" title="Envoyer un lien de participation à distance"><i class="fas fa-link"></i></button>
+					            <button type="button" class="btn btn-success btnTooltip ms-2" id="btnExport" th:if="${countTagChecks > 0}" data-bs-toggle="collapse" data-bs-target="#exportCollapse" title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
+					        </div>
+					    </div>
+					    <div class="alert alert-danger mt-2 mb-0 col-12" th:if="${!isSessionLibre && (countRepartition > 0 || countUnknown > 0 || (isConvocationEnabled && countConvocations > 0) || countCheckedBycard > 0 || notInLdap > 0)}">
+					        <span class="font-weight-bold text-danger me-2" th:if="${countRepartition > 0}" th:text="'A répartir : ' + countRepartition"></span>
+					        <span class="bg-warning p-2 font-weight-bold text-danger me-2" th:if="${countUnknown > 0}" th:text="'Intrus : ' + countUnknown"></span>
+					        <span class="text-primary font-weight-bold" th:if="${isConvocationEnabled && countConvocations > 0 && !isSessionLibre}" th:text="'Convocations à envoyer : ' + countConvocations"></span>
+					        <span class="text-info font-weight-bold" th:if="${notInLdap > 0}" th:text="'Incrit(s) non présent(s) dans le LDAP : ' + notInLdap"></span>
+					    </div>
 					</div>
 	    		</div>           	
   				<div class="card-body">

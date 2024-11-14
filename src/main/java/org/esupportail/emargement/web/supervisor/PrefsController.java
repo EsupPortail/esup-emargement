@@ -50,7 +50,7 @@ public class PrefsController {
 	PreferencesService preferencesService;
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return  ITEM;
 	}
 	
@@ -59,15 +59,17 @@ public class PrefsController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 		Map<String, Long> mapCtxs = userDetails.getAvailableContextIds();
-		Map<String, Long> otherCtxs = new HashMap<String, Long>();
+		Map<String, Long> otherCtxs = new HashMap<>();
 		otherCtxs.putAll(mapCtxs);
-		LinkedHashMap<UserApp,Context> map = new LinkedHashMap<UserApp, Context>();
+		LinkedHashMap<UserApp,Context> map = new LinkedHashMap<>();
 		String eppn = auth.getName();
 		List<Object[]> ctxs = contextRepository.findByEppn(eppn);
 		for(Object[] o : ctxs) {
 			Context c = contextRepository.findByKey(o[1].toString());
 			UserApp userApp = userAppRepository.findByEppnContext(eppn, c.getId());
-			map.put(userApp, c);
+			if(c.getIsActif()) {
+				map.put(userApp, c);
+			}
 			otherCtxs.remove(c.getKey());
 		}
 		

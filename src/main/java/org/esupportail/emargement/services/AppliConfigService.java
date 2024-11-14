@@ -59,14 +59,13 @@ public class AppliConfigService {
 	protected AppliConfig getAppliConfigByKeyAndContext(AppliConfigKey appliConfigKey, Context context) {
 		if(!appliConfigRepository.findAppliConfigByKeyAndContext(appliConfigKey.name(), context).isEmpty()) {
 			return	appliConfigRepository.findAppliConfigByKeyAndContext(appliConfigKey.name(), context).get(0);
-		}else {
-			return null;
 		}
+		return null;
 	}
 	
 	private List<String> splitConfigValues(AppliConfig appliConfig) {
 		String userTypeAsString = appliConfig.getValue();
-		List<String> userTypes = new ArrayList<String>();
+		List<String> userTypes = new ArrayList<>();
 		if(userTypeAsString.contains(DELIMITER_MULTIPLE_VALUES)) {
 			userTypes = Arrays.asList(userTypeAsString.split(DELIMITER_MULTIPLE_VALUES));
 		}else {
@@ -254,13 +253,17 @@ public class AppliConfigService {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.DISPLAY_TAGCHECKER);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
+	
+	public Long checkCategory(Context context, String key) {
+		return appliConfigRepository.countByContextAndKeyAndCategory(context, key, null);
+	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
 		List <AppliConfigKey> listKey = Arrays.asList(AppliConfigKey.values());
 		List <AppliConfig> list = appliConfigRepository.findAppliConfigByContext(context);
 		List <String> currentKeys = list.stream().map(o -> o.getKey()).collect(Collectors.toList());
 		
-		List <AppliConfigKey> newListKey = new ArrayList<AppliConfigKey>();
+		List <AppliConfigKey> newListKey = new ArrayList<>();
 		
 		for (AppliConfigKey key : listKey){
 			if(!currentKeys.contains(key.name())) {
@@ -290,6 +293,19 @@ public class AppliConfigService {
 			log.info("Ajout des configs " +list + " pour le contexte : " + context.getKey());
 			logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Ajout de configs " + list , null,  null, context.getKey(), null);
 		}
+		Long test = checkCategory(context, "ADE_ENABLED");
+		if(test>0) {
+			List <AppliConfig> updateList = appliConfigRepository.findAppliConfigByContext(context);
+			for(AppliConfig app : updateList) {
+				String suffixe = app.getKey().toLowerCase();
+				app.setCategory(messageSource.getMessage("config.cat.".concat(suffixe), null, null));
+				nb++;
+			}
+			log.info("Modification des configs " +list + " pour le contexte : " + context.getKey());
+			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Modification de configs : ctatégories " , null,  null, context.getKey(), null);
+		}
+		
 		return nb;
 	}
+	
 }

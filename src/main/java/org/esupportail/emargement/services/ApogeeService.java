@@ -535,24 +535,7 @@ public class ApogeeService {
 
         return finalList;
     }
-/*
-    public  List<List<String>> getListeFutursInscritsDirectImport(ApogeeBean apogeeBean){
-    	
-<<<<<<< HEAD
-		List<ApogeeBean> futursInscrits = getListeFutursInscrits(apogeeBean);
-		List<List<String>> finalList = new ArrayList<List<String>>();
-=======
-		List<List<String>> finalList = new ArrayList<>();
->>>>>>> 50aaf2c001c51c1a6c07b3153786341c5b261aab
-		for(ApogeeBean ab : futursInscrits ) {
-			List<String> strings = new ArrayList<>();
-			strings.add(ab.getCodEtu());
-			finalList.add(strings);
-		}
 
-        return finalList;
-    }
-*/
     public int countAutorises(String param, ApogeeBean apogeeBean) {
         int count = 0;
         switch(param){

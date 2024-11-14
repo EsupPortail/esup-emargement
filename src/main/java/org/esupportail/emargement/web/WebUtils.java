@@ -16,7 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class WebUtils {
-
+	
 	private static final Logger log = LoggerFactory.getLogger(WebUtils.class);
 
 	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js", "wsrest", "images", "favicon.ico"});
@@ -39,9 +39,8 @@ public class WebUtils {
 		 if(auth != null && auth.getPrincipal() instanceof ContextUserDetails) {
 			 ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 			 return userDetails.getAvailableContexts();
-		 } else {
-			 return new ArrayList<String>();
 		 }
+		return new ArrayList<>();
 	}
 
 	public static boolean isUser() {
@@ -82,17 +81,14 @@ public class WebUtils {
 		if(auth != null&& auth.getAuthorities() != null){
 			if(auth.getCredentials()!=null) {
 				return auth.getAuthorities().contains(new SimpleGrantedAuthority(roleName));
-			}else {
-				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
-				if("ROLE_PREVIOUS_ADMINISTRATOR".equals(roleName)) {
-					return auth.getAuthorities().toString().contains("ROLE_PREVIOUS_ADMINISTRATOR");
-				}else {
-					Collection<SimpleGrantedAuthority> authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
-					return authorities.contains(new SimpleGrantedAuthority(roleName));
-				}
 			}
-		}else {
-			return false;
+			ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
+			if("ROLE_PREVIOUS_ADMINISTRATOR".equals(roleName)) {
+				return auth.getAuthorities().toString().contains("ROLE_PREVIOUS_ADMINISTRATOR");
+			}
+			Collection<SimpleGrantedAuthority> authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
+			return authorities.contains(new SimpleGrantedAuthority(roleName));
 		}
+		return false;
 	}
 }

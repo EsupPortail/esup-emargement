@@ -31,6 +31,10 @@ public class StartupRunner implements CommandLineRunner {
         	for (Context context : contexts) {
         		appliConfigService.updateAppliconfig(context);
         		typeSessionService.updateTypeSession(context.getKey());
+        		if(context.getIsActif()==null) {
+        			context.setIsActif(true);
+        			contextRepository.save(context);
+        		}
         	}
         }
     }

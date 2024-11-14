@@ -7,23 +7,30 @@
 		<div class="container-fluid">
          	<div class="card">
 	    		<div class="card-header">
-		    		<div class="row">
-			    		<div class="col">
-				    		<h2>Lieux de Session </h2>
-				    		<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-							#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
-							<small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
-							<span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'" ></span>					    		
-		    			</div>
-						<div class="col" th:if="${!isSessionEpreuveClosed}">
-							<a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" title="Ajouter un lieu de session" 
-	    						class="btn btn-primary float-end me-2"><i class="fa fa-plus fa-lg"></i></a>						
-	    					<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    						title="Ajouter des surveillants" class="btn btn-secondary float-end me-2">Ajouter des surveillants</a>
-	    					<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-	    						title="Ajouter des inscrits" class="btn btn-warning float-end me-2">Ajouter des inscrits</a>
-						</div>		    			
-		    		</div>
+					<div class="row align-items-center">
+					    <div class="col-12 col-md">
+					        <h2>Lieux de Session</h2>
+					        <small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' + sessionEpreuve.campus.site}"></small>
+					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					    </div>
+					    <div class="col-12 col-md-auto" th:if="${!isSessionEpreuveClosed}">
+					        <div class="d-flex justify-content-md-end gap-2">
+					            <div class="btn-group">
+					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" 
+					                   class="btn btn-primary" title="Retour sessions">Sessions</a>
+					                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+					                   class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
+					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+					                   class="btn btn-secondary" title="Ajouter des surveillants">Ajout surveillants</a>
+					            </div>
+					            <a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
+					               class="btn btn-primary" title="Ajouter un lieu de session">
+					                <i class="fa fa-plus fa-lg"></i>
+					            </a>					            
+					        </div>
+					    </div>
+					</div>
 	    		</div>         	
   				<div class="card-body">
    					<div class="alert alert-danger" th:if="${error}">Le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 

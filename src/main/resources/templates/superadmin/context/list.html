@@ -31,6 +31,7 @@
 									<th scope="col" class="d-none d-sm-table-cell  d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="createur">Créateur</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de modification</th>
+									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Actif</th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -42,6 +43,11 @@
 									<td th:text="${context.createur}" class="d-none d-sm-table-cell  d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(context.dateCreation, 'dd-MM-yyyy HH:mm')}"  class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${#dates.format(context.dateModification, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>									
+									<td class ="center">
+										<th:block th:if="${context.isActif}">
+											<i class="fa fa-check text-success"></i>
+										</th:block>
+									</td>
 									<td class ="center"><a th:href="@{/{ctx}/superadmin/context/{id}(id=${context.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:href="@{/{ctx}/superadmin/context/{id}?form(id=${context.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ms-2"></i></a>
 										<a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${context.id }"><i class="fa fa-trash text-danger ms-2"></i></a>

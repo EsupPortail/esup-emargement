@@ -1,7 +1,5 @@
 package org.esupportail.emargement.web;
 
-import java.io.IOException;
-
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.security.ContextUserDetails;
@@ -22,12 +20,12 @@ public class GlobalControllerAdvice {
 	private String appVersion;
 
     @ModelAttribute("appVersion")
-    public String appVersion() throws IOException {
+    public String appVersion() {
         return appVersion;
     }
     
     @ModelAttribute("name")
-    public String displayName() throws IOException {
+    public String displayName() {
     	String displayName = "";
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(auth != null && !"anonymousUser".equals(auth.getPrincipal())) {

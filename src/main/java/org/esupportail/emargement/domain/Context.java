@@ -29,6 +29,8 @@ public class Context {
 	private @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm")
 	Date dateModification;
 	
+	private Boolean isActif;
+	
 	public Long getId() {
 		return id;
 	}
@@ -83,6 +85,14 @@ public class Context {
 
 	public void setCommentaire(String commentaire) {
 		this.commentaire = commentaire;
+	}
+
+	public Boolean getIsActif() {
+		return isActif;
+	}
+
+	public void setIsActif(Boolean isActif) {
+		this.isActif = isActif;
 	}
 	
 }
