@@ -412,7 +412,7 @@ public class SessionEpreuveController {
         	return String.format("redirect:/%s/manager/sessionEpreuve?form", emargementContext);
         }
 		sessionEpreuve.setContext(contexteService.getcurrentContext());
-		sessionEpreuveService.save(sessionEpreuve, emargementContext);
+		sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
 		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
@@ -443,7 +443,7 @@ public class SessionEpreuveController {
         }
         uiModel.asMap().clear();
     	sessionEpreuve.setContext(contexteService.getcurrentContext());
-    	sessionEpreuveService.save(sessionEpreuve, emargementContext);
+    	sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
     	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
@@ -510,14 +510,13 @@ public class SessionEpreuveController {
     
     @GetMapping("/manager/sessionEpreuve/search")
     @ResponseBody
-    public List<SessionEpreuve> search(@RequestParam("searchValue") String searchString) throws ParseException {
+    public List<SessionEpreuve> search(@RequestParam("searchValue") String searchString) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		List<SessionEpreuve> sessionEpreuves= sessionEpreuveRepositoryCustom.findAll(searchString);
     	
         return sessionEpreuves;
     }
-    
     
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")
     @Transactional

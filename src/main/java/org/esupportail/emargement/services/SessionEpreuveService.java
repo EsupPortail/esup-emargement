@@ -386,8 +386,10 @@ public class SessionEpreuveService {
     }
 	
     @Transactional
-	public void save(SessionEpreuve sessionEpreuve, String emargementContext) throws IOException {
-		
+	public void save(SessionEpreuve sessionEpreuve, String emargementContext, List<MultipartFile> files) throws IOException {
+    	if(files != null) {
+    		sessionEpreuve.setFiles(files);
+    	}
 		sessionEpreuveRepository.save(sessionEpreuve);
 		if(sessionEpreuve.getFiles() != null && !sessionEpreuve.getFiles().isEmpty()) {
 			for(MultipartFile file : sessionEpreuve.getFiles()) {

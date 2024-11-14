@@ -99,5 +99,31 @@
 				</form>
 			</div>
 		</div>
+		<div class="modal fade" id="pjModal" tabindex="-1" aria-hidden="true" th:if="${sessionLocation !=null}">
+			<div class="modal-dialog modal-lg">
+				<form th:action="@{/{ctx}/supervisor/saveAttachment(ctx=${eContext})}"
+					method="post" enctype="multipart/form-data">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Pièces jointes</h5>
+							<button type="button" class="btn-close"
+								data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<input type="hidden" id="sessionId" name="sessionLocationId"
+							th:value="${sessionLocation.id}" />
+							<input type="hidden" id="sessionEpreuveId" name="sessionEpreuve"
+							th:value="${sessionEpreuve.id}"/>
+		                    <div class="file-loading">
+			 					<input type="file" class="form-control-file" id="files" name="files" multiple>
+			 				</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success">Enregistrer</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>		
 	</div>
 </html>

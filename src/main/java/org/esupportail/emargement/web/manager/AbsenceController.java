@@ -26,6 +26,9 @@ import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LdapService;
+import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.StoredFileService;
 import org.slf4j.Logger;
@@ -36,6 +39,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -76,6 +81,9 @@ public class AbsenceController {
 	ContextService contexteService;
 	
 	@Resource
+	LogService logService;
+	
+	@Resource
 	StoredFileService storedFileService;
 	
 	@Resource
@@ -112,7 +120,6 @@ public class AbsenceController {
     	uiModel.addAttribute("absence", absence);
         return "manager/absence/create";
     }
-    
     
     @GetMapping(value = "/manager/absence/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Absence absence, Model uiModel) {
@@ -186,11 +193,9 @@ public class AbsenceController {
         return String.format("redirect:/%s/manager/absence", emargementContext);
     }
     
-    
     @PostMapping("/manager/absence/update/{id}")
     public String update(@PathVariable String emargementContext, @Valid Absence absence, 
-    		@RequestParam("strDateDebut") String strDateDebut, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, 
-    		Model uiModel) throws ParseException, IOException{
+    		@RequestParam("strDateDebut") String strDateDebut, @RequestParam("strDateFin") String strDateFin) throws ParseException, IOException{
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
     	DateFormat df = new SimpleDateFormat("HH:mm");
@@ -221,13 +226,24 @@ public class AbsenceController {
     	return String.format("redirect:/%s/manager/absence", emargementContext);
     }
     
+    @Transactional
     @PostMapping(value = "/manager/absence/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Absence absence,final RedirectAttributes redirectAttributes) {
-    	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	DateFormat df = new SimpleDateFormat("HH:mm");
+		LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
+		LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
+		List<TagCheck> tcs = tagCheckRepository.findByDates(absence.getPerson().getEppn(), absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
+		if (!tcs.isEmpty()) {
+			for (TagCheck tc : tcs) {
+				tc.setAbsence(null);
+				tagCheckRepository.save(tc);
+			}
+		}
     	storedFileService.deleteAllStoredFiles(absence);
     	absenceRepository.delete(absence);
-    	//logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.FAILED, "Nom : " + nom, auth.getName(), null, emargementContext, null);
-    	
+    	logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
+
         return String.format("redirect:/%s/manager/absence", emargementContext);
     }
 }

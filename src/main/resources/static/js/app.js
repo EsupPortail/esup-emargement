@@ -1716,10 +1716,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			};
 			var urls = [];
 			var configsArray = [];
-			var rootUrlSe = emargementContextUrl + "/manager/storedFile/";
-			var deleteUrl = emargementContextUrl + "/manager/storedFile/delete";
+			var rootUrlSe = emargementContextUrl + "/supervisor/storedFile/";
+			var deleteUrl = emargementContextUrl + "/supervisor/storedFile/delete";
 			var request = new XMLHttpRequest();
-			request.open('GET', emargementContextUrl + "/manager/storedFile/" + typePj + "/" + seId, true);
+			request.open('GET', emargementContextUrl + "/supervisor/storedFile/" + typePj + "/" + seId, true);
 			request.onload = function() {
 				if (request.status >= 200 && request.status < 400) {
 					var data = JSON.parse(this.response);

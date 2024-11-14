@@ -288,8 +288,6 @@ public class TagCheckService {
     }
     
     public Map<String, List<Absence>> getMapAbsences(Date dateDebut, Date dateFin){
-    	///where date between 
-    	
 		Map<String, List<Absence>> mapEtp = absenceRepository.findAbsencesWithinDateRange(dateDebut, dateFin!=null? dateFin : dateDebut).stream()
 				.collect(Collectors.groupingBy(abs -> abs.getPerson().getEppn()));
 		
