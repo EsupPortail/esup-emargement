@@ -309,3 +309,24 @@ dl dd:after {
 	margin:0!important;
     padding: 0.2rem 0.4rem!important; /* Adjust padding for a smaller size */
 }
+
+.navbar-brand img {
+	height: 60px; /* Default height for large screens */
+}
+@media (max-width: 992px) {
+  .navbar-brand img {
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-brand img {
+    height: 30px;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand img {
+    height: 20px;
+  }
+}

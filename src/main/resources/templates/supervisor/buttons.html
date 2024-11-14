@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<div th:fragment="buttons">
+		<form th:if="${sessionEpreuve !=null and sessionLocation !=null}"
+			th:action="@{/{ctx}/supervisor/emargementPdf(ctx=${eContext})}"
+			method="post" id="modalFormChoixExport" class="float-end ms-2">
+			<a href="#" title="Tout émarger" class="btn btn-success mb-1 me-1" data-bs-toggle="modal" data-bs-target="#checkModal"
+				th:if="${!isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}">
+				<i class="fa-solid fa-check"></i>
+			</a>
+			<a th:if="${isSessionLibre and !isCapaciteFull and sessionEpreuve !=null and sessionLocation !=null}"
+				title="Ajouter un inscrit" data-bs-toggle="collapse"
+				href="#collapseExample" class="btn btn-primary mb-1"><i
+				class="fa fa-plus fa-lg"></i></a>									
+			<input type="hidden" id="sessionId" name="sessionLocationId"
+				th:value="${sessionLocation.id}" /> <input type="hidden"
+				id="sessionEpreuveId" name="sessionEpreuveId"
+				th:value="${sessionEpreuve.id}" /> <input type="hidden"
+				name="type" value="Liste" />
+			<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-warning mb-1" type="button"
+				data-bs-toggle="modal" data-bs-target="#commentModal">
+				<i class="fas fa-comment-dots"></i>
+			</button>
+			<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-success mb-1 me-1" type="button"
+				data-bs-toggle="modal" data-bs-target="#emailModal">
+				<i class="fas fa-at"></i>
+			</button>
+			<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
+				type="submit" class="btn btn-primary exportInscrits mb-1"
+				title="Liste d'émargement">
+				<i class="fas fa-file-signature"></i>
+			</button>
+			<button type="button" class="btn btn-info mb-1"
+				title="Ajouter une pièce jointe" data-bs-toggle="modal" data-bs-target="#pjModal">
+				<i class="fa-solid fa-paperclip"></i>
+			</button>								
+			<a th:if="${isSessionQrCodeEnabled}" th:href="@{|/${eContext}/supervisor/qrCodePage/${currentLocation}|}" target="_blank" 
+				class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
+			<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
+				th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
+				class="btn btn-danger mb-1 " title="Exporter les émargements"><i
+				class="fas fa-file-export"></i></a>
+				<label class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
+					data-bs-toggle="buttons"> <input type="checkbox"
+					class="btn-check" id="webCamCheck" th:checked="${enableWebcam}">
+					<i class="fas fa-video"></i>
+				</label>
+		</form>
+	</div>
+</html>
