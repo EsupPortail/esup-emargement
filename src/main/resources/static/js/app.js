@@ -2205,6 +2205,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			paging: true,
 			searching: true,
 			info: false,
+			order: [[4, 'desc']],
 			language: {
 				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 			},
