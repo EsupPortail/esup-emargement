@@ -388,6 +388,12 @@ public class SessionEpreuveController {
     		@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
+    	if(sessionEpreuve.getHeureConvocation() == null) {
+        	Calendar c = Calendar.getInstance();
+    	    c.setTime(sessionEpreuve.getHeureEpreuve());
+    	    c.add(Calendar.MINUTE, -15);
+    	    sessionEpreuve.setHeureConvocation(c.getTime());
+    	}
     	int compareEpreuve = toolUtil.compareDate(sessionEpreuve.getFinEpreuve(), sessionEpreuve.getHeureEpreuve(), "HH:mm");
     	int compareConvoc = toolUtil.compareDate(sessionEpreuve.getHeureEpreuve(), sessionEpreuve.getHeureConvocation(), "HH:mm");
     	int compareDebutFin = 0;
