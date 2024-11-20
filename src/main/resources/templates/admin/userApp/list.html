@@ -17,6 +17,7 @@
 							    	<button class="btn btn-info ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
 							    	 <a href="#"  data-bs-toggle="modal" data-bs-target="#adeModalAgents" class="btn btn-primary ms-2" title="Ajout depuis ADE">ADE</a>
 							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ms-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
+							    	<a th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}" class="btn btn-primary float-right me-2" title="Importer des inscrits à partir du LDAP ou d'un CSV"><i class="fas fa-user-plus"></i></a>
 						    	</div>
 						    </div>
 					    </div>

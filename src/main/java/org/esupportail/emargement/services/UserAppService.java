@@ -1,5 +1,9 @@
 package org.esupportail.emargement.services;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -13,6 +17,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
@@ -22,8 +29,12 @@ import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.web.WebUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -45,9 +56,14 @@ public class UserAppService {
 	
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	LogService logService;
 	
 	@Autowired
 	ParamUtil paramUtil;
+	
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public List<Role> getAllRoles(String key,  UserApp userApp){
 		if("all".equals(key)) {
@@ -249,5 +265,48 @@ public class UserAppService {
 		
 		return userApp;
 	}
-
+	
+	public int importUserApp(List<String> eppns, Context ctx, String role, String speciality) {
+		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(eppns,"eduPersonPrincipalName");
+		List<UserApp> users =  userAppRepository.findByContext(ctx);
+		int i = 0;
+		for (Map.Entry<String, LdapUser> entry : map.entrySet()) {
+			String eppn = entry.getValue().getEppn();
+			LdapUser ldapUser = entry.getValue();
+			if(!users.stream()
+            .anyMatch(user -> eppn.equals(user.getEppn()))) {
+				UserApp userApp = new UserApp();
+				ldapUser.getEppn();
+				userApp = new UserApp();
+				userApp.setContext(ctx);
+				userApp.setDateCreation(new Date());
+				userApp.setContextPriority(0);
+				userApp.setEppn(eppn);
+				userApp.setSpeciality(speciality);
+				userApp.setUserRole(role==null? Role.MANAGER : Role.SUPERVISOR);
+				userAppRepository.save(userApp);
+				i++;
+			}
+		}
+		if(i>0) {
+			logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, "", "imports : " + i, null, ctx.getKey(), null);
+		}
+		return i;
+	}
+	
+	public List<String> getEppnsFromCsv(SequenceInputStream sequenceInputStream) throws Exception {
+		List<String> eppns = new ArrayList<>();
+		try (Reader reader = new InputStreamReader(sequenceInputStream, StandardCharsets.UTF_8);
+				CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT)) {
+			for (CSVRecord record : csvParser) {
+				String eppn = record.get(0);
+	            if (eppn != null && !eppn.isEmpty()) {
+	                eppns.add(eppn);
+	            }
+			}
+		} catch (Exception e) {
+			log.error("CSV d'import d'agents non conforme", e);
+		}
+		return eppns;
+	}
 }

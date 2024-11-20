@@ -1248,8 +1248,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		var nbSelected = $("#usersGroupLdap option:selected").length;
 		$(".statusExportLdap").hide();
 		importBtn.addEventListener('click', function(e) {
+			var importAgents = $("#importTagchecker").prop('checked')? true : false;
 			var sessionEpreuveLdap = document.getElementById('sessionEpreuveLdap');
-			if (sessionEpreuveLdap.value == "") {
+			if (sessionEpreuveLdap.value == "" && !importAgents) {
 				e.preventDefault();
 				alert("Vous devez choisr une Session!");
 			} else {
@@ -1278,8 +1279,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	$(".statusExportCsv").hide();
 	if (importCsv != null) {
 		importCsv.addEventListener('click', function(e) {
+			var importAgents = $("#importTagchecker").prop('checked')? true : false;
 			var sessionEpreuve = document.getElementById('sessionEpreuveCsv');
-			if (sessionEpreuve.value == "") {
+			if (sessionEpreuve.value == "" && !importAgents) {
 				e.preventDefault();
 				alert("Vous devez choisr une Session!");
 			} else {

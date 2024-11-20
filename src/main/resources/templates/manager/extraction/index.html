@@ -166,7 +166,35 @@
 												</select>
 											</div>
 										</div>
-									</div>		
+									</div>
+									<div class="shadow p-3 bg-body rounded">
+										<p class="fw-bold text-danger">En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
+											non en tant qu'inscrit.<br />Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez 'SURVEILLANT'.<br/>
+											La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
+										<div class="row mb-3">
+											<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
+											<div class="col-lg-10">
+												 <div class="form-check">
+												      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
+												</div>
+										    </div>
+										</div>
+										<div class="row mb-3">
+											<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
+											<div class="col-lg-10">
+												<div class="form-check form-switch">
+												  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
+												  <label class="form-check-label" for="roleManager">SURVEILLANT</label>
+												</div>
+										    </div>
+										</div>
+										<div class="row mb-3">
+											<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
+											<div class="col-lg-10">
+												<input type="text" class="form-control" name="speciality">
+										    </div>
+										</div>										
+									</div>	
 			                        <div class="row">
 			                            <div class="col-lg-12 mt-5">
 			                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
@@ -174,7 +202,7 @@
 			                                <span class="spinner-border spinner-border-sm mr-2 statusExportLdap" role="status" aria-hidden="true"></span>Importer</button>
 			                                <span class="text-danger font-weight-bold statusExportLdap ml-2">Importation en cours ...</span>
 			                            </div>
-			                        </div>  		  
+			                        </div> 
 								</form>
 							</div>
 	                    </div>
@@ -213,7 +241,37 @@
 												</select>
 											</div>
 										</div>
-									</div>						
+									</div>
+									<div class="shadow p-3 bg-body rounded">
+										<p class="fw-bold text-danger">
+											En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
+											non en tant qu'inscrit.<br />
+											Dans ce cas le fichier ne doit contenir qu'une colonne d'eppn et aucun en-tête.<br/>Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez 'SURVEILLANT'.<br/>
+											La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
+										<div class="row mb-3">
+											<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
+											<div class="col-lg-10">
+												 <div class="form-check">
+												      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
+												</div>
+										    </div>
+										</div>
+										<div class="row mb-3">
+											<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
+											<div class="col-lg-10">
+												<div class="form-check form-switch">
+												  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
+												  <label class="form-check-label" for="roleManager">SURVEILLANT</label>
+												</div>
+										    </div>
+										</div>
+										<div class="row mb-3">
+											<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
+											<div class="col-lg-10">
+												<input type="text" class="form-control" name="speciality">
+										    </div>
+										</div>				
+									</div>
 									<div class="row">
 			                            <div class="col-lg-12 mt-5">
 				                             <button id="importCsv" type="submit" class="btn btn-primary" >
@@ -274,7 +332,7 @@
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 		<div class="modal fade" id="modalBilanCsv" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"  
-			th:if="${#ctx.containsVariable('bilanCsv')}">
+			th:if="${#ctx.containsVariable('bilanCsv') or #ctx.containsVariable('bilanUserApp')}">
 		  <div class="modal-dialog" role="document">
 		    <div class="modal-content">
 		      <div class="modal-header">
@@ -282,27 +340,34 @@
 		      	 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		      </div>
 		      <div class="modal-body" id="modalBilanCsvBody">
-		     	 <div th:if="${not #lists.isEmpty(bilanCsv)}">
-					<table class="table table-hover table-striped table-bordered">
-						<thead>
-							<tr>
-								<th scope="col" class="table-success">Importés</th>
-								<th scope="col" class="table-warning">Déja  inscrits</th>
-								<th scope="col" class="table-danger">Inconnus LDAP</th>
-								<th scope="col" class="table-danger">Données manquantes</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td th:each="int : ${bilanCsv}"  th:text="${int}" class="center"></td>
-							</tr>
-						</tbody>
-					</table>
-					<p>Voir la liste des inscrits : <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${seLink.id})}" th:text="${seLink.nomSessionEpreuve}"></a></p>
-				</div>
-				<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
-					<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la capcité n'est pas suffisante, veuillez le vérifier....</strong></p>
-				</div>
+				  <th:block th:if="${#ctx.containsVariable('bilanCsv')}">
+			     	 <div th:if="${not #lists.isEmpty(bilanCsv)}">
+						<table class="table table-hover table-striped table-bordered">
+							<thead>
+								<tr>
+									<th scope="col" class="table-success">Importés</th>
+									<th scope="col" class="table-warning">Déja  inscrits</th>
+									<th scope="col" class="table-danger">Inconnus LDAP</th>
+									<th scope="col" class="table-danger">Données manquantes</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td th:each="int : ${bilanCsv}"  th:text="${int}" class="center"></td>
+								</tr>
+							</tbody>
+						</table>
+						<p>Voir la liste des inscrits : <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${seLink.id})}" th:text="${seLink.nomSessionEpreuve}"></a></p>
+					</div>
+					<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
+						<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la capcité n'est pas suffisante, veuillez le vérifier....</strong></p>
+					</div>
+				</th:block>
+				<th:block th:if="${#ctx.containsVariable('bilanUserApp')}">
+					<div th:if="${not #lists.isEmpty(bilanUserApp)}" class="alert alert-info fw-bold">
+						<p>Nombre d'agents importé : <span th:text="${bilanUserApp}"></span></p>
+					</div>
+				</th:block>
 		      </div>
 		  	</div>
 		  </div>

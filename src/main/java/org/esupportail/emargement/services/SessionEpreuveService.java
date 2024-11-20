@@ -878,7 +878,7 @@ public class SessionEpreuveService {
 				}
 			}
 		} catch (Exception e) {
-			log.error("CSV d'imort de sesions non conforme", e);
+			log.error("CSV d'import de sessions non conforme", e);
 			j++;
 			erreurs = "Mauvais format de données dans le CSV";
 			logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.FAILED, "Mauvais format de données" , null, null, emargementContext, null);
