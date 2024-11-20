@@ -298,6 +298,7 @@
 							</tr>
 						</tbody>
 					</table>
+					<p>Voir la liste des inscrits : <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${seLink.id})}" th:text="${seLink.nomSessionEpreuve}"></a></p>
 				</div>
 				<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
 					<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la capcité n'est pas suffisante, veuillez le vérifier....</strong></p>

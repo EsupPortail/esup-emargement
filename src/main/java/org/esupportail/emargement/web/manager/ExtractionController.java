@@ -324,6 +324,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
     	return String.format("redirect:/%s/manager/extraction/tabs/csv", emargementContext);
     }
     
@@ -338,6 +339,7 @@ public class ExtractionController {
         List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, mapEtapes, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", apogeebean.getSessionEpreuve());
     	return String.format("redirect:/%s/manager/extraction/tabs/apogee", emargementContext);
     }
     
@@ -349,6 +351,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
     	return String.format("redirect:/%s/manager/extraction/tabs/ldap", emargementContext);
     }
     
@@ -361,6 +364,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
     	return String.format("redirect:/%s/manager/extraction/tabs/groupes", emargementContext);
     }
 }
