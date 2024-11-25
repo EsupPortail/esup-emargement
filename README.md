@@ -32,7 +32,8 @@ redémarrage de postgresql
     psql
     create database esupemargement;
     create USER esupemargement with password 'esup';
-    grant ALL ON DATABASE esupemargement to esupemargement; 
+    grant ALL ON DATABASE esupemargement to esupemargement;
+    ALTER DATABASE esupemargement OWNER TO esupemargement;
 
 ### JDBC
 
