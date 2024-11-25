@@ -481,7 +481,9 @@ public class AdeService {
 					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element element = (Element) node;
 						AdeResourceBean adeResourceBean = new AdeResourceBean();
-						adeResourceBean.setDegreeId(Long.valueOf(resourceId));
+						if(resourceId != null) {
+							adeResourceBean.setDegreeId(Long.valueOf(resourceId));
+						}
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventId(eventId) >0)? true : false;
 						if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)|| update){
