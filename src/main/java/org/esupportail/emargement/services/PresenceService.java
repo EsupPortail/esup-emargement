@@ -672,7 +672,7 @@ public class PresenceService {
 		String eppnTagChecker = taglog.getEppnInit();
 		List<TagCheck> tcs = tagCheckRepository.findBySessionEpreuveIdAndPersonEppn(id, taglog.getEppn());
 		if (!tcs.isEmpty()) {
-           TagChecker tagChecker = sessionEpreuve.getIsSecondTag() ? tcs.get(0).getTagChecker2() : tcs.get(0).getTagChecker();
+           TagChecker tagChecker = (sessionEpreuve.getIsSecondTag() != null && sessionEpreuve.getIsSecondTag()) ? tcs.get(0).getTagChecker2() : tcs.get(0).getTagChecker();
            if (tagChecker != null && tagChecker.getUserApp() != null && eppnTagChecker.equals(tagChecker.getUserApp().getEppn())) {
                isOk = true;
            }
