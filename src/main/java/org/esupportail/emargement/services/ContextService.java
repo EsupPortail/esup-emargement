@@ -106,9 +106,6 @@ public class ContextService {
 	@Autowired
 	TypeSessionRepository typeSessionRepository;
 	
-	@Autowired	
-	EsupSignatureRepository esupSignatureRepository;
-	
 	public String getDefaultContext() {
 		String defaultContext = null;
 		Authentication auth = SecurityContextHolder.getContext()
@@ -180,8 +177,6 @@ public class ContextService {
 		storedFileRepository.deleteAll(storedFiles);
 		List<TypeSession> typeSessions = typeSessionRepository.findByContext(context);
 		typeSessionRepository.deleteAll(typeSessions);
-		List<EsupSignature> signs = esupSignatureRepository.findByContext(context);
-		esupSignatureRepository.deleteAll(signs);
 		contextRepository.delete(context);
 	
 	}

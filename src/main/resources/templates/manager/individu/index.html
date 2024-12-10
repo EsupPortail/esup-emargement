@@ -36,6 +36,39 @@
 						</div>
 					</form>
 					<div th:if="${not #lists.isEmpty(tagChecksPage)}">
+						<div class="alert alert-info mt-2" th:if="${#ctx.containsVariable('individu')}">
+							<strong>Inscriptions : </strong>
+							<span th:if="${individu.person !=null}"  th:text="${ ' ' + individu.person.prenom + ' ' + individu.person.nom + ', ' + individu.person.eppn}"></span>
+							<span th:if="${individu.guest !=null }"  th:text="${ ' ' + individu.guest.prenom + ' ' + individu.guest.nom + ', ' + individu.guest.email}"></span>
+							<span th:if="${individu.person !=null && individu.person.numIdentifiant!=null}" th:text="${' -- N°' + individu.person.numIdentifiant}"></span>
+						</div>
+						<div class="alert alert-light">
+							<table class="table table-hover table-striped table-bordered assiduite" 
+							th:attr="data-export-title=${(individu.person !=null)? individu.person.eppn +  '_par_annee': individu.guest.email +  '_par_annee' }" style="width:100%">
+								<thead class="sticky-top">
+									<tr>
+										<th scope="col">Année</th>
+										<th scope="col" class="text-center">Total Sessions</th>
+										<th scope="col" class="text-center">Présence Totale</th>
+										<th scope="col" class="text-center">Taux présence</th>
+										<th scope="col" class="text-center">Détail présence</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="assiduite : ${assiduiteList}">
+										<td th:text="${assiduite.anneeUniv}"></td>
+										<td class="text-center" th:text="${assiduite.totalSession}"></td>
+										<td class="text-center" th:text="${assiduite.nbPresent}"></td>
+										<td class="text-center">
+											<span  th:text="${assiduite.percentPresent + ' %'}"></span>
+										</td>
+										<td class="text-center">
+											<span th:text="${assiduite.detailPerence}"></span>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
 						<table class="table table-hover table-striped table-bordered assiduite2"
 							th:attr="data-export-title=${individu.person.eppn +  '_details_par_annee'}" style="width:100%">
 							<thead class="sticky-top">
@@ -68,7 +101,11 @@
 									<td>
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
-									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
+									<td>
+										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span>
+										<span th:if="${tagCheck.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagCheck.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
+										<span th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span>
+									</td>	
 									<td th:text="${tagCheck.sessionEpreuve.nbHours}"></td>
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
 									<td class="text-danger fw-bold" th:text="${tagCheck.absence != null ? tagCheck.absence.name() : ''}"></td>
@@ -165,6 +202,8 @@
 									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
 									<td>
+										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd-MM-yy')}"></span><br/>
+										<span th:if="${tagChecker.sessionEpreuve.dateFin != null}" th:text="${#dates.format(tagChecker.sessionEpreuve.dateFin,'dd-MM-yy')}"></span>
 										<span th:text="${#dates.format(tagChecker.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></span><br/>
 									</td>
 								</tr>

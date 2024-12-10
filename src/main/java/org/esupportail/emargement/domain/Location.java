@@ -6,7 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-
+import javax.persistence.Transient;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
@@ -16,26 +16,29 @@ import org.springframework.format.annotation.NumberFormat;
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
 public class Location implements ContextSupport {
-	
+
 	@Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-	
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long id;
+
 	@ManyToOne
 	private Context context;
-	
-    private String nom;
-    
-    @ManyToOne
-    private Campus campus;
-    
-    @NumberFormat
-    private int capacite=0;
-    
-    @Column(columnDefinition = "TEXT")
-    private String adresse;
-    
-    private Long adeClassRoomId;
+
+	private String nom;
+
+	@ManyToOne
+	private Campus campus;
+
+	@NumberFormat
+	private int capacite=0;
+
+	@Transient 
+	private Plan plan;
+
+	@Column(columnDefinition = "TEXT")
+	private String adresse;
+
+	private Long adeClassRoomId;
 
 	public Long getId() {
 		return id;
@@ -67,7 +70,7 @@ public class Location implements ContextSupport {
 	public void setCapacite(int capacite) {
 		this.capacite = capacite;
 	}
-	
+
 	public String getAdresse() {
 		return adresse;
 	}
@@ -90,5 +93,15 @@ public class Location implements ContextSupport {
 
 	public void setAdeClassRoomId(Long adeClassRoomId) {
 		this.adeClassRoomId = adeClassRoomId;
+	}
+
+	public void setPlan(Plan plan) { 
+		this.plan = plan;
+	}
+
+	public Plan getPlan() { return plan; }
+
+	public boolean hasPlan() { 
+		return plan != null; 
 	}
 }

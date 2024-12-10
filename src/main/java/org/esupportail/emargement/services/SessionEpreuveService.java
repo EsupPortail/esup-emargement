@@ -30,6 +30,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Location;
+import org.esupportail.emargement.domain.Plan;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -131,6 +133,12 @@ public class SessionEpreuveService {
 	@Resource
 	LogService logService;
 	
+	@Resource 
+	LocationService locationService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
+
 	@Resource
 	ImportExportService importExportService;
 	
@@ -245,6 +253,42 @@ public class SessionEpreuveService {
 				}
 				//on compte le nombre le nombre de place utilisé dans cette salle
 				Long nbUsedPlace = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalseAndSessionLocationExpectedId(sessionEpreuveId, sl.getId());
+				
+				// Pour le plan
+				List<TagCheck> checks = tagCheckOrder.compareTo("1")==0 ? 
+						tagCheckRepository.findByIsTiersTempsFalseAndSessionEpreuve_IdAndSessionLocationExpectedIsNullOrderByPerson_Id(sessionEpreuveId) 
+						: tagCheckRepository.findByIsTiersTempsFalseAndSessionEpreuve_IdAndSessionLocationExpectedIsNull(sessionEpreuveId);
+				
+				System.out.println("checks -----------------> " + checks);
+				if(!checks.isEmpty()) {
+
+					short i = 0;
+	
+	                Location location = sl.getLocation();
+	                Plan plan = locationService.findPlan(location.getId());
+	                System.out.println("plan -----------------> " + plan);
+	                if(plan != null) {
+	                        short planCols = plan.getColumns();
+	                        Short[] places = plan.getStandardPlaces();
+	                        while(nbUsedPlace < sl.getCapacite() && i < checks.size()) {
+	                                TagCheck check = checks.get(i);
+	                                if(check.getIsUnknown()) tagCheckRepository.delete(check);
+	                                else {
+	                                        Short place = places[i];
+	                                        check.setPlace(plan.getHasAlphanumEnum() ? String.format("%c%d", 'A' + Math.floorDiv(place - 1, planCols), 1 + (place - 1) % planCols) : String.valueOf(place));
+	                                        check.setSessionLocationExpected(sl);
+	                                        check.setNumAnonymat(constructNumAnonymat(sessionEpreuve, j));
+	                                        tagCheckRepository.save(check);
+	                                        nbUsedPlace++;
+	                                        j++;
+	                                        i++;
+	                                }
+
+	                				System.out.println("check -----------------> " + check);
+	                        }
+	                }
+                }
+
 				if(!tagCheckList.isEmpty()) {
     				if(nbUsedPlace.intValue()<sl.getCapacite()) {
     	    			for(TagCheck tc:  tagCheckList) {

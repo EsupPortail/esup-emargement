@@ -210,6 +210,11 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(SessionEpreuve se, String Eppn);
 	
+	// TODO : renommer
+    List<TagCheck> findByIsTiersTempsFalseAndSessionEpreuve_IdAndSessionLocationExpectedIsNull(Long paper);
+    List<TagCheck> findByIsTiersTempsFalseAndSessionEpreuve_IdAndSessionLocationExpectedIsNullOrderByPerson_Id(Long paper);
+
+	
 	//countSessionEpreuveIdExpected
 	Long countByPersonEppnAndSessionEpreuveDateExamen(String eppn, Date date);
 	

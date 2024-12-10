@@ -50,7 +50,6 @@
 		<script th:src="@{/webjars/datatables-plugins/sorting/datetime-moment.js}"></script>
 		<!--ordre important<-->
 		<script th:src="@{/webjars/datatables-buttons/js/dataTables.buttons.min.js}"></script>
-		<script th:src="@{/webjars/datatables.net-datetime/dist/dataTables.dateTime.min.js}"></script>
 		<script th:src="@{/webjars/jszip/jszip.min.js}"></script>
 		<script th:src="@{/webjars/pdfmake/build/pdfmake.min.js}"></script>
 		<script th:src="@{/webjars/pdfmake/build/vfs_fonts.js}"></script>
@@ -84,8 +83,8 @@
 		<link th:href="@{/webjars/datatables.net-datetime/dist/dataTables.dateTime.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/suneditor/dist/css/suneditor.min.css}" rel="stylesheet">
 		<link th:href="@{/webjars/bootstrap-daterangepicker/css/bootstrap-daterangepicker.css}" rel="stylesheet">
-		<link th:href="@{/resources/css/sol.css}" rel="stylesheet">
-		<link th:href="@{/resources/css/app.css}" rel="stylesheet">
+		<link th:href="@{/resources/css/sol.css}" rel="stylesheet" type="text/css">
+		<link th:href="@{/resources/css/app.css}" rel="stylesheet" type="text/css">
 		<title th:text="#{${'title.' + active}(${title})}">Application Emargement</title>
 	</head>
 </html>

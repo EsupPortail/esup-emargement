@@ -221,7 +221,11 @@ public class PresenceService {
 			mainTable.setWidthPercentage(100);
 			mainTable.setWidths(new float[] { 0.7f,1.5f,1.5f,2,0.8f,1.5f,1.4f});
 			mainTable.setSpacingBefore(20.0f);
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+
+    		// Ajout de la place dans le PDF de présence
+			if (sl.getLocation().hasPlan()) mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Place"));
+			else mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+			
 			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
 			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
 			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
@@ -235,12 +239,14 @@ public class PresenceService {
 	        	int i =0;int j =1;
 	        	for(TagCheck tc : list) {
 	        		String dateEmargement  = "";
+	        		String place = "";
 	        		String nom = "";
 	        		String prenom = "";
 	        		String identifiant = "";
 	        		String typeemargement = "";
 	        		String typeIndividu = "";
 	        		if(tc.getPerson() !=null ) {
+	        			place = tc.getPlace();
 	        			nom = tc.getPerson().getNom();
 	        			prenom = tc.getPerson().getPrenom();
 	        			identifiant = tc.getPerson().getNumIdentifiant();
@@ -249,6 +255,7 @@ public class PresenceService {
 	        			}
 	        			typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null).substring(0,1);
 	        		}else if(tc.getGuest() !=null ) {
+	        			place = tc.getPlace();
 	        			nom = tc.getGuest().getNom();
 	        			prenom = tc.getGuest().getPrenom();
 	        			identifiant = tc.getGuest().getEmail();
@@ -269,7 +276,11 @@ public class PresenceService {
 	        			typeemargement = messageSource.getMessage("typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
 	        		}
 	        		typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
+					
+	        		// Ajout de la place dans le PDF de présence
+	        		if (place != null)mainTable.addCell(pdfGenaratorUtil.getMainRowCell(place)); 
+	        		else mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
+					
 					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
 					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
 					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
@@ -292,7 +303,11 @@ public class PresenceService {
 						mainTable.setWidthPercentage(100);
 						mainTable.setWidths(new float[] { 0.7f,1.5f,1.5f,2,0.8f,1.5f,1.4f});
 						mainTable.setSpacingBefore(20.0f);
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+
+			    		// Ajout de la place dans le PDF de présence
+						if (sl.getLocation().hasPlan()) mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Place"));
+						else mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+						
 						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
 						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
 						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));

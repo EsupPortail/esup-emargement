@@ -41,8 +41,8 @@ function initSelectCheckBoxes(id, searchplaceholder) {
 		maxHeight: '250px',
 		showSelectAll: true,
 		texts: {
-			noItemsAvailable: 'Aucun résultat',
-			selectAll: 'Tout sélectionner',
+			noItemsAvailable: 'Aucun rÃ©sultat',
+			selectAll: 'Tout sÃ©lectionner',
 			selectNone: 'Tout effacer',
 			searchplaceholder: searchplaceholder
 		}
@@ -187,20 +187,20 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 							var labelNumEtu = "";
 							var valueNumEtu = "";
 							if (id == "searchTagCheck" || id == "searchUserApp") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
+								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
 								list.push({
 									label: labelValue,
 									value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
 								});
 							} else if (id == "searchAssiduite") {
-								var labelValue = "<strong>Nom : </strong>" + value.name + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
+								var labelValue = "<strong>Nom : </strong>" + value.name + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
 								valueNumEtu =  value.numEtudiant != null ? "//" + value.numEtudiant: "";
 								list.push({
 									label: labelValue,
 									value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
 								});
 							} else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
+								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>PrÃ©nom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
 									+ "<strong class='ms-2'>Type : </strong>" + value.typeObject;
 								list.push({
 									label: labelValue,
@@ -208,7 +208,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								});
 							}
 							else if (id == "searchIndividuGroupe") {
-								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> Année : </strong>" + value.groupe.anneeUniv
+								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> AnnÃ©e : </strong>" + value.groupe.anneeUniv
 								list.push({
 									label: labelValue,
 									value: value.groupe.id + "//" + value.groupe.nom
@@ -248,7 +248,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 								list.push(value);
 							} else {
 								if (value.numEtudiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numEtudiant;
+									labelNumEtu = "<strong class='ms-2'>NÂ° Identifiant : </strong>" + value.numEtudiant;
 									valueNumEtu = "//" + value.numEtudiant
 								}
 								if (value.name != null) {
@@ -259,7 +259,7 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 									});
 								}
 								if (value.numIdentifiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numIdentifiant;
+									labelNumEtu = "<strong class='ms-2'>NÂ° Identifiant : </strong>" + value.numIdentifiant;
 									valueNumEtu = "//" + value.numEtudiant
 								}
 							}
@@ -287,7 +287,7 @@ function changeSelectSessionEpreuve2(id, id2, url, change) {
 				var data = JSON.parse(this.response);
 				if (data.length == 0) {
 					$(".alertmsg").remove();
-					$("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associé à cette session</p>");
+					$("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associÃ© Ã  cette session</p>");
 					option = document.createElement('option');
 					option.value = "";
 					option.textContent = "";
@@ -500,9 +500,9 @@ for (var k = 0; k < 100; k++) {
 	generateStackColors.push('rgba(' + color + ', 0.6)');
 	generateBorderColors.push('rgba(' + color + ', 1)');
 }
-var monthsArray = ["Sept", "Oct", "Nov", "Déc", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Août"];
-const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'Déc'], [1, 'Jan'], [2, 'Fev'],
-[3, 'Mar'], [4, 'Avr'], [5, 'Mai'], [6, 'Juin'], [7, 'Juil'], [8, 'Août']
+var monthsArray = ["Sept", "Oct", "Nov", "DÃ©c", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "AoÃ»t"];
+const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'DÃ©c'], [1, 'Jan'], [2, 'Fev'],
+[3, 'Mar'], [4, 'Avr'], [5, 'Mai'], [6, 'Juin'], [7, 'Juil'], [8, 'AoÃ»t']
 ];
 let moisMap = new Map(moisArray);
 
@@ -512,7 +512,7 @@ function chartNoData(ctx, chart) {
 	ctx.textBaseline = 'middle';
 	ctx.font = "22px Arial";
 	ctx.fillStyle = "gray";
-	ctx.fillText('Aucune donnée disponible', chart.width / 2, chart.height / 2);
+	ctx.fillText('Aucune donnÃ©e disponible', chart.width / 2, chart.height / 2);
 	ctx.restore();
 }
 
@@ -1536,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					displayedIdentity2.find('#prenomPresence3').text(prenom);
 					displayedIdentity2.find('#nomPresence3').text(nom);
 					if (person != null && person.numIdentifiant != null) {
-						displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+						displayedIdentity2.find('#numIdentifiantPresence2').text('NÂ° ' + person.numIdentifiant);
 					}
 					const toastLiveExample = document.getElementById(displayedIdentity);
 					const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
@@ -1660,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		})
 	}
 
-	//Changement année univ
+	//Changement annÃ©e univ
 	$("#anneeUnivSelect").on("change", function(e) {
 		var annee = this.value;
 		window.location.href = window.location.pathname + "?anneeUniv=" + annee;
@@ -1704,7 +1704,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				maxFileSize: 1000,
 				maxFileCount: 10,
 				mainClass: "input-group-lg",
-				dropZoneEnabled: false
 			});
 		} else {
 			const config = {
@@ -1777,7 +1776,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 
-	//Préférence : voir sessions antérieure
+	//PrÃ©fÃ©rence : voir sessions antÃ©rieure
 	$(document).on('change', '#oldSessionsCheck', function() {
 		var value = (this.checked) ? "true" : "false";
 		var redirect = window.location.origin + window.location.pathname;
@@ -1790,7 +1789,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		request.send();
 	});
-	//Foemulaire présence
+	//Foemulaire prÃ©sence
 	$("#presencePage #location").on("change", function() {
 		$("#presenceForm").submit();
 	});
@@ -1844,7 +1843,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 		let isCodeScanned = false;
 		function tick() {
-			loadingMessage.innerText = "⌛ Loading video..."
+			loadingMessage.innerText = "âŒ› Loading video..."
 			if (video.readyState === video.HAVE_ENOUGH_DATA) {
 				loadingMessage.hidden = true;
 				canvasElement.hidden = false;
@@ -2195,8 +2194,22 @@ document.addEventListener('DOMContentLoaded', function() {
 			clearInterval(interval);
 		});
 	});
+	//commentaire tagCheck dans interface surveillant
+	$('.commentTC').on('click', function() {
+		var $row = $(this).closest('tr');
+		var id = $row[0].id;
+		var nomPrenom = $row.find('.nomPrenom').text();
+		var hideComment = $(this)[0].title;
+		$('.modal-title').text(nomPrenom);
+		$('#formComment').text(hideComment);
+		var formAction = $('#formCommentTc').attr('action') +id;
+		$('#formCommentTc').attr('action', formAction); 
+		formAction="";
+		$('#commentTagCheckModal').modal('show');
+	});
+	var title = '';
 	
-	//Recherche assiduité
+	//Recherche assiduitÃ©
 	if(document.getElementById("assiduitePage") != null || document.getElementById("recherchePage") != null){
 		var title = '';
 		var dataTableOptions = {
@@ -2296,13 +2309,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
 	initTablePresence(sortDate);
 	
-	$('.tableCleanup').DataTable({
+	$('table.assiduite').DataTable( {
+	// BRICE fusion 1.0.7 
+	// $('.tableCleanup').DataTable({
 		responsive: true,
 		ordering: true,
 		paging: true,
 		searching: true,
 		info: false,
-		dom: 'frtilp',
 		language: {
 			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 		},columnDefs: [
@@ -2320,9 +2334,112 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			},
 			{ targets: 'no-sort', orderable: false }
-		]
-	});
-	
+		],
+		pageLength: -1,
+		lengthMenu: [
+	        [10, 25, 50, -1],
+	        [10, 25, 50, 'All']
+	    ],
+        dom: 'Bfrtilp',
+        buttons: [
+            {extend: 'copy', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'csv', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'pdf', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}},
+            {extend: 'print', exportOptions: {orthogonal: 'filter', columns: ':not(.exclude)'}, title:function () {return 'assiduite_' + title;}}
+        ]
+	 }).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
+		 title = $(dataTable.table().node()).attr('data-export-title');
+	 });
+
+		
+        // Plan
+		$(document).on('change', '#plan\\.hasAlphanumEnum1', function (){
+			// alert('test1');
+			// console.log($("#num-place"));
+		       $("span#num-place").toggleClass('d-none');
+			   $("span#alpha-place").toggleClass('d-none');
+		  });
+		$(document).on('change', '#hasPlan', function (){
+		       $("#plan-editor").toggleClass('d-none');
+		  });
+		if ($('#hasPlan').is(':checked')) {
+		       $("#plan-editor").removeClass('d-none');
+		} 
+
+        const placePrefix = 'place-';
+        const placeRow = document.createElement('div');
+        const place = document.createElement('div');
+        const placeTypes = [`${placePrefix}none`, `${placePrefix}standard`, `${placePrefix}special`];
+        const locationForm = document.forms.location;
+        placeRow.classList.add('row');
+        place.classList.add('col', placeTypes[1]);
+        if(locationForm != null) {
+                const editorTogglingClass = 'd-lg-block';
+                const planEditor = locationForm.querySelector('#plan-editor');
+                const places = planEditor.querySelector('#places');
+                const hasPlanField = locationForm.elements.hasPlan;
+                const capacityField = locationForm.elements.capacity;
+                const editorClasses = planEditor.classList;
+                hasPlanField.addEventListener('change', (e) => {
+                        const state = e.currentTarget.checked;
+                        capacityField.disabled = state;
+                        if(state) editorClasses.add(editorTogglingClass);
+                        else editorClasses.remove(editorTogglingClass);
+                        planEditor.querySelectorAll('input').forEach((field) => { field.disabled = !state; });
+                });
+                hasPlanField.dispatchEvent(new Event('change'));
+                locationForm.elements['plan.columns'].addEventListener('change', updateCols);
+                locationForm.elements['plan.rows'].addEventListener('change', updateRows);
+                const placeTypesSelector = placeTypes.map(type => '.' + type).toString();
+                $(places).on('dragstart', placeTypesSelector, (event) => event.preventDefault());
+                $(places).on('mousedown', placeTypesSelector, (event) => {
+                        const selectedType = placePrefix + locationForm.elements.place.value;
+                        const place = event.currentTarget;
+                        place.classList.remove(...placeTypes.filter(type => type != selectedType));
+                        place.classList.add(selectedType);
+                });
+                $(places).on('mouseenter', placeTypesSelector, (event) => { if(event.buttons == 1) $(event.currentTarget).trigger('mousedown') });
+                locationForm.addEventListener('submit', function() {
+                        const cols = locationForm.elements['plan.columns'].value;
+                        standardPlaces = [];
+                        specialPlaces = [];
+                        placeRows = places.children;
+                        for(let row = 0; row < placeRows.length; row++) {
+                                const rowPlaces = placeRows[row].children;
+                                let i = 0;
+                                while(i < rowPlaces.length) {
+                                        const classes = rowPlaces[i++].classList;
+                                        if(classes.contains(placeTypes[1]) || classes.contains(placeTypes[2])) {
+                                                const rowPlace = cols * row + i;
+                                                if(classes.contains(placeTypes[1])) standardPlaces.push(rowPlace);
+                                                else specialPlaces.push(rowPlace);
+                                        }
+                                }
+                        }
+                        locationForm.elements['plan.specialPlaces'].value = specialPlaces;
+                        locationForm.elements['plan.standardPlaces'].value = standardPlaces;
+                });
+                alert(document.forms.session.elements.dateExamen.value);
+        }
+        function updateCols(e) {
+                const rows = places.children;
+                const n = e.currentTarget.value - rows[0].children.length;
+                if(n > 0) for(let i = 0; i < n; i++) for(const row of rows) row.appendChild(place.cloneNode());
+                else for(let i = 0; i > n; i--) { for(const row of rows) row.lastElementChild.remove(); }
+        }
+        function updateRows(e) {
+                const n = e.currentTarget.value - places.children.length;
+                if(n > 0) {
+                        for(let i = 0; i < n; i++) {
+                                const row = placeRow.cloneNode();
+                                for(let col = 0; col < locationForm.elements['plan.columns'].value; col++) row.appendChild(place.cloneNode());
+                                places.appendChild(row);
+                        }
+                }
+                else for(let i = 0; i > n; i--) places.lastElementChild.remove();
+        }
+    });
+
 	$(".searchEtu").on('click', function() {
 		$("#searchField").val(this.text);
 	});
@@ -2330,7 +2447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	//Select sessionEpreuve 
 	checkAll();
 	
-	//Assiduité dateRange
+	//AssiduitÃ© dateRange
 	var start = moment();
     var end = moment();
 	if(datesRangeSelect != ''){
@@ -2357,14 +2474,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	        ],
 			'Mois courant': [moment().startOf('month'), moment().endOf('month')],
 			'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-	        'Année universitaire': [
+	        'AnnÃ©e universitaire': [
 	            // If current month is January-August, show the range of the previous September to this August
 	            moment().month(8).startOf('month').subtract(moment().month() < 8 ? 1 : 0, 'year').startOf('day'),
 	            moment().month(7).endOf('month').add(moment().month() >= 8 ? 1 : 0, 'year').endOf('day')
 	        ]
         },
 	    locale: {
-	        customRangeLabel: 'Dates personnalisées',
+	        customRangeLabel: 'Dates personnalisÃ©es',
 	        applyLabel: 'Valider',
         	cancelLabel: 'Annuler'
 	    }
@@ -2427,4 +2544,3 @@ document.addEventListener('DOMContentLoaded', function() {
 			{ targets: 'no-sort', orderable: false }
 		]
 	});
-});
