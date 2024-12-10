@@ -895,7 +895,15 @@ function initTablePresence(sortDate){
 					return moment(data, 'DD/MM/YY hh:mm:ss').format('DD/MM/YY hh:mm:ss');
 				}
 			}
-		]
+		],
+		drawCallback: function(settings) {
+            // Check if there's data in the table
+            var api = this.api();
+            var hasData = api.data().any();
+
+            // Show or hide search bar based on data presence
+            $('.dataTables_filter').css('display', hasData ? 'block' : 'none');
+        }
 	});
 	
 table.on('draw', function() {
@@ -1240,8 +1248,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		var nbSelected = $("#usersGroupLdap option:selected").length;
 		$(".statusExportLdap").hide();
 		importBtn.addEventListener('click', function(e) {
+			var importAgents = $("#importTagchecker").prop('checked')? true : false;
 			var sessionEpreuveLdap = document.getElementById('sessionEpreuveLdap');
-			if (sessionEpreuveLdap.value == "") {
+			if (sessionEpreuveLdap.value == "" && !importAgents) {
 				e.preventDefault();
 				alert("Vous devez choisr une Session!");
 			} else {
@@ -1270,8 +1279,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	$(".statusExportCsv").hide();
 	if (importCsv != null) {
 		importCsv.addEventListener('click', function(e) {
+			var importAgents = $("#importTagchecker").prop('checked')? true : false;
 			var sessionEpreuve = document.getElementById('sessionEpreuveCsv');
-			if (sessionEpreuve.value == "") {
+			if (sessionEpreuve.value == "" && !importAgents) {
 				e.preventDefault();
 				alert("Vous devez choisr une Session!");
 			} else {
@@ -1433,75 +1443,44 @@ document.addEventListener('DOMContentLoaded', function() {
 		$("#pagination option[value='" + sizeSelected + "']").attr('selected', 'selected');
 	}
 
-	//Extraction
-	if (document.getElementById('extractionPage') != null) {
-		var slimArray = ['codCmp', 'sessionEpreuve', 'sessionEpreuveLdap', 'sessionEpreuveGroupe', 'sessionEpreuveCsv', 'groupe', 'sessionLocationCsv', 'sessionLocationLdap',
-			'sessionLocationGroupe', 'sessionLocation'];
-
-		slimArray.forEach(function(item, index, array) {
-			var select = '#' + item;
-			if (document.getElementById(item) != null) {
-				new SlimSelect({
-					select: select
-				});
-			}
-		});
-
-		var slimArraySearchFalse = ['codSes', 'codAnu'];
-		slimArraySearchFalse.forEach(function(item, index, array) {
-			var select = '#' + item;
-			if (document.getElementById(item) != null) {
-				new SlimSelect({
-					select: select,
-					showSearch: false
-				});
-			}
-		});
-
-		var slimArrayEnabled = ['codEtp', 'codElp', 'codExtGpe'];
-		slimArrayEnabled.forEach(function(item, index, array) {
-			var select = '#' + item;
-			if (document.getElementById(item) != null) {
-				var slim = new SlimSelect({
-					select: select,
-					allowDeselect: true
-				});
-				slim.enable();
-			}
-		});
+	if (document.getElementById('extractionPage') !== null) {
+	    const slimConfigs = [
+	        { elements: ['codCmp', 'sessionEpreuve', 'sessionEpreuveLdap', 'sessionEpreuveGroupe', 'sessionEpreuveCsv', 'groupe', 'sessionLocationCsv', 'sessionLocationLdap', 'sessionLocationGroupe', 'sessionLocation'] },
+	        { elements: ['codSes', 'codAnu'], options: { showSearch: false } },
+	        { elements: ['codEtp', 'codElp', 'codExtGpe'], options: { allowDeselect: true, enabled: true } }
+	    ];
+	    slimConfigs.forEach(config => {
+	        config.elements.forEach(id => {
+	            const element = document.getElementById(id);
+	            if (element) {
+	                const options = config.options || {};
+	                const slimSelectInstance = new SlimSelect({ select: `#${id}`, ...options });
+	                
+	                // Enable SlimSelect if required
+	                if (options.enabled) {
+	                    slimSelectInstance.enable();
+	                }
+	            }
+	        });
+	    });
 	}
-	if (document.getElementById('suList') != null) {
-		new SlimSelect({
-			select: '#suList',
-			placeholder: 'Rechercher Utilisateur'
-		});
-	}
-	if (document.getElementById('gpId') != null) {
-		new SlimSelect({
-			select: '#gpId',
-			placeholder: 'Rechercher groupe'
-		});
-	}
-
-	if (document.getElementById('sessionLocationExpected') != null) {
-		new SlimSelect({
-			select: '#sessionLocationExpected',
-			placeholder: 'Rechercher Lieu'
-		});
-	}
-	if (document.getElementById('sessionLocationExpected2') != null) {
-		new SlimSelect({
-			select: '#sessionLocationExpected2',
-			placeholder: 'Rechercher Lieu'
-		});
-	}
-
-	if (document.getElementById('blackListGroupe') != null) {
-		new SlimSelect({
-			select: '#blackListGroupe',
-			placeholder: 'Rechercher Groupe'
-		});
-	}
+	
+	const slimSelectConfigs = [
+	    { id: 'suList', placeholder: 'Rechercher Utilisateur' },
+	    { id: 'gpId', placeholder: 'Rechercher groupe' },
+	    { id: 'sessionLocationExpected', placeholder: 'Rechercher Lieu' },
+	    { id: 'sessionLocationExpected2', placeholder: 'Rechercher Lieu' },
+	    { id: 'blackListGroupe', placeholder: 'Rechercher Groupe' }
+	];
+	slimSelectConfigs.forEach(config => {
+	    const element = document.getElementById(config.id);
+	    if (element) {
+	        new SlimSelect({
+	            select: `#${config.id}`,
+	            placeholder: config.placeholder
+	        });
+	    }
+	});
 
 	//Groupes
 	if (document.getElementById('addMembersGroupe') != null) {
@@ -1738,10 +1717,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			};
 			var urls = [];
 			var configsArray = [];
-			var rootUrlSe = emargementContextUrl + "/manager/storedFile/";
-			var deleteUrl = emargementContextUrl + "/manager/storedFile/delete";
+			var rootUrlSe = emargementContextUrl + "/supervisor/storedFile/";
+			var deleteUrl = emargementContextUrl + "/supervisor/storedFile/delete";
 			var request = new XMLHttpRequest();
-			request.open('GET', emargementContextUrl + "/manager/storedFile/" + typePj + "/" + seId, true);
+			request.open('GET', emargementContextUrl + "/supervisor/storedFile/" + typePj + "/" + seId, true);
 			request.onload = function() {
 				if (request.status >= 200 && request.status < 400) {
 					var data = JSON.parse(this.response);
@@ -2239,6 +2218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			paging: true,
 			searching: true,
 			info: false,
+			order: [[4, 'desc']],
 			language: {
 				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 			},

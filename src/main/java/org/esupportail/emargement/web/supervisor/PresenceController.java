@@ -26,6 +26,7 @@ import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -36,6 +37,7 @@ import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
@@ -51,6 +53,7 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
+import org.esupportail.emargement.services.StoredFileService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.TagCheckerService;
 import org.esupportail.emargement.services.UserAppService;
@@ -83,6 +86,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -98,6 +102,9 @@ public class PresenceController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	StoredFileRepository storedFileRepository;
 	
 	@Autowired	
 	AppliConfigRepository appliConfigRepository;
@@ -134,6 +141,9 @@ public class PresenceController {
 	
 	@Resource
 	TagCheckerService tagCheckerService;
+	
+	@Resource
+	StoredFileService storedFileService;
 	
 	@Resource
 	LogService logService;
@@ -222,7 +232,7 @@ public class PresenceController {
         boolean isCapaciteFull = false;
 		Page<TagCheck> tagCheckPage = null;
 		Long totalExpected = Long.valueOf(0) ;
-		Long totalAll = Long.valueOf(0) ;
+		Long totalAll = Long.valueOf(0) ; 
 		Long totalPresent = Long.valueOf(0) ;
 		Long totalNonRepartis = Long.valueOf(0) ;
 		Long totalNotExpected = Long.valueOf(0) ;
@@ -331,6 +341,8 @@ public class PresenceController {
 		uiModel.addObject("msgError", ldapService.getPrenomNom(msgError));
 		uiModel.addObject("emails",  appliConfigService.getListeGestionnaires());
 		uiModel.addObject("displayTagCheckers",  appliConfigService.isTagCheckerDisplayed());
+		uiModel.addObject("seId", sessionEpreuve.getId());
+		uiModel.addObject("typePj", "session");
         return uiModel;
     }
     
@@ -586,10 +598,11 @@ public class PresenceController {
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
 	
+	@Transactional
 	@PostMapping("/supervisor/tagCheck/updateAbsence")
     public String updateAbsence(@PathVariable String emargementContext, @RequestParam("absence") String absence, @RequestParam("tc") TagCheck tc) {
     	if(!absence.isEmpty()) {
-			tc.setAbsence(Motif.valueOf(absence));
+			tc.setAbsence("CANCEL".equals(absence)?null : Motif.valueOf(absence));
 	    	tagCheckService.save(tc, emargementContext);
     	}
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
@@ -624,7 +637,6 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			sl.getSessionEpreuve().getId(), sl.getId());
     }
-	
 
 	@PostMapping("/supervisor/updateSecondTag")
     public String updateSecondTag(@PathVariable String emargementContext, @RequestParam("id") SessionLocation sl) {
@@ -633,5 +645,35 @@ public class PresenceController {
     	sessionEpreuveRepository.save(se);
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			se.getId(), sl.getId());
+    }
+	
+    @Transactional
+    @PostMapping("/supervisor/saveAttachment")
+    public String saveAttachment(@PathVariable String emargementContext, @RequestParam("sessionEpreuve") SessionEpreuve sessionEpreuve, 
+    		@RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("files") List<MultipartFile> files) throws IOException {
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	sessionEpreuveService.save(sessionEpreuve, emargementContext, files);
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Ajout PJ : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			sessionEpreuve.getId(), sessionLocationId);
+    }
+    
+	@Transactional
+	@RequestMapping(value = "/supervisor/storedFile/{id}/photo")
+	public void getPhoto(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+		storedFileService.getPhoto(id, response);
+	}
+	
+    @Transactional
+    @PostMapping("/supervisor/storedFile/delete")
+    @ResponseBody
+    public String  deleteStoredfile(@RequestParam("key") StoredFile storedFile){
+    	return storedFileService.deleteStoredfile(storedFile);
+    }
+    
+    @GetMapping("/supervisor/storedFile/{type}/{id}")
+    @ResponseBody
+    public List<StoredFile> getStoredfiles(@PathVariable("type") String type, @PathVariable("id") Long id){
+		return storedFileService.getStoredfiles(type, id);
     }
 }

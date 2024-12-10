@@ -19,6 +19,7 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
@@ -33,6 +34,7 @@ import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.TagCheckService;
+import org.esupportail.emargement.services.UserAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,9 @@ public class ExtractionController {
 	
 	@Resource
 	GroupeService groupeService;
+	
+	@Resource
+	UserAppService userAppService;
 
 	@Resource
 	LdapService ldapService;
@@ -85,6 +90,9 @@ public class ExtractionController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	ContextRepository contextRepository;
 	
 	@Autowired
 	GroupeRepository groupeRepository;
@@ -314,16 +322,24 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files,  @RequestParam("sessionEpreuveCsv") Long id, @RequestParam(value= "sessionLocationCsv", required = false) Long slId,
+    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files, @RequestParam(value="sessionEpreuveCsv", required = false) Long id, 
+    		@RequestParam(value= "sessionLocationCsv", required = false) Long slId, @RequestParam(value="importTagchecker", required = false) String importTagchecker,
+    		@RequestParam(value="role", required = false) String role, @RequestParam(value="speciality", required = false) String speciality,
     		final RedirectAttributes redirectAttributes) throws Exception {
     	List<InputStream> streams = new ArrayList<>();
     	for(MultipartFile file : files) {
     		streams.add(file.getInputStream());
     	}
     	SequenceInputStream is = new SequenceInputStream(Collections.enumeration(streams));
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId);
-    	redirectAttributes.addFlashAttribute("paramUrl", id);
-    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	if(importTagchecker == null) {
+	    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId);
+	    	redirectAttributes.addFlashAttribute("paramUrl", id);
+	    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+	    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
+    	}else {
+    		int nbImport = userAppService.importUserApp(userAppService.getEppnsFromCsv(is), contextRepository.findByContextKey(emargementContext) , role, speciality);
+    		redirectAttributes.addFlashAttribute("bilanUserApp", nbImport);
+    	}
     	return String.format("redirect:/%s/manager/extraction/tabs/csv", emargementContext);
     }
     
@@ -338,17 +354,25 @@ public class ExtractionController {
         List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, mapEtapes, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", apogeebean.getSessionEpreuve());
     	return String.format("redirect:/%s/manager/extraction/tabs/apogee", emargementContext);
     }
     
     @PostMapping("/manager/extraction/importFromLdap")
     @Transactional
-    public String importFromLdap(@PathVariable String emargementContext, @RequestParam("sessionEpreuveLdap") Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
-    		@RequestParam(value="sessionLocationLdap", required = false) Long slId, final RedirectAttributes redirectAttributes) throws Exception {
-    	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
-    	redirectAttributes.addFlashAttribute("paramUrl", id);
-    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    public String importFromLdap(@PathVariable String emargementContext, @RequestParam(value="sessionEpreuveLdap", required = false) Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
+    		@RequestParam(value="sessionLocationLdap", required = false) Long slId, @RequestParam(value="importTagchecker", required = false) String importTagchecker,
+    		@RequestParam(value="role", required = false) String role, @RequestParam(value="speciality", required = false) String speciality, final RedirectAttributes redirectAttributes) throws Exception {
+    	if(importTagchecker == null) {
+    		List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
+        	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
+        	redirectAttributes.addFlashAttribute("paramUrl", id);
+        	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+        	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
+    	}else {
+    		int nbImport = userAppService.importUserApp(usersGroupLdap, contextRepository.findByContextKey(emargementContext) , role, speciality);
+    		redirectAttributes.addFlashAttribute("bilanUserApp", nbImport);
+    	}
     	return String.format("redirect:/%s/manager/extraction/tabs/ldap", emargementContext);
     }
     
@@ -361,6 +385,7 @@ public class ExtractionController {
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
+    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
     	return String.format("redirect:/%s/manager/extraction/tabs/groupes", emargementContext);
     }
 }

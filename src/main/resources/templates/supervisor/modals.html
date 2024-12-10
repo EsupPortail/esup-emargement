@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<div th:fragment="modals">
+		<div class="modal fade" id="checkModal" tabindex="-1" aria-hidden="true" th:if="${!isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}">
+			<div class="modal-dialog">
+				<div class="modal-content">
+				<form id="command" th:action="@{/{ctx}/supervisor/checkAll/{id}(id=${sessionLocation.id},ctx=${eContext})}" method="POST">
+					<div class="modal-header">
+						<h5 class="modal-title">Tout émarger</h5>
+						<button type="button" class="btn-close"
+							data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+		                <div class="alert alert-danger text-center">Confirmez-vous l'émargement de tous les participants de cette salle? : <br />
+		                	<br />
+		                	 <div class="alert alert-warning text-center mt-2">
+								<div class="form-check form-check-inline">
+								  <input class="form-check-input" type="radio" name="check" id="checkAll1" value="true">
+								  <label class="form-check-label" for="checkAll1">Oui</label>
+								</div>
+								<div class="form-check form-check-inline">
+								  <input class="form-check-input" type="radio" name="check" id=checkAll2 value="false" checked="checked">
+								  <label class="form-check-label" for="checkAll2">Non</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-success">Valider</button>
+					</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="commentModal" tabindex="-1"
+			aria-hidden="true" th:if="${sessionLocation !=null}">
+			<div class="modal-dialog">
+				<form
+					th:action="@{/{ctx}/supervisor/savecomment(ctx=${eContext})}"
+					method="post">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Commentaire</h5>
+							<button type="button" class="btn-close"
+								data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<input type="hidden" id="sessionId" name="sessionLocationId"
+							th:value="${sessionLocation.id}" /> <input type="hidden"
+							id="sessionEpreuveId" name="sessionEpreuveId"
+							th:value="${sessionEpreuve.id}" />
+							<textarea class="form-control" rows="6" name="comment"
+								th:text="${sessionEpreuve.comment}"></textarea>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success">Sauvegarder</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="modal fade" id="emailModal" tabindex="-1"
+			aria-hidden="true" th:if="${sessionLocation !=null}">
+			<div class="modal-dialog">
+				<form
+					th:action="@{/{ctx}/supervisor/sendEmailPdf(ctx=${eContext})}"
+					method="post">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Destinataires</h5>
+							<button type="button" class="btn-close"
+								data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<p>Le PDF d'émargement sera envoyé aux destinataires suivants : </p>
+							<input type="hidden" id="sessionId" name="sessionLocationId"
+							th:value="${sessionLocation.id}" /> <input type="hidden"
+							id="sessionEpreuveId" name="sessionEpreuveId"
+							th:value="${sessionEpreuve.id}" />
+							<div >
+								<div class="form-check" th:each="email : ${emails}">
+								  <input class="form-check-input" type="checkbox" th:value="${email}" name="emails" checked="checked" id="emails">
+								  <label class="form-check-label" for="emails" th:text="${email}">
+								  </label>
+								</div>
+							</div>
+							<select class="form-select initTags" id="validationTagsJson"
+								name="courriels" multiple data-allow-new="false"
+								th:attr="data-server=${'/' + eContext + '/supervisor/searchEmails'}"
+								data-live-server="1" data-max="30"
+								data-suggestionsThreshold='4' data-allow-clear="true">
+								<option disabled value="">Ajouter des adresses</option>
+							</select>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success">Envoyer</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="modal fade" id="pjModal" tabindex="-1" aria-hidden="true" th:if="${sessionLocation !=null}">
+			<div class="modal-dialog modal-lg">
+				<form th:action="@{/{ctx}/supervisor/saveAttachment(ctx=${eContext})}"
+					method="post" enctype="multipart/form-data">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Pièces jointes</h5>
+							<button type="button" class="btn-close"
+								data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<input type="hidden" id="sessionId" name="sessionLocationId"
+							th:value="${sessionLocation.id}" />
+							<input type="hidden" id="sessionEpreuveId" name="sessionEpreuve"
+							th:value="${sessionEpreuve.id}"/>
+		                    <div class="file-loading">
+			 					<input type="file" class="form-control-file" id="files" name="files" multiple>
+			 				</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success">Enregistrer</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>		
+	</div>
+</html>

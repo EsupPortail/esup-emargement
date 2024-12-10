@@ -430,8 +430,10 @@ public class SessionEpreuveService {
     }
 	
     @Transactional
-	public void save(SessionEpreuve sessionEpreuve, String emargementContext) throws IOException {
-		
+	public void save(SessionEpreuve sessionEpreuve, String emargementContext, List<MultipartFile> files) throws IOException {
+    	if(files != null) {
+    		sessionEpreuve.setFiles(files);
+    	}
 		sessionEpreuveRepository.save(sessionEpreuve);
 		if(sessionEpreuve.getFiles() != null && !sessionEpreuve.getFiles().isEmpty()) {
 			for(MultipartFile file : sessionEpreuve.getFiles()) {
@@ -920,7 +922,7 @@ public class SessionEpreuveService {
 				}
 			}
 		} catch (Exception e) {
-			log.error("CSV d'imort de sesions non conforme", e);
+			log.error("CSV d'import de sessions non conforme", e);
 			j++;
 			erreurs = "Mauvais format de données dans le CSV";
 			logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.FAILED, "Mauvais format de données" , null, null, emargementContext, null);

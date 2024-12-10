@@ -129,14 +129,18 @@ public class UserAppController {
 			model.addAttribute("eppn", eppn);
 			model.addAttribute("collapse", "show");
 		}
-		String sessionId = adeService.getSessionId(false, emargementContext);
-		String idProject = appliConfigService.getProjetAde();
-		if(adeService.getConnectionProject(idProject, sessionId)==null) {
-			sessionId = adeService.getSessionId(true, emargementContext);
-			adeService.getConnectionProject(idProject, sessionId);
-			log.info("Récupération du projet Ade " + idProject);
+		boolean isAdeCampusEnabled = appliConfigService.isAdeCampusEnabled();
+		if(isAdeCampusEnabled) {
+			String sessionId = adeService.getSessionId(false, emargementContext);
+			String idProject = appliConfigService.getProjetAde();
+			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+				sessionId = adeService.getSessionId(true, emargementContext);
+				adeService.getConnectionProject(idProject, sessionId);
+				log.info("Récupération du projet Ade " + idProject);
+			}
+			model.addAttribute("comps", adeService.getItemsFromtInstructors(sessionId, null));
 		}
-		model.addAttribute("comps", adeService.getItemsFromtInstructors(sessionId, null));
+		model.addAttribute("isAdeCampusEnabled", isAdeCampusEnabled);
         model.addAttribute("userAppPage", userAppPage);
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("itsme", userAppService.getUserAppEppn());

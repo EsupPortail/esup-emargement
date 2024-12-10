@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+	<div th:fragment="select">
+		<div class="alert alert-info pt-0 mt-n2">
+			<form th:action="@{/{ctx}/supervisor/presence(ctx=${eContext})}" id="presenceForm">
+				<div class="row">
+					<div class="col-auto">
+						<label for="sessionEpreuve" class="form-label">Session</label>
+						<select name="sessionEpreuve" class="slimSelectClass"
+							id="sessionEpreuvePresence" >
+							<option data-placeholder="true"></option>
+							<option th:each="se : ${allSessionEpreuves}"
+								th:selected="(${se.id == sessionEpreuve.id})"
+								th:value="${se.id}"
+								th:text="${#dates.format(se.heureEpreuve, 'HH:mm') + ' || ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' || ' + se.campus.site + ' || ' + se.nomSessionEpreuve}"></option>
+						</select>
+					</div>
+					<div class="col-auto">
+						<label for="sessionEpreuve" class="form-label">Lieu</label>
+						<select name="location" id="location"
+							class="slimSelectClass">
+							<option th:each="sl : ${allSessionLocations}"
+								th:selected="(${sl.id == sessionLocation.id})"
+								th:value="${sl.id}" th:text="${sl.location.nom}"></option>
+						</select>
+					</div>
+				</div>
+				<p th:if="${allSessionEpreuves.isEmpty()}" class="mb-1">Aucune
+					session disponible</p>
+				<p th:unless="${allSessionEpreuves.isEmpty()}"
+					th:text="${#lists.size(allSessionEpreuves) + ' session(s) disponibles'}"
+					class="mb-1"></p>
+				<div class="form-group form-check m-0 mt-1">
+					<input type="checkbox" class="form-check-input"
+						id="oldSessionsCheck" th:checked="${oldSessions}">
+					<label class="form-check-label" for="oldSessionsCheck"><span
+						title="Voir les sessions antérieures à aujourd'hui">Sessions
+							antérieures</span></label>
+				</div>
+			</form>
+			<form th:if="${sessionLocation ne null}" th:action="@{/{ctx}/supervisor/updateSecondTag(ctx=${eContext})}"  method="post" id="formSecondTag">
+				<div class="form-check form-switch" th:if="${sessionEpreuve.id != null}">
+				  <input class="form-check-input" type="checkbox" role="switch" id="updateSecondTag"
+				  th:checked="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
+				  <input type="hidden" name="id" th:value="${sessionLocation.id}"/>
+				  <label class="form-check-label" for="updateSecondTag">Double badgeage</label>
+				</div>
+			</form>
+		</div>
+	</div>
+</html>
