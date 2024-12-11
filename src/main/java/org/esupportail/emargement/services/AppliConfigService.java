@@ -275,6 +275,22 @@ public class AppliConfigService {
 	}
 	
 	@Transactional
+	public int updateCatIsMissing(Context context) {
+		List<AppliConfig> list = appliConfigRepository.findAppliConfigByContextAndCategoryIsNull(context);
+		int nb= 0;
+		if(!list.isEmpty()) {
+			for(AppliConfig appliconfig : list) {
+				appliconfig.setCategory(messageSource.getMessage("config.cat.".concat(appliconfig.getKey().toLowerCase()), null, null));
+				appliConfigRepository.save(appliconfig);
+				nb++;
+			}
+			log.info("Mise à jour des configs " +list + " pour le contexte : " + context.getKey());
+			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Mise à jour de configs " + list , null,  null, context.getKey(), null);
+		}
+		return nb;
+	}
+	
+	@Transactional
 	public int updateAppliconfig(Context context) {
 		List <AppliConfigKey> list =  checkAppliconfig(context);
 		int nb= 0;
@@ -283,6 +299,7 @@ public class AppliConfigService {
 				AppliConfig appliconfig = new AppliConfig();
 				String suffixe = key.name().toLowerCase();
 				appliconfig.setContext(context);
+				appliconfig.setCategory(messageSource.getMessage("config.cat.".concat(suffixe), null, null));
 				appliconfig.setDescription(messageSource.getMessage("config.desc.".concat(suffixe), null, null));
 				appliconfig.setKey(messageSource.getMessage("config.key.".concat(suffixe), null, null));
 				appliconfig.setType(TypeConfig.valueOf(messageSource.getMessage("config.type.".concat(suffixe), null, null)));

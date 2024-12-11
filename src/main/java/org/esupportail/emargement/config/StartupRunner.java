@@ -30,6 +30,7 @@ public class StartupRunner implements CommandLineRunner {
         if(!contexts.isEmpty()) {
         	for (Context context : contexts) {
         		appliConfigService.updateAppliconfig(context);
+        		appliConfigService.updateCatIsMissing(context);
         		typeSessionService.updateTypeSession(context.getKey());
         		if(context.getIsActif()==null) {
         			context.setIsActif(true);
