@@ -205,7 +205,10 @@ public class PresenceController {
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(value ="tc", required = false) Long tc, @RequestParam(value ="tcer", required = false) String tcer, 
     		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update){
-    	ModelAndView uiModel= new ModelAndView("supervisor/list"); 
+    	ModelAndView uiModel= new ModelAndView("supervisor/list");
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String eppnAuth = auth.getName();
+    	uiModel.addObject("scrollTop", appliConfigService.isScrollTopEnabled());
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
     		if(tcer!=null) {
@@ -240,8 +243,6 @@ public class PresenceController {
 		
 		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
 		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String eppnAuth = auth.getName();
         if(sessionLocationId != null) {
     		if(sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuve)) {
     			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");

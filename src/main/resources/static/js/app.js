@@ -23,8 +23,10 @@ function remove(id) {
 }
 
 function backToTop() {
-	document.body.scrollTop = 0;
-	document.documentElement.scrollTop = 0;
+	if(scrollTop == 'true'){
+		document.body.scrollTop = 0;
+		document.documentElement.scrollTop = 0;
+	}
 }
 
 //Convertion rgb-->hex
@@ -382,7 +384,7 @@ function updatePresence(url, numEtu, currentLocation) {
 	var location = (currentLocation != null) ? "&currentLocation=" + currentLocation : "";
 	request.open('GET', url + "?presence=" + numEtu + location, true);
 	request.onload = function() {
-		if (request.status >= 200 && request.status < 400) {console.log(request.responseText);
+		if (request.status >= 200 && request.status < 400) {
 			if (document.getElementById("newbie") != null) {
 				const data = JSON.parse(request.responseText);
 				if (data != null) {
