@@ -1530,19 +1530,21 @@ document.addEventListener('DOMContentLoaded', function() {
 					prenom = guest.prenom;
 				}
 				if (sessionLocationExpected != null) {
-					var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
-					var displayedIdentity2 = $("#" + displayedIdentity);
-					displayedIdentity2.removeClass("d-none");
-					displayedIdentity2.find("img").prop("src", url);
-					displayedIdentity2.find("img").prop("alt", identifiant);
-					displayedIdentity2.find('#prenomPresence3').text(prenom);
-					displayedIdentity2.find('#nomPresence3').text(nom);
-					if (person != null && person.numIdentifiant != null) {
-						displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+					if (tagCheck.tagChecker!=null && tagCheck.tagChecker.userApp.eppn==eppnAuth){
+						var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
+						var displayedIdentity2 = $("#" + displayedIdentity);
+						displayedIdentity2.removeClass("d-none");
+						displayedIdentity2.find("img").prop("src", url);
+						displayedIdentity2.find("img").prop("alt", identifiant);
+						displayedIdentity2.find('#prenomPresence3').text(prenom);
+						displayedIdentity2.find('#nomPresence3').text(nom);
+						if (person != null && person.numIdentifiant != null) {
+							displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+						}
+						const toastLiveExample = document.getElementById(displayedIdentity);
+						const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
+						toast.show();
 					}
-					const toastLiveExample = document.getElementById(displayedIdentity);
-					const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 })
-					toast.show();
 					$("body").scrollTop();
 				}
 				var urlLocation = (sessionLocationExpected != null) ? sessionLocationExpected : $_GET("location");
@@ -1550,7 +1552,9 @@ document.addEventListener('DOMContentLoaded', function() {
 					"&location=" + urlLocation + "&update=" + tagCheck.id;
 				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
-					displayToast();
+					if (tagCheck.tagChecker!=null && tagCheck.tagChecker.userApp.eppn==eppnAuth){
+						displayToast();
+					}
 					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
 					initTablePresence(sortDate);
 				});

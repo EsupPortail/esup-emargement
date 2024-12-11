@@ -209,6 +209,7 @@ public class PresenceController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = auth.getName();
     	uiModel.addObject("scrollTop", appliConfigService.isScrollTopEnabled());
+    	uiModel.addObject("eppnAuth", eppnAuth);
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
     		if(tcer!=null) {
