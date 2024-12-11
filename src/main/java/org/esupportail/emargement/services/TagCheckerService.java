@@ -237,7 +237,9 @@ public class TagCheckerService {
 				}
 			}
 		}
-		dataEmitterService.sendTagChecker(tagCheckers.get(0));
+		if(!tagCheckers.isEmpty()){
+			dataEmitterService.sendTagChecker(tagCheckers.get(0));
+		}
 		return tagCheckers;
 	}
 }
