@@ -205,7 +205,7 @@ info-box-text {
     overflow-y: auto;
 }
 table thead.sticky-top {
-	top: 128px;
+	top: 116px;
 	z-index: 1000;
     background-color: white;
 }
