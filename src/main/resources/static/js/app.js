@@ -884,19 +884,24 @@ function initTablePresence(sortDate){
 			sortDate // Adjust the column index if needed
 		],
 		columnDefs: [
-			{
-				targets: 4,
-				type: 'datetime-moment', // Use the datetime-moment plugin
-				render: function(data, type, row) {
-					if (!data) { // Check if data is empty
-						return ''; // Return empty string if data is empty
-					}
-					if (type === 'sort' || type === 'type') {
-						return moment(data, 'DD/MM/YY hh:mm:ss').unix();
-					}
-					return moment(data, 'DD/MM/YY hh:mm:ss').format('DD/MM/YY hh:mm:ss');
-				}
-			}
+		    {
+		        targets: 'dateItem',
+		        type: 'datetime-moment',
+		        render: function(data, type, row) {
+		            if (!data) {
+		                return ''; 
+		            }
+		            const formats = ['DD/MM/YY HH:mm:ss', 'DD/MM/YY HH:mm', 'HH:mm'];
+		            const parsedDate = moment(data, formats, true);
+		            if (!parsedDate.isValid()) {
+		                return data; ails
+		            }
+		            if (type === 'sort' || type === 'type') {
+		                return parsedDate.unix(); 
+		            }
+		            return parsedDate.format('DD/MM/YY HH:mm:ss');
+		        }
+		    }
 		],
 		drawCallback: function(settings) {
             // Check if there's data in the table
