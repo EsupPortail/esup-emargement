@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid" id="userEvents">
+	        <div class="card">
+		    	<div class="card-header">
+	    			<div class="row">
+			    		<div class="col-4">
+					    	<h2>Ade Campus<small class="h5"> - mes évènements</small></h2>
+					    </div>
+					    <div class="col-8">
+						    <div class="row float-end">
+								<div class="col-auto">
+									<a title="Reconnexion session Ade Campus" th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}"
+										class="btn btn-danger"><i class="fa-solid fa-sign-out"></i></a>
+								</div>							
+						    </div>
+					    </div> 
+	    			</div>
+		    	</div>
+	 			<div class="card-body" id="gridEvents">
+	 				<div class="alert alert-danger text-center fw-bold" th:if="${#ctx.containsVariable('message')}">
+	 					Vous devez sélectionner obligatoirement les évènements Ade Campus avec des dates de début et de fin afin de planifier les tâches d'import.
+	 				</div>
+	 				<div class="row">
+						<div class="d-flex d-none justify-content-center mb-4" id="spinnerLoad">
+						  <div class="spinner-border" role="status">
+						    <span class="sr-only">Loading...</span>
+						  </div>
+						</div>
+	 					<div th:unless="${#ctx.containsVariable('noProject')}">
+	 						<form th:action="@{/{ctx}/supevisor/events/adeCampus(ctx=${eContext})}" id="displayEvents" class="float-start">
+								<input type="hidden" name ="idList" id="idList" required="required"/>
+	 							<div id="toolbar float-start">
+									<div class="row">
+										<div class="col-auto">
+											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date min</label>
+										</div>
+										<div class="col-auto">
+											<input type="date" id="strDateMin" name="strDateMin"
+												class="form-control datetimepicker-input"
+												th:value="${strDateMin}">
+										</div>
+										<div class="col-auto">
+											<label class="col-form-label col-form-label-sm ms-2 mt-1">Date max</label>
+										</div>
+										<div class="col-auto">
+											<input type="date" id="strDateMax" name="strDateMax"
+												class="form-control datetimepicker-input"
+												th:value="${strDateMax}">
+										</div>
+										<div class="col-auto">
+											<div class="form-check">
+											  <input class="form-check-input mt-2" type="checkbox" value="true" id="existingSe" name="existingSe" th:checked="${existingSe} ? 'checked'">
+											  <label class="col-form-label col-form-label-sm form-check-label ms-2 mt-1" for="existingSe">
+											    Déjà importés
+											  </label>
+											</div>
+										</div>
+										<div class="col-auto">
+											<input type="submit" class="btn btn-success btn-sm mt-1 me-3" id="submitSearchEvents" value="Rechercher"/>
+										</div>
+									</div>
+								</div>
+							</form>
+								<form th:action="@{/{ctx}/manager/adeCampus/importEvents(ctx=${eContext})}" method="post" id="displayEventsImport">
+									<input type="hidden" name ="libelles" id="textListTask" required="required"/>
+									<input type="hidden" name ="params" id="idListTask" required="required"/>
+									<input type="hidden" name="strDateMin" th:value="${strDateMin}" id="strDateMinImport">
+									<input type="hidden" name="strDateMax" th:value="${strDateMax}"id="strDateMaxImport">
+									<input type="hidden" name ="idList" id="idListImport"/>
+									<input type="hidden" name ="nbItems" id="nbItems" value=""/>
+									<div class="row mb-3 p-1 bg-light">
+										<div class="col-auto">
+											<select class="form-select form-select-sm" id="campus" name="campus" required>
+												<option value="">--Choisir site d'import--</option>
+												<option th:each="campus : ${campuses}" th:value="${campus.id}" th:text="${campus.site}"
+													th:selected="${campus.isDefault != null and campus.isDefault}"></option>
+											</select>
+										</div>
+										<div class="col-auto">
+											<button id="importBtn" class="btn btn-primary btn-sm btn-outline mt-1" type="submit">Importer</button>
+										</div>
+									</div>
+									<table class="table table-bordered table-striped tableFoo" id="grid" style="width:100%">
+										<thead>
+										<tr>
+											<th><input type="checkbox" id="checkAll"></th>
+											<th>Id</th>
+											<th class="dateItem">Maj</th>
+											<th>Import</th>
+											<th>Type</th>
+											<th>Nom</th>
+											<th class="dateItem">Date</th>
+											<th>Début</th>
+											<th>Fin</th>
+											<th>Groupe</th>
+											<th>Enseignants</th>
+											<th>Salles</th>
+											<th>Formation</th>
+										</tr>
+										</thead>
+										<tbody id="tableEvents"></tbody>
+									</table>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

@@ -35,6 +35,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
@@ -453,10 +454,22 @@ public class AdeService {
 		String detail = "8";
 		List<AdeResourceBean> adeBeans = new ArrayList<>();
 		if(idEvents != null) {
-			for(Long id : idEvents) {
-				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
-				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
+			if(true) {
+			String ids = idEvents.size() > 1
+				    ? idEvents.stream().map(String::valueOf).collect(Collectors.joining("%7C"))
+				    : String.valueOf(idEvents.get(0));
+			
+				String urlEvent0 = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + ids + "&detail=" +detail;
+				System.out.println();
+				setEvents(urlEvent0, adeBeans, existingSe, sessionId, resourceId, update);
 			}
+			else {
+				for(Long id : idEvents) {
+					String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
+					setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
+				}
+			}
+
 		}else {
 			String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ formatDate(strDateMin) + 
 					"&endDate=" + formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
@@ -581,10 +594,10 @@ public class AdeService {
 	
 	public Document getDocument(String url) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
-		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
+		URLConnection con = urlConnect.openConnection();
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		//dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.parse(inputStream);
 		inputStream.close();
@@ -1161,7 +1174,7 @@ public class AdeService {
 					if (existingGroupe != null) {
 						groupes.addAll(existingGroupe);
 					}
-					if (!newGroupe.isEmpty()) {
+					if (newGroupe!=null && !newGroupe.isEmpty()) {
 						Groupe groupe = groupeService.createNewGroupe(newGroupe, emargementContext,
 								sessionEpreuveService.getCurrentanneUniv(), auth.getName());
 						groupes.add(groupe.getId());

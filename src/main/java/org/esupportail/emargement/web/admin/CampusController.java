@@ -1,7 +1,8 @@
 package org.esupportail.emargement.web.admin;
 
+import java.util.List;
+
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Campus;
@@ -109,7 +110,7 @@ public class CampusController {
     }
     
     @PostMapping("/admin/campus/create")
-    public String create(@PathVariable String emargementContext, @Valid Campus campus, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid Campus campus, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, campus);
             return "admin/campus/create";
@@ -121,17 +122,26 @@ public class CampusController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, site déjà existant : " + campus.getSite());
         	return String.format("redirect:/%s/admin/campus?form", emargementContext);
-        }else {
-        	campus.setContext(contexteService.getcurrentContext());
-            campusRepository.save(campus);
-            log.info("Ajout site : " + campus.getSite());
-            logService.log(ACTION.AJOUT_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/campus", emargementContext);
         }
+		campus.setContext(contexteService.getcurrentContext());
+		campus.setIsDefault(campus.getIsDefault());
+		if(campus.getIsDefault()) {
+			List<Campus> campuses = campusRepository.findByIsDefaultIsTrue();
+	    	if(!campuses.isEmpty()){
+	    		for(Campus c : campuses) {
+	    			c.setIsDefault(false);
+	    			campusRepository.save(c);
+	    		}
+	    	}
+		}
+		campusRepository.save(campus);
+		log.info("Ajout site : " + campus.getSite());
+		logService.log(ACTION.AJOUT_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/admin/campus", emargementContext);
     }
     
     @PostMapping("/admin/campus/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Campus campus, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, 
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Campus campus, BindingResult bindingResult, Model uiModel, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, campus);
@@ -144,18 +154,27 @@ public class CampusController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la maj, site déjà existant : " + campus.getSite());
         	return String.format("redirect:/%s/admin/campus/%s?form", emargementContext, campus.getId());
-        }else {
-        	campus.setId(id);
-        	campus.setContext(contexteService.getcurrentContext());
-            campusRepository.save(campus);
-            log.info("Maj site : " + campus.getSite());
-            logService.log(ACTION.UPDATE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
-            return String.format("redirect:/%s/admin/campus", emargementContext);
-        }  
+        }
+		campus.setId(id);
+		campus.setContext(contexteService.getcurrentContext());
+		campus.setIsDefault(campus.getIsDefault());
+		if(campus.getIsDefault()) {
+			List<Campus> campuses = campusRepository.findByIsDefaultIsTrue();
+	    	if(!campuses.isEmpty()){
+	    		for(Campus c : campuses) {
+	    			c.setIsDefault(false);
+	    			campusRepository.save(c);
+	    		}
+	    	}
+		}
+		campusRepository.save(campus);
+		log.info("Maj site : " + campus.getSite());
+		logService.log(ACTION.UPDATE_CAMPUS, RETCODE.SUCCESS, "Site : ".concat(campus.getSite()), auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/admin/campus", emargementContext);  
     }
     
     @PostMapping(value = "/admin/campus/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
     	Campus campus = campusRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {

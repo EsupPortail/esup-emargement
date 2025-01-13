@@ -33,6 +33,8 @@ public class Campus implements ContextSupport {
     @JsonIgnore
     private String description;
     
+    private Boolean isDefault;
+    
 	public Long getId() {
 		return id;
 	}
@@ -54,9 +56,13 @@ public class Campus implements ContextSupport {
 	public Context getContext() {
 		return context;
 	}
-
 	public void setContext(Context context) {
 		this.context = context;
 	}
-    
+	public Boolean getIsDefault() {
+		return isDefault;
+	}
+	public void setIsDefault(Boolean isDefault) {
+		this.isDefault = isDefault;
+	}
 }

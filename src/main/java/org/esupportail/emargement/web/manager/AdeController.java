@@ -115,6 +115,11 @@ public class AdeController {
 		return urlHomeAde;
 	}
 	
+	@ModelAttribute("defaultCampus")
+	public static String getDefaultCampus() {
+		return ITEM;
+	}
+	
 	@Resource
 	AdeService adeService;
 	

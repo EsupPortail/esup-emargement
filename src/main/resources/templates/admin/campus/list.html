@@ -25,6 +25,7 @@
 								<tr>
 									<th scope="col"><a class="sorted" sd:pagination-sort="site">Site</a></th>
 									<th scope="col">Description</th>
+									<th class ="center" scope="col">Défaut</th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>
 							</thead>
@@ -32,6 +33,7 @@
 								<tr th:each="campus : ${campusPage}">
 									<td th:text="${campus.site}"></td>
 									<td th:text="${campus.description}"></td>
+									<td class ="center"><i th:class="${campus.isDefault} ? 'fa fa-check text-success' :''"></i></td>
 									<td class ="center"><a th:href="@{/{ctx}/admin/campus/{id}(id=${campus.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a class ="ms-2" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${campus.id }"><i class="fa fa-trash text-danger"></i></a>
 										<a class ="ms-2" th:href="@{/{ctx}/admin/campus/{id}?form(id=${campus.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>

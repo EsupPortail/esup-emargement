@@ -894,7 +894,7 @@ function initTablePresence(sortDate){
 		            const formats = ['DD/MM/YY HH:mm:ss', 'DD/MM/YY HH:mm', 'HH:mm'];
 		            const parsedDate = moment(data, formats, true);
 		            if (!parsedDate.isValid()) {
-		                return data; ails
+		                return data;
 		            }
 		            if (type === 'sort' || type === 'type') {
 		                return parsedDate.unix(); 
@@ -947,6 +947,72 @@ function getNbItems(table) {
 		return key + "@" + dataMap[key];
 	}).join(",");
 	return dataString;
+}
+
+function displayEvents(url, table){
+	$('#displayEvents').submit(function(e) {
+		e.preventDefault();
+		var formData = $(this).serialize();
+		$.ajax({
+			type: 'GET',
+			url: url,
+			data: formData,
+			success: function(response) {
+				table.destroy();
+				$("#tableEvents").html(response);
+				$("#spinnerLoad").addClass("d-none");
+				table = $('.tableFoo').DataTable({
+					columnDefs: [
+						{
+							targets: 0, // Column index for the checkbox column
+							orderable: false, // Disable sorting on this column
+							className: 'select-checkbox', // Add a class for the checkbox column
+							render: function(data, type, row, meta) {
+								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+							}
+						},
+						{ type: 'date-eu', targets: 'dateItem'}
+					],
+					select: {
+						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
+					},
+					order: [[6, 'desc']], // Set the default sorting column and order
+					responsive: true,
+					ordering: true,
+					paging: true,
+					searching: true,
+					info: false,
+					language: {
+						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+					}
+				});
+				$("#nbItems").val(getNbItems(table));
+			},
+			error: function(error) {
+				console.log('Error: ' + error);
+			}
+		});
+	});
+}
+
+function importEvents(url){
+	$("#importBtn").on('click', function() {
+		$("#displayEventsImport").submit(function(event) {
+			event.preventDefault();
+			$("#spinnerLoad").removeClass("d-none");
+			$.ajax({
+				url: url,
+				type: "POST",
+				data: $("#displayEventsImport").serialize(), // Serialize form data
+				success: function() {
+					$('#displayEvents').submit();
+				},
+				error: function(error) {
+					console.log("Error: " + error);
+				}
+			});
+		});
+	});
 }
 
 //==jQuery document.ready
@@ -2114,68 +2180,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		var allChecked = $('.data-checkbox:checked').length === $('.data-checkbox').length;
 		$('#checkAll').prop('checked', allChecked);
 	});
-
-	$('#displayEvents').submit(function(e) {
-		e.preventDefault();
-		var formData = $(this).serialize();
-		$.ajax({
-			type: 'GET',
-			url: emargementContextUrl + "/manager/adeCampus/Events",
-			data: formData,
-			success: function(response) {
-				table.destroy();
-				$("#tableEvents").html(response);
-				$("#spinnerLoad").addClass("d-none");
-				table = $('.tableFoo').DataTable({
-					columnDefs: [
-						{
-							targets: 0, // Column index for the checkbox column
-							orderable: false, // Disable sorting on this column
-							className: 'select-checkbox', // Add a class for the checkbox column
-							render: function(data, type, row, meta) {
-								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
-							}
-						},
-						{ type: 'date-eu', targets: 'dateItem'}
-					],
-					select: {
-						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
-					},
-					order: [[6, 'desc']], // Set the default sorting column and order
-					responsive: true,
-					ordering: true,
-					paging: true,
-					searching: true,
-					info: false,
-					language: {
-						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-					}
-				});
-				$("#nbItems").val(getNbItems(table));
-			},
-			error: function(error) {
-				console.log('Error: ' + error);
-			}
-		});
-	});
-	
-	$("#importBtn").on('click', function() {
-		$("#displayEventsImport").submit(function(event) {
-			event.preventDefault();
-			$("#spinnerLoad").removeClass("d-none");
-			$.ajax({
-				url: emargementContextUrl + "/manager/adeCampus/importEvents",
-				type: "POST",
-				data: $("#displayEventsImport").serialize(), // Serialize form data
-				success: function() {
-					$('#displayEvents').submit();
-				},
-				error: function(error) {
-					console.log("Error: " + error);
-				}
-			});
-		});
-	});
+	var urlEvents = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus" : "/manager/adeCampus/Events";
+	displayEvents(emargementContextUrl + urlEvents, table);
+	var urlEventsimport = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus/importEvents" : "/manager/adeCampus/importEvents";
+	importEvents(emargementContextUrl + urlEventsimport);
 
 	//Create sessionLocation
 	var addSessionLocation = document.getElementById("addSessionLocation");
