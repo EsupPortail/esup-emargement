@@ -1621,7 +1621,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				var urlLocation = (sessionLocationExpected != null) ? sessionLocationExpected : $_GET("location");
 				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
 					"&location=" + urlLocation + "&update=" + tagCheck.id;
-				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
+				$("#resultsBlock" + sessionLocationExpected).load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					if (tagCheck.tagChecker!=null && tagCheck.tagChecker.userApp.eppn==eppnAuth){
 						displayToast();
@@ -1665,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				var urlLocation =  $_GET("location");
 				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
 					"&location=" + urlLocation + "&tcer=true&update=" + tagChecker.id;
-				$("#resultsBlock").load(url, function(responseText, textStatus, XMLHttpRequest) {
+				$("#resultsBlock" +  tagChecker.sessionLocation.id).load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					displayToast();
 					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
