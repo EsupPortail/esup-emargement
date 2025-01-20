@@ -454,22 +454,10 @@ public class AdeService {
 		String detail = "8";
 		List<AdeResourceBean> adeBeans = new ArrayList<>();
 		if(idEvents != null) {
-			if(true) {
-			String ids = idEvents.size() > 1
-				    ? idEvents.stream().map(String::valueOf).collect(Collectors.joining("%7C"))
-				    : String.valueOf(idEvents.get(0));
-			
-				String urlEvent0 = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + ids + "&detail=" +detail;
-				System.out.println();
-				setEvents(urlEvent0, adeBeans, existingSe, sessionId, resourceId, update);
+			for(Long id : idEvents) {
+				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
+				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
 			}
-			else {
-				for(Long id : idEvents) {
-					String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
-					setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
-				}
-			}
-
 		}else {
 			String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ formatDate(strDateMin) + 
 					"&endDate=" + formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
