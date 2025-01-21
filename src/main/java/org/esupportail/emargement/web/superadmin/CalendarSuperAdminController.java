@@ -2,10 +2,12 @@ package org.esupportail.emargement.web.superadmin;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.CalendarService;
 import org.esupportail.emargement.services.HelpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,33 +31,34 @@ public class CalendarSuperAdminController {
 	@Resource
 	CalendarService calendarService;
 	
+	@Autowired
+	ContextRepository contextRepository;
+	
 	@Resource
 	HelpService helpService;
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return  ITEM;
 	}
 	
 	@GetMapping(value = "/superadmin/calendar")
-	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagCheck") String eppnTagCheck, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
+	public String list(Model model){
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
+		model.addAttribute("ctxs", contextRepository.findByIsActifTrueOrderByKey());
 		return "superadmin/calendar/index";
 	}
 	
     @RequestMapping(value="/superadmin/calendar/events", headers = "Accept=application/json; charset=utf-8")
     @ResponseBody
-    public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end) {
-    	
+    public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end,
+    		@RequestParam(value="view", required = false) String view) {
     	String flexJsonString = "aucune donnée à récupérer";
-		
 		try {
-			flexJsonString = calendarService.getEvents(emargementContext, start, end, true);;
-			
+			flexJsonString = calendarService.getEvents(start, end, true, view, null, null);
 		} catch (Exception e) {
 			log.warn("Impossible de récupérer les évènements calendrier du contexte " + emargementContext , e);
 		}
-		
     	return flexJsonString;
     }
 }

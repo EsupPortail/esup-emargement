@@ -25,5 +25,7 @@ public interface ContextRepository extends JpaRepository<Context, Long>{
 	@Query(value = "select distinct key from context order by key", nativeQuery = true)
 	List<String> findDistinctKey();
 	
+	List<Context> findByIsActifTrueOrderByKey();
+	
 	Context findByKey(String key);
 }

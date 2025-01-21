@@ -66,11 +66,20 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "and person.eppn= :eppn and date_examen= :date", nativeQuery = true)
 	Long countSessionEpreuveIdExpected(String eppn, Date date);
 	
-	@Query(value = "select * from session_epreuve "
-			+ "where (date_examen >= :startDate and date_examen <= :endDate) or "
+	@Query(value = "select * from session_epreuve, context "
+			+ "WHERE session_epreuve.context_id = context.id AND "
+			+ "((date_examen >= :startDate and date_examen <= :endDate) or "
 			+ " (date_fin >= :startDate and date_fin <= :endDate) or "
-			+ "(date_examen <= :startDate and date_fin >= :endDate)" , nativeQuery = true)
+			+ "(date_examen <= :startDate and date_fin >= :endDate)) AND context.is_actif = true" , nativeQuery = true)
 	List<SessionEpreuve> getAllSessionEpreuveForCalendar(Date startDate, Date endDate);
+	
+	@Query(value = "SELECT * FROM session_epreuve WHERE "
+            + "((date_examen >= :startDate AND date_examen <= :endDate) OR "
+            + " (date_fin >= :startDate AND date_fin <= :endDate) OR "
+            + " (date_examen <= :startDate AND date_fin >= :endDate)) "
+            + "AND context_id = :ctxId", 
+       nativeQuery = true)
+	List<SessionEpreuve> getAllSessionEpreuveForCalendarByContext(Date startDate, Date endDate, Long ctxId);
 	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
 	        + "where tag_check.person_id = person.id "

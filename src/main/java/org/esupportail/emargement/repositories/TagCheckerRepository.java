@@ -1,5 +1,6 @@
 package org.esupportail.emargement.repositories;
 
+import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
@@ -38,6 +39,9 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	Page<TagChecker> findTagCheckerByUserAppEppnEquals(String eppn, Pageable pageable);
 	
 	List<TagChecker> findByContextAndUserAppEppn(Context ctx, String eppn);
+	
+	List<TagChecker> findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(String eppn, Date startDate, Date endDate, 
+			String eppn1, Date startDate1, Date endDate1, String eppn2, Date startDate2, Date endDate2);
 	
 	//STATS
 	@Query(value = "select eppn, count(*) from tag_checker, user_app, session_location where tag_checker.user_app_id = user_app.id "

@@ -6,7 +6,21 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 			<div class="card">
-				<div class="card-header"><h2>Calendrier</h2></div>
+				<div class="card-header">
+					<div class="row">
+			    		<div class="col">
+	    					<h2>Calendrier</h2>
+	    				</div>
+	    				<div class="col-auto">
+							<form th:action="@{/{ctx}/manager/calendar(ctx=${eContext})}">
+								<select class="form-select" id="viewCalendar" name="view" title="Choisir évènements">
+									<option value="all" th:selected="${currentView ne 'mine'}">Tout</option>
+									<option value="mine" th:selected="${currentView eq 'mine'}">Mes évènements</option>
+								</select>
+							</form>
+						</div>
+					</div>
+				</div>
   				<div class="card-body">
   					<div class="col">
   						<div id='calendar'></div>

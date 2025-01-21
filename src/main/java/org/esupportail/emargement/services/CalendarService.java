@@ -8,14 +8,18 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.CalendarDTO;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
+import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,29 +36,52 @@ public class CalendarService {
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
+	TagCheckerRepository tagCheckerRepository;
+	
+	@Autowired
 	UserAppRepository userAppRepository;
 	
 	@Resource
 	LdapService ldapService;
 	
+	@Resource
+	PreferencesService preferencesService;
+	
 	@Value("${app.url}")
 	private String appUrl;
 	
-	public String getEvents(String context, String start, String end, boolean isAll) throws ParseException{
-		List <CalendarDTO> l= new ArrayList<CalendarDTO>();
+	public String getEvents(String start, String end, boolean isAll, String view, String calendarPref, String emargementContext) throws ParseException{
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String eppn = auth.getName();
+		if(!isAll) {
+			String prefsListeValue = (view == null)? "" : view;
+			preferencesService.updatePrefs(calendarPref, prefsListeValue, eppn, emargementContext) ;
+		}
+		List <CalendarDTO> l= new ArrayList<>();
 		//2019-11-25T00:00:00+01:00
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
 	    Date startDate = formatter.parse(start);
 	    Date endDate = formatter.parse(end);
 	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); 
 	    DateFormat hourFormat = new SimpleDateFormat("HH:mm");
-	    List<SessionEpreuve> listSe = new ArrayList<SessionEpreuve>();
-	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	    String eppn = auth.getName();
+	    List<SessionEpreuve> listSe = new ArrayList<>();
 	    if(isAll) {
-	    	listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendar(startDate, endDate);
+	    	if(view == null) {
+	    		listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendar(startDate, endDate);
+	    	}else {
+	    		listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendarByContext(startDate, endDate, Long.valueOf(view));
+	    	}
 	    }else {
-	    	listSe = sessionEpreuveRepository.findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(startDate, endDate, startDate, endDate, startDate, endDate);
+	    	if(view==null) {
+	    	    listSe = sessionEpreuveRepository.findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(startDate, endDate, startDate, endDate, startDate, endDate);
+	    	}else {
+		    	List<TagChecker> tagCheckers = tagCheckerRepository.findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(eppn, startDate, endDate, eppn, startDate, endDate, eppn, startDate, endDate);
+		    	listSe = tagCheckers.stream()
+		    		    .map(TagChecker::getSessionLocation)
+		    		    .map(SessionLocation::getSessionEpreuve)
+		    		    .distinct()
+		    		    .collect(Collectors.toList());	
+	    	}
 	    }
 	    if(!listSe.isEmpty()) {
 	    	for(SessionEpreuve se : listSe) {

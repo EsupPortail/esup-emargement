@@ -1479,16 +1479,32 @@ document.addEventListener('DOMContentLoaded', function() {
 		var modal = $(this)
 		modal.find('.modal-title').text(title)
 	})
-	var calendarEl = document.getElementById('calendar');
 
-	if (calendarEl != null) {
-		getCalendar(calendarEl, emargementContextUrl + "/manager/calendar/events", true);
-	}
-
-	var calendarElAll = document.getElementById('calendarAll');
-	if (calendarElAll != null) {
-		getCalendar(calendarElAll, emargementContextUrl + "/superadmin/calendar/events", false);
-	}
+	//Calendar
+	const setupCalendar = (calendarId, urlPath) => {
+	    const calendarEl = document.getElementById(calendarId);
+	    const viewCalendar = document.getElementById('viewCalendar');
+	
+	    if (calendarEl && viewCalendar) {
+	        const getParam = () => {
+	            if (calendarId === 'calendar') {
+	                return viewCalendar.value === 'mine' ? '?view=mine' : '';
+	            } else if (calendarId === 'calendarAll') {
+	                return viewCalendar.value ? `?view=${viewCalendar.value}` : '';
+	            }
+	            return '';
+	        };
+	
+	        const updateCalendar = () => {
+	            const paramCalendar = getParam();
+	            getCalendar(calendarEl, `${emargementContextUrl}${urlPath}${paramCalendar}`, true);
+	        };
+	        viewCalendar.addEventListener("change", updateCalendar);
+	        updateCalendar();
+	    }
+	};
+	setupCalendar('calendar', '/manager/calendar/events');
+	setupCalendar('calendarAll', '/superadmin/calendar/events');
 
 	//Pagination --->rajout tous
 	if (document.getElementById('pagination') != null) {
