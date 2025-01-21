@@ -20,12 +20,18 @@
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
 				     </li>
 			    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">
-				       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence' or active == 'events'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button"  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence' or active == 'events' or active == 'calendrierSup'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button"  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				         <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.supervisor}__')}"></span>
 				       	</a>			      
 				       	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-				         <li><a class="dropdown-item" th:classappend="${active == 'presence'} ? 'active' : ''"  th:href="@{/{ctx}/supervisor/presence(ctx=${eContext})}">Emargement</a></li>
-				         <li th:if="${isAdeCampusEnabled and isAdeCampusSurveillantEnabled}"><a class="dropdown-item" th:classappend="${active == 'events'} ? 'active' : ''"  th:href="@{/{ctx}/supervisor/events(ctx=${eContext})}">Evènements</a></li>
+							<li><a class="dropdown-item" th:classappend="${active == 'presence'} ? 'active' : ''"
+									th:href="@{/{ctx}/supervisor/presence(ctx=${eContext})}">Emargement</a></li>
+							<li th:if="${isAdeCampusEnabled and isAdeCampusSurveillantEnabled}"><a class="dropdown-item"
+									th:classappend="${active == 'events'} ? 'active' : ''"
+									th:href="@{/{ctx}/supervisor/events(ctx=${eContext})}">Evènements</a></li>
+							<li th:if="${isCalendarEnabled}"><a class="dropdown-item"
+									th:classappend="${active == 'calendrierSup'} ? 'active' : ''"
+									th:href="@{/{ctx}/supervisor/calendar(ctx=${eContext})}">Calendrier</a></li>
 				       	</ul>			        
 			     	</li>			        
 				    <li class="nav-item dropdown" th:if="${isAdmin or isManager}">
@@ -46,7 +52,7 @@
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'assiduite'} ? 'active' : ''" th:href="@{/{ctx}/manager/assiduite(ctx=${eContext})}">Assiduité</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'absence'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence(ctx=${eContext})}">Absences</a></li>
-				          <li><hr class="dropdown-divider"></li>
+						  <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Recherche</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>

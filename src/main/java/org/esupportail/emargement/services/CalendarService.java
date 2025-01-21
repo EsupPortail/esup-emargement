@@ -53,7 +53,7 @@ public class CalendarService {
 	public String getEvents(String start, String end, boolean isAll, String view, String calendarPref, String emargementContext) throws ParseException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
-		if(!isAll) {
+		if(!isAll && calendarPref!=null) {
 			String prefsListeValue = (view == null)? "" : view;
 			preferencesService.updatePrefs(calendarPref, prefsListeValue, eppn, emargementContext) ;
 		}

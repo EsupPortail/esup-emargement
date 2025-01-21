@@ -1505,6 +1505,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	};
 	setupCalendar('calendar', '/manager/calendar/events');
 	setupCalendar('calendarAll', '/superadmin/calendar/events');
+	setupCalendar('calendarSup', '/supervisor/calendar/events');
 
 	//Pagination --->rajout tous
 	if (document.getElementById('pagination') != null) {
