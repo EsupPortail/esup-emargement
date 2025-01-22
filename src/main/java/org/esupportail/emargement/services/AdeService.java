@@ -35,7 +35,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
@@ -387,7 +386,6 @@ public class AdeService {
     public List<String> getMembersOfEvent(String sessionId, String idResource, String target) {
         String detail = "13";
         String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", urlAde, sessionId, idResource, detail);
-
         List<String> listMembers = new ArrayList<>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -396,6 +394,7 @@ public class AdeService {
             doc.getDocumentElement().normalize();
 
             NodeList resourceList = doc.getElementsByTagName("resource");
+            String adeAttribute = appliConfigService.getAdeMemberAttribute();
             for (int i = 0; i < resourceList.getLength(); i++) {
                 Element resourceElement = (Element) resourceList.item(i);
                 if ("members".equals(target)) {
@@ -404,8 +403,13 @@ public class AdeService {
                         Element memberElement = (Element) memberList.item(j);
                         listMembers.add(memberElement.getAttribute("id"));
                     }
-                } else if ("code".equals(target)) {
-                    String code = resourceElement.getAttribute("code");
+                } else if (adeAttribute.equals(target)) {
+                    String code = resourceElement.getAttribute(adeAttribute);
+                    if("email".equals(adeAttribute)) {
+						// Si plusieurs mails, on prend le 1er
+						String[] splitCode = code.split(";");
+						code = splitCode[0];
+                    }
                     listMembers.add(code);
                 }
             }
@@ -582,10 +586,10 @@ public class AdeService {
 	
 	public Document getDocument(String url) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
-		URLConnection con = urlConnect.openConnection();
+		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		//dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.parse(inputStream);
 		inputStream.close();
@@ -842,12 +846,14 @@ public class AdeService {
 					}
 				}
 				List <String> allCodes = new ArrayList<>();
+				String adeAttribute = appliConfigService.getAdeMemberAttribute();
 				if(!allMembers.isEmpty()) {
 					for(String id : allMembers) {
-						allCodes.add(getMembersOfEvent(sessionId, id, "code").get(0));
+						allCodes.add(getMembersOfEvent(sessionId, id, adeAttribute).get(0));
 					}
 				}
-				Map<String, LdapUser> users = ldapService.getLdapUsersFromNumList(allCodes, "supannEtuId");
+				String filter = "code".equals(adeAttribute)? "supannEtuId" : "mail";
+				Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allCodes, filter);
 				if(!allCodes.isEmpty()) {
 					for (String code : allCodes) {
 						List<Person> persons = personRepository.findByNumIdentifiant(code);

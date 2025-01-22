@@ -42,7 +42,7 @@ public class AppliConfigService {
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
 		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
-		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR
+		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE
 	}
 	
 	public List<String> getTypes() {
@@ -267,6 +267,11 @@ public class AppliConfigService {
 	public Boolean isCalendarDisplayed() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.DISPLAY_CALENDAR);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public  String getAdeMemberAttribute() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_MEMBER_ATTRIBUTE);
+		return appliConfig==null ? "code" : appliConfig.getValue().trim();
 	}
 	
 	public Long checkCategory(Context context, String key) {

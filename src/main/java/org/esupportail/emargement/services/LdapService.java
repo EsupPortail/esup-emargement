@@ -140,9 +140,7 @@ public class LdapService {
 			for (int i = 1; i < numList.size(); i++) {
 				queryBuilder = ((ContainerCriteria) queryBuilder).or(filter).is(numList.get(i));
 			}
-	
 			Iterable<LdapUser> validators = ldapUserRepository.findAll(queryBuilder);
-	
 			if ("supannEtuId".equals(filter)) {
 				return StreamSupport.stream(validators.spliterator(), false)
 						.collect(Collectors.toMap(LdapUser::getNumEtudiant, Function.identity()));
@@ -152,6 +150,9 @@ public class LdapService {
 			} else if ("supannEmpId".equals(filter)) {
 				return StreamSupport.stream(validators.spliterator(), false)
 						.collect(Collectors.toMap(LdapUser::getNumPersonnel, Function.identity()));
+			}else if ("mail".equals(filter)) {
+				return StreamSupport.stream(validators.spliterator(), false)
+						.collect(Collectors.toMap(LdapUser::getEmail, Function.identity()));
 			}else {
 				return new HashMap<>();
 			}
