@@ -201,10 +201,11 @@ public class PresenceController {
 	private String appUrl;
 
     @GetMapping("/supervisor/presence")
-    public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve,
+    public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, @PathVariable String emargementContext, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(value ="tc", required = false) Long tc, @RequestParam(value ="tcer", required = false) String tcer, 
-    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update){
+    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update,
+    		@RequestParam(value ="from", required = false) String from){
     	ModelAndView uiModel= new ModelAndView("supervisor/list");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = auth.getName();
@@ -312,6 +313,9 @@ public class PresenceController {
 		isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
 		
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
+		if(from!=null) {
+			preferencesService.updatePrefs(SEE_OLD_SESSIONS, "true", eppnAuth, emargementContext) ;
+		}		
 		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
 		String enableWebCam = (!prefsWebCam.isEmpty())? prefsWebCam.get(0).getValue() : "false";

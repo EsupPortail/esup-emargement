@@ -2,7 +2,6 @@ package org.esupportail.emargement.web.supervisor;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.services.CalendarService;
 import org.esupportail.emargement.services.HelpService;
@@ -10,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +53,7 @@ public class SupervisorCalendarController {
     public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
-			flexJsonString = calendarService.getEvents(start, end, false, "mine", null, emargementContext);
+			flexJsonString = calendarService.getEvents(start, end, false, "mine", null, emargementContext, "supervisor");
 		} catch (Exception e) {
 			log.warn("Impossible de récupérer les évènements calendrier du contexte " + emargementContext , e);
 		}

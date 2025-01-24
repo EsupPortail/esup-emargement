@@ -19,6 +19,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class CalendarService {
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
+	SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired
 	TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
@@ -50,7 +54,7 @@ public class CalendarService {
 	@Value("${app.url}")
 	private String appUrl;
 	
-	public String getEvents(String start, String end, boolean isAll, String view, String calendarPref, String emargementContext) throws ParseException{
+	public String getEvents(String start, String end, boolean isAll, String view, String calendarPref, String emargementContext, String from) throws ParseException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
 		if(!isAll && calendarPref!=null) {
@@ -111,8 +115,21 @@ public class CalendarService {
 					strSEnd = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
 				}
 	    		c.setEnd(strSEnd);
-	    		c.setColor(color);
-	    		String url  = (!isFromContext)? "#" : appUrl.concat("/").concat(se.getContext().getKey()).concat("/manager/sessionEpreuve/").concat(se.getId().toString());
+	    		c.setColor(color);String url = "";
+	    		if ("supervisor".equals(from)) {
+	    		    List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+	    		    String slId = sls.isEmpty() ? "" : String.valueOf(sls.get(0).getId());
+	    		    url = !isFromContext 
+	    		        ? "#" 
+	    		        : String.format("%s/%s/supervisor/presence?sessionEpreuve=%s&location=%s&from=supervisor", 
+	    		                        appUrl, se.getContext().getKey(), se.getId(), slId);
+	    		} else {
+	    		    url = !isFromContext 
+	    		        ? "#" 
+	    		        : String.format("%s/%s/manager/sessionEpreuve/%s", 
+	    		                        appUrl, se.getContext().getKey(), se.getId());
+	    		}
+
 	    		c.setUrl(url);
 	    		l.add(c);
 	    	}

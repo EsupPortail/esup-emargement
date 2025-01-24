@@ -68,7 +68,7 @@ public class CalendarController {
     		@RequestParam(value="view", required = false) String view) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
-			flexJsonString = calendarService.getEvents(start, end, false, view, CALENDAR_PREF, emargementContext);
+			flexJsonString = calendarService.getEvents(start, end, false, view, CALENDAR_PREF, emargementContext, "manager");
 		} catch (Exception e) {
 			log.warn("Impossible de récupérer les évènements calendrier du contexte " + emargementContext , e);
 		}

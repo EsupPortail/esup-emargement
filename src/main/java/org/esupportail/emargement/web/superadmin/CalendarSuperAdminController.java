@@ -55,7 +55,7 @@ public class CalendarSuperAdminController {
     		@RequestParam(value="view", required = false) String view) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
-			flexJsonString = calendarService.getEvents(start, end, true, view, null, null);
+			flexJsonString = calendarService.getEvents(start, end, true, view, null, null, "manager");
 		} catch (Exception e) {
 			log.warn("Impossible de récupérer les évènements calendrier du contexte " + emargementContext , e);
 		}
