@@ -92,7 +92,8 @@
 										<td th:text="${tagChecker.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
 										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 										<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagChecker.sessionLocation.sessionEpreuve.campus.site}"></td>
-										<td class="center"><a th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${tagChecker.sessionLocation.sessionEpreuve.id},ctx=${eContext})}" ><i class="fa fa-eye text-primary"></i></a></td>
+										<td class="center"><a th:href="@{/{ctx}/supervisor/presence?sessionEpreuve={id}&location={loc}&from=supervisor
+											(id=${tagChecker.sessionLocation.sessionEpreuve.id},loc=${tagChecker.sessionLocation.id},ctx=${eContext})}" ><i class="fa fa-eye text-primary"></i></a></td>
 									</tr>
 								</tbody>
 							</table>		
