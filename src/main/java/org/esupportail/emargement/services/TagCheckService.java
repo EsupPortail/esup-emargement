@@ -48,7 +48,6 @@ import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
@@ -197,6 +196,7 @@ public class TagCheckService {
 				tc.setTagChecker2(null);
 				tc.setNumAnonymat(null);
 				tc.setNbBadgeage(null);
+				tc.setAbsence(null);
 				tagCheckRepository.save(tc);
     		}
     	}
@@ -410,9 +410,10 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
+					    			/*
 									if(absences.get(eppn)!=null) {
 										tc.setAbsence(Motif.JUSTIFIE);
-									}
+									}*/
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
 					    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
@@ -1238,7 +1239,8 @@ public class TagCheckService {
 							typeIndividu = "Ex";
 						}
 						if(tc.getAbsence()!=null) {
-	        				dateEmargement = tc.getAbsence().name();
+		        			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
+	        				dateEmargement = absence;
 						} else if (tc.getTagDate() != null) {
 							dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
 							if (tc.getIsUnknown()) {
@@ -1339,7 +1341,7 @@ public class TagCheckService {
 			        String prenom = (tc.getPerson() != null) ? tc.getPerson().getPrenom() : (tc.getGuest() != null) ? tc.getGuest().getPrenom() : "";
 			        String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn() : (tc.getGuest() != null) ? tc.getGuest().getEmail() : "";
 			        String numIdentifiant = (tc.getPerson() != null) ? tc.getPerson().getNumIdentifiant() : "";
-			        String absence = (tc.getAbsence() != null) ? tc.getAbsence().name() : "";
+	    			String absence = (tc.getAbsence() != null) ? tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name() : "";
 
 			        String[] line = {
 			            tc.getSessionEpreuve().getNomSessionEpreuve(),
@@ -1638,7 +1640,8 @@ public class TagCheckService {
 				String strDateConvocation = (tc.getDateEnvoiConvocation() != null)? dateFormat.format(tc.getDateEnvoiConvocation()) : "";
 				bean.setDateEmargement(strDateEmargment);
 				bean.setDateEnvoiConvocation(strDateConvocation);
-				bean.setAbsence(tc.getAbsence()!=null? tc.getAbsence().name() :"");
+    			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
+				bean.setAbsence(tc.getAbsence()!=null? absence :"");
 				bean.setEstInconnu(BooleanUtils.toString(tc.getIsUnknown(), "Oui", "Non"));
 				bean.setLieuAttendu((tc.getSessionLocationExpected()!=null)? 
 						tc.getSessionLocationExpected().getLocation().getNom() :"");
@@ -1901,5 +1904,15 @@ public class TagCheckService {
             }
         }
         return result;
+    }
+    
+    public void deleteAbsence (Absence absence) {
+    	List<TagCheck> tagChecks = tagCheckRepository.findByAbsence(absence);
+    	if(!tagChecks.isEmpty()) {
+    		for(TagCheck tc : tagChecks) {
+    			tc.setAbsence(null);
+    			tagCheckRepository.save(tc);
+    		}
+    	}
     }
 }

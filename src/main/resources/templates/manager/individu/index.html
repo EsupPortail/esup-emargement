@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="assiduitePage">
+		<div class="container-fluid" id="recherchePage">
 			<div class="card">
 				<div class="card-header">
 					<div class="row">
@@ -71,7 +71,10 @@
 									<td th:text="${#dates.format(tagCheck.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
 									<td th:text="${tagCheck.sessionEpreuve.nbHours}"></td>
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td class="text-danger fw-bold" th:text="${tagCheck.absence != null ? tagCheck.absence.name() : ''}"></td>
+									<td class="text-danger fw-bold">
+										<th:block th:if="${tagCheck.absence != null and tagCheck.absence.motifAbsence!=null}" 
+											th:text="${tagCheck.absence.motifAbsence.libelle + ' [' + tagCheck.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									</td>
 									<td th:if="${isConvocationEnabled}" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
 									<td class="center checkedByCard" th:attr="data-filter=${tagCheck.typeEmargement}">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
@@ -243,7 +246,10 @@
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 									<td class="text-center" th:text="${(tc.tagDate!=null)?  'Présent' : ''}"></td>
-									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
+									<td class="text-danger fw-bold">
+										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
+											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									</td>
 								</tr>
 							</tbody>
 						</table>
@@ -292,7 +298,10 @@
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
-									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
+									<td class="text-danger fw-bold">
+										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
+											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									</td>
 									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
 									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
 									<td class="text-center" th:text="${mapSessions.get(tc.person.eppn)}"></td>

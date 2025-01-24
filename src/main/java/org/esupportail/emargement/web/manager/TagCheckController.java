@@ -18,9 +18,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
@@ -32,12 +34,14 @@ import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
@@ -87,6 +91,9 @@ public class TagCheckController {
 	
 	@Autowired
 	TagCheckRepository tagCheckRepository;
+	
+	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
 
 	@Autowired
 	GroupeRepository groupeRepository;
@@ -153,6 +160,9 @@ public class TagCheckController {
 	
 	@Resource
 	EsupSignatureService esupSignatureService;
+	
+	@Resource
+	AbsenceService absenceService;
 	
 	private final static String ITEM = "tagCheck";
 	
@@ -259,6 +269,7 @@ public class TagCheckController {
     @GetMapping(value = "/manager/tagCheck/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
     	populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
         return "manager/tagCheck/update";
     }
@@ -317,7 +328,8 @@ public class TagCheckController {
     }
     
     @PostMapping("/manager/tagCheck/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, BindingResult bindingResult, Model uiModel) {
+    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, @RequestParam(value="motifAbsence", required =false) MotifAbsence motifAbsence, 
+    		BindingResult bindingResult, Model uiModel) throws IOException {
     	
     	boolean isOk = true;
     	TagCheck tc = tagCheckRepository.findById(id).get();
@@ -340,7 +352,7 @@ public class TagCheckController {
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
     		tc.setComment(tagCheck.getComment());
     		tc.setSessionLocationExpected(tagCheck.getSessionLocationExpected());
-    		tc.setAbsence(tagCheck.getAbsence());
+    		tc.setAbsence(motifAbsence==null? null : absenceService.createAbsence(motifAbsence, tc, new Absence()));
     		tagCheckService.save(tc, emargementContext);
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);

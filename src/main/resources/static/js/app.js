@@ -195,14 +195,14 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 									value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
 								});
 							} else if (id == "searchAssiduite") {
-								var labelValue = "<strong>Nom : </strong>" + value.name + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
+								var labelValue = "<strong>Nom Prénom: </strong>" + value.nomPrenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
 								valueNumEtu =  value.numEtudiant != null ? "//" + value.numEtudiant: "";
 								list.push({
 									label: labelValue,
 									value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
 								});
 							} else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
+								var labelValue = "<strong>Nom Prénom: </strong>" + value.nom + " " + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
 									+ "<strong class='ms-2'>Type : </strong>" + value.typeObject;
 								list.push({
 									label: labelValue,
@@ -1479,8 +1479,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		var modal = $(this)
 		modal.find('.modal-title').text(title)
 	})
-
-	//Calendar
+	
 	const setupCalendar = (calendarId, urlPath) => {
 	    const calendarEl = document.getElementById(calendarId);
 	    const viewCalendar = document.getElementById('viewCalendar');
@@ -1560,7 +1559,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	    { id: 'gpId', placeholder: 'Rechercher groupe' },
 	    { id: 'sessionLocationExpected', placeholder: 'Rechercher Lieu' },
 	    { id: 'sessionLocationExpected2', placeholder: 'Rechercher Lieu' },
-	    { id: 'blackListGroupe', placeholder: 'Rechercher Groupe' }
+	    { id: 'blackListGroupe', placeholder: 'Rechercher Groupe' },
+		{ id: 'motifAbsence'}
 	];
 	slimSelectConfigs.forEach(config => {
 	    const element = document.getElementById(config.id);
@@ -2241,7 +2241,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			paging: true,
 			searching: true,
 			info: false,
-			order: [[4, 'desc']],
+			order: [
+			       [4, 'desc'], // First order by column 7 in descending order
+			       [7, 'asc']   // Then order by column 3 in ascending order
+			],
 			language: {
 				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 			},
@@ -2463,4 +2466,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			{ targets: 'no-sort', orderable: false }
 		]
 	});
+	//assiduité
+	if(document.getElementById("assiduitePage") != null){
+		document.getElementById("searchUrl").value=window.location.search;
+	}
 });

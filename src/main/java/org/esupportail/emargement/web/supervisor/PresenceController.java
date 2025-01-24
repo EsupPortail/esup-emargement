@@ -18,21 +18,23 @@ import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -41,6 +43,7 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
@@ -133,6 +136,9 @@ public class PresenceController {
 	@Autowired
 	PrefsRepository prefsRepository;
 	
+	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
+	
 	@Resource
 	LdapService ldapService;
 
@@ -153,6 +159,9 @@ public class PresenceController {
 	
 	@Resource
 	EmailService emailService;
+	
+	@Resource
+	AbsenceService absenceService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -315,7 +324,7 @@ public class PresenceController {
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
 		if(from!=null) {
 			preferencesService.updatePrefs(SEE_OLD_SESSIONS, "true", eppnAuth, emargementContext) ;
-		}		
+		}
 		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
 		String enableWebCam = (!prefsWebCam.isEmpty())? prefsWebCam.get(0).getValue() : "false";
@@ -349,6 +358,9 @@ public class PresenceController {
 		uiModel.addObject("displayTagCheckers",  appliConfigService.isTagCheckerDisplayed());
 		uiModel.addObject("seId", sessionEpreuve.getId());
 		uiModel.addObject("typePj", "session");
+		uiModel.addObject("eppnAuth", eppnAuth);
+		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+		
         return uiModel;
     }
     
@@ -606,11 +618,10 @@ public class PresenceController {
 	
 	@Transactional
 	@PostMapping("/supervisor/tagCheck/updateAbsence")
-    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("absence") String absence, @RequestParam("tc") TagCheck tc) {
-    	if(!absence.isEmpty()) {
-			tc.setAbsence("CANCEL".equals(absence)?null : Motif.valueOf(absence));
-	    	tagCheckService.save(tc, emargementContext);
-    	}
+    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("motifAbsence") MotifAbsence motifAbsence, @RequestParam("tc") TagCheck tc) throws IOException {
+		Absence absence = absenceService.createAbsence(motifAbsence, tc, new Absence());
+		tc.setAbsence(absence);
+    	tagCheckService.save(tc, emargementContext);
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }

@@ -47,16 +47,22 @@
 							    </div>
 						    </div>
 						</div>
-						<div class="row mb-3"  th:if="${!tagCheck.sessionEpreuve.isSessionLibre}">
+						<div class="row mb-3"  th:if="${!tagCheck.sessionEpreuve.isSessionLibre and tagCheck.tagDate eq null}">
 	                    	<label class="col-lg-2 form-check-label" th:for="absence">
 						        Absence
 						    </label>
 						    <div class="col-lg-10">
-								<select class="form-select" id="absence" th:field="*{absence}" >
-									<option value ="">--------</option>
-									<option th:each="type : ${T(org.esupportail.emargement.domain.TagCheck.Motif).values()}"
-										th:text="${type}" th:value="${type}"></option>						
-								</select>
+								<div th:if="${#lists.isEmpty(motifAbsences)}">
+									Aucun motif d'absence existant. Ils doivent être créés dans le menu Gestionnaire.
+								</div>
+								<div th:unless="${#lists.isEmpty(motifAbsences)}">
+									<select class="form-select" id="absence" name="motifAbsence" >
+										<option value ="">--------</option>
+										<option th:each="motif : ${motifAbsences}"
+											th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"
+											th:selected="${tagCheck.absence!=null? tagCheck.absence.motifAbsence.id : null}"></option>
+									</select>
+								</div>
 						    </div>
 						</div>
 	                    <div class="row mb-3">

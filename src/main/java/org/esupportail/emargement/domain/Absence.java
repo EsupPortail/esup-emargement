@@ -33,6 +33,9 @@ public class Absence {
 	@ManyToOne
 	private UserApp userApp;
 	
+	@ManyToOne
+	private MotifAbsence motifAbsence;
+	
     @Column(name = "commentaire", columnDefinition = "TEXT")
     private String commentaire;
     
@@ -58,8 +61,6 @@ public class Absence {
     private @Transient
     Long nbStoredFiles;
     
-	private Boolean isValidated;
-
 	public Long getId() {
 		return id;
 	}
@@ -148,19 +149,19 @@ public class Absence {
 		this.dateModification = dateModification;
 	}
 
-	public Boolean getIsValidated() {
-		return isValidated;
-	}
-
-	public void setIsValidated(Boolean isValidated) {
-		this.isValidated = isValidated;
-	}
-
 	public Long getNbStoredFiles() {
 		return nbStoredFiles;
 	}
 
 	public void setNbStoredFiles(Long nbStoredFiles) {
 		this.nbStoredFiles = nbStoredFiles;
+	}
+
+	public MotifAbsence getMotifAbsence() {
+		return motifAbsence;
+	}
+
+	public void setMotifAbsence(MotifAbsence motifAbsence) {
+		this.motifAbsence = motifAbsence;
 	}
 }

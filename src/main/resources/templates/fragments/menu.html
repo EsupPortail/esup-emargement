@@ -13,7 +13,7 @@
 			    </button>
 			    <div class="collapse navbar-collapse" id="navbarSupportedContent">
 			      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager}">
+	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor}">
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
 				     </li>
 	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor or isUser}">
@@ -40,7 +40,8 @@
 				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' 
 				        						or active == 'extraction' or active == 'person' or active == 'esupsignature' 
 				        						or active == 'groupe' or active == 'adeCampus' or active == 'assiduite'
-				        						or active == 'absence' or active == 'file'} ? 'active font-weight-bold' : ''" 
+				        						or active == 'absence' or active == 'file' or active == 'motifAbsence'
+												} ? 'active font-weight-bold' : ''" 
 				        		href="#" id="navbarDropdown" role="button" 
 				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
 				          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.manager}__')}"></span>
@@ -52,6 +53,7 @@
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'assiduite'} ? 'active' : ''" th:href="@{/{ctx}/manager/assiduite(ctx=${eContext})}">Assiduité</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'absence'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence(ctx=${eContext})}">Absences</a></li>
+						  <li><a class="dropdown-item" th:classappend="${active == 'motifAbsence'} ? 'active' : ''" th:href="@{/{ctx}/manager/motifAbsence(ctx=${eContext})}">Motifs sbsence</a></li>
 						  <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Recherche</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>

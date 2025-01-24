@@ -487,7 +487,7 @@ public class SessionEpreuveService {
 	        		String prenom = "";
 	        		String identifiant = "";
 	        		String typeIndividu = "";
-	        		String signature = tc.getAbsence()!=null? tc.getAbsence().name() : "";
+	        		String signature = tc.getAbsence()!=null? tc.getAbsence().getMotifAbsence().getLibelle() : "";
 	        		String groupe = "";
 	        		if(tc.getPerson() !=null ) {
 	        			nom = tc.getPerson().getNom();

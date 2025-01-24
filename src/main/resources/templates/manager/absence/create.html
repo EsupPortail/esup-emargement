@@ -8,6 +8,16 @@
 		    	<div class="card-header"><h2>Ajouter une absence</h2></div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/absence/create(ctx=${eContext})}" th:object="${absence}" method="post" enctype="multipart/form-data">
+						<div class="row mb-3">
+							<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
+							<div class="col-lg-10">
+								<select th:field="*{motifAbsence}" required="required">
+									<option value="">----Choisir----</option>
+									<option th:each="motif : ${motifAbsences}"
+										th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+								</select>
+							</div>
+						</div>
 	                     <div class="row mb-3">
 	                        <label for="eppn"  class="col-lg-2 form-label">Personne</label>
 	                        <div class="col-lg-4">
@@ -51,20 +61,10 @@
 				 				</div>
 			 				</div>
 						</div>
-						<div class="row mb-3">
-							<label class="col-lg-2 form-check-label" th:for="${isValidated}">
-						        Validation
-						    </label>
-							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" checked="checked" th:field="*{isValidated}">
-								</div>
-						    </div>					
-						</div>						
 	                    <div class="row mb-3">
 	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
 	                        <div class="col-lg-10">
-	                        	<textarea th:field="*{commentaire}" class="form-control" required="required"></textarea>
+	                        	<textarea th:field="*{commentaire}" class="form-control"></textarea>
 	                        </div>
 	                    </div>
                         <div class="row">

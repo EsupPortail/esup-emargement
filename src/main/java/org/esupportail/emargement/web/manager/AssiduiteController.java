@@ -1,5 +1,6 @@
 package org.esupportail.emargement.web.manager;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,21 +15,26 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean2;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -46,6 +52,9 @@ public class AssiduiteController {
 	TagCheckRepository tagCheckRepository;
 	
 	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
+	
+	@Autowired
 	EsupSignatureRepository esupSignatureRepository;
 	
 	@Autowired
@@ -53,6 +62,9 @@ public class AssiduiteController {
 	
 	@Resource
 	TagCheckService tagCheckService;
+	
+	@Resource
+	AbsenceService absenceService;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
@@ -93,9 +105,18 @@ public class AssiduiteController {
 			}
 			model.addAttribute("mapTc", mapTc);
 		}
-		if(assiduiteBean.getMotif()!=null && !assiduiteBean.getMotif().isEmpty()) {
+		if(assiduiteBean.getMotifType()!=null && !assiduiteBean.getMotifType().isEmpty()) {
 			List<TagCheck> temp = tcs.stream()
-				    .filter(tagCheck -> tagCheck.getAbsence() != null && tagCheck.getAbsence().equals(Motif.valueOf(assiduiteBean.getMotif())))
+				    .filter(tagCheck -> tagCheck.getAbsence() != null && tagCheck.getAbsence().getMotifAbsence() != null 
+				    	&& tagCheck.getAbsence().getMotifAbsence().getTypeAbsence().name().equalsIgnoreCase(assiduiteBean.getMotifType()))
+				    .collect(Collectors.toList());
+			tcs.removeAll(tcs);
+			tcs .addAll(temp);
+		}
+		if(assiduiteBean.getMotifType()!=null && !assiduiteBean.getMotifStatut().isEmpty()) {
+			List<TagCheck> temp = tcs.stream()
+				    .filter(tagCheck -> tagCheck.getAbsence() != null && tagCheck.getAbsence().getMotifAbsence() != null 
+				    	&& tagCheck.getAbsence().getMotifAbsence().getStatutAbsence().name().equalsIgnoreCase(assiduiteBean.getMotifStatut()))
 				    .collect(Collectors.toList());
 			tcs.removeAll(tcs);
 			tcs .addAll(temp);
@@ -126,7 +147,20 @@ public class AssiduiteController {
 		model.addAttribute("tcs", tcs);
 		model.addAttribute("assiduiteBean", assiduiteBean);
 		model.addAttribute("groupes", groupeRepository.findAllByOrderByNom());
-		
+		model.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+		model.addAttribute("absence", new Absence());
 		return "manager/assiduite/index";
 	}
+	
+	@Transactional
+	@PostMapping("/manager/assiduite/createAbsence")
+    public String updateAbsence(@PathVariable String emargementContext, @Valid Absence absence, @RequestParam("idListAbsences") List<TagCheck >tcs,
+    		@RequestParam("searchUrl") String searchUrl) throws IOException {
+		for(TagCheck tc : tcs) {
+			absenceService.createAbsence(absence.getMotifAbsence(), tc, absence) ;
+			tc.setAbsence(absence);
+	    	tagCheckService.save(tc, emargementContext);
+		}
+    	return String.format("redirect:/%s/manager/assiduite%s", emargementContext, searchUrl);
+    }
 }

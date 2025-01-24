@@ -17,9 +17,9 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.domain.TagCheck.Motif;
 import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
@@ -31,6 +31,7 @@ import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.StoredFileService;
+import org.esupportail.emargement.services.TagCheckService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,12 +53,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class AbsenceController {
+	
+	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
@@ -92,6 +95,9 @@ public class AbsenceController {
 	@Resource
 	PersonService personService;
 	
+	@Resource
+	TagCheckService tagCheckService;
+	
 	private final static String ITEM = "absence";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -118,15 +124,17 @@ public class AbsenceController {
     public String createForm(Model uiModel) {
     	Absence absence = new Absence();
     	uiModel.addAttribute("absence", absence);
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
         return "manager/absence/create";
     }
     
     @GetMapping(value = "/manager/absence/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Absence absence, Model uiModel) {
+    public String updateForm(@PathVariable("id") Absence absence, Model uiModel) {
 
     	uiModel.addAttribute("absence", absence);
     	uiModel.addAttribute("seId", absence.getId());
     	uiModel.addAttribute("typePj", "absence");
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
         return "manager/absence/update";
     }
     
@@ -153,7 +161,6 @@ public class AbsenceController {
         	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, dateDebut, dateFin, heureDebut, heureFin);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {
-        			 tc.setAbsence(absence.getIsValidated()? Motif.JUSTIFIE : null);
         			 tagCheckRepository.save(tc);
         		 }
         	 }
@@ -209,7 +216,6 @@ public class AbsenceController {
 				heureDebut, heureFin);
 		if (!tcs.isEmpty()) {
 			for (TagCheck tc : tcs) {
-				tc.setAbsence(absence.getIsValidated()? Motif.JUSTIFIE : null);
 				tagCheckRepository.save(tc);
 			}
 		}
@@ -228,7 +234,7 @@ public class AbsenceController {
     
     @Transactional
     @PostMapping(value = "/manager/absence/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Absence absence,final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Absence absence) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	DateFormat df = new SimpleDateFormat("HH:mm");
 		LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
@@ -241,6 +247,7 @@ public class AbsenceController {
 			}
 		}
     	storedFileService.deleteAllStoredFiles(absence);
+    	tagCheckService.deleteAbsence(absence);
     	absenceRepository.delete(absence);
     	logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
 

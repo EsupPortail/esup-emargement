@@ -14,7 +14,9 @@ public class AssiduiteBean2 {
 	
 	String type;
 	
-	String motif;
+	String motifType;
+	
+	String motifStatut;
 	
 	String codeEtu;
 	
@@ -54,12 +56,20 @@ public class AssiduiteBean2 {
 		this.type = type;
 	}
 
-	public String getMotif() {
-		return motif;
+	public String getMotifType() {
+		return motifType;
 	}
 
-	public void setMotif(String motif) {
-		this.motif = motif;
+	public void setMotifType(String motifType) {
+		this.motifType = motifType;
+	}
+
+	public String getMotifStatut() {
+		return motifStatut;
+	}
+
+	public void setMotifStatut(String motifStatut) {
+		this.motifStatut = motifStatut;
 	}
 
 	public String getSearchField() {

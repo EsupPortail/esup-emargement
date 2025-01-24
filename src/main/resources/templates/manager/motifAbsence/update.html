@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div class="container-fluid">
+           	<div class="card">
+		    	<div class="card-header"><h2>Ajouter un motif d'absence</h2></div>
+  				<div class="card-body">
+                    <form action="#" th:action="@{/{ctx}/manager/motifAbsence/update/{id}(ctx=${eContext},id=${motifAbsence.id})}" th:object="${motifAbsence}" method="post">
+						<div class="row mb-3">
+							<label class="col-lg-2 form-check-label" th:for="${isActif}">
+						        Actif
+						    </label>
+							<div class="col-lg-10">
+								<div class="form-check form-switch">
+								  <input class="form-check-input" type="checkbox" id="isActif" th:field="*{isActif}" checked="checked">
+								</div>				
+						    </div>					
+						</div>
+						<div class="row mb-3">
+							<label for="typeAbsence" class="col-lg-2 form-label">Type</label>
+							<div class="col-lg-10">
+								<select th:field="*{typeAbsence}" class="form-control" required="required">
+								<option value="">----Choisir----</option>
+									<option th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}"
+										th:value="${type}" th:text="${type}"></option>
+								</select>
+							</div>
+						</div>
+						<div class="row mb-3">
+							<label for="statutAbsence" class="col-lg-2 form-label">Statut</label>
+							<div class="col-lg-10">
+								<select th:field="*{statutAbsence}" class="form-control" required="required">
+								<option value="">----Choisir----</option>
+									<option th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}"
+										th:value="${statut}" th:text="${statut}"></option>
+								</select>
+							</div>
+						</div>						
+	                    <div class="row mb-3">
+	                        <label for="libelle" class="col-lg-2 form-label">Libellé</label>
+	                        <div class="col-lg-10">
+	                        	<input type="text" th:field="*{libelle}" class="form-control" required="required" />
+	                        </div>
+	                    </div>
+                        <div class="row">
+                            <div class="col-md-6 mt-5">
+                                <input type="submit" class="btn btn-success" value="Valider">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

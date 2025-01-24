@@ -139,7 +139,8 @@
 									</td>
 									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
-									<td th:if="${tc.absence !=null}" th:text="${tc.absence.name()}" class="text-danger fw-bold text-center hiddenBlock"></td>
+									<td class="fw-bold text-center hiddenBlock" th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}"
+										th:if="${tc.absence !=null}" th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}" ></td>
 									<td th:unless="${tc.absence !=null}" class ="text-center hiddenBlock">
 										<span th:if="${tc.typeEmargement!=null}"
 											th:switch="${#strings.toString(tc.typeEmargement.name())}">

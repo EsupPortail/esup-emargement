@@ -50,7 +50,9 @@
 			            <dt class="col-sm-2">Lieu</dt>
 			            <dd class="col-sm-10" th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" ></dd>
 			            <dt class="col-sm-2">Emargement</dt>     
-			            <dd th:if="${tc.absence !=null}" th:text="${tc.absence.name()}" class="col-sm-10 text-danger fw-bold"></dd>
+			            <dd th:if="${tc.absence != null and tc.absence.motifAbsence != null}" 
+				            th:classappend="${tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE' ? 'text-success' : 'text-danger'}"
+				            th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}" class="col-sm-10 fw-bold"></dd>
 						<dd class="col-sm-10" th:unless="${tc.absence !=null}">
 							<span th:if="${tc.typeEmargement!=null}"
 								th:switch="${#strings.toString(tc.typeEmargement.name())}">

@@ -11,6 +11,10 @@
 			    		<div class="col">
 					    	<h2>Assiduité</h2>
 					    </div>
+						<div class="col" th:if="${assiduiteBean.getSituation() eq 'absence'}">
+							<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" 
+								class="btn btn-primary float-end" title="Ajouter un absence" data-bs-toggle="modal" data-bs-target="#exampleModal">Ajoiuter des absences </a>
+						</div>
 					</div>
 				</div>
   				<div class="card-body">
@@ -30,12 +34,18 @@
 								</select>
 							</div>
 							<div class="col-auto">
-								<select class="form-select assiduiteControl clearable" th:field="*{motif}">
-									<option value="">--- Motif ---</option>
-									<option value="JUSTIFIE">Justifié</option>
-									<option value="RETARD">Retard</option>
-									<option value="EXCLUS">Exclus</option>
+								<select class="form-control assiduiteControl" th:field="*{motifType}">
+									<option value="">----Type Motif----</option>
+									<option th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}"
+										th:value="${type}" th:text="${type}"></option>
 								</select>
+							</div>
+							<div class="col-auto">
+								<select class="form-control assiduiteControl" th:field="*{motifStatut}">
+									<option value="">----Statut Motif----</option>
+									<option th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}"
+										th:value="${statut}" th:text="${statut}"></option>n>
+								</select>	
 							</div>
 							<div class="col-auto">
 								<div class="input-group">
@@ -63,6 +73,7 @@
 						<table class="table table-hover table-striped table-bordered table-sm assiduite" style="width:100%" th:attr="data-export-title=${activite}">
 							<thead>
 								<tr>
+									<th scope="col"><input type="checkbox" id="selectAllCheckbox"></th>
 									<th>Session</th>
 									<th>Type</th>
 									<th>Date</th>
@@ -83,6 +94,7 @@
 							<tbody>
 								<tr th:each="tc : ${absencesPage}" th:with="individu=${(tc.person != null) ? tc.person : tc.guest},
 									sessionEpreuve=${tc.sessionEpreuve}">
+									<td scope="col"><input type="checkbox" th:value="${tc.id}" class="checkboxes" name="checkedValues"></td>
 									<td>
 										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
@@ -100,14 +112,18 @@
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
-									<td class="text-danger fw-bold" th:text="${tc.absence != null ? tc.absence.name() : ''}"></td>
+									<td class="fw-bold" 
+										th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
+										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
+											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									</td>
 									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
 									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
 									<td class="text-center" th:text="${mapSessions.get(tc.person.eppn)}"></td>
 								</tr>
 							</tbody>
 						</table>
-					</th:block>
+					</th:block>Save changes
 					<th:block th:if="${assiduiteBean.situation eq 'presence'}">
 						<table class="table table-hover table-striped table-bordered assiduite2" style="width:100%">
 							<thead class="sticky-top">
@@ -118,9 +134,7 @@
 									<th scope="col">Type</th>
 									<th scope="col">Groupe</th>
 									<th scope="col" class="dateItem">Date</th>
-									<th>Durée</th>
 									<th scope="col">Tiers-temps</th>
-									<th scope="col">Absence</th>
 									<th th:if="${isConvocationEnabled}" scope="col">Envoi convocation</th>								
 									<th scope="col">Emargement</th>
 									<th scope="col">Repartition</th>
@@ -145,9 +159,7 @@
 										<span th:if="${tagCheck.person != null}" th:text="${#strings.listJoin(tagCheck.person.groupes.![nom], ',')}"></span>
 									</td>
 									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
-									<td th:text="${sessionEpreuve.nbHours}"></td>
 									<td th:attr="data-filter=${(tagCheck.isTiersTemps!=null and tagCheck.isTiersTemps)? 'Oui' : ''}"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td class="text-danger fw-bold" th:text="${tagCheck.absence != null ? tagCheck.absence.name() : ''}"></td>
 									<td th:if="${isConvocationEnabled}" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yy HH:mm')}"></td>
 									<td class="center checkedByCard" th:attr="data-filter=${tagCheck.typeEmargement}">
 											<span th:if= "${tagCheck.typeEmargement!=null} "  th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
@@ -188,6 +200,43 @@
 					</th:block>	
 				</div>
   			</div>
+		</div>
+		<!-- Modal -->
+		<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<form action="#" th:action="@{/{ctx}/manager/assiduite/createAbsence(ctx=${eContext})}" th:object="${absence}"
+						method="post" enctype="multipart/form-data">
+						<div class="modal-header">
+							<h1 class="modal-title fs-5" id="exampleModalLabel">Ajouter des absences</h1>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<div class="alert alert-warning fw-bold"> Leas absences seront ajoutées aux lignes sélectionnées.
+							</div>
+							<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
+							<select th:field="*{motifAbsence}"required="required">+ searchUrl 
+								<option value="">----Choisir----</option>
+								<option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
+									th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+							</select>
+							<label for="comment" class="form-label mt-2">Commentaire</label>
+							<textarea th:field="*{commentaire}" class="form-control"></textarea>
+		                    <label for="file" class="form-label mt-2">Pièces jointes</label>
+		                    <div class="file-loading">
+			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+			 				</div>
+							<input type="hidden" name="idListAbsences" id="checkedValues" />
+							<input type="hidden" name="searchUrl" id="searchUrl" />
+							<input type="hidden" name="fromAssiduite" value="gg"/>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+							<button type="submit" class="btn btn-success">Enregistrer</button>
+						</div>
+					</form>
+				</div>
+			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

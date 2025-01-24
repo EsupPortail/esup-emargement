@@ -67,10 +67,6 @@ public class TagCheck implements ContextSupport {
         CARD, LINK, MANUAL, QRCODE, QRCODE_SESSION, QRCODE_USER, QRCODE_CARD
     }
     
-    public static enum Motif {
-       JUSTIFIE, RETARD, EXCLUS
-    }
-    
     @Column
     @Enumerated(EnumType.STRING)
     private TypeEmargement typeEmargement;
@@ -79,9 +75,8 @@ public class TagCheck implements ContextSupport {
     @Enumerated(EnumType.STRING)
     private TypeEmargement typeEmargement2;
     
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Motif absence;
+    @ManyToOne
+    private Absence absence;
     
     private String numAnonymat;
     
@@ -280,11 +275,11 @@ public class TagCheck implements ContextSupport {
 		this.isBlacklisted = isBlacklisted;
 	}
 
-	public Motif getAbsence() {
+	public Absence getAbsence() {
 		return absence;
 	}
 
-	public void setAbsence(Motif absence) {
+	public void setAbsence(Absence absence) {
 		this.absence = absence;
 	}
 

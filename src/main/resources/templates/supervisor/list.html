@@ -280,7 +280,8 @@
 										<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.numIdentifiant}"></td>
 										<td th:unless="${tagCheck.person != null}"></td>
 										<th:block th:if="${tagCheck.absence ne null}">
-											<td class="text-danger fw-bold text-center" th:text="${tagCheck.absence.name()}"></td>
+											<td class="fw-bold text-center"  th:classappend="${(tagCheck.absence != null and tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}" 
+											th:text="${tagCheck.absence.motifAbsence.libelle + ' [' + tagCheck.absence.motifAbsence.typeAbsence + '] '}"></td>
 										</th:block>
 										<th:block th:unless="${tagCheck.absence ne null}">
 											<th:block th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
@@ -379,9 +380,9 @@
 										<td class="center tagChecker" th:text="${tagCheck.comment}"> </td>
 										<td class="center">
 											<a class="commentTC" th:title="${tagCheck.comment}" data-bs-toggle="modal" th:attr="data-bs-target=${'#commentTagCheckModal' + tagCheck.id}"><i class="fa fa-comment"></i></a>
-											<th:block th:if="${tagCheck.absence eq null or (tagCheck.absence ne null and tagCheck.absence.name() ne 'JUSTIFIE')}">
+											<th:block th:if="${tagCheck.absence eq null}">
 												<a title="RETARD,EXCLUS,JUSIFIE" data-bs-toggle="modal" th:if="${tagCheck.tagDate eq null}"
-													th:attr="data-bs-target=${'#absenceTagCheckModal' + tagCheck.id}"><i class="fas fa-user-times"></i></a>
+												th:attr="data-bs-target=${'#absenceTagCheckModal' + tagCheck.id}"><i class="fas fa-user-times"></i></a>
 												<div class="modal" tabindex="-1" th:attr="id=${'absenceTagCheckModal' + tagCheck.id}">
 													<div class="modal-dialog">
 														<div class="modal-content">
@@ -398,27 +399,19 @@
 																		data-bs-dismiss="modal" aria-label="Close"></button>
 																</div>
 																<div class="modal-body">
-																	<p class="fw-bold">Choisr un motif d'absence :</p>
-																	<div class="form-check text-start">
-																	  <input class="form-check-input" type="radio" name="absence" id="absence1" value="RETARD" required="required" th:checked="${tagCheck.absence ne null and tagCheck.absence.name() eq 'RETARD'}">
-																	  <label class="form-check-label" for="absence1">
-																	    RETARD
-																	  </label>
+																	<div th:if="${#lists.isEmpty(motifAbsences)}">
+																		Aucun motif d'absence existant. Ils doivent être créés dans le menu Gestionnaire.
 																	</div>
-																	<div class="form-check text-start">
-																	  <input class="form-check-input" type="radio" name="absence" id="absence2" value="EXCLUS" required="required" th:checked="${tagCheck.absence ne null and tagCheck.absence.name() eq 'EXCLUS'}">
-																	  <label class="form-check-label" for="absence2">
-																	    EXCLUS
-																	  </label>
+																	<div th:unless="${#lists.isEmpty(motifAbsences)}">
+																		<p class="fw-bold">Choisr un motif d'absence :</p>
+																		<select name="motifAbsence" class="form-control">
+																		<option value="">----Choisir----</option>
+																			<option th:each="motif : ${motifAbsences}"
+																				th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+																		</select>
+												                        <label for="comment" class="form-label mt-2">Commentaire</label>
+												                        <textarea name="comment" class="form-control" ></textarea>
 																	</div>
-																	<div class="form-check text-start" th:if="${tagCheck.absence ne null}">
-																	  <input class="form-check-input" type="radio" name="absence" id="absence3" value="CANCEL" required="required">
-																	  <label class="form-check-label" for="absence3">
-																	    ANNULER RETARD/EXCLUS
-																	  </label>
-																	</div>
-																	<div class="alert alert-info mt-2">Pour information, si la personne a une absence justifiée, vous devez saisir sa période d'absence et joindre un justificatif dans le menu Gestionnaire/Absences.
-																	Dans la liste le terme 'JUSTIFIE' apparaîtra au même titre que 'RETARD' ou 'EXCLUS'.</div>
 																</div>
 																<div class="modal-footer">
 																	<button type="button" class="btn btn-secondary"

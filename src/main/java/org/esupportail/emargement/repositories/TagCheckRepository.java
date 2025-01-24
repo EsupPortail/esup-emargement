@@ -4,6 +4,7 @@ import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
@@ -209,6 +210,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<TagCheck> findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(SessionLocation sl, String Eppn);
 	
 	List<TagCheck> findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(SessionEpreuve se, String Eppn);
+	
+	List <TagCheck> findByAbsence(Absence absence);
 	
 	//countSessionEpreuveIdExpected
 	Long countByPersonEppnAndSessionEpreuveDateExamen(String eppn, Date date);

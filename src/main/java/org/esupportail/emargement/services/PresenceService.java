@@ -255,7 +255,8 @@ public class PresenceService {
 	        			typeIndividu = "Ex";
 	        		}
 	        		if(tc.getAbsence()!=null) {
-        				dateEmargement = tc.getAbsence().name();
+	        			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name()
+;        				dateEmargement = absence;
 	        		}else if(tc.getTagDate() != null) {
 	        			dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
 	        			if(tc.getIsUnknown()) {
