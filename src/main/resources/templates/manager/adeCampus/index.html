@@ -14,6 +14,21 @@
 					    <div class="col-8">
 						    <div class="row float-end">
 								<div class="col-auto">
+									<form th:action="@{/{ctx}/manager/adeCampus(ctx=${eContext})}" id="projetForm">
+										<th:block th:if="${isAdeConfigOk}" >
+											 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+										</th:block>
+										<th:block th:unless="${isAdeConfigOk}">
+											<select class="form-select mb-2" name="projet" id="projet">
+												<option value="">----Projets----</option>
+												<option th:each="proj : ${projects}"
+													th:value="${proj.key}" th:text="${proj.value}"
+													th:selected="${idProject eq proj.key}"></option>
+											</select>
+										</th:block>
+									</form>
+								</div>
+								<div class="col-auto">
 									<a title="Synchros" th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}"
 										class="btn btn-primary"><i class="fa-solid fa-tasks "></i></a>
 								</div>
@@ -125,7 +140,8 @@
 											<div class="col-auto">
 												<select class="form-select form-select-sm" id="campus" name="campus" required>
 													<option value="">--Choisir site d'import--</option>
-													<option th:each="campus : ${campuses}" th:value="${campus.id}" th:text="${campus.site}"></option>
+													<option th:each="campus : ${campuses}" th:value="${campus.id}" 
+													th:selected="${campus.isDefault != null and campus.isDefault}" th:text="${campus.site}"></option>
 												</select>
 											</div>
 											<div class="col-auto">

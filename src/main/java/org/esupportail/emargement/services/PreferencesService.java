@@ -40,4 +40,11 @@ public class PreferencesService {
 		}
 		prefsRepository.save(pref);
 	}
+	
+	public void removePrefs(String eppn, String nom) {
+		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNomLike(eppn, nom + "%");
+		if(!prefs.isEmpty()) {
+			prefsRepository.deleteAll(prefs);
+		}
+	}
 }

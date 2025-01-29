@@ -11,10 +11,7 @@
 			    		<div class="col-4">
 					    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
 					    	<span class="fw-bold h5">Projet : </span>
-						    <th:block th:each="element : ${mapProjets}" class="selected">
-						    	<span th:if="${valueProject != null and 
-									#strings.contains(valueProject, element.key)}" th:text="${element.value}"/></span>
-						    </th:block>
+						    <span th:text="${nomProjet}"/></span>
 					    </div>
 					    <div class="col-8">
 						    <div class="row float-end">
@@ -29,81 +26,82 @@
 								<div class="col-auto">
 									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
 										class="btn btn-info">ADE</a>
-								</div>									
+								</div>
+								<div class="col-auto">
+									<form th:action="@{/{ctx}/manager/adeCampus/removePrefs(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+										<button class="btn btn-danger" type="submit" title="Supprimer tous les paramètres?"><i class="fa fa-trash"></i></button>
+									</form>
+								</div>
 						    </div>
 					    </div> 
 	    			</div>
 		    	</div>
 	 			<div class="card-body">
 	 				<div class="row">
-			 			<div class="col">
-			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-			 					<input type="hidden" name="type" value="adeStoredComposante"/>
-								<table class="table table-bordered table-striped caption-top" id="composantesTable">
-									<caption><span class="fw-bold h4">Composantes</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
-									<thead>
-									<tr>
-										<th></th>
-										<th>Libellé</th>
-									</tr>
-									</thead>
-								    <tr th:each="element : ${mapComposantes}" class="selected">
-								    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-								    	th:checked="${valuesComposantes != null and #strings.contains(valuesComposantes, element.key)}"/></td>
-								        <td class="d-none"></td>
-										<td th:text="${element.value}"></td>
-								    </tr>
-								</table>
-							</form>
-							<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
-				 				Vous n'avez pas de projet de défini.
-				 			</div>
-						</div>
-			 			<div class="col">
-			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-			 					<input type="hidden" name="type" value="adeStoredFormation"/>
-								<table class="table table-bordered table-striped caption-top" id="formationsTable">
-									<caption><span class="fw-bold h4">Formations</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
-									<thead>
-									<tr>
-										<th></th>
-										<th>Libellé</th>
-									</tr>
-									</thead>
-								    <tr th:each="element : ${mapFormations}" class="selected">
-								    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-								    	th:checked="${valuesFormations != null and #strings.contains(valuesFormations, element.key)}"/></td>
-								        <td class="d-none"></td>
-										<td th:text="${element.value}"></td>
-								    </tr>
-								</table>
-							</form>
-							<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
-				 				Vous n'avez pas de projet de défini.
-				 			</div>
-						</div>
-			 			<div class="col">
-			 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-			 					<input type="hidden" name="type" value="adeStoredSalle"/>
-								<table class="table table-bordered table-striped caption-top" id="composantesTable">
-									<caption><span class="fw-bold h4">Salles</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>								
-									<thead>
-									<tr>
-										<th></th>
-										<th>Libellé</th>
-									</tr>
-									</thead>
-								    <tr th:each="element : ${mapSalles}">
-								    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-								    	th:checked="${valuesSalles!=null and #strings.contains(valuesSalles, element.key)}"/></td>
-								    	<td th:text="${element.value}"></td>
-								    </tr>
-								</table>
-							</form>
-							<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
-				 				Vous n'avez pas de projet de défini.
-				 			</div>
-						</div>
+						<th:block th:if="${idProjet eq null}">
+							Vous n'avez pas choisi de projet dans la page principale.
+						</th:block>
+						<th:block th:unless="${idProjet eq null}">
+				 			<div class="col">
+				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+				 					<input type="hidden" name="type" th:value="${'adeStoredComposante' + idProjet}"/>
+									<table class="table table-bordered table-striped caption-top" id="composantesTable">
+										<caption><span class="fw-bold h4">Composantes</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+										<thead>
+										<tr>
+											<th></th>
+											<th>Libellé</th>
+										</tr>
+										</thead>
+									    <tr th:each="element : ${mapComposantes}" class="selected">
+									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	th:checked="${valuesComposantes != null and #strings.contains(valuesComposantes, element.key)}"/></td>
+									        <td class="d-none"></td>
+											<td th:text="${element.value}"></td>
+									    </tr>
+									</table>
+								</form>
+							</div>
+				 			<div class="col">
+				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+				 					<input type="hidden" name="type" th:value="${'adeStoredFormation' + idProjet}"/>
+									<table class="table table-bordered table-striped caption-top" id="formationsTable">
+										<caption><span class="fw-bold h4">Formations</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+										<thead>
+										<tr>
+											<th></th>
+											<th>Libellé</th>
+										</tr>
+										</thead>
+									    <tr th:each="element : ${mapFormations}" class="selected">
+									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	th:checked="${valuesFormations != null and #strings.contains(valuesFormations, element.key)}"/></td>
+									        <td class="d-none"></td>
+											<td th:text="${element.value}"></td>
+									    </tr>
+									</table>
+								</form>
+							</div>
+				 			<div class="col">
+				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
+				 					<input type="hidden" name="type" th:value="${'adeStoredSalle' + idProjet}"/>
+									<table class="table table-bordered table-striped caption-top" id="composantesTable">
+										<caption><span class="fw-bold h4">Salles</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>								
+										<thead>
+										<tr>
+											<th></th>
+											<th>Libellé</th>
+										</tr>
+										</thead>
+									    <tr th:each="element : ${mapSalles}">
+									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	th:checked="${valuesSalles!=null and #strings.contains(valuesSalles, element.key)}"/></td>
+									    	<td th:text="${element.value}"></td>
+									    </tr>
+									</table>
+								</form>
+							</div>
+						</th:block>
 	 				</div>
 	 			</div>
 			</div>

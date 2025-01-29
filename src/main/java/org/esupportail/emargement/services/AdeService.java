@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -99,7 +100,11 @@ public class AdeService {
 	
 	private final static String ADE_STORED_SESSION = "adeStoredSession";
 	
+	private final static String ADE_STORED_PROJET = "adeStoredProjet";
+	
 	private final static String pathCopyFile = "/opt/ade";
+
+	public final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
 	
 	@Value("${emargement.ade.api.url}")
 	private String urlAde;
@@ -1150,7 +1155,7 @@ public class AdeService {
 			String sessionId = getSessionId(false, emargementContext);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(idProject == null) {
-				idProject = appliConfigService.getProjetAde();
+				idProject = getCurrentProject(null, auth.getName(), emargementContext);
 			}
 			if (getConnectionProject(idProject, sessionId) == null) {
 				sessionId = getSessionId(true, emargementContext);
@@ -1180,5 +1185,34 @@ public class AdeService {
 			}
 		}
 		return nbImports;
+	}
+	
+	public List<String> getValuesPref(String eppn, String pref) {
+	    List<String> values = new ArrayList<>(); 
+	    List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(eppn, pref);
+	    if (!prefsAdeStored.isEmpty()) {
+	        List<String> temp = prefsAdeStored.stream()
+	                .map(Prefs::getValue)
+	                .collect(Collectors.toList());
+	        if (!temp.isEmpty() && temp.get(0) != null) { // Check if temp has elements and is non-null
+	            String[] splitAll = temp.get(0).split(";;");
+	            values = Arrays.asList(splitAll);
+	            Collections.sort(values);
+	        } else if (!temp.isEmpty()) {
+	            prefsRepository.delete(prefsAdeStored.get(0));
+	        }
+	    }
+	    return values;
+	}
+	
+	public String getCurrentProject(String projet, String eppn, String emargementContext) {
+	    if (!appliConfigService.getProjetAde().isEmpty()) {
+	        return appliConfigService.getProjetAde();
+	    }
+	    if (projet != null && !projet.isEmpty()) {
+	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext);
+	        return projet;
+	    }
+	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? null : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
 	}
 }

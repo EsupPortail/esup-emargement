@@ -30,10 +30,10 @@
 	    			</div>
 		    	</div>
 	 			<div class="card-body" id="gridSalles">
-	 				<div th:if="${valueProject eq ''}" class="alert alert-warning fw-bold" >
-		 				Vous n'avez pas de projet de défini dans les paramètres.
-		 			</div>
-	 				<div th:unless="${valueProject eq ''}">
+					<th:block th:if="${idProjet eq null}">
+						Vous n'avez pas choisi de projet dans la page principale.
+					</th:block>
+	 				<th:block th:unless="${idProjet eq null}">
 		 				<div th:if="${#lists.isEmpty(valuesSalles)}" class="alert alert-warning" >
 							Veuillez choisir les salles de la liste dans l'onglet "Paramètres"</div>
 						<div th:unless="${#lists.isEmpty(valuesSalles)}">
@@ -95,7 +95,7 @@
 								</table>
 							</form>
 						</div>
-		 			</div>
+		 			</th:block>
 	 			</div>
 			</div>
 		</div>

@@ -2470,4 +2470,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	if(document.getElementById("assiduitePage") != null){
 		document.getElementById("searchUrl").value=window.location.search;
 	}
+	//ADE
+	if(document.getElementById("projet") != null){
+		$("#projet").on("change", function(event) {
+				$("#projetForm").submit();
+		});
+	}
 });
