@@ -27,6 +27,8 @@
 								<th scope="col">Nom</th>
 								<th scope="col">Prénom</th>
 								<th scope="col">Motif</th>
+								<th scope="col">Type</th>
+								<th scope="col">Statut</th>
 								<th scope="col">Code</th>
 								<th scope="col" class="dateItem">Date de début</th>
 								<th scope="col" class="dateItem">Date de fin</th>
@@ -42,7 +44,10 @@
 								<td th:text="${ind.civilite}"></td>
 								<td th:text="${ind.nom}"></td>
 								<td th:text="${ind.prenom}"></td>
-								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.libelle + ' [' + absence.motifAbsence.typeAbsence + ']' : ''}"></td>
+								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.libelle : ''}"></td>
+								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.typeAbsence : ''}"></td>
+								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.statutAbsence : ''}"
+								th:class="${(absence.motifAbsence != null and absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}"></td>
 								<td th:text="${ind.numIdentifiant}"></td>
 								<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
 								<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>

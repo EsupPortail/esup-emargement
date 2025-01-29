@@ -20,9 +20,9 @@
 						</div>
 	                     <div class="row mb-3">
 	                        <label for="eppn"  class="col-lg-2 form-label">Personne</label>
-	                        <div class="col-lg-4">
-								<input type="email" th:id="eppn" th:name="person.eppn" class="form-control" th:value="${absence.person.eppn}"
-								placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" required="required">
+	                        <div class="col-lg-10">
+								<input type="disabled"class="form-control" th:value="${nomPrenom}" disabled/>
+								<input type="hidden" name="person" th:value="${absence.person.id}" />
 	                        </div>
 	                    </div>
 	                    <div class="row mb-3">
@@ -36,7 +36,7 @@
 		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin</label>
 		                    <div class="col-lg-10">
 		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
-		                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}"	required="required">
+		                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}">
 		                    </div>
 	                    </div>
 	                    <div class="row mb-3">

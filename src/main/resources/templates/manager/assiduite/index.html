@@ -13,7 +13,7 @@
 					    </div>
 						<div class="col" th:if="${assiduiteBean.getSituation() eq 'absence'}">
 							<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" 
-								class="btn btn-primary float-end" title="Ajouter un absence" data-bs-toggle="modal" data-bs-target="#exampleModal">Ajoiuter des absences </a>
+								class="btn btn-primary float-end" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#exampleModal">Ajouter des absences</a>
 						</div>
 					</div>
 				</div>
@@ -123,7 +123,7 @@
 								</tr>
 							</tbody>
 						</table>
-					</th:block>Save changes
+					</th:block>
 					<th:block th:if="${assiduiteBean.situation eq 'presence'}">
 						<table class="table table-hover table-striped table-bordered assiduite2" style="width:100%">
 							<thead class="sticky-top">

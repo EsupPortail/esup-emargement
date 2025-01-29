@@ -132,6 +132,7 @@ public class AbsenceController {
     public String updateForm(@PathVariable("id") Absence absence, Model uiModel) {
 
     	uiModel.addAttribute("absence", absence);
+    	uiModel.addAttribute("nomPrenom", ldapService.getPrenomNom(absence.getPerson().getEppn()));
     	uiModel.addAttribute("seId", absence.getId());
     	uiModel.addAttribute("typePj", "absence");
     	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
@@ -202,9 +203,9 @@ public class AbsenceController {
     
     @PostMapping("/manager/absence/update/{id}")
     public String update(@PathVariable String emargementContext, @Valid Absence absence, 
-    		@RequestParam("strDateDebut") String strDateDebut, @RequestParam("strDateFin") String strDateFin) throws ParseException, IOException{
+    		@RequestParam("strDateDebut") String strDateDebut, @RequestParam String strDateFin) throws ParseException, IOException{
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
-    	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+    	Date dateFin= !strDateFin.isEmpty() ? new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin) : new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	DateFormat df = new SimpleDateFormat("HH:mm");
     	absence.setDateDebut(dateDebut);
         absence.setDateFin(dateFin);
