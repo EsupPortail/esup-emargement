@@ -32,6 +32,8 @@ public class AppliConfig {
     private String description;
     
     private String category;
+    
+    private Integer version;
 
     public static enum TypeConfig {
         HTML, TEXT, BOOLEAN
@@ -97,5 +99,13 @@ public class AppliConfig {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public Integer getVersion() {
+		return version;
+	}
+
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 }

@@ -1,8 +1,12 @@
 package org.esupportail.emargement.services;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -17,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -339,9 +344,48 @@ public class AppliConfigService {
 				nb++;
 			}
 			log.info("Modification des configs " +list + " pour le contexte : " + context.getKey());
-			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Modification de configs : ctatégories " , null,  null, context.getKey(), null);
+			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Modification de configs : catégories " , null,  null, context.getKey(), null);
 		}
 		
+		return nb;
+	}
+	
+	@Transactional
+	public int updateDescription(Context context) {
+		int nb= 0;
+		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
+
+        Properties properties = new Properties();
+        try (InputStream input = AppliConfigService.class.getClassLoader().getResourceAsStream("messages.properties")) {
+            properties.load(input);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        Map<Object, Object> filteredMessages = properties.entrySet().stream()
+                .filter(entry -> entry.getKey().toString().startsWith("config.version"))
+                .filter(entry -> !"0".equals(entry.getValue().toString()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        for (Map.Entry<Object, Object> entry : filteredMessages.entrySet()) {
+        	Object key = entry.getKey();
+        	Object value = entry.getValue();
+            String keyConfig = key.toString().substring(key.toString().lastIndexOf('.') + 1).toUpperCase();
+            List<AppliConfig> list = appliConfigRepository.findAppliConfigByKeyAndContext(keyConfig, context);
+            if(!list.isEmpty()) {
+            	AppliConfig appliconfig = list.get(0);
+            	if(appliconfig.getVersion() == null || appliconfig.getVersion()<Integer.valueOf(value.toString())){
+            		appliconfig.setDescription(messageSource.getMessage("config.desc.".concat(keyConfig.toLowerCase()), null, null));
+            		appliconfig.setVersion(Integer.valueOf(value.toString()));
+            		appliConfigRepository.save(appliconfig);
+            		log.info("Modification description config " + appliconfig.getKey() + " pour le contexte : " + context.getKey());
+            		logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Modification de configs : description" + appliconfig.getKey(), null,  null, context.getKey(), null);
+            	}
+            }
+        }
+        
 		return nb;
 	}
 	
