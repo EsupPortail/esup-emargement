@@ -67,7 +67,7 @@
 											th:selected="${#strings.substringAfter(value,'@@') eq codeComposante}"></option>
 									</select>
 								</div>
-								<div th:class="${!#lists.isEmpty(values)? 'col' : 'col-12'}">
+								<div th:if="${category6 ne null}" th:class="${!#lists.isEmpty(values)? 'col' : 'col-12'}">
 									<select class="form-select mb-2" id="codeFormation" th:if="${!#lists.isEmpty(valuesFormation)}">
 										<option value="">----Formations----</option>
 										<option th:each="value : ${valuesFormation}"

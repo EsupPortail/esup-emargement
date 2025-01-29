@@ -198,7 +198,9 @@ public class AdeController {
 			uiModel.addAttribute("existingSe", true);
 			uiModel.addAttribute("idProject", idProject);
 			uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
-			uiModel.addAttribute("category6", appliConfigService.getCategoriesAde().get(1));
+			List<String> catAde = appliConfigService.getCategoriesAde();
+			String formationCat = (catAde.size() >1 && !catAde.get(1).isEmpty())? catAde.get(1) : null;
+			uiModel.addAttribute("category6", formationCat);
 			uiModel.addAttribute("campuses", campusRepository.findAll());
 			uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
 			uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
@@ -244,11 +246,12 @@ public class AdeController {
 	@RequestMapping(value = "/manager/adeCampus/params", produces = "text/html")
     public String displayParams(@PathVariable String emargementContext, Model uiModel) throws IOException, ParserConfigurationException, SAXException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<String> catAde = appliConfigService.getCategoriesAde();
 		String sessionId = adeService.getSessionId(false, emargementContext);
 		String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
-		uiModel.addAttribute("mapFormations", adeService.getMapComposantesFormations(sessionId, catAde.get(1)));
+		List<String> catAde = appliConfigService.getCategoriesAde();
+		Map<String, String> mapFormations = (catAde.size() >1 && !catAde.get(1).isEmpty())? adeService.getMapComposantesFormations(sessionId, catAde.get(1)) : null;
+		uiModel.addAttribute("mapFormations", mapFormations);
 		uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 		String idProjet = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		uiModel.addAttribute("idProjet", idProjet);

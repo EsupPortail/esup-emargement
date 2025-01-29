@@ -62,7 +62,7 @@
 									</table>
 								</form>
 							</div>
-				 			<div class="col">
+				 			<div class="col" th:if="${mapFormations ne null}">
 				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
 				 					<input type="hidden" name="type" th:value="${'adeStoredFormation' + idProjet}"/>
 									<table class="table table-bordered table-striped caption-top" id="formationsTable">
