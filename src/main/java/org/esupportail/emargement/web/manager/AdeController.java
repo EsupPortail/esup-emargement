@@ -379,11 +379,11 @@ public class AdeController {
 			@RequestParam String libelles,
 			@RequestParam Campus campus,
 			@RequestParam String idProject,
-			@RequestParam(required = false) String nbItems,
+			@RequestParam String nbItems,
 			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String strDateMax,
 			final RedirectAttributes redirectAttributes) throws ParseException {
-		if(params.length() == 0) {
+		if(params.length() == 0 || nbItems.isEmpty()) {
 			redirectAttributes.addFlashAttribute("message","message");
 			return String.format("redirect:/%s/manager/adeCampus", emargementContext);
 		}
