@@ -359,7 +359,7 @@ public class PresenceController {
 		uiModel.addObject("seId", sessionEpreuve.getId());
 		uiModel.addObject("typePj", "session");
 		uiModel.addObject("eppnAuth", eppnAuth);
-		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrue());
 		
         return uiModel;
     }

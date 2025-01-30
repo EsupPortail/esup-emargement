@@ -38,6 +38,8 @@ public class MotifAbsence {
 	
 	private String libelle;
 	
+	private Boolean isTagCheckerVisible;
+	
 	@Column
 	@Enumerated(EnumType.STRING)
 	private TypeAbsence typeAbsence;
@@ -94,5 +96,13 @@ public class MotifAbsence {
 
 	public void setIsActif(Boolean isActif) {
 		this.isActif = isActif;
+	}
+
+	public Boolean getIsTagCheckerVisible() {
+		return isTagCheckerVisible;
+	}
+
+	public void setIsTagCheckerVisible(Boolean isTagCheckerVisible) {
+		this.isTagCheckerVisible = isTagCheckerVisible;
 	}
 }
