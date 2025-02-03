@@ -13,7 +13,7 @@
 					    </div>
 						<div class="col" th:if="${assiduiteBean.getSituation() eq 'absence'}">
 							<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" 
-								class="btn btn-primary float-end" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#exampleModal">Ajouter des absences</a>
+								class="btn btn-primary float-end" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
 						</div>
 					</div>
 				</div>
@@ -85,7 +85,8 @@
 									<th>Num Etu</th>
 									<th>Groupe</th>
 									<!-- >th class="text-center">Surveillant</th-->
-									<th class="text-center">Absence</th>
+									<th class="text-center">Absence/Retard</th>
+									<th class="text-center">Statut</th>
 									<th class="text-center">Cumul absences (heures)</th>
 									<th class="text-center">Cumul absences (jours)</th>
 									<th class="text-center">Cumul absences (sessions)</th>
@@ -116,6 +117,11 @@
 										th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
 										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
 											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									</td>
+									<td class="fw-bold" 
+										th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
+										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
+											th:text="${tc.absence.motifAbsence.statutAbsence}"></th:block>
 									</td>
 									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
 									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
@@ -202,33 +208,50 @@
   			</div>
 		</div>
 		<!-- Modal -->
-		<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-			<div class="modal-dialog">
+		<div class="modal fade" id="absenceAssiduiteModal" tabindex="-1" aria-labelledby="absenceAssiduite" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
 					<form action="#" th:action="@{/{ctx}/manager/assiduite/createAbsence(ctx=${eContext})}" th:object="${absence}"
 						method="post" enctype="multipart/form-data">
 						<div class="modal-header">
-							<h1 class="modal-title fs-5" id="exampleModalLabel">Ajouter des absences</h1>
+							<h1 class="modal-title fs-5">Ajouter des absences</h1>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
-							<div class="alert alert-warning fw-bold"> Leas absences seront ajoutées aux lignes sélectionnées.
-							</div>
-							<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
-							<select th:field="*{motifAbsence}"required="required">+ searchUrl 
-								<option value="">----Choisir----</option>
-								<option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
-									th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
-							</select>
-							<label for="comment" class="form-label mt-2">Commentaire</label>
-							<textarea th:field="*{commentaire}" class="form-control"></textarea>
-		                    <label for="file" class="form-label mt-2">Pièces jointes</label>
-		                    <div class="file-loading">
-			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
-			 				</div>
-							<input type="hidden" name="idListAbsences" id="checkedValues" />
-							<input type="hidden" name="searchUrl" id="searchUrl" />
-							<input type="hidden" name="fromAssiduite" value="gg"/>
+							<div class="alert alert-warning fw-bold"> Les absences seront ajoutées aux lignes sélectionnées.</div>
+								<label for="motifAbsence" class="col-lg-2 form-label mt-2">Libellé</label>
+								<div id="motifAbsenceWrapper">
+									<div id="motifAbsenceSelectContainer">
+									    <select id="motifAbsence" class="mb-2" required="required"
+									        hx-target="#motifAbsence">
+									        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
+												th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+									    </select>
+									</div>
+								</div>
+								<div th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}" class="form-check form-check-inline">
+								    <input class="form-check-input" type="radio" th:id="${'type' + type}" name="type" th:value="${type}"
+								        hx-trigger="change" hx-get="absence/motifs" hx-target="#motifAbsenceSelectContainer"
+								        hx-swap="innerHTML" hx-include=".form-check input[name='statut']">
+								    <label class="form-check-label size08" th:for="${'type' + type}" th:text="${type}"></label>
+								</div>
+						    	<div class="float-end">
+									<div th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}" class="form-check form-check-inline">
+									    <input class="form-check-input" type="radio" th:id="${'statut' + statut}" name="statut" th:value="${statut}"
+									        hx-trigger="change" hx-get="absence/motifs" hx-target="#motifAbsenceSelectContainer"
+									        hx-swap="innerHTML" hx-include=".form-check input[name='type']">
+									    <label class="form-check-label size08" th:for="${'statut' + statut}" th:text="${statut}"></label>
+									</div>
+						    	</div>
+								<br />
+								<label for="comment" class="form-label mt-2">Commentaire</label>
+								<textarea th:field="*{commentaire}" class="form-control"></textarea>
+			                    <label for="file" class="form-label mt-2">Pièces jointes</label>
+			                    <div class="file-loading">
+				 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+				 				</div>
+								<input type="hidden" name="idListAbsences" id="checkedValues" />
+								<input type="hidden" name="searchUrl" id="searchUrl" />
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>

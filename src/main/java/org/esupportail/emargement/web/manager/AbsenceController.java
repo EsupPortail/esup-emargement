@@ -14,7 +14,11 @@ import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.domain.MotifAbsence;
+import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
+import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.AbsenceRepository;
@@ -39,6 +43,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,6 +57,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -253,6 +259,20 @@ public class AbsenceController {
     	logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
 
         return String.format("redirect:/%s/manager/absence", emargementContext);
+    }
+    
+    @GetMapping(value = "/manager/absence/motifs", produces = "text/html")
+    public String search(Model uiModel, @RequestParam(required=false) String statut, @RequestParam(required=false) String type) {
+    	
+    	if(statut!= null && type != null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
+    	}else if(statut == null && type != null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndTypeAbsence(TypeAbsence.valueOf(type)));
+    	}else if(statut != null && type == null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsence(StatutAbsence.valueOf(statut)));
+    	}
+    	return "manager/absence/selectMotifs";
+    	
     }
 }
 

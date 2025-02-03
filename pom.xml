@@ -256,6 +256,11 @@
 			<artifactId>bootstrap-daterangepicker</artifactId>
 			<version>3.1</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>htmx.org</artifactId>
+		    <version>2.0.4</version>
+		</dependency>		
 	    <dependency>
 	        <groupId>com.fasterxml.jackson.dataformat</groupId>
 	        <artifactId>jackson-dataformat-xml</artifactId>
@@ -264,6 +269,10 @@
 	        <groupId>com.fasterxml.jackson.core</groupId>
 	        <artifactId>jackson-core</artifactId>
 	    </dependency>
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		</dependency>	    
 		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity5</artifactId>

@@ -2476,4 +2476,28 @@ document.addEventListener('DOMContentLoaded', function() {
 				$("#projetForm").submit();
 		});
 	}
+	//absences dans page surveillant
+	const absenceTagCheckModal = document.getElementById('absenceTagCheckModal')
+	if (absenceTagCheckModal) {
+	  absenceTagCheckModal.addEventListener('show.bs.modal', event => {
+	    const button = event.relatedTarget
+	    const tcid = button.getAttribute('data-bs-tcid')
+		const nom = button.getAttribute('data-bs-nom');
+	    const tcIdAbsence = document.getElementById('tcIdAbsence');
+		const nomAbsence = document.getElementById('nomAbsence');
+	    tcIdAbsence.value = tcid;
+		nomAbsence.textContent = nom;
+	  })
+	}
+});
+
+//absences dans assiduité
+let slimSelectInstance = null;
+document.addEventListener('htmx:afterSwap', function(event) {
+    setTimeout(() => {
+        if (slimSelectInstance) {
+            slimSelectInstance.destroy();
+        }
+        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
+    }, 100);
 });

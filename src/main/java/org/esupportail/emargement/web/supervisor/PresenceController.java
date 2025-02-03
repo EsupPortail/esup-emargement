@@ -32,6 +32,8 @@ import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
+import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
@@ -692,5 +694,19 @@ public class PresenceController {
     @ResponseBody
     public List<StoredFile> getStoredfiles(@PathVariable("type") String type, @PathVariable("id") Long id){
 		return storedFileService.getStoredfiles(type, id);
+    }
+    
+    @GetMapping(value = "/supervisor/absence/motifs", produces = "text/html")
+    public String search(Model uiModel, @RequestParam(required=false) String statut, @RequestParam(required=false) String type) {
+    	if(statut!= null && type != null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
+    	}else if(statut == null && type != null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndTypeAbsence(TypeAbsence.valueOf(type)));
+    	}else if(statut != null && type == null) {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsence(StatutAbsence.valueOf(statut)));
+    	}else {
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrue());
+    	}
+    	return "supervisor/absence/selectMotifs";
     }
 }

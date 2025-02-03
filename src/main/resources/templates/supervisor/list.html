@@ -157,7 +157,8 @@
   					</div>
   					<div class="col-lg-9 col-md-12 col-sm-12">
 						<div class="progress mb-1" th:if="${!isSessionLibre}">
-						  <div  th:if="${sessionEpreuve.id !=null and sessionLocation !=null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar fw-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}"  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+						  <div th:if="${sessionEpreuve.id !=null and sessionLocation !=null && percent != null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar fw-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  
+						  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 						</div>
 						<div th:fragment="search_list" th:with="blockId=${(sessionLocation != null) ? sessionLocation.id : ''}" th:id="${'resultsBlock' + blockId}">
 							<div th:if="${#ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -382,46 +383,10 @@
 											<a class="commentTC" th:title="${tagCheck.comment}" data-bs-toggle="modal" th:attr="data-bs-target=${'#commentTagCheckModal' + tagCheck.id}"><i class="fa fa-comment"></i></a>
 											<th:block th:if="${tagCheck.absence eq null}">
 												<a title="RETARD,EXCLUS,JUSIFIE" data-bs-toggle="modal" th:if="${tagCheck.tagDate eq null}"
-												th:attr="data-bs-target=${'#absenceTagCheckModal' + tagCheck.id}"><i class="fas fa-user-times"></i></a>
-												<div class="modal" tabindex="-1" th:attr="id=${'absenceTagCheckModal' + tagCheck.id}">
-													<div class="modal-dialog">
-														<div class="modal-content">
-															<form method="post"
-																th:action="@{/{ctx}/supervisor/tagCheck/updateAbsence(ctx=${eContext})}"
-																id="formAbsenceTc">
-																<input type="hidden" name="tc" th:value="${tagCheck.id}" />
-																<div class="modal-header">
-																	<h5 class="modal-title">
-																		<span th:if="${tagCheck.person != null}" th:text="${(tagCheck.person.nom != null)? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn}"></span>
-																		<span th:unless="${tagCheck.person != null}" th:text="${(tagCheck.guest.nom != null)? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span>
-																	</h5>
-																	<button type="button" class="btn-close"
-																		data-bs-dismiss="modal" aria-label="Close"></button>
-																</div>
-																<div class="modal-body">
-																	<div th:if="${#lists.isEmpty(motifAbsences)}">
-																		Aucun motif d'absence existant. Ils doivent être créés dans le menu Gestionnaire.
-																	</div>
-																	<div th:unless="${#lists.isEmpty(motifAbsences)}">
-																		<p class="fw-bold">Choisr un motif d'absence :</p>
-																		<select name="motifAbsence" class="form-control">
-																		<option value="">----Choisir----</option>
-																			<option th:each="motif : ${motifAbsences}"
-																				th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
-																		</select>
-												                        <label for="comment" class="form-label mt-2">Commentaire</label>
-												                        <textarea name="comment" class="form-control" ></textarea>
-																	</div>
-																</div>
-																<div class="modal-footer">
-																	<button type="button" class="btn btn-secondary"
-																		data-bs-dismiss="modal">Fermer</button>
-																	<button type="submit" class="btn btn-success">Enregistrer</button>
-																</div>
-															</form>
-														</div>
-													</div>
-												</div>
+												data-bs-target="#absenceTagCheckModal" th:attr="data-bs-tcid=${tagCheck.id},data-bs-nom=${tagCheck.person != null ? 
+						                        (tagCheck.person.nom != null ? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn) : 
+						                        (tagCheck.guest.nom != null ? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email)}">
+												<i class="fas fa-user-times"></i></a>
 											</th:block>
 											<div class="modal" tabindex="-1" th:attr="id=${'commentTagCheckModal' + tagCheck.id}">
 												<div class="modal-dialog">
