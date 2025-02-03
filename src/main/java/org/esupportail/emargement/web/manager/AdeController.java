@@ -70,8 +70,6 @@ import org.xml.sax.SAXException;
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class AdeController {
 	
-//	private final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
-	
 	private final static String ADE_STORED_SALLE = "adeStoredSalle";
 	
 	private final static String ADE_STORED_FORMATION = "adeStoredFormation";

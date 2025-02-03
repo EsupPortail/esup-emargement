@@ -12,8 +12,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.esupportail.emargement.domain.AssiduiteBean2;
-import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.TagCheck;
