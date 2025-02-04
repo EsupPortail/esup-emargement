@@ -50,9 +50,16 @@
 			            <dt class="col-sm-2">Lieu</dt>
 			            <dd class="col-sm-10" th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" ></dd>
 			            <dt class="col-sm-2">Emargement</dt>     
-			            <dd th:if="${tc.absence != null and tc.absence.motifAbsence != null}" 
-				            th:classappend="${tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE' ? 'text-success' : 'text-danger'}"
-				            th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}" class="col-sm-10 fw-bold"></dd>
+			            <dd th:if="${tc.absence != null and tc.absence.motifAbsence != null}" class="col-sm-10 fw-bold">
+							<span th:if="${tc.absence !=null}">
+						        <th:block th:if="${tc.absence.motifAbsence != null and tc.absence.motifAbsence.color ne null}">
+						            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
+						        </th:block>
+						        <th:block th:if="${tc.absence.motifAbsence != null}">
+						            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+						        </th:block>
+						    </span>      
+				        </dd>
 						<dd class="col-sm-10" th:unless="${tc.absence !=null}">
 							<span th:if="${tc.typeEmargement!=null}"
 								th:switch="${#strings.toString(tc.typeEmargement.name())}">

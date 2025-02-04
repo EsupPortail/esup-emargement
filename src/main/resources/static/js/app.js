@@ -2505,6 +2505,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	  { attr: 'data-bs-nom', elementId: 'nomComment' },
 	  { attr: 'data-bs-comment', elementId: 'tcComment' }
 	]);
+	
+	//Couleur motif absence
+	$('.demo').minicolors({
+        theme: 'bootstrap',  // Use Bootstrap theme
+        position: 'bottom left',
+        format: 'hex',
+        opacity: false
+    });
 });
 
 //absences dans assiduité

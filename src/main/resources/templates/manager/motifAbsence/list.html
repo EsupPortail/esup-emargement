@@ -26,8 +26,9 @@
 								<th scope="col">Libellé</th>
 								<th scope="col">Type</th>
 								<th scope="col">Statut</th>
-								<th scope="col">Surveillant</th>
-								<th scope="col">Actif</th>
+								<th class ="text-center" scope="col">Surveillant</th>
+								<th class ="text-center" scope="col">Actif</th>
+								<th scope="col">Couleur</th>
 								<th scope="col" class="no-sort">Actions</th>
 							</tr>
 						</thead>
@@ -36,11 +37,15 @@
 								<td th:text="${motif.libelle}"></td>
 								<td th:text="${motif.typeAbsence}"></td>
 								<td th:text="${motif.statutAbsence}"></td>
-								<td>
+								<td class ="text-center">
 									<i th:class="${motif.isTagCheckerVisible != null and motif.isTagCheckerVisible} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
 								</td>
-								<td>
+								<td class ="text-center">
 									<i th:class="${motif.isActif != null and motif.isActif} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
+								</td>
+								<td><th:block th:if="${motif.color ne null}">
+										<input type="color" class="form-control" id="head" name="head" th:value="${motif.color}" th:title="${motif.color}" disabled />
+									</th:block>
 								</td>
 								<td>
 									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 

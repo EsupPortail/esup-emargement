@@ -44,10 +44,18 @@
 								<td th:text="${ind.civilite}"></td>
 								<td th:text="${ind.nom}"></td>
 								<td th:text="${ind.prenom}"></td>
-								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.libelle : ''}"></td>
+								<td>
+								    <span>
+								        <th:block th:if="${absence.motifAbsence != null and absence.motifAbsence.color ne null}">
+								            <input class="colorBox" type="color" th:value="${absence.motifAbsence.color}" disabled>
+								        </th:block>
+								        <th:block th:if="${absence.motifAbsence != null}">
+								            <span th:text="${absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+								        </th:block>
+								    </span>
+								</td>
 								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.typeAbsence : ''}"></td>
-								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.statutAbsence : ''}"
-								th:class="${(absence.motifAbsence != null and absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}"></td>
+								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.statutAbsence : ''}"></td>
 								<td th:text="${ind.numIdentifiant}"></td>
 								<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
 								<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>

@@ -87,9 +87,9 @@
 									<!-- >th class="text-center">Surveillant</th-->
 									<th class="text-center">Absence/Retard</th>
 									<th class="text-center">Statut</th>
-									<th class="text-center">Cumul absences (heures)</th>
-									<th class="text-center">Cumul absences (jours)</th>
-									<th class="text-center">Cumul absences (sessions)</th>
+									<th class="text-center">Cumul (heures)</th>
+									<th class="text-center">Cumul (jours)</th>
+									<th class="text-center">Cumul (sessions)</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -112,14 +112,17 @@
 									<td th:text="${individu.prenom}"></td>
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
-									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
-									<td class="fw-bold" 
-										th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
-										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
-											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
+									<td>
+									    <span>
+									        <th:block th:if="${tc.absence?.motifAbsence?.color != null}">
+									            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
+									        </th:block>
+									        <th:block th:if="${tc.absence?.motifAbsence != null}">
+									            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+									        </th:block>
+									    </span>
 									</td>
-									<td class="fw-bold" 
-										th:classappend="${(tc.absence != null and tc.absence.motifAbsence != null and tc.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
+									<td class="text-center">
 										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
 											th:text="${tc.absence.motifAbsence.statutAbsence}"></th:block>
 									</td>
@@ -222,7 +225,7 @@
 								<label for="motifAbsence" class="col-lg-2 form-label mt-2">Libellé</label>
 								<div id="motifAbsenceWrapper">
 									<div id="motifAbsenceSelectContainer">
-									    <select id="motifAbsence" class="mb-2" required="required"
+									    <select id="motifAbsence" name="motifAbsence" class="mb-2" required="required"
 									        hx-target="#motifAbsence">
 									        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
 												th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>

@@ -163,9 +163,16 @@
 									<td th:if="${tagCheck.person != null}"  th:text="${tagCheck.person.numIdentifiant}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:unless="${tagCheck.person != null}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td class="text-center d-none d-xl-table-cell"><i th:if="${tagCheck.isTiersTemps}" class="fa fa-check text-success"></i></td>
-									<td class="text-center d-none d-xl-table-cell fw-bold" th:classappend="${(tagCheck.absence != null and tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}">
-										<th:block th:if="${tagCheck.absence != null}" th:text="${tagCheck.absence.motifAbsence.libelle + ' [' + tagCheck.absence.motifAbsence.typeAbsence + '] '}"></th:block>
-									</td>
+									<td class="d-none d-xl-table-cell fw-bold">
+										<span th:if="${tagCheck.absence !=null}">
+									        <th:block th:if="${tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.color ne null}">
+									            <input class="colorBox" type="color" th:value="${tagCheck.absence.motifAbsence.color}" disabled>
+									        </th:block>
+									        <th:block th:if="${tagCheck.absence.motifAbsence != null}">
+									            <span th:text="${tagCheck.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+									        </th:block>
+									    </span>
+								   </td>
 									<td th:if="${isConvocationEnabled}" class="d-none d-xl-table-cell" th:text="${#dates.format(tagCheck.dateEnvoiConvocation, 'dd-MM-yyyy HH:mm')}"></td>								
 									<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:text="${tagCheck.sessionLocationExpected != null} ? ${tagCheck.sessionLocationExpected.location.nom}"></td>
 									<td class="d-none d-lg-table-cell d-xl-table-cell" 

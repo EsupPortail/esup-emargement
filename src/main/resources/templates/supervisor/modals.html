@@ -171,7 +171,7 @@
 								<p class="fw-bold">Choisr un motif d'absence :</p>
 							<div id="motifAbsenceWrapper">
 								<div id="motifAbsenceSelectContainer">
-								    <select id="motifAbsence" class="mb-2" required="required"
+								    <select id="motifAbsence" name="motifAbsence" class="mb-2" required="required"
 								        hx-target="#motifAbsence">
 								        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
 											th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>

@@ -281,9 +281,17 @@
 										<td th:if="${tagCheck.person != null}" th:text="${tagCheck.person.numIdentifiant}"></td>
 										<td th:unless="${tagCheck.person != null}"></td>
 										<th:block th:if="${tagCheck.absence ne null}">
-											<td class="fw-bold text-center"  th:classappend="${(tagCheck.absence != null and tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.StatutAbsence.name() eq 'JUSTIFIE') ? 'text-success' : 'text-danger'}" 
-											th:text="${tagCheck.absence.motifAbsence.libelle + ' [' + tagCheck.absence.motifAbsence.typeAbsence + '] '}"></td>
-										</th:block>
+											<td>
+												<span>
+											        <th:block th:if="${tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.color ne null}">
+											            <input class="colorBox" type="color" th:value="${tagCheck.absence.motifAbsence.color}" disabled>
+											        </th:block>
+											        <th:block th:if="${tagCheck.absence.motifAbsence != null}">
+											            <span th:text="${tagCheck.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+											        </th:block>
+											    </span>
+										   </td>
+										</th:block>			
 										<th:block th:unless="${tagCheck.absence ne null}">
 											<th:block th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
 												<td class="center" th:attr="data-order=${tagCheck.tagDate}">

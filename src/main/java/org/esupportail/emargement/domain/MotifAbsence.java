@@ -49,6 +49,8 @@ public class MotifAbsence {
 	private StatutAbsence statutAbsence;
 	
 	private Boolean isActif;
+	
+	private String color;
 
 	public Long getId() {
 		return id;
@@ -104,5 +106,13 @@ public class MotifAbsence {
 
 	public void setIsTagCheckerVisible(Boolean isTagCheckerVisible) {
 		this.isTagCheckerVisible = isTagCheckerVisible;
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
 	}
 }
