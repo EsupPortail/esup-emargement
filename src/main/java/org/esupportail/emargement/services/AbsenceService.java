@@ -1,6 +1,7 @@
 package org.esupportail.emargement.services;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -95,7 +96,8 @@ public class AbsenceService {
 		absence.setPerson(tc.getPerson());
 		absence.setCommentaire(absence.getCommentaire());
 		absence.setMotifAbsence(motifAbsence);
-        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), tc.getContext().getKey()));
+        absence.setDateModification(new Date());
+        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), ctx.getKey()));
         if(absence.getFiles() != null && !absence.getFiles().isEmpty()) {
 			for(MultipartFile file : absence.getFiles()) {
 				if(file.getSize()>0) {

@@ -35,6 +35,8 @@
 								<th scope="col">Heure de début</th>
 								<th scope="col">Heure de fin</th>
 								<th scope="col">PJ</th>
+								<th scope="col">Modificateur</th>
+								<th scope="col">Modification</th>
 								<th scope="col">Commentaire</th>
 								<th scope="col" class="no-sort">Actions</th>
 							</tr>
@@ -62,6 +64,8 @@
 								<td th:text="${#dates.format(absence.heureDebut, 'HH:mm')}"></td>
 								<td th:text="${#dates.format(absence.heureFin, 'HH:mm')}"></td>
 								<td th:text="${absence.nbStoredFiles}"></td>
+								<td th:text="${absence.userApp ne null ? absence.userApp.eppn : ''}"></td>
+								<td th:text="${#dates.format(absence.dateModification, 'dd/MM/yy HH:mm')}"></td>
 								<td th:text="${absence.commentaire}"></td>
 								<td>
 									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 

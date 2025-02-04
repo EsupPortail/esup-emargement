@@ -110,8 +110,8 @@ public class AbsenceController {
 	}
 	
 	@GetMapping(value = "/manager/absence")
-	public String list(Model uiModel, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
-		Page<Absence> absences = absenceRepository.findAll(pageable);
+	public String list(Model uiModel) {
+		List<Absence> absences = absenceRepository.findAll();
 		List<Person> persons = absenceRepository.findAll().stream().map(abs -> abs.getPerson())
 				.collect(Collectors.toList());
 		personService.setNomPrenom(persons);
@@ -149,7 +149,7 @@ public class AbsenceController {
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
     	DateFormat df = new SimpleDateFormat("HH:mm");
-    	
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (bindingResult.hasErrors()) {
           //  populateEditForm(uiModel, person);
             return "manager/person/create";
@@ -188,7 +188,7 @@ public class AbsenceController {
         absence.setDateFin(dateFin);
         absence.setContext(contexteService.getcurrentContext());
         absence.setDateModification(new Date());
-        absence.setUserApp(userAppRepository.findByEppnAndContextKey(eppn, emargementContext));
+        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
         absenceRepository.save(absence);
         if(absence.getFiles() != null && !absence.getFiles().isEmpty()) {
 			for(MultipartFile file : absence.getFiles()) {
@@ -209,8 +209,11 @@ public class AbsenceController {
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin= !strDateFin.isEmpty() ? new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin) : new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	DateFormat df = new SimpleDateFormat("HH:mm");
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	absence.setDateDebut(dateDebut);
         absence.setDateFin(dateFin);
+        absence.setDateModification(new Date());
+        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
         personRepository.save(absence.getPerson());
     	absenceRepository.save(absence);
     	LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
