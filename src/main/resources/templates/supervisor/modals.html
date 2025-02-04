@@ -125,13 +125,39 @@
 				</form>
 			</div>
 		</div>
+		<div class="modal" tabindex="-1" id="commentTagCheckModal">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<form method="post"
+						th:action="@{/{ctx}/supervisor/tagCheck/updateComment(ctx=${eContext})}"
+						id="formCommentTc">
+						<input type="hidden" id="tcIdComment" name="idComment" value=""/>
+						<div class="modal-header">
+							<h5 class="modal-title" id="nomComment"></h5>
+							<button type="button" class="btn-close"
+								data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<textarea class="form-control"
+								placeholder="votre commentaire" name="comment" id="tcComment">
+						   </textarea>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary"
+								data-bs-dismiss="modal">Fermer</button>
+							<button type="submit" class="btn btn-primary">Enregistrer</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>		
 		<div class="modal" tabindex="-1"  id="absenceTagCheckModal">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
 					<form method="post"
 						th:action="@{/{ctx}/supervisor/tagCheck/updateAbsence(ctx=${eContext})}"
 						id="formAbsenceTc">
-					<input type="hidden" id="tcIdAbsence" name="tc" value=""/>
+						<input type="hidden" id="tcIdAbsence" name="tc" value=""/>
 						<div class="modal-header">
 							<h5 class="modal-title" id="nomAbsence"></h5>
 							<button type="button" class="btn-close"
@@ -179,5 +205,25 @@
 				</div>
 			</div>
 		</div>
+		<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+		  <div class="offcanvas-header">
+		    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Actions</h5>
+		    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		  </div>
+		  <div class="offcanvas-body">
+			  <div  th:if="${sessionEpreuve.isProcurationEnabled}">
+				<p>Personne à qui est donné la procuration pour :<br /> <span id="procurationPerson" class="fw-bold"> </span></p> 
+				<form th:action="@{/{ctx}/supervisor/saveProcuration(ctx=${eContext})}" method="POST">
+					<select id="substituteId" name="substituteId" class="mt-2">
+						<option value="">---Aucun---</option>
+					    <option th:each="tagCheck : ${tagCheckPage}" th:value="${(tagCheck.person != null)? tagCheck.person.id : tagCheck.guest.id }" 
+					    		th:text="${(tagCheck.person != null)?  tagCheck.person.prenom + ' ' + tagCheck.person.nom : tagCheck.guest.prenom + ' ' + tagCheck.guest.nom }" />
+					</select>
+					<input type="hidden" id="tcId" name="tcId" value="" />
+					<input type="submit" value="Valider" class="btn btn-success mt-2">
+				</form>	
+			  </div>
+		  </div>
+		</div>		
 	</div>
 </html>

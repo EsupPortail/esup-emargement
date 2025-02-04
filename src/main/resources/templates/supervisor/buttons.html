@@ -17,11 +17,11 @@
 				id="sessionEpreuveId" name="sessionEpreuveId"
 				th:value="${sessionEpreuve.id}" /> <input type="hidden"
 				name="type" value="Liste" />
-			<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-warning mb-1" type="button"
+			<button title="ajouter un comentaire sur la session/PDF" th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-warning mb-1" type="button"
 				data-bs-toggle="modal" data-bs-target="#commentModal">
 				<i class="fas fa-comment-dots"></i>
 			</button>
-			<button th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-success mb-1 me-1" type="button"
+			<button title="Destinataires mail" th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() or isSessionLibre}" class="btn btn-success mb-1 me-1" type="button"
 				data-bs-toggle="modal" data-bs-target="#emailModal">
 				<i class="fas fa-at"></i>
 			</button>
@@ -38,9 +38,9 @@
 				class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
 			<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 				th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
-				class="btn btn-danger mb-1 " title="Exporter les émargements"><i
+				class="btn btn-danger mb-1" title="Exporter les émargements"><i
 				class="fas fa-file-export"></i></a>
-				<label class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
+				<label title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
 					data-bs-toggle="buttons"> <input type="checkbox"
 					class="btn-check" id="webCamCheck" th:checked="${enableWebcam}">
 					<i class="fas fa-video"></i>

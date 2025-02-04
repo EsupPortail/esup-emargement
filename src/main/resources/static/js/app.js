@@ -1014,7 +1014,25 @@ function importEvents(url){
 		});
 	});
 }
-
+function setupModal(modalId, fields) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget;
+      fields.forEach(({ attr, elementId }) => {
+        const value = button.getAttribute(attr);
+        const element = document.getElementById(elementId);
+        if (element) {
+          if (element.tagName === 'INPUT') {
+            element.value = value;
+          } else {
+            element.textContent = value;
+          }
+        }
+      });
+    });
+  }
+}
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
 	//Autocomplete
@@ -2477,18 +2495,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	//absences dans page surveillant
-	const absenceTagCheckModal = document.getElementById('absenceTagCheckModal')
-	if (absenceTagCheckModal) {
-	  absenceTagCheckModal.addEventListener('show.bs.modal', event => {
-	    const button = event.relatedTarget
-	    const tcid = button.getAttribute('data-bs-tcid')
-		const nom = button.getAttribute('data-bs-nom');
-	    const tcIdAbsence = document.getElementById('tcIdAbsence');
-		const nomAbsence = document.getElementById('nomAbsence');
-	    tcIdAbsence.value = tcid;
-		nomAbsence.textContent = nom;
-	  })
-	}
+	setupModal('absenceTagCheckModal', [
+	  { attr: 'data-bs-tcid', elementId: 'tcIdAbsence' },
+	  { attr: 'data-bs-nom', elementId: 'nomAbsence' }
+	]);
+
+	setupModal('commentTagCheckModal', [
+	  { attr: 'data-bs-tcid', elementId: 'tcIdComment' },
+	  { attr: 'data-bs-nom', elementId: 'nomComment' },
+	  { attr: 'data-bs-comment', elementId: 'tcComment' }
+	]);
 });
 
 //absences dans assiduité
