@@ -29,6 +29,12 @@ function backToTop() {
 	}
 }
 
+function stripHTMLTagsUsingDOM(html) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || "";
+}
+
 //Convertion rgb-->hex
 function rgb2hex(rgb) {
 	rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
@@ -68,7 +74,7 @@ function checkAll() {
             checkboxes.forEach(function(checkbox) {
                 checkbox.checked = all.checked;
             });
-            updateHiddenInput();  // Update hidden input after checking/unchecking all
+            updateHiddenInput();
         });
     }
 
@@ -76,7 +82,7 @@ function checkAll() {
     let checkboxes = document.querySelectorAll('.checkboxes');
     checkboxes.forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
-            updateHiddenInput();  // Update hidden input after individual changes
+            updateHiddenInput();
         });
     });
 }
@@ -113,7 +119,6 @@ function displayAffinage(classes, isTiers) {
 		affinageId.addClass("bg-danger text-white");
 		$("#affinerButton").prop("disabled", "disabled");
 	}
-
 	tempCapacite.text(realTotal);
 }
 
@@ -158,15 +163,13 @@ function getCalendar(calendarEl, urlEvents, editable) {
 		contentHeight: 600,
 		themeSystem: 'bootstrap5'
 	});
-
 	calendar.render();
 }
 
 function createDateFromString(dateString) {
 	const [day, month, year] = dateString.split('/').map(Number);
 	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
-
-	return new Date(adjustedYear, month - 1, day); // month is 0-indexed in JavaScript Date objects
+	return new Date(adjustedYear, month - 1, day);
 }
 
 function searchUsersAutocomplete(id, url, paramurl, maxItems) {
@@ -2362,13 +2365,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		dom: 'frtilp',
 		language: {
 			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		},columnDefs: [
+		}, columnDefs: [
 			{
 				targets: 'dateItem',
-				type: 'datetime-moment', // Use the datetime-moment plugin
+				type: 'datetime-moment', 
 				render: function(data, type, row) {
-					if (!data) { // Check if data is empty
-						return ''; // Return empty string if data is empty
+					if (!data) {
+						return '';
 					}
 					if (type === 'sort' || type === 'type') {
 						return moment(data, 'DD/MM/YY').unix();
@@ -2378,6 +2381,74 @@ document.addEventListener('DOMContentLoaded', function() {
 			},
 			{ targets: 'no-sort', orderable: false }
 		]
+	});
+	
+	$('.tableAbsence').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: true,
+		dom: 'frtilp',
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}, columnDefs: [
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', 
+				render: function(data, type, row) {
+					if (!data) {
+						return '';
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YY').unix();
+					}
+					return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+				}
+			},
+			{ targets: 'no-sort', orderable: false }
+		],
+		initComplete: function() {
+			let api = this.api();
+			let searchContainer = document.querySelector('.dataTables_filter');
+			if (!searchContainer) return; 
+			searchContainer.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'w-100');
+			let filterWrapper = document.createElement('div');
+			filterWrapper.classList.add('d-flex', 'gap-2');
+			[3, 4, 5].forEach(function(index) {
+				let column = api.column(index);
+				let columnName = column.header().textContent.trim();
+				// Create a Bootstrap column container for the select
+				let colDiv = document.createElement('div');
+				colDiv.classList.add('col-auto');
+				let select = document.createElement('select');
+				select.classList.add('form-control', 'form-select', 'w-auto'); // Bootstrap styling
+				select.innerHTML = '<option value="">' + columnName + '</option>'; // default option
+				column
+					.data()
+					.unique()
+					.sort()
+					.each(function(d) {
+						select.add(new Option(stripHTMLTagsUsingDOM(d)));
+					});
+				select.addEventListener('change', function() {
+					column
+						.search(select.value, { exact: true })
+						.draw();
+				});
+				colDiv.appendChild(select);
+				filterWrapper.appendChild(select);
+			});
+			let searchWrapper = document.createElement('div');
+			searchWrapper.classList.add('ms-auto');
+			let searchInput = searchContainer.querySelector('input');
+			if (searchInput) {
+				searchWrapper.appendChild(searchInput);
+			}
+			searchContainer.innerHTML = '';
+			searchContainer.appendChild(filterWrapper);
+			searchContainer.appendChild(searchWrapper);
+		}
 	});
 	
 	$(".searchEtu").on('click', function() {
