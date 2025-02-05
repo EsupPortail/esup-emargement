@@ -1,5 +1,7 @@
 package org.esupportail.emargement.domain;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -12,6 +14,7 @@ import javax.persistence.ManyToOne;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -51,6 +54,12 @@ public class MotifAbsence {
 	private Boolean isActif;
 	
 	private String color;
+	
+	@ManyToOne
+	private UserApp userApp;
+	
+    @DateTimeFormat(pattern = "dd/MM/yyyy")
+    private Date dateModification;
 
 	public Long getId() {
 		return id;
@@ -114,5 +123,21 @@ public class MotifAbsence {
 
 	public void setColor(String color) {
 		this.color = color;
+	}
+
+	public UserApp getUserApp() {
+		return userApp;
+	}
+
+	public void setUserApp(UserApp userApp) {
+		this.userApp = userApp;
+	}
+
+	public Date getDateModification() {
+		return dateModification;
+	}
+
+	public void setDateModification(Date dateModification) {
+		this.dateModification = dateModification;
 	}
 }

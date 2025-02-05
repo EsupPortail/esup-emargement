@@ -1,10 +1,13 @@
 package org.esupportail.emargement.web.manager;
 
+import java.util.Date;
+
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -34,6 +37,9 @@ public class MotiifAbsenceController {
 	
 	@Autowired
 	MotifAbsenceRepository motifAbsenceRepository;
+	
+	@Autowired
+	UserAppRepository userAppRepository;
 
 	@Resource
 	ContextService contexteService;
@@ -59,6 +65,7 @@ public class MotiifAbsenceController {
 	
     @GetMapping(value = "/manager/motifAbsence", params = "form", produces = "text/html")
     public String createForm(Model uiModel) {
+    	UserAppRepository userAppRepository;
     	MotifAbsence motifAbsence = new MotifAbsence();
     	uiModel.addAttribute("motifAbsence", motifAbsence);
         return "manager/motifAbsence/create";
@@ -69,6 +76,8 @@ public class MotiifAbsenceController {
     public String create(@PathVariable String emargementContext, @Valid MotifAbsence motifAbsence) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	motifAbsence.setContext(contexteService.getcurrentContext());
+    	motifAbsence.setDateModification(new Date());
+    	motifAbsence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
     	motifAbsenceRepository.save(motifAbsence);
     	logService.log(ACTION.CREATE_MOTIF_ABSENCE, RETCODE.SUCCESS, motifAbsence.getLibelle(), auth.getName(), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/motifAbsence", emargementContext);
@@ -84,6 +93,8 @@ public class MotiifAbsenceController {
     public String update(@PathVariable String emargementContext, @Valid MotifAbsence motifAbsence) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	motifAbsence.setContext(contexteService.getcurrentContext());
+    	motifAbsence.setDateModification(new Date());
+    	motifAbsence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
     	motifAbsenceRepository.save(motifAbsence);
     	logService.log(ACTION.UPDATE_MOTIF_ABSENCE, RETCODE.SUCCESS, motifAbsence.getLibelle(), auth.getName(), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/motifAbsence", emargementContext);

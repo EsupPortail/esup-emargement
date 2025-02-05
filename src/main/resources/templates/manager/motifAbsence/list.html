@@ -29,6 +29,8 @@
 								<th class ="text-center" scope="col">Surveillant</th>
 								<th class ="text-center" scope="col">Actif</th>
 								<th scope="col">Couleur</th>
+								<th scope="col">Modificateur</th>
+								<th scope="col">Modification</th>
 								<th scope="col" class="no-sort">Actions</th>
 							</tr>
 						</thead>
@@ -47,6 +49,8 @@
 										<input type="color" class="form-control" id="head" name="head" th:value="${motif.color}" th:title="${motif.color}" disabled />
 									</th:block>
 								</td>
+								<td th:text="${motif.userApp ne null ? motif.userApp.eppn : ''}"></td>
+								<td th:text="${#dates.format(motif.dateModification, 'dd/MM/yy HH:mm')}"></td>
 								<td>
 									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 
 											th:attr="data-bs-target='#modal-warning'+${motif.id}"><i class="fa fa-trash text-danger ms-2"></i></a>

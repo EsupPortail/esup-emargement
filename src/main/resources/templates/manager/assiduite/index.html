@@ -112,7 +112,8 @@
 									<td th:text="${individu.prenom}"></td>
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
-									<td>
+									<td data-bs-toggle="tooltip" th:title="${tc.absence ne null and tc.absence.dateModification ne null ? 'Modificateur : ' + tc.absence.userApp.eppn + ' le ' +
+										#dates.format(tc.absence.dateModification, 'dd/MM/yy HH:mm') : ''}">
 									    <span>
 									        <th:block th:if="${tc.absence?.motifAbsence?.color != null}">
 									            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>

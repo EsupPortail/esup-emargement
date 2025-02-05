@@ -2513,6 +2513,10 @@ document.addEventListener('DOMContentLoaded', function() {
         format: 'hex',
         opacity: false
     });
+	
+	//enable tooltips
+	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 });
 
 //absences dans assiduité
