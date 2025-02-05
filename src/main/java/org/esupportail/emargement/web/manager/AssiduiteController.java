@@ -22,9 +22,11 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
+import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AbsenceService;
+import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,6 +54,9 @@ public class AssiduiteController {
 	TagCheckRepository tagCheckRepository;
 	
 	@Autowired
+	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
 	MotifAbsenceRepository motifAbsenceRepository;
 	
 	@Autowired
@@ -65,6 +70,9 @@ public class AssiduiteController {
 	
 	@Resource
 	AbsenceService absenceService;
+	
+	@Resource
+	ContextService contextService;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
@@ -135,6 +143,13 @@ public class AssiduiteController {
 			tcs.removeAll(tcs);
 			tcs .addAll(temp);
 		}
+		if(assiduiteBean.getSessionEpreuve()!=null) {
+			List<TagCheck> temp = tcs.stream()
+				    .filter(tagCheck -> tagCheck.getPerson() != null && tagCheck.getSessionEpreuve().equals(assiduiteBean.getSessionEpreuve()))
+				    .collect(Collectors.toList());
+			tcs.removeAll(tcs);
+			tcs .addAll(temp);
+		}
 		tagCheckService.setNomPrenomTagChecks(tcs, true, true);
 		Map<String, String> mapTcs = tagCheckService.getPersonWithTotalDuration(tcs);
 		Map<String, Long> mapDays = tagCheckService.getPersonWithTotalDays(tcs);
@@ -147,6 +162,7 @@ public class AssiduiteController {
 		model.addAttribute("tcs", tcs);
 		model.addAttribute("assiduiteBean", assiduiteBean);
 		model.addAttribute("groupes", groupeRepository.findAllByOrderByNom());
+		model.addAttribute("sessions", sessionEpreuveRepository.getAllSessionEpreuveForAssiduiteByContext(dateDebut, dateFin, contextService.getcurrentContext().getId()));
 		model.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
 		model.addAttribute("absence", new Absence());
 		return "manager/assiduite/index";

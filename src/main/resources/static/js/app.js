@@ -2445,9 +2445,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#searchValue").val("");
 		}
 	});
-	if(document.getElementById("groupe") != null){
-		new SlimSelect({select: '#groupe'});
-	}
+	//assiduité page
+	['groupe', 'sessionEpreuve'].forEach(id => {
+	    if (document.getElementById(id)) {
+	        new SlimSelect({ select: `#${id}` });
+	    }
+	});
+	
 	$("#clearFilters").on("click", function(event) {
 		window.location.href = window.location.origin + window.location.pathname;
 	});

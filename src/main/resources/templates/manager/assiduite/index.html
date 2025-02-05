@@ -44,7 +44,7 @@
 								<select class="form-control assiduiteControl" th:field="*{motifStatut}">
 									<option value="">----Statut Motif----</option>
 									<option th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}"
-										th:value="${statut}" th:text="${statut}"></option>n>
+										th:value="${statut}" th:text="${statut}"></option>
 								</select>	
 							</div>
 							<div class="col-auto">
@@ -55,10 +55,20 @@
 										<input type="hidden" th:field="*{searchValue}" class="clearable"/>
 								</div>
 							</div>
-							<div class="col">
+							<div class="col-auto">
+								<select class="assiduiteControl" th:field="*{sessionEpreuve}">
+									<option value="">----Session----</option>
+									<option th:each="se : ${sessions}"
+									        th:value="${se.id}" 
+									        th:text="${se.nomSessionEpreuve + ' [ ' + #dates.format(se.dateExamen, 'dd/MM/yy') 
+											+ ' ' + #dates.format(se.heureEpreuve, 'HH:mm') + ' ]'}">
+									</option>
+								</select>	
+							</div>
+							<div class="col-auto">
 								<div class="input-group mb-3">
 									<select th:field="*{groupe}" class="assiduiteControl clearable">
-										<option value="">--Choisir--</option>
+										<option value="">--Groupe--</option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"></option>
 									</select>
 								</div>

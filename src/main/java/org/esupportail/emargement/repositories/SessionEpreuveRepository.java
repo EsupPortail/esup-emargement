@@ -81,6 +81,15 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
        nativeQuery = true)
 	List<SessionEpreuve> getAllSessionEpreuveForCalendarByContext(Date startDate, Date endDate, Long ctxId);
 	
+	@Query(value = "SELECT * FROM session_epreuve WHERE "
+            + "((date_examen >= :startDate AND date_examen <= :endDate) OR "
+            + " (date_fin >= :startDate AND date_fin <= :endDate) OR "
+            + " (date_examen <= :startDate AND date_fin >= :endDate)) OR "
+            + " (date_examen >= :startDate AND date_examen <= :endDate AND date_fin IS NULL) "
+            + "AND context_id = :ctxId ORDER BY nom_session_epreuve", 
+       nativeQuery = true)
+	List<SessionEpreuve> getAllSessionEpreuveForAssiduiteByContext(Date startDate, Date endDate, Long ctxId);
+	
 	@Query(value = "select session_epreuve.id from tag_check, person, session_epreuve "
 	        + "where tag_check.person_id = person.id "
 	        + "and session_epreuve.id = tag_check.session_epreuve_id "

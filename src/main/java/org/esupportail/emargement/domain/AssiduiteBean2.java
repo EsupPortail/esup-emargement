@@ -31,6 +31,8 @@ public class AssiduiteBean2 {
 	String situation;
 	
 	String eppn;
+	
+	SessionEpreuve sessionEpreuve;
 
 	public Date getDateDebut() {
 		return dateDebut;
@@ -142,5 +144,13 @@ public class AssiduiteBean2 {
 
 	public void setGroupe(Groupe groupe) {
 		this.groupe = groupe;
+	}
+
+	public SessionEpreuve getSessionEpreuve() {
+		return sessionEpreuve;
+	}
+
+	public void setSessionEpreuve(SessionEpreuve sessionEpreuve) {
+		this.sessionEpreuve = sessionEpreuve;
 	}
 }
