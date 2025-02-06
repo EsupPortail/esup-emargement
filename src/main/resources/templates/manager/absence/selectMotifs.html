@@ -1,5 +1,5 @@
    <select class="mb-2" id="motifAbsence" name="motifAbsence" required="required">
        <option value="">----Choisir----</option>
        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
-           th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+           th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
    </select>

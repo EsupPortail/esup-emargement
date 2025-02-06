@@ -14,7 +14,7 @@
 								<select th:field="*{motifAbsence}" required="required">
 									<option value="">----Choisir----</option>
 									<option th:each="motif : ${motifAbsences}"
-										th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+										th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
 								</select>
 							</div>
 						</div>

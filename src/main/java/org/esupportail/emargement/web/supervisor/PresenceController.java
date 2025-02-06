@@ -361,7 +361,7 @@ public class PresenceController {
 		uiModel.addObject("seId", sessionEpreuve.getId());
 		uiModel.addObject("typePj", "session");
 		uiModel.addObject("eppnAuth", eppnAuth);
-		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrue());
+		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle());
 		
         return uiModel;
     }
@@ -699,13 +699,13 @@ public class PresenceController {
     @GetMapping(value = "/supervisor/absence/motifs", produces = "text/html")
     public String search(Model uiModel, @RequestParam(required=false) String statut, @RequestParam(required=false) String type) {
     	if(statut!= null && type != null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceAndTypeAbsenceOrderByLibelle(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
     	}else if(statut == null && type != null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndTypeAbsence(TypeAbsence.valueOf(type)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndTypeAbsenceOrderByLibelle(TypeAbsence.valueOf(type)));
     	}else if(statut != null && type == null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsence(StatutAbsence.valueOf(statut)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceOrderByLibelle(StatutAbsence.valueOf(statut)));
     	}else {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrue());
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle());
     	}
     	return "supervisor/absence/selectMotifs";
     }

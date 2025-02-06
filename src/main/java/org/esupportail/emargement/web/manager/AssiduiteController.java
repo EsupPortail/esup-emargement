@@ -163,7 +163,7 @@ public class AssiduiteController {
 		model.addAttribute("assiduiteBean", assiduiteBean);
 		model.addAttribute("groupes", groupeRepository.findAllByOrderByNom());
 		model.addAttribute("sessions", sessionEpreuveRepository.getAllSessionEpreuveForAssiduiteByContext(dateDebut, dateFin, contextService.getcurrentContext().getId()));
-		model.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+		model.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
 		model.addAttribute("absence", new Absence());
 		return "manager/assiduite/index";
 	}

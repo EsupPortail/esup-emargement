@@ -13,19 +13,19 @@ public interface MotifAbsenceRepository extends JpaRepository<MotifAbsence, Long
 
 	List<MotifAbsence> findByContextKey(String key);
 	
-	List<MotifAbsence> findByIsActifTrue();
+	List<MotifAbsence> findByIsActifTrueOrderByLibelle();
 	
-	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrue();
+	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle();
 	
-	List<MotifAbsence> findByIsActifTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence statut, TypeAbsence type);
+	List<MotifAbsence> findByIsActifTrueAndStatutAbsenceAndTypeAbsenceOrderByLibelle(StatutAbsence statut, TypeAbsence type);
 	
-	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence statut, TypeAbsence type);
+	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceAndTypeAbsenceOrderByLibelle(StatutAbsence statut, TypeAbsence type);
 	
-	List<MotifAbsence> findByIsActifTrueAndStatutAbsence(StatutAbsence statut);
+	List<MotifAbsence> findByIsActifTrueAndStatutAbsenceOrderByLibelle(StatutAbsence statut);
 	
-	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsence(StatutAbsence statut);
+	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndStatutAbsenceOrderByLibelle(StatutAbsence statut);
 	
-	List<MotifAbsence> findByIsActifTrueAndTypeAbsence(TypeAbsence typeAbsence);
+	List<MotifAbsence> findByIsActifTrueAndTypeAbsenceOrderByLibelle(TypeAbsence typeAbsence);
 	
-	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndTypeAbsence(TypeAbsence typeAbsence);
+	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueAndTypeAbsenceOrderByLibelle(TypeAbsence typeAbsence);
 }

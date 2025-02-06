@@ -122,7 +122,7 @@ public class AbsenceController {
     public String createForm(Model uiModel) {
     	Absence absence = new Absence();
     	uiModel.addAttribute("absence", absence);
-    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
         return "manager/absence/create";
     }
     
@@ -133,7 +133,7 @@ public class AbsenceController {
     	uiModel.addAttribute("nomPrenom", ldapService.getPrenomNom(absence.getPerson().getEppn()));
     	uiModel.addAttribute("seId", absence.getId());
     	uiModel.addAttribute("typePj", "absence");
-    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
         return "manager/absence/update";
     }
     
@@ -260,11 +260,11 @@ public class AbsenceController {
     public String search(Model uiModel, @RequestParam(required=false) String statut, @RequestParam(required=false) String type) {
     	
     	if(statut!= null && type != null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsenceAndTypeAbsence(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsenceAndTypeAbsenceOrderByLibelle(StatutAbsence.valueOf(statut), TypeAbsence.valueOf(type)));
     	}else if(statut == null && type != null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndTypeAbsence(TypeAbsence.valueOf(type)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndTypeAbsenceOrderByLibelle(TypeAbsence.valueOf(type)));
     	}else if(statut != null && type == null) {
-    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsence(StatutAbsence.valueOf(statut)));
+    		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndStatutAbsenceOrderByLibelle(StatutAbsence.valueOf(statut)));
     	}
     	return "manager/absence/selectMotifs";
     	

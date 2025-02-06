@@ -269,7 +269,7 @@ public class TagCheckController {
     @GetMapping(value = "/manager/tagCheck/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable("id") Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
-    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrue());
+    	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
     	populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());
         return "manager/tagCheck/update";
     }

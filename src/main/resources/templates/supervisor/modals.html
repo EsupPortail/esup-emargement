@@ -174,7 +174,7 @@
 								    <select id="motifAbsence" name="motifAbsence" class="mb-2" required="required"
 								        hx-target="#motifAbsence">
 								        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
-											th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"></option>
+											th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
 								    </select>
 								</div>
 							</div>
