@@ -9,9 +9,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Resource;
+
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.web.manager.ExtractionController.ExtractionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,12 @@ public class ImportExportService {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Resource
+	AppliConfigService appliConfigService;
+	
+	@Autowired(required = false)
+	ApogeeService apogeeService;
 	
 	public  List<List<String>>  readAll(Reader reader) throws Exception {
 		char separator = ';';
@@ -76,5 +85,26 @@ public class ImportExportService {
 		}
 		return newSe;
 	}
-
+	public ExtractionType getDisplayType(ExtractionType type) {
+		if (type == null) {
+			String searchChars = "ALCG";
+			Character firstMatch = appliConfigService.getListImportExport().chars()
+					.mapToObj(c -> (char) c)
+					.filter(c -> searchChars.indexOf(c) != -1)
+					.findFirst() 
+					.orElse(null); 
+			if (firstMatch != null) {
+				if (firstMatch == 'A' && apogeeService != null) {
+					type = ExtractionType.apogee;
+				} else if (firstMatch == 'L') {
+					type = ExtractionType.ldap;
+				} else if (firstMatch == 'C') {
+					type = ExtractionType.csv;
+				} else if (firstMatch == 'G') {
+					type = ExtractionType.groupes;
+				} 
+			}
+		}
+		return type;
+	}
 }

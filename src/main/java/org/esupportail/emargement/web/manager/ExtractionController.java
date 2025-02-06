@@ -25,6 +25,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.services.ApogeeService;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.ImportExportService;
@@ -60,13 +61,16 @@ import com.opencsv.CSVWriter;
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
 public class ExtractionController {
 
-	enum ExtractionType {apogee, ldap, csv, groupes}
+	public enum ExtractionType {apogee, ldap, csv, groupes}
 
 	@Autowired(required = false)
 	ApogeeService apogeeService;
 
 	@Resource
 	LogService logService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
 	
 	@Resource
 	GroupeService groupeService;
@@ -119,11 +123,10 @@ public class ExtractionController {
 	}
 	
 	@GetMapping(value = "/manager/extraction")
-	public String index(Model model, @RequestParam(value = "type", required = false) ExtractionType type){
-		if(type == null) {
-			type = apogeeService != null ? ExtractionType.apogee : ExtractionType.ldap;
-		}
-		return redirectTab(model, type);
+	public String index(Model uiModel, @RequestParam(value = "type", required = false) ExtractionType type){
+
+		uiModel.addAttribute("listTabs", appliConfigService.getListImportExport());
+		return redirectTab(uiModel, importExportService.getDisplayType(type));
 	}
 	
 	@RequestMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
@@ -141,6 +144,7 @@ public class ExtractionController {
 		}else if(ExtractionType.groupes.equals(type)) {
 			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
 		}
+		uiModel.addAttribute("listTabs", appliConfigService.getListImportExport());
 		return "manager/extraction/index";
 	}
 	
@@ -318,6 +322,7 @@ public class ExtractionController {
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("size", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("type", "ldap");
+		uiModel.addAttribute("listTabs", appliConfigService.getListImportExport());
     	return "manager/extraction/index";
     }
     

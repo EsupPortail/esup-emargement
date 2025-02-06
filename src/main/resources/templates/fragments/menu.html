@@ -41,7 +41,7 @@
 				        						or active == 'extraction' or active == 'person' or active == 'esupsignature' 
 				        						or active == 'groupe' or active == 'adeCampus' or active == 'assiduite'
 				        						or active == 'absence' or active == 'file' or active == 'motifAbsence'
-												} ? 'active font-weight-bold' : ''" 
+												or active == 'fcaManager'} ? 'active font-weight-bold' : ''" 
 				        		href="#" id="navbarDropdown" role="button" 
 				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
 				          <span th:class="text-capitalize" th:text="${#strings.toLowerCase('__#{role.manager}__')}"></span>
@@ -49,7 +49,8 @@
 				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
 				          <li th:if="${isAdeCampusEnabled}"><a class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
-				          <li><a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a></li>
+				          <li ><a class="dropdown-item" th:classappend="${active == 'fcaManager'} ? 'active' : ''" th:href="@{/{ctx}/manager/fcaManager(ctx=${eContext})}">Fca Manager</a></li>
+				          <li th:if="${isImportExportEnabled}"><a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a></li>
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'assiduite'} ? 'active' : ''" th:href="@{/{ctx}/manager/assiduite(ctx=${eContext})}">Assiduité</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'absence'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence(ctx=${eContext})}">Absences</a></li>

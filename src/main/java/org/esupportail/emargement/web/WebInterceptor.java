@@ -60,6 +60,7 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isEsupSignatureEnabled", appliConfigService.isEsupSignatureEnabled());
 					modelAndView.addObject("isAdeCampusSurveillantEnabled", appliConfigService.isAdeCampusSurveillantEnabled());
 					modelAndView.addObject("isCalendarEnabled", appliConfigService.isCalendarDisplayed());
+					modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
 				}
 		}
