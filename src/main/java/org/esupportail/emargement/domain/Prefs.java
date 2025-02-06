@@ -1,5 +1,6 @@
 package org.esupportail.emargement.domain;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -27,6 +28,8 @@ public class Prefs implements ContextSupport{
     
     public String nom;
     
+    //ALTER TABLE prefs ALTER COLUMN value TYPE text;
+    @Column(columnDefinition = "TEXT")
     public String value ;
 
 	public Long getId() {
