@@ -1,8 +1,38 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<tbody id="tableEvents" style="width:100%">
 	    <tr th:each="event : ${listEvents}" th:class="${event.isAlreadyimport}? table-success : table-light">
-	    	<td></td>
+			<td class="tetx-center"></td>
+			<td></td>
 	    	<td th:text="${event.eventId}" class="degree" th:attr="data-degree=${event.degreeId}"></td>
+			<td th:text="${event.activityId}"></td>
+			<td>
+				<th:block th:each="element : ${event.trainees}">
+			         <th:block th:each="entry: ${element}">
+				        <th:block th:text="${'[' + entry.key + ']'}"></th:block> 
+				    </th:block>
+			    </th:block>
+			</td>
+			<td>
+				<th:block th:each="element : ${event.instructors}">
+			         <th:block th:each="entry: ${element}">
+				        <th:block th:text="${'[' + entry.key + ']'}"></th:block> 
+				    </th:block>
+			    </th:block>
+			</td>
+			<td>
+				<th:block th:each="element : ${event.classrooms}">
+			         <th:block th:each="entry: ${element}">
+				        <th:block th:text="${'[' + entry.key + ']'}"></th:block> 
+				    </th:block>
+			    </th:block>
+			</td>
+			<td>
+				<th:block th:each="element : ${event.category6}">
+			         <th:block th:each="entry: ${element}">
+				        <th:block th:text="${'[' + entry.key + ']'}"></th:block> 
+				    </th:block>
+			    </th:block>
+			</td>
 	    	<td th:text="${#dates.format(event.lastUpdate,'dd-MM-yy HH:mm')}" ></td>
 	    	<td th:text="${#dates.format(event.sessionEpreuve.dateCreation,'dd-MM-yy HH:mm')}" ></td>
 	    	<td>

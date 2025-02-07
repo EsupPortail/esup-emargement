@@ -339,3 +339,6 @@ dl dd:after {
 	border: none; 
 	vertical-align: middle;
 }
+table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::before{
+	left: 20px!important;
+}

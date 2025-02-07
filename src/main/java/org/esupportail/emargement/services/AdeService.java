@@ -498,17 +498,19 @@ public class AdeService {
 						boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventId(eventId) >0)? true : false;
 						if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)|| update){
 							SessionEpreuve se = null;
+							String activityId = element.getAttribute("activityId");
+							adeResourceBean.setActivityId(Long.valueOf(activityId));
 							if(update) {
 								List<SessionEpreuve> ses = sessionEpreuveRepository.findByAdeEventId(eventId);
 								se = (ses != null) ? ses.get(0) :  null;
-								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, element.getAttribute("activityId"));
-								AdeResourceBean beanActivity2 = activities2.get(element.getAttribute("activityId"));
+								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, activityId);
+								AdeResourceBean beanActivity2 = activities2.get(activityId);
 								if(beanActivity2!= null) {
 									adeResourceBean.setTypeEvent(beanActivity2.getTypeEvent());
 								}
 							}else {
 								se = new SessionEpreuve();
-								AdeResourceBean beanActivity = activities.get(element.getAttribute("activityId"));
+								AdeResourceBean beanActivity = activities.get(activityId);
 								if(beanActivity!= null) {
 									adeResourceBean.setTypeEvent(beanActivity.getTypeEvent());
 								}
@@ -543,34 +545,44 @@ public class AdeService {
 											if (node3.getParentNode().equals(node2)) {
 												Element element3 = (Element) node3; 
 												String category = element3.getAttribute("category");
+												Long id = !element3.getAttribute("id").isEmpty()? Long.valueOf(element3.getAttribute("id")) : null;
+												String name = element3.getAttribute("name");
 												if(appliConfigService.getCategoriesAde().get(1).equals(category)){
 													List<Map<Long,String>> category6 = (adeResourceBean.getCategory6() == null)? 
 															new ArrayList<>() : adeResourceBean.getCategory6();
 															HashMap<Long, String> mapCategory6= new HashMap<>();
-															mapCategory6.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															category6.add(mapCategory6);
-															adeResourceBean.setCategory6(category6);
+															if(id != null && !name.isEmpty()) {
+																mapCategory6.put(id, name);
+																category6.add(mapCategory6);
+																adeResourceBean.setCategory6(category6);
+															}
 												}else if("trainee".equals(category)){
 													List<Map<Long,String>> trainees = (adeResourceBean.getTrainees() == null)? 
 															new ArrayList<>() : adeResourceBean.getTrainees();
 															HashMap<Long, String> maptrainees= new HashMap<>();
-															maptrainees.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															trainees.add(maptrainees);
-															adeResourceBean.setTrainees(trainees);	
+															if(id != null && !name.isEmpty()) {
+																maptrainees.put(id, name);
+																trainees.add(maptrainees);
+																adeResourceBean.setTrainees(trainees);
+															}
 												}else if("instructor".equals(category)){
 													List<Map<Long,String>> instructors = (adeResourceBean.getInstructors() == null)? 
 															new ArrayList<>() : adeResourceBean.getInstructors();
 															HashMap<Long, String> mapInstructors= new HashMap<>();
-															mapInstructors.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															instructors.add(mapInstructors);
-															adeResourceBean.setInstructors(instructors);
+															if(id != null && !name.isEmpty()) {
+																mapInstructors.put(id, name);
+																instructors.add(mapInstructors);
+																adeResourceBean.setInstructors(instructors);
+															}
 												}else if("classroom".equals(category)){
 													List<Map<Long,String>>  classrooms = (adeResourceBean.getClassrooms() == null)? 
 															new ArrayList<>() : adeResourceBean.getClassrooms();
 															HashMap<Long, String> mapClassrooms= new HashMap<>();
-															mapClassrooms.put(Long.valueOf(element3.getAttribute("id")), element3.getAttribute("name"));
-															classrooms.add(mapClassrooms);
-															adeResourceBean.setClassrooms(classrooms);	  
+															if(id != null && !name.isEmpty()) {
+																mapClassrooms.put(id, name);
+																classrooms.add(mapClassrooms);
+																adeResourceBean.setClassrooms(classrooms);
+															}
 												}
 											}
 										}

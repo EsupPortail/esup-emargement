@@ -967,20 +967,30 @@ function displayEvents(url, table){
 				table = $('.tableFoo').DataTable({
 					columnDefs: [
 						{
-							targets: 0, // Column index for the checkbox column
+							targets: 1, // Column index for the checkbox column
 							orderable: false, // Disable sorting on this column
 							className: 'select-checkbox', // Add a class for the checkbox column
 							render: function(data, type, row, meta) {
-								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+								console.log(row);
+								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[2] + '">';
 							}
 						},
-						{ type: 'date-eu', targets: 'dateItem'}
+						{ type: 'date-eu', targets: 'dateItem'},
+						{
+				            className: 'dtr-control ',
+				            orderable: false,
+				            targets: 0
+				        }
 					],
 					select: {
 						style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
 					},
 					order: [[6, 'desc']], // Set the default sorting column and order
-					responsive: true,
+					responsive: {
+					        details: {
+					            type: 'column'
+					        }
+					    },
 					ordering: true,
 					paging: true,
 					searching: true,
@@ -2170,11 +2180,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		},
 		columnDefs: [
 			{
-				targets: 0,
+				targets: 1,
 				orderable: false,
 				className: 'select-checkbox', 
 				render: function(data, type, row, meta) {
-					return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+					return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[2] + '">';
 				}
 			},
 			{ type: 'date-eu', targets: 'dateItem'}

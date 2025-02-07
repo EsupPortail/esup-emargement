@@ -10,6 +10,8 @@ public class AdeResourceBean {
 	
 	public Long degreeId;
 	
+	public Long activityId;
+	
 	public SessionEpreuve sessionEpreuve;
 	
 	public List<Map<Long,String>> instructors;
@@ -104,5 +106,13 @@ public class AdeResourceBean {
 
 	public void setDegreeId(Long degreeId) {
 		this.degreeId = degreeId;
+	}
+
+	public Long getActivityId() {
+		return activityId;
+	}
+
+	public void setActivityId(Long activityId) {
+		this.activityId = activityId;
 	}
 }
