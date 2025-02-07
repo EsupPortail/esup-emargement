@@ -12,8 +12,8 @@
 					    	<h2>Assiduité</h2>
 					    </div>
 						<div class="col" th:if="${assiduiteBean.getSituation() eq 'absence'}">
-							<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" 
-								class="btn btn-primary float-end" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
+							<a 	class="btn btn-danger float-end" title="Supprimer des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal2">Supprimer des absences</a>
+							<a 	class="btn btn-primary float-end me-2" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
 						</div>
 					</div>
 				</div>
@@ -122,7 +122,7 @@
 									<td th:text="${individu.prenom}"></td>
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
-									<td data-bs-toggle="tooltip" th:title="${tc.absence ne null and tc.absence.dateModification ne null ? 'Modificateur : ' + tc.absence.userApp.eppn + ' le ' +
+									<td data-bs-toggle="tooltip" th:title="${tc.absence ne null and tc.absence.dateModification ne null and tc.absence.userApp  ne null ? 'Modificateur : ' + tc.absence.userApp.eppn + ' le ' +
 										#dates.format(tc.absence.dateModification, 'dd/MM/yy HH:mm') : ''}">
 									    <span>
 									        <th:block th:if="${tc.absence?.motifAbsence?.color != null}">
@@ -269,12 +269,33 @@
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-							<button type="submit" class="btn btn-success">Enregistrer</button>
+							<button type="submit" class="btn btn-success">Valider</button>
 						</div>
 					</form>
 				</div>
 			</div>
 		</div>
+		<div class="modal fade" id="absenceAssiduiteModal2" tabindex="-1" aria-labelledby="absenceAssiduite" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<form action="#" th:action="@{/{ctx}/manager/assiduite/deleteAbsence(ctx=${eContext})}" method="post">
+						<div class="modal-header">
+							<h1 class="modal-title fs-5">Supprimer des absences</h1>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<div class="alert alert-danger fw-bold h5 text-center"> Les absences des lignes sélectionnées seront supprimées.</div>
+								<input type="hidden" name="idListAbsences" id="checkedValues2" />
+								<input type="hidden" name="searchUrl" id="searchUrl2" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+							<button type="submit" class="btn btn-success">Valider</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>		
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
 </html>

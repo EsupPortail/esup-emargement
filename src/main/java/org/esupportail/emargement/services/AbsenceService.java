@@ -84,9 +84,10 @@ public class AbsenceService {
 	}
 	
 	@Transactional
-	public Absence createAbsence(MotifAbsence motifAbsence, TagCheck tc, Absence absence) throws IOException {
+	public Absence createAbsence(TagCheck tc, Absence absenceBean) throws IOException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Context ctx = tc.getContext();
+		Absence absence = new Absence();
 		absence.setContext(ctx);
 		SessionEpreuve se = tc.getSessionEpreuve();
 		absence.setDateDebut(se.getDateExamen());
@@ -94,10 +95,11 @@ public class AbsenceService {
 		absence.setHeureDebut(se.getHeureEpreuve());
 		absence.setHeureFin(se.getFinEpreuve());
 		absence.setPerson(tc.getPerson());
-		absence.setCommentaire(absence.getCommentaire());
-		absence.setMotifAbsence(motifAbsence);
+		absence.setCommentaire(absenceBean.getCommentaire());
+		absence.setMotifAbsence(absenceBean.getMotifAbsence());
         absence.setDateModification(new Date());
         absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), ctx.getKey()));
+        absence.setFiles(absenceBean.getFiles());
         if(absence.getFiles() != null && !absence.getFiles().isEmpty()) {
 			for(MultipartFile file : absence.getFiles()) {
 				if(file.getSize()>0) {

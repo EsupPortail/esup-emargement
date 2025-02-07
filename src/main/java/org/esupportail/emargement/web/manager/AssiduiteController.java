@@ -18,18 +18,26 @@ import javax.validation.Valid;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean2;
 import org.esupportail.emargement.domain.EsupSignature;
+import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.ContextService;
+import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.LogService.ACTION;
+import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.TagCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -54,6 +62,12 @@ public class AssiduiteController {
 	TagCheckRepository tagCheckRepository;
 	
 	@Autowired
+	StoredFileRepository storedFileRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
+	
+	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
 	@Autowired
@@ -73,6 +87,9 @@ public class AssiduiteController {
 	
 	@Resource
 	ContextService contextService;
+	
+	@Resource
+	LogService logService;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
@@ -173,10 +190,32 @@ public class AssiduiteController {
     public String updateAbsence(@PathVariable String emargementContext, @Valid Absence absence, @RequestParam("idListAbsences") List<TagCheck >tcs,
     		@RequestParam("searchUrl") String searchUrl) throws IOException {
 		for(TagCheck tc : tcs) {
-			absenceService.createAbsence(absence.getMotifAbsence(), tc, absence) ;
-			tc.setAbsence(absence);
+			Absence newAbsence = absenceService.createAbsence(tc, absence) ;
+			tc.setAbsence(newAbsence);
 	    	tagCheckService.save(tc, emargementContext);
 		}
     	return String.format("redirect:/%s/manager/assiduite%s", emargementContext, searchUrl);
+    }
+	
+	@Transactional
+	@PostMapping("/manager/assiduite/deleteAbsence")
+    public String deleteAbsence(@PathVariable String emargementContext,  @RequestParam("idListAbsences") List<TagCheck >tcs, @RequestParam("searchUrl") String searchUrl){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		int i= 0;
+		for(TagCheck tc : tcs) {
+			Absence absence = tc.getAbsence();
+			if(absence != null) {
+				tc.setAbsence(null);
+				tagCheckService.save(tc, emargementContext);
+				List<StoredFile> files = storedFileRepository.findByAbsence(absence);
+				if(!files.isEmpty()) {
+					storedFileRepository.deleteAll(files);
+				}
+				absenceRepository.delete(absence);
+		    	i++;
+			}
+		}
+		logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, "nb : " + i, auth.getName(), null, emargementContext, null);
+		return String.format("redirect:/%s/manager/assiduite%s", emargementContext, searchUrl);
     }
 }

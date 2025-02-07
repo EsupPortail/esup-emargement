@@ -342,3 +342,8 @@ dl dd:after {
 table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::before{
 	left: 20px!important;
 }
+.btn-xs{
+	--bs-btn-padding-y: .25rem;
+	--bs-btn-padding-x: .5rem;
+	--bs-btn-font-size: .75rem;
+}

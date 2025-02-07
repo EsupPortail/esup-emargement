@@ -60,12 +60,16 @@ function initSelectCheckBoxes(id, searchplaceholder) {
 function checkAll() {
     var all = document.getElementById('selectAllCheckbox');
     var hiddenInput = document.getElementById('checkedValues');
+    var hiddenInput2 = document.getElementById('checkedValues2');
     
     // Helper function to update the hidden input with selected values
     function updateHiddenInput() {
         let checkedCheckboxes = document.querySelectorAll('.checkboxes:checked');
         let values = Array.from(checkedCheckboxes).map(checkbox => checkbox.value);
         hiddenInput.value = values.join(',');
+        if(hiddenInput2){
+			 hiddenInput2.value = values.join(',');
+		}
     }
 
     if (all != null) {
@@ -2572,6 +2576,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	//assiduité
 	if(document.getElementById("assiduitePage") != null){
 		document.getElementById("searchUrl").value=window.location.search;
+		document.getElementById("searchUrl2").value=window.location.search;
 	}
 	//ADE
 	if(document.getElementById("projet") != null){

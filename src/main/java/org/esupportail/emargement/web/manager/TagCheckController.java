@@ -352,7 +352,11 @@ public class TagCheckController {
     		tc.setIsTiersTemps(tagCheck.getIsTiersTemps());
     		tc.setComment(tagCheck.getComment());
     		tc.setSessionLocationExpected(tagCheck.getSessionLocationExpected());
-    		tc.setAbsence(motifAbsence==null? null : absenceService.createAbsence(motifAbsence, tc, new Absence()));
+    		if(motifAbsence!=null) {
+    			Absence absence = new Absence();
+    			absence.setMotifAbsence(motifAbsence);
+    			tc.setAbsence(absenceService.createAbsence(tc, absence));
+    		}
     		tagCheckService.save(tc, emargementContext);
     	}
         return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/" + tc.getSessionEpreuve().getId(), emargementContext);

@@ -387,7 +387,7 @@
 										<td class="center tagChecker" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : ''}"> </td>
 										<td  th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}" class="center tagChecker" th:text="${(tagCheck.tagChecker2!=null)? tagCheck.tagChecker2.userApp.prenom + ' ' + tagCheck.tagChecker2.userApp.nom : ''}"> </td>
 										<td class="center tagChecker" th:text="${tagCheck.comment}"> </td>
-										<td class="center">
+										<td class="center d-flex align-items-center justify-content-center gap-2">
 											<a class="commentTC" title="Ajouter un commentaire" data-bs-toggle="modal" 
 												data-bs-target="#commentTagCheckModal"
 												th:attr="data-bs-tcid=${tagCheck.id}, data-bs-comment=${tagCheck.comment}, data-bs-nom=${tagCheck.person != null ? 
@@ -400,6 +400,11 @@
 						                        (tagCheck.person.nom != null ? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn) : 
 						                        (tagCheck.guest.nom != null ? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email)}">
 												<i class="fas fa-user-times"></i></a>
+											</th:block>
+											<th:block th:if="${tagCheck.absence ne null}">
+												<form th:action="@{/{ctx}/supervisor/tagCheck/deleteAbsence/{id}(id=${tagCheck.id},ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+													<button type="submit" title="Retirer absence" class="btn btn-danger btn-xs"><i class="fa fa-times"></i></button>
+												</form>
 											</th:block>
 										</td>
 									</tr>

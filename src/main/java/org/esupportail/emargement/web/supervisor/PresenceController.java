@@ -34,6 +34,7 @@ import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
@@ -107,6 +108,9 @@ public class PresenceController {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
@@ -620,12 +624,34 @@ public class PresenceController {
 	
 	@Transactional
 	@PostMapping("/supervisor/tagCheck/updateAbsence")
-    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("motifAbsence") MotifAbsence motifAbsence, @RequestParam("tc") TagCheck tc) throws IOException {
-		Absence absence = absenceService.createAbsence(motifAbsence, tc, new Absence());
+    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("motifAbsence") MotifAbsence motifAbsence, @RequestParam("comment") String comment,
+    		@RequestParam("tc") TagCheck tc) throws IOException {
+		Absence absence = absenceService.createAbsence(tc, new Absence());
+		absence.setCommentaire(comment);
+		absence.setMotifAbsence(motifAbsence);
 		tc.setAbsence(absence);
     	tagCheckService.save(tc, emargementContext);
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
+    }
+	
+	@Transactional
+	@PostMapping("/supervisor/tagCheck/deleteAbsence/{id}")
+    public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Absence absence = tc.getAbsence();
+		tc.setAbsence(null);
+    	tagCheckService.save(tc, emargementContext);
+		List<StoredFile> files = storedFileRepository.findByAbsence(absence);
+		if(!files.isEmpty()) {
+			storedFileRepository.deleteAll(files);
+		}
+		absenceRepository.delete(absence);
+    	logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
+
+    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
+    			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
+
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")
