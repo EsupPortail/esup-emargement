@@ -14,9 +14,24 @@
 					    <div class="col-8">
 						    <div class="row float-end">
 								<div class="col-auto">
+									<form th:action="@{/{ctx}/supervisor/events(ctx=${eContext})}" id="projetForm">
+										<th:block th:if="${isAdeConfigOk}">
+											 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+										</th:block>
+										<th:block th:unless="${isAdeConfigOk}">
+											<select class="form-select mb-2" name="projet" id="projet">
+												<option value="">----Projets----</option>
+												<option th:each="proj : ${projects}"
+													th:value="${proj.key}" th:text="${proj.value}"
+													th:selected="${idProject eq proj.key}"></option>
+											</select>
+										</th:block>
+									</form>
+								</div>
+								<div class="col-auto">
 									<a title="Reconnexion session Ade Campus" th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}"
 										class="btn btn-danger"><i class="fa-solid fa-sign-out"></i></a>
-								</div>							
+								</div>
 						    </div>
 					    </div> 
 	    			</div>

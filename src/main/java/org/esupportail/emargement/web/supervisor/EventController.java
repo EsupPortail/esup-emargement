@@ -54,9 +54,14 @@ public class EventController {
 	}
 	
 	@GetMapping(value = "/supervisor/events")
-	public String index(Model uiModel) {
+	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException{
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		uiModel.addAttribute("campuses", campusRepository.findAll());
-		uiModel.addAttribute("existingSe",true);
+		uiModel.addAttribute("existingSe", true);
+		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
+		String eppn =  auth.getName();
+		uiModel.addAttribute("idProject", adeService.getCurrentProject(projet, eppn, emargementContext));
+		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(false, emargementContext)));
 		return "supervisor/events/index";
 	}
 
