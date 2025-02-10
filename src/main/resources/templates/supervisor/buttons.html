@@ -37,14 +37,17 @@
 			<a th:if="${isSessionQrCodeEnabled}" th:href="@{|/${eContext}/supervisor/qrCodePage/${currentLocation}|}" target="_blank" 
 				class="btn btn-secondary mb-1 me-1" title="Afficher QrCode de session" ><i class="fas fa-qrcode"></i></a>
 			<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
+				th:href="@{|/${eContext}/supervisor/exportCsv/${sessionEpreuve.id}|}" class="btn btn-success mb-1 me-1" title="Exporter les émargements en CSV">
+				<i class="fas fa-file-export"></i>
+			<a th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty()}"
 				th:href="@{|/${eContext}/supervisor/exportPdf?sessionLocation=${sessionLocation.id}&sessionEpreuve=${sessionEpreuve.id}|}"
-				class="btn btn-danger mb-1" title="Exporter les émargements"><i
+				class="btn btn-danger mb-1" title="Exporter les émargements en PDF"><i
 				class="fas fa-file-export"></i></a>
-				<label title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
-					data-bs-toggle="buttons"> <input type="checkbox"
-					class="btn-check" id="webCamCheck" th:checked="${enableWebcam}">
-					<i class="fas fa-video"></i>
-				</label>
+			<label title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
+				data-bs-toggle="buttons"> <input type="checkbox"
+				class="btn-check" id="webCamCheck" th:checked="${enableWebcam}">
+				<i class="fas fa-video"></i>
+			</label>
 		</form>
 	</div>
 </html>

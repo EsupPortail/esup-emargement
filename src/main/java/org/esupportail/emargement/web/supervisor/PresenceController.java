@@ -396,6 +396,12 @@ public class PresenceController {
     	document.close();
     }
     
+    @GetMapping("/supervisor/exportCsv/{id}")
+    public void exportTagChecks(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    		 HttpServletResponse response){
+    	tagCheckService.exportTagChecks("CSV", id, response, emargementContext, null, false);
+    }
+    
 	@RequestMapping(value = "/supervisor/{eppn}/photo")
 	@ResponseBody
 	public ResponseEntity<byte[]> getPhoto(@PathVariable("eppn") String eppn) {
