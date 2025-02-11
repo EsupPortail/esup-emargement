@@ -338,7 +338,18 @@
 											 </span>
 										</td>
 										<th:block th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
-											<td th:if="${tagCheck.absence ne null}" class="text-danger fw-bold text-center" th:text="${tagCheck.absence.name()}"></td>
+											<th:block th:if="${tagCheck.absence ne null}">
+												<td>
+													<span>
+												        <th:block th:if="${tagCheck.absence.motifAbsence != null and tagCheck.absence.motifAbsence.color ne null}">
+												            <input class="colorBox" type="color" th:value="${tagCheck.absence.motifAbsence.color}" disabled>
+												        </th:block>
+												        <th:block th:if="${tagCheck.absence.motifAbsence != null}">
+												            <span th:text="${tagCheck.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+												        </th:block>
+												    </span>
+											   </td>
+											</th:block>
 											<td th:unless="${tagCheck.absence ne null}" class="center"  th:id="${'#' + tagCheck.id}"  th:attr="data-order=${tagCheck.tagDate2}">
 												<input th:if="${tagCheck.person != null and tagCheck.tagDate2==null}" type="checkbox" class="presenceCheck" name="presenceCheck" 
 												th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}">
