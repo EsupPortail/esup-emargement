@@ -94,7 +94,6 @@
 									<th>Prénom</th>
 									<th>Num Etu</th>
 									<th>Groupe</th>
-									<!-- >th class="text-center">Surveillant</th-->
 									<th class="text-center">Absence/Retard</th>
 									<th class="text-center">Statut</th>
 									<th class="text-center">Cumul (heures)</th>
@@ -159,7 +158,7 @@
 									<th scope="col">Emargement</th>
 									<th scope="col">Repartition</th>
 									<th scope="col" class="dateItem">Badgeage</th>
-									<th scope="col">Surveillant</th>
+									<th scope="col" th:text="${surveillantTerme}"></th>
 									<th scope="col" class="exclude">Voir</th>
 								</tr>
 							</thead>

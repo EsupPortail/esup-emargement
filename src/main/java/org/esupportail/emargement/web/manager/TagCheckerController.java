@@ -101,7 +101,6 @@ public class TagCheckerController {
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return ITEM;
-		
 	}
 	
 	@GetMapping(value = "/manager/tagChecker/sessionEpreuve/{id}", produces = "text/html")

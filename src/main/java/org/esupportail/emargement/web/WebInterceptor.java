@@ -61,6 +61,7 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isAdeCampusSurveillantEnabled", appliConfigService.isAdeCampusSurveillantEnabled());
 					modelAndView.addObject("isCalendarEnabled", appliConfigService.isCalendarDisplayed());
 					modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());
+					modelAndView.addObject("surveillantTerme", appliConfigService.getSurveillantTerm());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
 				}
 		}

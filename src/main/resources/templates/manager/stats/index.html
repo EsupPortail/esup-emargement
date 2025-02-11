@@ -16,7 +16,8 @@
 						    	<select id="anneeUnivSelect" name="anneeUniv" class="form-select"> 
 						    		<option value="all" th:selected="${currentAnneeUniv == 'all'}">Toutes</option>
 									<option th:each="year, iStat : ${years}"
-										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}"  th:selected="${#strings.substringBefore(year,'/')==currentAnneeUniv}"></option>
+										th:value="${#strings.substringBefore(year,'/')}" th:text="${year}"  
+										th:selected="${#strings.substringBefore(year,'/')==currentAnneeUniv}"></option>
 								</select>
 						    </div>
 					    </div>
@@ -64,7 +65,7 @@
 							<div class="col-lg-3 col-md-6">
 								<div class="box box-primary">
 									<div class="box-header with-border">
-										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + tagCheckersByContext}__')}"></h3>
+										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + tagCheckersByContext(${surveillantTerme + 's'})}__')}"></h3>
 										<div class="box-tools float-right">
 											<button type="button" class="btn btn-box-tool"
 												data-bs-toggle="collapse"  data-bs-target="#collapse3">
@@ -175,7 +176,7 @@
 										<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countSessionEpreuveByType}__')}"></h3>
 										<div class="box-tools float-right">
 											<button type="button" class="btn btn-box-tool"
-												data-toggle="collapse"  data-target="#collapse1">
+												data-bs-toggle="collapse"  data-bs-target="#collapse9">
 												<i class="fa fa-minus"></i>
 											</button>
 										</div>

@@ -97,7 +97,7 @@
 									<td th:text="${userApp.eppn}">Eppn</td>
 									<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
 									<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
-									<td th:text="${userApp.userRole}">Rôle</td>
+									<td th:text="#{${'role.' + #strings.toLowerCase(userApp.userRole)}(${#strings.toUpperCase(surveillantTerme)})}">Rôle</td>
 									<td th:text="${userApp.speciality}"></td>									
 									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
 									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>

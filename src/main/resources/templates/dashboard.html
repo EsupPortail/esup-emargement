@@ -18,7 +18,7 @@
 						              <span class="info-box-number" th:text="${#ctx.containsVariable('seTodayList')? seTodayList.nomSessionEpreuve + ' : ' +  
 						              	#dates.format(seTodayList.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
 						              <span th:text="${#ctx.containsVariable('seTodayList')? ' ' + #dates.format(seTodayList.dateFin, 'dd/MM/yyyy') :''}"></span>
-						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"><strong>Surveillants : </strong></span>
+						              <span class="fw-bold" th:if="${#ctx.containsVariable('userAppsToday')}" th:text="${surveillantTerme + ' :'}"></span>
 						              <span  th:if="${#ctx.containsVariable('userAppsToday')}"  class="info-box-text"   th:each="userApp : ${userAppsToday}">
 						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
 						              </span>
@@ -33,7 +33,7 @@
 						            <div class="info-box-content">
 						              <span class="info-box-text">Prochaine session :</span>
 						              <span class="info-box-number" th:text="${#ctx.containsVariable('seNext')? seNext.nomSessionEpreuve + ' : ' +  #dates.format(seNext.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
-						              <span  th:if="${#ctx.containsVariable('userApps')}"><strong>Surveillants : </strong></span>
+						              <span class="fw-bold" th:if="${#ctx.containsVariable('userApps')}" th:text="${surveillantTerme + ' :'}"></span>
 						              <span  th:if="${#ctx.containsVariable('userApps')}"  class="info-box-text"   th:each="userApp : ${userApps}">
 						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
 						              </span>
@@ -48,8 +48,8 @@
 						            <div class="info-box-content">
 						              <span class="info-box-text">Dernière session :</span>
 						              <span class="info-box-number" th:text="${#ctx.containsVariable('sePrevious')? sePrevious.nomSessionEpreuve + ' : ' +  #dates.format(sePrevious.dateExamen, 'dd/MM/yyyy') : 'Aucune'}"></span>
-						              <span  th:if="${#ctx.containsVariable('userAppsPrevious')}"><strong>Surveillants : </strong></span>
-						              <span  th:if="${#ctx.containsVariable('userAppsPrevious')}"  class="info-box-text"   th:each="userApp : ${userAppsPrevious}">
+						              <span class="fw-bold" th:if="${#ctx.containsVariable('userAppsPrevious')}" th:text="${surveillantTerme + 's :'}"></span>
+						              <span th:if="${#ctx.containsVariable('userAppsPrevious')}"  class="info-box-text"   th:each="userApp : ${userAppsPrevious}">
 						              	<span th:text="${userApp.prenom + ' ' + userApp.nom + ', '}">
 						              </span>
 						              </span>
@@ -71,7 +71,7 @@
 						<div class="col-lg-7">
 							<h3>Sessions</h3>
 							<div class="alert alert-info">
-								<strong>Surveillant : </strong><span th:text="${ldapUser.prenomNom + ' -- ' +  ldapUser.eppn}"></span>
+								<strong th:text="${surveillantTerme + ' :'}"> </strong><span th:text="${ldapUser.prenomNom + ' -- ' +  ldapUser.eppn}"></span>
 							</div>
 							<table class="table table-hover table-striped table-bordered">
 								<thead class="sticky-top">

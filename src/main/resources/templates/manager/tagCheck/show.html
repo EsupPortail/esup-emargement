@@ -59,7 +59,7 @@
 						</dd>
 			            <dt class="col-sm-2">Date</dt>
 						<dd class="col-sm-10"  th:text="${(tagCheck.tagDate != null) ? #dates.format(tagCheck.tagDate, 'dd-MM-yyyy HH:mm') : ''}"></dd>
-			            <dt class="col-sm-2">Surveillant</dt>
+			            <dt class="col-sm-2" th:text="${surveillantTerme}"></dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.tagChecker!= null) ? tagCheck.tagChecker.userApp.eppn : ''}"></dd>     
 			            <dt class="col-sm-2">Répartition</dt>
 			            <dd class="col-sm-10" th:text="${(tagCheck.sessionLocationExpected != null) ? tagCheck.sessionLocationExpected.location.nom : ''}"></dd>

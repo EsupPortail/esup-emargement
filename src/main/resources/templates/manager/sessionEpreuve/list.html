@@ -7,7 +7,8 @@
 		<div class="container-fluid">
          	<div class="card">
 	    		<div class="card-header">
-	    			<div class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et surveillants avant de supprimer la session elle-même.</div>
+	    			<div class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et <span 
+	    				th:text="${#strings.toLowerCase(surveillantTerme + 's')}"></span> avant de supprimer la session elle-même.</div>
 	    			<div class="alert alert-primary alert-dismissible fade show font-weight-bold" th:if="${bilanCsv}" >
 	    				<span th:text="${bilanCsv}"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 	    			</div>
@@ -176,7 +177,7 @@
 									<th scope="col" class ="text-center hiddenBlock">Libre</th>
 									<th scope="col" class ="text-center hiddenBlock" th:if="${isAdeCampusEnabled}">ADE</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Lieux</th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Surveillants</th>
+									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"  th:text="${surveillantTerme + 's'}"></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" >Inscrits</th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="campus">Site</a></th>
 									<th scope="col" class="hiddenBlock" >PJ</th>

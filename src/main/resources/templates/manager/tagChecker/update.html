@@ -6,7 +6,7 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
            	<div class="card">
-		    	<div class="card-header"><h2>Modifier un surveillant</h2></div>
+		    	<div class="card-header"><h2 th:text="${'Modifier un ' + #strings.toLowerCase(surveillantTerme)}"></h2></div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/tagChecker/update(ctx=${eContext})}" th:object="${tagChecker}" method="post">
                     	<input type="hidden" name="_method" value="put" />

@@ -195,7 +195,8 @@ public class PresenceService {
 
 			PdfPTable tagCheckerTable = new PdfPTable(1);
 			tagCheckerTable.setWidthPercentage(100);
-			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell("Surveillants :"));
+			String surveillantTerme = appliConfigService.getSurveillantTerm();
+			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
 			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
 			PdfPCell summaryL = new PdfPCell (tagCheckerTable);
 			summaryL.setColspan (4);

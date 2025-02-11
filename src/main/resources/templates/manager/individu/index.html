@@ -30,7 +30,7 @@
 									class="form-control form-control-underlined border-primary" id="searchIndividuGroupe" >
 							</div>							
 							<div class="col">
-								<input type="text" placeholder="Recherche Surveillant" name="eppnTagChecker" value="" 
+								<input type="text" th:attr="placeholder=${'Recherche ' + surveillantTerme}" name="eppnTagChecker" value="" 
 									class="form-control form-control-underlined border-primary" id="searchIndividuTagChecker" >
 							</div>
 						</div>
@@ -52,7 +52,7 @@
 									<th scope="col">Emargement</th>
 									<th scope="col">Repartition</th>
 									<th scope="col" class="dateItem">Badgeage</th>
-									<th scope="col">Surveillant</th>
+									<th scope="col" th:text="${surveillantTerme}"></th>
 									<th scope="col" class="exclude">Voir</th>
 								</tr>
 							</thead>
@@ -151,11 +151,11 @@
 					</div>
 					<div th:if="${not #lists.isEmpty(tagCheckersPage)}">
 						<div class="alert alert-info mt-2" th:if="${#ctx.containsVariable('individu')}">
-							<strong>Surveillant : </strong>
+							<strong th:text="${surveillantTerme + ' :'}"></strong>
 							<span th:text="${ ' ' + individu.userApp.prenom + ' ' + individu.userApp.nom+ ', ' + individu.userApp.eppn}"></span>
 						</div>						
 						<table class="table table-hover table-striped table-bordered assiduite" style="width:100%" 
-							th:attr="data-export-title=${'surveillant_' + individu.userApp.eppn}">
+							th:attr="data-export-title=${surveillantTerme + '_' + individu.userApp.eppn}">
 							<thead>
 								<tr>
 									<th scope="col">Session</th>
@@ -283,7 +283,6 @@
 									<th>Prénom</th>
 									<th>Num Etu</th>
 									<th>Groupe</th>
-									<!-- >th class="text-center">Surveillant</th-->
 									<th class="text-center">Absence</th>
 									<th class="text-center">Cumul absences (heures)</th>
 									<th class="text-center">Cumul absences (jours)</th>

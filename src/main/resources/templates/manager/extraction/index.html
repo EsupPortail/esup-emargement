@@ -179,7 +179,8 @@
 										</div>
 										<div class="shadow p-3 bg-body rounded">
 											<p class="fw-bold text-danger">En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
-												non en tant qu'inscrit.<br />Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez 'SURVEILLANT'.<br/>
+												non en tant qu'inscrit.<br />Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
+												<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
 												La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
 											<div class="row mb-3">
 												<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
@@ -194,7 +195,7 @@
 												<div class="col-lg-10">
 													<div class="form-check form-switch">
 													  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
-													  <label class="form-check-label" for="roleManager">SURVEILLANT</label>
+													  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
 													</div>
 											    </div>
 											</div>
@@ -256,7 +257,8 @@
 											<p class="fw-bold text-danger">
 												En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
 												non en tant qu'inscrit.<br />
-												Dans ce cas le fichier ne doit contenir qu'une colonne d'eppn et aucun en-tête.<br/>Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez 'SURVEILLANT'.<br/>
+												Dans ce cas le fichier ne doit contenir qu'une colonne d'eppn et aucun en-tête.<br/>Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
+												<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
 												La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
 											<div class="row mb-3">
 												<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
@@ -271,7 +273,7 @@
 												<div class="col-lg-10">
 													<div class="form-check form-switch">
 													  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
-													  <label class="form-check-label" for="roleManager">SURVEILLANT</label>
+													  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
 													</div>
 											    </div>
 											</div>

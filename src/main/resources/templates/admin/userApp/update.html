@@ -30,7 +30,7 @@
 		                    	<div class="col-lg-10">
 									<select th:field="*{userRole}" class="form-control">
 										<option th:each="role : ${allRoles}"
-											th:value="${role}" th:text="${role}"></option>
+											th:value="${role}" th:text="#{${'role.' + #strings.toLowerCase(role)}(${#strings.toUpperCase(surveillantTerme)})}"></option>
 									</select>
 								</div>
 							</div>							

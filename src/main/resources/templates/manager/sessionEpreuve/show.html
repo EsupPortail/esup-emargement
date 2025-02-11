@@ -50,7 +50,7 @@
 			            <dd class="col-sm-10">
 			            	<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbInscritsSession}"></a>
 			            </dd>
-			            <dt class="col-sm-2">Surveillants</dt>
+			            <dt class="col-sm-2" th:text="${surveillantTerme +'s'}"></dt>
 			            <dd class="col-sm-10">
 			            	<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a>
 			            </dd>

@@ -48,7 +48,7 @@ public class AppliConfigService {
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
 		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
-		LIST_IMPORTEXPORT
+		LIST_IMPORTEXPORT, SURVEILLANT_TERM
 	}
 	
 	public List<String> getTypes() {
@@ -288,6 +288,11 @@ public class AppliConfigService {
 	public String getListImportExport() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.LIST_IMPORTEXPORT);
 		return appliConfig==null ? "ALCG" : appliConfig.getValue();
+	}
+	
+	public String getSurveillantTerm() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.SURVEILLANT_TERM);
+		return appliConfig==null ? "Surveillant" : appliConfig.getValue();
 	}
 	
 	public Long checkCategory(Context context, String key) {

@@ -133,7 +133,7 @@
 					</div>
 					<div class="col mb-2" th:if="${not #lists.isEmpty(noTagChecker)}">
 						<form method="post" th:action="@{/{ctx}/manager/sessionEpreuve/cleanup/noTagChecker(ctx=${eContext})}" >
-							<h4>Sans surveillant
+							<h4>Sans <span th:text="${#strings.toLowerCase(surveillantTerme)}"></span>
 								<button class="btn btn-sm btn-danger float-end" 
 									onclick="return confirm('Confirmez-vous la suppression de ces sessions?');" type="submit">Tout supprimer</button>
 							</h4>

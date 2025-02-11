@@ -9,7 +9,7 @@
 	    		<div class="card-header">
 					<div class="row align-items-center">
 					    <div class="col-12 col-md">
-					        <h2>Surveillants</h2>
+					        <h2 th:text="${surveillantTerme + 's'}"></h2>
 					        <small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
 					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
 					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
@@ -21,7 +21,7 @@
 					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
 					                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
 					            </div>    
-					            <a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary" th:if="${!isSessionEpreuveClosed}" title="Ajouter un surveillant">
+					            <a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary" th:if="${!isSessionEpreuveClosed}" th:title="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}">
 					                <i class="fa fa-plus fa-lg"></i>
 					            </a>
 					            <a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-info ms-2" th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" title="Consignes">
@@ -32,7 +32,7 @@
 					</div>
 				</div>         	
   				<div class="card-body">
-		    		<div class="alert alert-danger" th:if="${error}">Le surveillant <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
+		    		<div class="alert alert-danger" th:if="${error}">Ce(t) <span th:text="${#strings.toLowerCase(surveillantTerme)}"></span><span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
    						veuillez supprimer les dépendances avant de supprimer celui-ci.</div>
 					<table class="table table-hover table-striped table-bordered">
 						<thead class="sticky-top">
@@ -62,7 +62,7 @@
 										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 										            </div>
 										            <div class="modal-body">
-										                <div class="alert alert-danger text-center">Confirmez-vous la suppression du surveillant: <br />
+										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de : <br />
 										                	 <span th:text="${tagChecker.userApp.nom + ' ' + tagChecker.userApp.prenom}" class="font-weight-bold"></span> ?</div>
 										            </div>
 										            <div class="modal-footer">

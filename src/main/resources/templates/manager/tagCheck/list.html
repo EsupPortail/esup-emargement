@@ -37,7 +37,7 @@
 					            <div class="btn-group me-2">
 					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
 					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
-					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-secondary" title="Ajouter des surveillants">Ajout surveillants</a>
+					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-secondary" th:title="${'Ajouter des ' + #strings.toLowerCase(surveillantTerme + 's')}" th:text="${'Ajout ' + #strings.toLowerCase(surveillantTerme + 's')}"></a>
 					            </div>
 					            <button th:if="${countTagChecks > 0}" class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
 					            <a th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary ms-2" th:if="${!isSessionEpreuveClosed && !isSessionLibre}" title="Ajouter un inscrit"><i class="fa fa-plus fa-lg"></i></a>
@@ -108,7 +108,7 @@
 			    			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
 			    		<div class="alert alert-danger text-center font-weight-bold alert-dismissible fade show"  th:unless="${isSuccess}">
 				    		Problème avec l'envoi des mails<span th:if="${#ctx.containsVariable('isNotTagchecker')}">
-				    		Vous n'êtes pas surveillant de cette salle, vous ne pouvez pas envoyer de lien d'émargement.</span>
+				    		Vous n'êtes pas <span th:text="${#strings.toLowerCase(surveillantTerme)}"></span> dans cette salle, vous ne pouvez pas envoyer de lien d'émargement.</span>
 				    		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			    		</div>
 		    		</div>
@@ -131,7 +131,7 @@
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="nbBadgeage">Nb badgeage</a></th>
 									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="tagDate">Date</a></th>
 									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell" th:if="${sessionEpreuve.isProcurationEnabled}" >Procuration</th>
-									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker">Surveillant</a></th>
+									<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="tagChecker" th:text="${surveillantTerme}"></a></th>
 									<th scope="col" class="d-none d-xl-table-cell text-center"><a class="sorted" sd:pagination-sort="comment">Commentaire</a></th>
 									<th class ="center" scope="col">Actions</th>
 								</tr>

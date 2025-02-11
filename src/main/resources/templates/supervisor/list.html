@@ -184,8 +184,8 @@
 											<th scope="col" data-priority="4">Emargement2</th>
 										</th:block>
 										<th scope="col">Lieu</th>
-										<th scope="col">Surveillant</th>
-										<th scope="col" th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">Surveillant2</th>
+										<th scope="col" th:text="${surveillantTerme}"></th>
+										<th scope="col" th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}" th:text="${surveillantTerme + '2'}"></th>
 										<th scope="col">Commentaire</th>
 										<th scope="col">Action</th>
 									</tr>
@@ -194,7 +194,7 @@
 									<tr th:if="${displayTagCheckers}" th:each="tagChecker : ${tagCheckers}" class="center priority" th:classappend="${tagChecker.tagDate!=null}? 'table-secondary' : ''">
 										<td th:text="${tagChecker.userApp.nom + '  ' + tagChecker.userApp.prenom}"></td>
 										<td th:if="${isGroupeDisplayed}"></td>
-										<td>Surveillant</td>
+										<td  th:text="${surveillantTerme}"></td>
 										<td>--</td>
 										<th:block th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
 											<td class="center">	<input type="checkbox" class="presenceCheck" name="presenceCheck" disabled /></td>		
@@ -398,8 +398,8 @@
 										<td class="center tagChecker" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : ''}"> </td>
 										<td  th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}" class="center tagChecker" th:text="${(tagCheck.tagChecker2!=null)? tagCheck.tagChecker2.userApp.prenom + ' ' + tagCheck.tagChecker2.userApp.nom : ''}"> </td>
 										<td class="center tagChecker" th:text="${tagCheck.comment}"> </td>
-										<td class="center d-flex align-items-center justify-content-center gap-2">
-											<a class="commentTC" title="Ajouter un commentaire" data-bs-toggle="modal" 
+										<td class="justify-content-center">
+											<a class="commentTC me-2" title="Ajouter un commentaire" data-bs-toggle="modal" 
 												data-bs-target="#commentTagCheckModal"
 												th:attr="data-bs-tcid=${tagCheck.id}, data-bs-comment=${tagCheck.comment}, data-bs-nom=${tagCheck.person != null ? 
 						                        (tagCheck.person.nom != null ? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn) : 
