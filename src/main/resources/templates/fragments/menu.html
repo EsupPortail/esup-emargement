@@ -16,7 +16,7 @@
 	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor}">
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
 				     </li>
-	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor or isUser}">
+	 				<li class="nav-item mr-2" th:if="${isParticipantEnabled and (isAdmin or isManager or isSupervisor or isUser)}">
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
 				     </li>
 			    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">

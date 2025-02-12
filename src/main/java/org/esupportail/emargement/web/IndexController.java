@@ -10,6 +10,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.security.ContextUserDetails;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.TagCheckerService;
@@ -45,6 +46,9 @@ public class IndexController {
 	
 	@Resource
 	TagCheckerService tagCheckerService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
     
 	@Autowired
 	ToolUtil toolUtil;
@@ -104,7 +108,7 @@ public class IndexController {
 			} else if (authorities.contains(new SimpleGrantedAuthority("ROLE_SUPERVISOR"))) {
 				return String.format("redirect:/%s/dashboard", emargementContext);
 			} else {
-				if (authorities.contains(new SimpleGrantedAuthority("ROLE_USER"))) {
+				if (authorities.contains(new SimpleGrantedAuthority("ROLE_USER")) && appliConfigService.isParticipantDisplayed()) {
 					return String.format("redirect:/%s/user", emargementContext);
 				}
 				model.addAttribute("index","index");

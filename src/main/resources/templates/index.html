@@ -6,58 +6,67 @@
 	<div class="container-fluid" id="unknownPage">
 		<div class="card" sec:authorize="isAuthenticated()">
 			<div class="card-header"></div>
-			<div class="alert alert-danger h5" id="norole">
-				<h4 class="alert-heading mb-4">Application d'émargement</h4>
-				<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que participant 
-					ou utilisateur de cette application.</p>
-			</div>
-			<div class="alert alert-success h5 d-none" id="newbie">
-				<h4 class="alert-heading mb-4">Application d'émargement</h4>
-				<span class="fw-bold text-danger mb-2" id="tagDate"></span>
-				<p>Vous venez d'émarger pour la session :
-				<span class="fw-bold" id="sessionNewbie"></span></p>
-				Vous êtes maintenant participant dans esup-emargement.<br /> Déconnectez
-				et reconnectez-vous pour voir vos informations.
-				<hr/>
-				<a class="btn btn-outline-success greenCustom mb-2 px-3 py-2"
-					sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
-					th:href="@{/logout}">Déconnexion</a>
-				<form
-					sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
-					th:action="@{/logout/switchUser}" id="formSu" method="post">
-					<input type="submit" value="Déconnexion SU"
-						class="btn btn-outline-danger redCustom mb-2 px-3 py-2" />
-				</form>
-			</div>
-			<div class="accordion mb-2" id="accordionNewbie">
-				<div class="accordion-item">
-					<h2 class="accordion-header" id="headingOne">
-						<button class="accordion-button" type="button"
-							data-bs-toggle="collapse" data-bs-target="#collapseOne"
-							aria-expanded="true" aria-controls="collapseOne">SCAN QR Code</button>
-					</h2>
-					<div id="collapseOne" class="accordion-collapse collapse"
-						th:classappend="${scanClass}" aria-labelledby="headingOne"
-						data-bs-parent="#accordionNewbie">
-						<div class="accordion-body">
-							<div class="card text-center box-shadow h-md-250">
-								<div id="qrCodeCam" th:attr="data-qrcode=${eppn64}"
-									class="card-img-right flex-auto  mt-1">
-									<div id="loadingMessage">🎥 Impossible d'accéder à la
-										webCam</div>
-									<canvas id="canvas" class="align-self-center mr-3"></canvas>
+			<th:block th:if="${isParticipantEnabled}">
+				<div class="alert alert-danger h5" id="norole">
+					<h4 class="alert-heading mb-4">Application d'émargement</h4>
+					<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que participant 
+						ou utilisateur de cette application.</p>
+				</div>
+				<div class="alert alert-success h5 d-none" id="newbie">
+					<h4 class="alert-heading mb-4">Application d'émargement</h4>
+					<span class="fw-bold text-danger mb-2" id="tagDate"></span>
+					<p>Vous venez d'émarger pour la session :
+					<span class="fw-bold" id="sessionNewbie"></span></p>
+					Vous êtes maintenant participant dans esup-emargement.<br /> Déconnectez
+					et reconnectez-vous pour voir vos informations.
+					<hr/>
+					<a class="btn btn-outline-success greenCustom mb-2 px-3 py-2"
+						sec:authorize="isAuthenticated() and !hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+						th:href="@{/logout}">Déconnexion</a>
+					<form
+						sec:authorize="isAuthenticated() and hasRole('ROLE_PREVIOUS_ADMINISTRATOR')"
+						th:action="@{/logout/switchUser}" id="formSu" method="post">
+						<input type="submit" value="Déconnexion SU"
+							class="btn btn-outline-danger redCustom mb-2 px-3 py-2" />
+					</form>
+				</div>
+				<div class="accordion mb-2" id="accordionNewbie">
+					<div class="accordion-item">
+						<h2 class="accordion-header" id="headingOne">
+							<button class="accordion-button" type="button"
+								data-bs-toggle="collapse" data-bs-target="#collapseOne"
+								aria-expanded="true" aria-controls="collapseOne">SCAN QR Code</button>
+						</h2>
+						<div id="collapseOne" class="accordion-collapse collapse"
+							th:classappend="${scanClass}" aria-labelledby="headingOne"
+							data-bs-parent="#accordionNewbie">
+							<div class="accordion-body">
+								<div class="card text-center box-shadow h-md-250">
+									<div id="qrCodeCam" th:attr="data-qrcode=${eppn64}"
+										class="card-img-right flex-auto  mt-1">
+										<div id="loadingMessage">🎥 Impossible d'accéder à la
+											webCam</div>
+										<canvas id="canvas" class="align-self-center mr-3"></canvas>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			</th:block>
+			<th:block th:unless="${isParticipantEnabled}">
+				<div class="alert alert-info">
+					<h4 class="alert-heading mb-4">Application Esup-emargement</h4>
+					<p>Aucune information à afficher dans cet espace.</p>
+				</div>	
+			</th:blockth:unless>	
 		</div>
 		<div class="mt-2 alert alert-info" sec:authorize="!isAuthenticated()">
 			<div class=" py-3 my-3 text-center">
 			    <h1 class="display-5 fw-bold">Esup-emargement</h1>
 			    <div class="col-lg-6 mx-auto">
-			      <p class="lead mb-4">Application d'émargement, vous n'êtes pas authentifié.</p>
+			      <p class="lead mb-4">Application d'émargement de
+							l'Université de Rouen Normandie, vous n'êtes pas authentifié.</p>
 			      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
 			        <a th:href="@{/login}" class="btn btn-primary btn-lg px-4 gap-3">Connectez-vous</a>
 			      </div>
