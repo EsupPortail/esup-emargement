@@ -22,7 +22,7 @@
 					                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
 					                   class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
 					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
-					                   class="btn btn-secondary" th:title="${'Ajouter des ' + #strings.toLowerCase( + 's')}" th:text="${'Ajout ' + #strings.toLowerCase(surveillantTerme + 's')}"></a>
+					                   class="btn btn-secondary" th:title="${'Ajouter des ' + #strings.toLowerCase(surveillantTerme + 's')}" th:text="${'Ajout ' + #strings.toLowerCase(surveillantTerme + 's')}"></a>
 					            </div>
 					            <a th:href="@{/{ctx}/manager/sessionLocation?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" 
 					               class="btn btn-primary" title="Ajouter un lieu de session">
