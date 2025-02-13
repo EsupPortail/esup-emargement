@@ -26,6 +26,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.UserAppService;
 import org.esupportail.emargement.utils.ParamUtil;
 import org.esupportail.emargement.utils.ToolUtil;
@@ -88,6 +89,9 @@ public class UserAppController {
 	
 	@Resource
 	HelpService helpService;
+	
+	@Resource
+	PreferencesService preferencesService;
 
 	@Resource
 	AppliConfigService appliConfigService;
@@ -110,6 +114,7 @@ public class UserAppController {
 	@GetMapping(value = "/admin/userApp")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="eppn") String eppn,  
 			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Long count = userAppRepository.count();
 		
 		int size = pageable.getPageSize();
@@ -138,7 +143,9 @@ public class UserAppController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
+			model.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 			model.addAttribute("comps", adeService.getItemsFromInstructors(sessionId, null));
+			model.addAttribute("projects", adeService.getProjectLists(sessionId));
 		}
 		model.addAttribute("isAdeCampusEnabled", isAdeCampusEnabled);
         model.addAttribute("userAppPage", userAppPage);
@@ -146,13 +153,15 @@ public class UserAppController {
 		model.addAttribute("itsme", userAppService.getUserAppEppn());
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		model.addAttribute("selectAll", count);
+		model.addAttribute("allRoles", userAppService.getAllRoles(emargementContext, new UserApp()));
+		model.addAttribute("idProject", adeService.getCurrentProject(null, auth.getName(), emargementContext));
 		return "admin/userApp/list";
 	}
 	
 	@Transactional
 	@PostMapping(value = "/admin/userApp/importInstructors")
-	public String importInstructors(@PathVariable String emargementContext, @RequestParam(value="comp") String comp,
-			@RequestParam(value="update", required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
+	public String importInstructors(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam(required = false) String role,
+			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
 		String sessionId = adeService.getSessionId(false, emargementContext);
 		Map<String,String> insts = adeService.getItemsFromInstructors(sessionId, comp.concat("."));
 		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
@@ -178,8 +187,9 @@ public class UserAppController {
 				userApp.setDateCreation(new Date());
 				userApp.setContextPriority(0);
 				userApp.setEppn(eppn);
-				userApp.setUserRole(Role.MANAGER);
+				userApp.setUserRole(role!=null? Role.SUPERVISOR :Role.MANAGER);
 				userAppRepository.save(userApp);
+
 				i++;
 			}else {
 				if(update !=null) {
@@ -198,6 +208,27 @@ public class UserAppController {
 		message += (j>0)? " - Mises à jour : " + j : "";
 		redirectAttributes.addFlashAttribute("message", message);
 		logService.log(ACTION.AJOUT_AGENT, RETCODE.SUCCESS, i + " ajouts depuis ADE", "", null, emargementContext, null);
+		return String.format("redirect:/%s/admin/userApp", emargementContext);
+	}
+	
+	@Transactional
+	@PostMapping(value = "/admin/userApp/importUserAppPrefs")
+	public String importUserAppPrefs(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam String projet,
+			@RequestParam String role) {
+		List<UserApp> userApps = new ArrayList<>();
+		if(role.equals("")) {
+			userApps = userAppRepository.findAll();
+		}else {
+			userApps = userAppRepository.findByUserRoleAndContextKey(Role.valueOf(role), emargementContext, null).getContent();
+		}
+		if(!userApps.isEmpty()) {
+			for(UserApp userApp : userApps){
+				String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, projet);
+				if(typePref!=null && comp!=null) {
+					preferencesService.updatePrefs(typePref, comp, userApp.getEppn(), emargementContext);
+				}
+			}
+		}
 		return String.format("redirect:/%s/admin/userApp", emargementContext);
 	}
 	

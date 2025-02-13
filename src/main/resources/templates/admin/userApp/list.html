@@ -24,46 +24,7 @@
 	    			</div>
 	    		 </div>
 	    		<div class="alert alert-info" th:if="${#ctx.containsVariable('message')}" th:text="${message}"></div>
-				<div class="modal fade" id="adeModalAgents" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-					<div class="modal-dialog">
-						<div class="modal-content">
-							<form th:action="@{/{ctx}/admin/userApp/importInstructors(ctx=${eContext})}" method="post">
-								<div class="modal-header">
-									<h1 class="modal-title fs-5" id="exampleModalLabel">Ajout depuis ADE</h1>
-									<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-								</div>
-								<div class="modal-body">
-									<table class="table table-bordered table-striped caption-top" id="composantesTable">
-										<thead>
-											<tr>
-												<th></th>
-												<th>Libellé</th>
-											</tr>
-										</thead>
-										<tr th:each="element : ${comps}" class="selected">
-											<td><input name="comp" type="radio"
-													th:value="${element.key}"
-													 required/>
-											</td>
-											<td class="d-none"></td>
-											<td th:text="${element.key}"></td>
-										</tr>
-									</table>
-									<div class="form-check">
-									  <input class="form-check-input" name="update" type="checkbox" value="" id="flexCheckDefault" checked="checked">
-									  <label class="form-check-label" for="flexCheckDefault">
-									    Mettre à jour le champ spécialité si utilisateur existant.
-									  </label>
-									</div>
-								</div>
-								<div class="modal-footer">
-									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-									<button type="submit" class="btn btn-primary">Valider</button>
-								</div>
-							</form>
-						</div>
-					</div>
-				</div>
+
   				<div class="card-body">
 		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
 					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
@@ -133,6 +94,110 @@
 							</tbody>
 						</table>
 						<nav th:replace="fragments/pagination :: pagination"></nav>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade" id="adeModalAgents" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h1 class="modal-title fs-5" id="exampleModalLabel">Ajout depuis ADE</h1>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<ul class="nav nav-tabs" id="myTab" role="tablist">
+			                    <li class="nav-item" role="presentation">
+			                        <button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">Importer individus</button>
+			                    </li>
+			                    <li class="nav-item" role="presentation">
+			                        <button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">Préférences</button>
+			                    </li>
+			                </ul>
+							<div class="tab-content mt-3" id="myTabContent">
+			                    <div class="tab-pane fade show active" id="tab1" role="tabpanel">
+									<div class="alert alert-info">Vous pouvez ici importer les enseignants depuis ADE selon leur composante.  
+										Par défaut ils auront le rôle GESTIONNAIRE, sauf si SURVEILLANT est coché.</div>
+									<form th:action="@{/{ctx}/admin/userApp/importInstructors(ctx=${eContext})}" method="post">
+										<table class="table table-bordered table-striped caption-top" id="composantesTable">
+											<thead>
+												<tr>
+													<th></th>
+													<th>Libellé</th>
+												</tr>
+											</thead>
+											<tr th:each="element : ${comps}" class="selected">
+												<td><input name="comp" type="radio"
+														th:value="${element.key}" 
+														 required/>
+												</td>
+												<td class="d-none"></td>
+												<td th:text="${element.key}"></td>
+											</tr>
+										</table>
+										<div class="form-check">
+										  <input class="form-check-input" name="role" type="checkbox" value="" id="flexCheckDefault">
+										  <label class="form-check-label" for="flexCheckDefault">
+										    SURVEILLANT
+										  </label>
+										</div>							
+										<div class="form-check">
+										  <input class="form-check-input" name="update" type="checkbox" value="" id="flexCheckDefault" checked="checked">
+										  <label class="form-check-label" for="flexCheckDefault">
+										    Mettre à jour le champ spécialité si utilisateur existant.
+										  </label>
+										</div>
+										<div class="d-grid gap-2">
+											<button type="submit" class="btn btn-success float-end mt-2">Valider</button>
+										</div>
+									</form>											
+			                    </div>
+			                    <div class="tab-pane fade" id="tab2" role="tabpanel">
+									<div class="alert alert-info">Vous pouvez sélectionner les agents déjà importés selon leur rôle et 
+										les associer à une composante ADE pour un projet donné. 
+										Pour les futurs imports, cela évite un paramétrage individuel. Les préférences existantes seront écrasées</div>
+									<form th:action="@{/{ctx}/admin/userApp/importUserAppPrefs(ctx=${eContext})}" method="post">
+										<label for="role" class="col-lg-2 form-label">Rôle</label>
+										<select name="role" class="form-control">
+											<option value="">Tous</option>
+											<option th:each="role : ${allRoles}"
+												th:value="${role}" th:text="#{${'role.' + #strings.toLowerCase(role)}(${#strings.toUpperCase(surveillantTerme)})}"></option>
+										</select>
+										<label for="role" class="col-lg-2 form-label">Projet</label>
+										<th:block th:if="${isAdeConfigOk}">
+											 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+											 <input type="hidden" name="projet" th:value="${idProject}" >
+										</th:block>
+										<th:block th:unless="${isAdeConfigOk}">
+											<select class="form-select mb-2" name="projet" id="projet" required>
+												<option value="">----Projets----</option>
+												<option th:each="proj : ${projects}"
+													th:value="${proj.key}" th:text="${proj.value}"
+													th:selected="${idProject eq proj.key}"></option>
+											</select>
+										</th:block>
+										<table class="table table-bordered table-striped caption-top" id="composantesTable">
+											<thead>
+												<tr>
+													<th></th>
+													<th>Libellé</th>
+												</tr>
+											</thead>
+											<tr th:each="element : ${mapComposantes}" class="selected">
+												<td><input name="comp" type="radio"
+														th:value="${element.value + '@@' + element.key}" 
+														 required/>
+												</td>
+												<td class="d-none"></td>
+												<td th:text="${element.value}"></td>
+											</tr>
+										</table>
+										<div class="d-grid gap-2">
+											<button type="submit" class="btn btn-success float-end mt-2">Valider</button>
+										</div>
+									</form>	
+			                    </div>
+			                </div>
+						</div>
 					</div>
 				</div>
 			</div>
