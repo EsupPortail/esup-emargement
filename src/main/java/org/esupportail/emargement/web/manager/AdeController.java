@@ -279,14 +279,17 @@ public class AdeController {
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
 			@RequestParam(required = false) Campus campus,
-			@RequestParam String codeComposante, @RequestParam(required = false) String strDateMin,
+			@RequestParam String codeComposante, @RequestParam String libelles, @RequestParam String idProject,
+			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String existingSe,
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
 			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			String codePref = String.format("%s@@%s", libelles, codeComposante);
+			String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					codeComposante,	campus,  idList, null, null, null);
+					codeComposante,	campus,  idList, null, null, null, codePref, typePref);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
@@ -374,7 +377,7 @@ public class AdeController {
 	
 	@PostMapping(value = "/manager/adeCampus/createTask")
 	public String createTask(@PathVariable String emargementContext, @RequestParam(required = false) String params,
-			@RequestParam String libelles,
+			@RequestParam String libelles, @RequestParam String codeComposante,
 			@RequestParam Campus campus,
 			@RequestParam String idProject,
 			@RequestParam String nbItems,
@@ -414,6 +417,7 @@ public class AdeController {
 					task.setDateCreation(new Date());
 					task.setCampus(campus);
 					task.setNbItems(mapItems.get(param));
+					task.setComposante(codeComposante);
 					taskRepository.save(task);
 					log.info("Tâche créée pour ce diplôme : " + libelle);
 					logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
@@ -436,4 +440,13 @@ public class AdeController {
 		uiModel.addAttribute("cronExpression", toolUtil.getCronExpression(cronAde));
 		return "manager/adeCampus/tasks";
 	}
+		
+    @Transactional
+    @PostMapping(value = "/manager/adeCampus/tasks/delete/{id}")
+    public String delete(@PathVariable String emargementContext, @PathVariable("id") Task task) {
+    	taskRepository.delete(task);
+    	logService.log(ACTION.TASK_DELETE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+				null, emargementContext, null);
+        return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
+    }
 }

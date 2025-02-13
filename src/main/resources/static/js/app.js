@@ -975,7 +975,6 @@ function displayEvents(url, table){
 							orderable: false, // Disable sorting on this column
 							className: 'select-checkbox', // Add a class for the checkbox column
 							render: function(data, type, row, meta) {
-								console.log(row);
 								return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[2] + '">';
 							}
 						},
@@ -2369,6 +2368,33 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
 	initTablePresence(sortDate);
+	
+	$('.tableTasks').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		dom: 'frtilp',
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		}, columnDefs: [
+			{
+				targets: 'dateItem',
+				type: 'datetime-moment', 
+				render: function(data, type, row) {
+					if (!data) {
+						return '';
+					}
+					if (type === 'sort' || type === 'type') {
+						return moment(data, 'DD/MM/YYYY').unix();
+					}
+					return moment(data, 'DD/MM/YYYY').format('DD/MM/YYYY');
+				}
+			},
+			{ targets: 'no-sort', orderable: false }
+		]
+	});
 	
 	$('.tableCleanup').DataTable({
 		responsive: true,

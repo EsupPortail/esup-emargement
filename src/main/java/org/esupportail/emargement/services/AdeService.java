@@ -36,6 +36,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
@@ -289,7 +290,7 @@ public class AdeService {
 		return adeBeans;
 	}
 	
-	public Map<String,String> getItemsFromtInstructors(String sessionId, String choice) {
+	public Map<String,String> getItemsFromInstructors(String sessionId, String choice) {
 		String detail = "12";
 		String urlInstructors = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=instructor";
 		Map<String,String> items = new HashMap<>();
@@ -724,7 +725,7 @@ public class AdeService {
 	@Async
 	@Transactional
 	public int saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, Campus campus, 
-			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax) throws ParseException {
+			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax, String codePref, String typePref) throws ParseException {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
@@ -758,7 +759,7 @@ public class AdeService {
 					processLocations(se, ade, sessionId, ctx, sls);
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
-					processInstructors(ade, sessionId, ctx, sls);
+					processInstructors(ade, sessionId, ctx, sls, codePref, typePref);
 					i++;
 					dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
 					if(update && isUpdateOk){
@@ -944,7 +945,7 @@ public class AdeService {
 		}
 	}
 	
-	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) {
+	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls, String codePref, String typePref) {
 		List<Map<Long, String>> listAdeInstructors = ade.getInstructors();
 		if(listAdeInstructors!= null &&!listAdeInstructors.isEmpty()) {
 			String firstId = listAdeInstructors.get(0).keySet().toArray()[0].toString();
@@ -956,7 +957,8 @@ public class AdeService {
 						UserApp userApp = null;
 						List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
 						if(!ldapUsers.isEmpty()) {
-							userApp = userAppRepository.findByEppnAndContext(ldapUsers.get(0).getEppn(), ctx);
+							String eppn = ldapUsers.get(0).getEppn();
+							userApp = userAppRepository.findByEppnAndContext(eppn, ctx);
 							if(userApp == null) {
 								userApp = new UserApp();
 								userApp.setContext(ctx);
@@ -970,6 +972,9 @@ public class AdeService {
 								userApp.setUserRole(Role.MANAGER);
 							}
 							userAppRepository.save(userApp);
+							if(typePref!=null && codePref!=null) {
+								preferencesService.updatePrefs(typePref, codePref, eppn, ctx.getKey());
+							}
 						}
 						//On associe à un surveillant
 						if(!sls.isEmpty()) {
@@ -1052,7 +1057,7 @@ public class AdeService {
 	        
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true);
 			if(!beans.isEmpty()) {
-				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
+				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null, null, null);
 			}
 	    }
 	}
@@ -1160,7 +1165,7 @@ public class AdeService {
 	
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
-			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax)
+			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, String codePref, String typePref)
 			throws IOException, ParserConfigurationException, SAXException, ParseException {
 		int nbImports = 0;
 		if (idEvents != null) {
@@ -1191,7 +1196,7 @@ public class AdeService {
 						groupes.add(groupe.getId());
 					}
 				}
-				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax);
+				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax, codePref, typePref);
 			} else {
 				log.info("Aucun évènement à importer");
 			}

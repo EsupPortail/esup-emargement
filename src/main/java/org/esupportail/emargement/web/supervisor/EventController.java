@@ -96,6 +96,7 @@ public class EventController {
 	@PostMapping(value = "/supervisor/events/adeCampus/importEvents")
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
+			@RequestParam String libelle, @RequestParam String idProject,
 			@RequestParam(value="campus", required = false) Campus campus,
 			@RequestParam(value="strDateMin", required = false) String strDateMin,
 			@RequestParam(value="existingSe", required = false) String existingSe,
@@ -103,8 +104,10 @@ public class EventController {
 			@RequestParam(value="strDateMax", required = false) String strDateMax,
 			@RequestParam(value="existingGroupe", required = false) List<Long> existingGroupe,
 			@RequestParam(value="newGroupe", required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			String codePref = String.format("%s@@%s", libelle, idProject);
+			String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					"myEvents",	campus,  idList, null, null, null);
+					"myEvents",	campus,  idList, null, null, null, codePref, typePref);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, StringUtils.join(idList, ","));

@@ -34,19 +34,19 @@
 					<span class="fw-bold">Exécution de l'import : </span> <span class="me-5" th:text="${cronExpression}"></span>
 					<span class="fw-bold">Durée de l'import : </span> <span th:text="${dureeMaxImport}"></span>
 				</div>
-				<table class="table table-bordered table-striped tableFoo" id="grid"
+				<table class="table table-bordered table-striped tableTasks" id="grid"
 					style="width: 100%">
 					<thead>
 						<tr>
 							<th>Statut</th>
 							<th>Libellé</th>
 							<th>Site</th>
-							<th>Début</th>
-							<th>Fin</th>
+							<th class="dateItem">Début</th>
+							<th class="dateItem">Fin</th>
 							<th>Params</th>
-							<th>Création</th>
-							<th>Début import</th>
-							<th>Fin import</th>
+							<th class="dateItem">Création</th>
+							<th lass="dateItem">Début import</th>
+							<th lass="dateItem">Fin import</th>
 							<th>Nb évènements</th>
 							<th>Nb imports</th>
 							<th class="text-center">Action</th>

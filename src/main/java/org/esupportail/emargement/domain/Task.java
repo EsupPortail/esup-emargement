@@ -44,6 +44,8 @@ public class Task {
 	
 	private String adeProject;
 	
+	private String composante;
+	
     @DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date dateCreation;
     
@@ -176,5 +178,13 @@ public class Task {
 
 	public void setDateFinExecution(Date dateFinExecution) {
 		this.dateFinExecution = dateFinExecution;
+	}
+
+	public String getComposante() {
+		return composante;
+	}
+
+	public void setComposante(String composante) {
+		this.composante = composante;
 	}
 }

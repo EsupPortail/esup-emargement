@@ -153,8 +153,10 @@ public class TaskService {
 		log.info("Contexte :" + task.getContext().getKey());
 		log.info("import tâche :" + task.getLibelle());
 		log.info("import # :" + numImport);
+		String codePref = String.format("%s@@%s", task.getLibelle(), task.getComposante());
+		String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 		int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", null, "false", 
-				null, task.getCampus(), idList, adebeans, idProject, dureeMax);
+				null, task.getCampus(), idList, adebeans, idProject, dureeMax, codePref, typePref);
 		int total = nbImports + task.getNbModifs();
 		task.setNbModifs(total);
 		if(task.getNbItems()!= total) {

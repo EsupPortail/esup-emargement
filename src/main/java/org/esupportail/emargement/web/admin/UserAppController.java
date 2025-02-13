@@ -138,7 +138,7 @@ public class UserAppController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			model.addAttribute("comps", adeService.getItemsFromtInstructors(sessionId, null));
+			model.addAttribute("comps", adeService.getItemsFromInstructors(sessionId, null));
 		}
 		model.addAttribute("isAdeCampusEnabled", isAdeCampusEnabled);
         model.addAttribute("userAppPage", userAppPage);
@@ -154,7 +154,7 @@ public class UserAppController {
 	public String importInstructors(@PathVariable String emargementContext, @RequestParam(value="comp") String comp,
 			@RequestParam(value="update", required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
 		String sessionId = adeService.getSessionId(false, emargementContext);
-		Map<String,String> insts = adeService.getItemsFromtInstructors(sessionId, comp.concat("."));
+		Map<String,String> insts = adeService.getItemsFromInstructors(sessionId, comp.concat("."));
 		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		List<UserApp> users =  userAppRepository.findByContext(ctx);
