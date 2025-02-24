@@ -90,6 +90,7 @@ public class IndexController {
 	           return "redirect:/";
 		}
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		
 		if(auth != null
 				&& auth.getPrincipal() != null
 				&& auth.getPrincipal() instanceof UserDetails) {
@@ -98,6 +99,9 @@ public class IndexController {
 			if(auth.getCredentials()==null){
 				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 				authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
+			}
+			if(WebUtils.CONTEXTS_DENIED.contains(emargementContext)){
+				return "noContext";
 			}
 			if (authorities.contains(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")) && authorities.size() == 1 && "all".equals(emargementContext)) {
 				return String.format("redirect:/%s/superadmin/admins", emargementContext);

@@ -19,7 +19,7 @@ public class WebUtils {
 	
 	private static final Logger log = LoggerFactory.getLogger(WebUtils.class);
 
-	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"logout", "login", "resources", "webjars", "css", "js", "wsrest", "images", "favicon.ico"});
+	static List<String> CONTEXTS_DENIED = Arrays.asList( new String[]{"dashboard","user", "supervisor", "manager", "admin", "logout", "login", "resources", "webjars", "css", "js", "wsrest", "images", "favicon.ico"});
 
 	public static String getContext(HttpServletRequest request) {
 		String path = request.getServletPath();
