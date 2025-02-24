@@ -2193,6 +2193,28 @@ document.addEventListener('DOMContentLoaded', function() {
 			{ type: 'date-eu', targets: 'dateItem'}
 		]
 	});
+	
+	var table = $('.tableSalles').DataTable({
+		responsive: true,
+		ordering: true,
+		paging: true,
+		searching: true,
+		info: false,
+		language: {
+			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+		},
+		columnDefs: [
+			{
+				targets: 0,
+				orderable: false,
+				className: 'select-checkbox', 
+				render: function(data, type, row, meta) {
+					return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
+				}
+			},
+			{ type: 'date-eu', targets: 'dateItem'}
+		]
+	});
 
 	$("#codeComposante1").on("change", function(event) {
 		const selectedData = $(this).val();
