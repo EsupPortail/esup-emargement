@@ -28,7 +28,7 @@ public class WebUtils {
 			log.warn("URL was /error - retrieve forward request uri to compute context : " + path);
 		}
 		String emargementContext = path.replaceFirst("/([^/]*).*", "$1");
-		if(CONTEXTS_DENIED.contains(emargementContext)) {
+		if(CONTEXTS_DENIED.contains(emargementContext) || !WebUtils.availableContexts().contains(emargementContext)) {
 			return "";
 		}
 		return emargementContext;

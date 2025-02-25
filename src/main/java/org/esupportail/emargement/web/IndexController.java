@@ -100,7 +100,7 @@ public class IndexController {
 				ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 				authorities = (Collection<SimpleGrantedAuthority>) userDetails.getAuthorities();
 			}
-			if(WebUtils.CONTEXTS_DENIED.contains(emargementContext)){
+			if(WebUtils.CONTEXTS_DENIED.contains(emargementContext) || !WebUtils.availableContexts().contains(emargementContext)){
 				return "noContext";
 			}
 			if (authorities.contains(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN")) && authorities.size() == 1 && "all".equals(emargementContext)) {
