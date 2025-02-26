@@ -2172,28 +2172,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 
-	var table = $('.tableFoo').DataTable({
-		responsive: true,
-		ordering: true,
-		paging: true,
-		searching: true,
-		info: false,
-		language: {
-			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		},
-		columnDefs: [
-			{
-				targets: 1,
-				orderable: false,
-				className: 'select-checkbox', 
-				render: function(data, type, row, meta) {
-					return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[2] + '">';
-				}
-			},
-			{ type: 'date-eu', targets: 'dateItem'}
-		]
-	});
-	
 	var table = $('.tableSalles').DataTable({
 		responsive: true,
 		ordering: true,

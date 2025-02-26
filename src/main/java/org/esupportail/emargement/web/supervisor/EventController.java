@@ -96,14 +96,14 @@ public class EventController {
 	@PostMapping(value = "/supervisor/events/adeCampus/importEvents")
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
-			@RequestParam String libelle, @RequestParam String idProject,
-			@RequestParam(value="campus", required = false) Campus campus,
-			@RequestParam(value="strDateMin", required = false) String strDateMin,
-			@RequestParam(value="existingSe", required = false) String existingSe,
-			@RequestParam(value="idList", required = false) List<String> idList,
-			@RequestParam(value="strDateMax", required = false) String strDateMax,
-			@RequestParam(value="existingGroupe", required = false) List<Long> existingGroupe,
-			@RequestParam(value="newGroupe", required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			@RequestParam(required = false) String libelle, @RequestParam(required = false) String idProject,
+			@RequestParam(required = false) Campus campus,
+			@RequestParam(required = false) String strDateMin,
+			@RequestParam(required = false) String existingSe,
+			@RequestParam(required = false) List<String> idList,
+			@RequestParam(required = false) String strDateMax,
+			@RequestParam(required = false) List<Long> existingGroupe,
+			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
 			String codePref = String.format("%s@@%s", libelle, idProject);
 			String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
