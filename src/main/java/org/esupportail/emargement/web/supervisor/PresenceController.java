@@ -668,7 +668,7 @@ public class PresenceController {
 			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sl.getId());
 			int i =0;
 			for(TagCheck tc : tcs) {
-				if(tc.getTagDate()==null) {
+				if(tc.getTagDate()==null && tc.getAbsence()==null) {
 					tc.setSessionLocationBadged(sl);
 					tc.setTagDate(new Date());
 					tc.setTypeEmargement(TypeEmargement.MANUAL);
