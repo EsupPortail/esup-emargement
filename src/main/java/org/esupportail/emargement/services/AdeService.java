@@ -882,8 +882,9 @@ public class AdeService {
 							person = new Person();
 							person.setContext(ctx);
 							if(!users.isEmpty()) {
-								person.setEppn(users.get(code).getEppn());
-								person.setNumIdentifiant(code);
+								LdapUser ldapUser = users.get(code);
+								person.setEppn(ldapUser.getEppn());
+								person.setNumIdentifiant(ldapUser.getNumEtudiant());
 								person.setType("student");
 								personRepository.save(person);
 							}else {
