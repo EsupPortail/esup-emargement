@@ -18,9 +18,7 @@ public interface PersonRepository extends JpaRepository<Person, Long>{
 	
 	List<Person> findByNumIdentifiant(String num);
 	
-	Person findByEppnAndContext(String eppn, Context context);
-	
-	Person findByContextAndEppn(Context context, String eppn);
+	List<Person> findByEppnAndContext(String eppn, Context context);
 	
 	@Modifying
 	@Query(value = "delete from person where context_id = :ctxId and id not in (select person_id from tag_check where context_id = :ctxId and person_id is not null) "

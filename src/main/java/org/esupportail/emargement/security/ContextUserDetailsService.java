@@ -141,8 +141,8 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		if(userApp!=null) {
 			extraRoles.add(new SimpleGrantedAuthority("ROLE_".concat(userApp.getUserRole().name())));
 		}
-		Person person = personRepository.findByEppnAndContext(eppn, context);
-		if(person != null) {
+		List<Person> persons = personRepository.findByEppnAndContext(eppn, context);
+		if(!persons.isEmpty()) {
 			extraRoles.add(new SimpleGrantedAuthority("ROLE_USER"));
 		}
 		return extraRoles;

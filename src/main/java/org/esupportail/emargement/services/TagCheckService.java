@@ -970,7 +970,7 @@ public class TagCheckService {
 				}
 			}
 		}else {
-			if(!typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) && personRepository.findByContextAndEppn(ctx, eppn)!=null ) {
+			if(!typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name()) && !personRepository.findByEppnAndContext(eppn, ctx).isEmpty()) {
 				badgedTcs = tagCheckRepository.findByContextAndSessionLocationBadgedIdAndPersonEppnEquals(ctx, sessionLocationBadged.getId(), eppn);
 			}
 		}
@@ -981,17 +981,15 @@ public class TagCheckService {
 			unknownTc.setComment(comment);
 			unknownTc.setSessionEpreuve(sessionEpreuve);
 			unknownTc.setContext(ctx);
+			List<Person> persons = personRepository.findByEppnAndContext(eppn, ctx);
 			Person p = null;
-			if(typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())){
-				p = personRepository.findByContextAndEppn(ctx, eppn);
-			}else {
-				p = personRepository.findByEppnAndContext(eppn, ctx);
-			}
-			if(p == null) {
+			if(persons.isEmpty()) {
 				p = new Person();
 				p.setContext(ctx);
 				p.setEppn(eppn);
 				personRepository.save(p);
+			}else {
+				p = persons.get(0);
 			}
 			List<LdapUser> users = ldapUserRepository.findByEppnEquals(eppn);
 			if(!users.isEmpty()) {
