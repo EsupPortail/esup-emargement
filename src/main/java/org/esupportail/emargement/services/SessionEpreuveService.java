@@ -410,7 +410,7 @@ public class SessionEpreuveService {
 		String dateFin = (se.getDateFin()!=null)? "_" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
     	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
-    	nomFichier = nomFichier.replace(" ", "_");		
+    	nomFichier = nomFichier.replace(" ", "_").concat(".pdf");
 		tagCheckService.setNomPrenomTagChecks(list, false, false);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
 			@Override

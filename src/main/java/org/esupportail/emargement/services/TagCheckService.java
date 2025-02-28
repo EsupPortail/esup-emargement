@@ -1048,6 +1048,7 @@ public class TagCheckService {
 
 		this.setNomPrenomTagChecks(list, false, false);
 		if ("QRC".equals(type)) {
+			String filename = nomFichier.concat(".pdf");
 			PdfPTable table = new PdfPTable(3);
 			table.setWidthPercentage(100);
 	    	table.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -1103,7 +1104,7 @@ public class TagCheckService {
 	        try 
 	        {
 	          response.setContentType("application/pdf");
-	          response.setHeader("Content-Disposition","attachment; filename=".concat(nomFichier));
+	          response.setHeader("Content-Disposition","attachment; filename=".concat(filename));
 	          PdfWriter.getInstance(document,  response.getOutputStream());
 	         
 	          document.open();
@@ -1126,6 +1127,7 @@ public class TagCheckService {
 			
 		}    
 		else if ("PDF".equals(type)) {
+			String filename = nomFichier.concat(".pdf");
 	        Document document = new Document();
 	        document.setMargins(10, 10, 10, 10);
 	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -1136,7 +1138,7 @@ public class TagCheckService {
 					writer = PdfWriter.getInstance(document, byteArrayOutputStream);
 				} else {
 					response.setContentType("application/pdf");
-					response.setHeader("Content-Disposition", "attachment; filename=".concat(nomFichier));
+					response.setHeader("Content-Disposition", "attachment; filename=".concat(filename));
 					writer = PdfWriter.getInstance(document, response.getOutputStream());
 				}
 
