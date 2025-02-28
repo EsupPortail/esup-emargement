@@ -105,7 +105,7 @@ public class EsupSignatureController {
 			esupsignature.setDateModification(new Date());
 			esupSignatureRepository.save(esupsignature);
 			//On récupère le PDF
-			esupSignatureService.getLastPdf(emargementContext, esupsignature, signId, response);
+			esupSignatureService.getLastPdf(emargementContext, esupsignature, signId);
 		}else {
 			esupsignature.setDateModification(new Date());
 			esupSignatureRepository.save(esupsignature);

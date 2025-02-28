@@ -300,7 +300,7 @@ public class Individucontroller {
 						esupsignature.setDateModification(new Date());
 						esupSignatureRepository.save(esupsignature);
 						//On récupère le PDF
-						esupSignatureService.getLastPdf(emargementContext, esupsignature, id, response);
+						esupSignatureService.getLastPdf(emargementContext, esupsignature, id);
 					}else {
 						esupsignature.setDateModification(new Date());
 						esupSignatureRepository.save(esupsignature);

@@ -134,8 +134,7 @@ public class EsupSignatureService {
 		return signRequestId;
 	}
 	
-	public void getLastPdf(String emargementContext, EsupSignature esupsignature,  Long signId, HttpServletResponse response) {
-		
+	public void getLastPdf(String emargementContext, EsupSignature esupsignature,  Long signId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String urlStatus = String.format("%s/ws/signrequests/get-last-file/%s", urlEsupsignature, signId);
 		ResponseEntity<byte[]> bytes = restTemplate.getForEntity(urlStatus, byte[].class);
@@ -160,7 +159,7 @@ public class EsupSignatureService {
 			esupsignature.setStatutSignature(StatutSignature.ENDED);
 			esupSignatureRepository.save(esupsignature);
 		} catch (Exception e) {
-			log.error("Erreur lors de l'enregistrement du PDF vent d'esup signature, signId : "  + signId );
+			log.error("Erreur lors de l'enregistrement du PDF vent d'esup signature, signId : "  + signId, e);
 		}
 	}
 	
@@ -169,11 +168,6 @@ public class EsupSignatureService {
     	String fin = (dateFin != null)? "_" + String.format("%1$td-%1$tm-%1$tY", dateFin) : "" ;
 		String nomFichier = "signed_" + attestation + "_".concat(se.getNomSessionEpreuve()).concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen())).concat(fin).concat(".pdf");
 		return  nomFichier;
-	}
-	
-	//@Scheduled()
-	public void checkStatus() {
-		//Boucle
 	}
 	
 	public void setStatus(String urlEsupsignature, EsupSignature esupSignature) {
@@ -193,7 +187,6 @@ public class EsupSignatureService {
 	}
 
 	public String getRecipientEmails() {
-		
 		String strEmails = "";
 		List<String> emails = appliConfigService.getEsupSignatureEmails();
 		if(!emails.isEmpty()) {
@@ -203,7 +196,6 @@ public class EsupSignatureService {
 			}
 			strEmails = StringUtils.join(formattedEmails, ",");
 		}
-		
 		return strEmails;
 	}
 	
@@ -217,4 +209,25 @@ public class EsupSignatureService {
     	List<EsupSignature> signs = esupSignatureRepository.findBySessionEpreuve(se, null).getContent();
     	esupSignatureRepository.deleteAll(signs);
     }
+	
+	public void saveFromEsupSignature(Long signId, String status){
+		if(!esupSignatureRepository.findBySignRequestId(signId).isEmpty()) {
+			EsupSignature esupsignature = esupSignatureRepository.findBySignRequestId(signId).get(0);
+			log.info("esupsignature id :" + esupsignature.getId());
+			try {
+				if(!esupsignature.getStatutSignature().name().equals(status) && ("completed".equals(status)||"exported".equals(status))){
+					esupsignature.setStatutSignature(StatutSignature.valueOf(status.toUpperCase()));
+					esupsignature.setDateModification(new Date());
+					esupSignatureRepository.save(esupsignature);
+					getLastPdf(esupsignature.getContext().getKey(), esupsignature,  signId);
+				}else {
+					esupsignature.setDateModification(new Date());
+					esupSignatureRepository.save(esupsignature);
+					log.info("Tentative de récupration du PDF échouée - signId " + signId +", Statut: " + status);
+				}
+			} catch (Exception e) {
+				log.error("Impossible de récupérer le PDF avec l'id : " + signId, e);
+			}
+		}
+	}
 }
