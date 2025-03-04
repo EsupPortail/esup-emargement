@@ -1,5 +1,6 @@
 package org.esupportail.emargement.services;
 
+import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
@@ -29,6 +30,7 @@ public class PreferencesService {
 		if(!prefs.isEmpty()) {
 			pref = prefs.get(0);
 			pref.setValue(value);
+			pref.setDateModification(new Date());
 		}else {
 			Context context = contextRepository.findByContextKey(key);
 			pref = new Prefs();
@@ -37,12 +39,18 @@ public class PreferencesService {
 			pref.setContext(context);
 			pref.setNom(nom);
 			pref.setValue(value);
+			pref.setDateModification(new Date());
 		}
 		prefsRepository.save(pref);
 	}
 	
 	public void removePrefs(String eppn, String nom) {
-		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNomLike(eppn, nom + "%");
+		List<Prefs> prefs = null;
+		if(eppn != null) {
+			prefs = prefsRepository.findByUserAppEppnAndNomLike(eppn, nom + "%");
+		}else {
+			prefs = prefsRepository.findByNom(nom);
+		}
 		if(!prefs.isEmpty()) {
 			prefsRepository.deleteAll(prefs);
 		}

@@ -2610,6 +2610,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				$("#projetForm").submit();
 		});
 	}
+	if(document.getElementById("projetParam") != null){
+		$("#projetParam").on("change", function(event) {console.log("tttt");
+				window.location.href = emargementContextUrl + "/manager/adeCampus/params?idProjet=" + this.value;
+		});
+	}
 	//absences dans page surveillant
 	setupModal('absenceTagCheckModal', [
 	  { attr: 'data-bs-tcid', elementId: 'tcIdAbsence' },

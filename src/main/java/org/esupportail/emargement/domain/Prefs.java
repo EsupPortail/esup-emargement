@@ -1,5 +1,7 @@
 package org.esupportail.emargement.domain;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,6 +12,7 @@ import javax.persistence.ManyToOne;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
@@ -31,6 +34,9 @@ public class Prefs implements ContextSupport{
     //ALTER TABLE prefs ALTER COLUMN value TYPE text;
     @Column(columnDefinition = "TEXT")
     public String value ;
+    
+	private @DateTimeFormat(pattern = "dd/MM/yyyy")
+	Date dateModification;
 
 	public Long getId() {
 		return id;
@@ -70,6 +76,14 @@ public class Prefs implements ContextSupport{
 
 	public void setUserApp(UserApp userApp) {
 		this.userApp = userApp;
+	}
+
+	public Date getDateModification() {
+		return dateModification;
+	}
+
+	public void setDateModification(Date dateModification) {
+		this.dateModification = dateModification;
 	}
     
 }

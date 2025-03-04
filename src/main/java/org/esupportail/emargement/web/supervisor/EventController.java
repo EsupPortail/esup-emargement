@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Campus;
@@ -54,7 +55,7 @@ public class EventController {
 	}
 	
 	@GetMapping(value = "/supervisor/events")
-	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException{
+	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		uiModel.addAttribute("campuses", campusRepository.findAll());
 		uiModel.addAttribute("existingSe", true);

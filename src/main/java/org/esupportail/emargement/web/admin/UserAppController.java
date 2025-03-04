@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
@@ -113,7 +114,7 @@ public class UserAppController {
 	
 	@GetMapping(value = "/admin/userApp")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="eppn") String eppn,  
-			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException {
+			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Long count = userAppRepository.count();
 		

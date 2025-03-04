@@ -34,9 +34,12 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
@@ -334,36 +337,28 @@ public class AdeService {
 	}
 	
 	public Map<String, String> getClassroomsList(String sessionId) {
-	    HashMap<String, String> mapClassrooms = new HashMap<>();
-	    String detail = "8";
-	    String urlClassroom = String.format("%s?sessionId=%s&function=getResources&tree=true&detail=%s&category=classroom",
-	                                         urlAde, sessionId, detail);
+	    Map<String, String> mapClassrooms = new HashMap<>();
+	    String urlClassroom = String.format("%s?sessionId=%s&function=getResources&tree=true&detail=8&category=classroom", 
+	                                         urlAde, sessionId);
+	    
 	    try {
 	        Document doc = getDocument(urlClassroom);
-	        doc.getDocumentElement().normalize();
-	        NodeList categories = doc.getElementsByTagName("category");
+	        XPath xpath = XPathFactory.newInstance().newXPath();
+	        NodeList branches = (NodeList) xpath.evaluate("//category/branch", doc, XPathConstants.NODESET);
 
-	        if (categories.getLength() == 0) {
+	        if (branches.getLength() == 0) {
 	            log.info("No classrooms found!");
-	        } else {
-	            for (int i = 0; i < categories.getLength(); i++) {
-	                Node categoryNode = categories.item(i);
-	                if (categoryNode.getNodeType() == Node.ELEMENT_NODE) {
-	                    Element categoryElement = (Element) categoryNode;
-	                    NodeList branches = categoryElement.getElementsByTagName("branch");
-	                    for (int j = 0; j < branches.getLength(); j++) {
-	                        Node branchNode = branches.item(j);
-	                        if (branchNode.getParentNode().equals(categoryNode)) {
-	                            Element branchElement = (Element) branchNode;
-	                            mapClassrooms.put(branchElement.getAttribute("id"), branchElement.getAttribute("name"));
-	                        }
-	                    }
-	                }
-	            }
+	            return mapClassrooms;
 	        }
-	    } catch (ParserConfigurationException | SAXException | IOException e) {
+
+	        for (int i = 0; i < branches.getLength(); i++) {
+	            Element branch = (Element) branches.item(i);
+	            mapClassrooms.put(branch.getAttribute("id"), branch.getAttribute("name"));
+	        }
+	    } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
 	        log.error("Error while retrieving the classrooms map, URL: {}", urlClassroom, e);
 	    }
+
 	    return sortByValue(mapClassrooms);
 	}
 	
@@ -425,40 +420,31 @@ public class AdeService {
         return listMembers;
     }
 	
-	public Map<String, String> getMapComposantesFormations(String sessionId, String category){
-		String detail = "12";
-		String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&leaves=false&category="
-				+ category + "&detail=" + detail;
-		HashMap<String, String> map = new HashMap<>();
-		try {
-			Document doc = getDocument(urlAllResources);
-			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("category");
-			if(list.getLength() == 0) {
-				log.info("Aucun résultat!");
-			}else {
-				for (int temp = 0; temp < list.getLength(); temp++) {
-					Node node = list.item(temp);
-					if (node.getNodeType() == Node.ELEMENT_NODE) {
-						Element element = (Element) node; 
-						NodeList branches = element.getElementsByTagName("branch");
-						for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-							Node node2 = branches.item(temp2);
-							if (node2.getParentNode().equals(node)) {
-								Element element2 = (Element) node2; 
-								String name = element2.getAttribute("name");
-								String code = element2.getAttribute("id");
-								map.put(code, name);
-							}
-						}
-					}
-				}
-			}
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-			log.error("Erreur lors de la récupération de la map, url : " + urlAllResources, e);
-		}
-		return sortByValue(map);
-	}
+    public Map<String, String> getMapComposantesFormations(String sessionId, String category) {
+        String url = String.format("%s?sessionId=%s&function=getResources&tree=true&leaves=false&category=%s&detail=12",
+                                    urlAde, sessionId, category);
+        Map<String, String> map = new HashMap<>();
+
+        try {
+            Document doc = getDocument(url);
+            XPath xpath = XPathFactory.newInstance().newXPath();
+            NodeList branches = (NodeList) xpath.evaluate("//category/branch", doc, XPathConstants.NODESET);
+
+            if (branches.getLength() == 0) {
+                log.info("Aucun résultat!");
+                return map;
+            }
+
+            for (int i = 0; i < branches.getLength(); i++) {
+                Element branch = (Element) branches.item(i);
+                map.put(branch.getAttribute("id"), branch.getAttribute("name"));
+            }
+        } catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
+            log.error("Erreur lors de la récupération de la map, url : " + url, e);
+        }
+
+        return sortByValue(map);
+    }
 
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update) throws IOException, ParseException {
 		String detail = "8";
@@ -657,28 +643,20 @@ public class AdeService {
 		return fatherId;
 	}
 	
-	public Map<String, String> getProjectLists(String sessionId) throws IOException, ParserConfigurationException, SAXException {
-		String detail = "4";
-		String url = urlAde + "?sessionId=" + sessionId + "&function=getProjects&detail=" + detail;
-		HashMap<String, String> mapProjects = new HashMap<>();
-		Document doc = getDocument(url);
-		NodeList list = doc.getElementsByTagName("projects");
-		
-		for (int temp = 0; temp < list.getLength(); temp++) {
-			Node node = list.item(temp);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Element element = (Element) node; 
-				NodeList branches = element.getElementsByTagName("project");
-				for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
-					Node node2 = branches.item(temp2);
-					if (node2.getParentNode().equals(node)) {
-						Element element2 = (Element) node2; 
-						mapProjects.put(element2.getAttribute("id"), element2.getAttribute("name"));
-					}
-				}
-			}
-		}
-		return sortByValue(mapProjects);
+	public Map<String, String> getProjectLists(String sessionId) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+	    String url = String.format("%s?sessionId=%s&function=getProjects&detail=4", urlAde, sessionId);
+	    Map<String, String> mapProjects = new HashMap<>();
+
+	    Document doc = getDocument(url);
+	    XPath xpath = XPathFactory.newInstance().newXPath();
+	    NodeList projects = (NodeList) xpath.evaluate("//projects/project", doc, XPathConstants.NODESET);
+
+	    for (int i = 0; i < projects.getLength(); i++) {
+	        Element project = (Element) projects.item(i);
+	        mapProjects.put(project.getAttribute("id"), project.getAttribute("name"));
+	    }
+
+	    return sortByValue(mapProjects);
 	}
 	
 	public NamedNodeMap getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
@@ -1221,6 +1199,17 @@ public class AdeService {
 	        }
 	    }
 	    return values;
+	}
+	
+	public List<String> getPrefByContext(String nom) {
+		List<String> values = new ArrayList<>();
+		List<Prefs> prefs = prefsRepository.findByNom(nom);
+		if(!prefs.isEmpty()) {
+			String liste =  prefs.get(0).getValue().trim();
+			String [] splitList = liste.split(",");
+			values = Arrays.asList(splitList);
+		}
+		return values;
 	}
 	
 	public String getCurrentProject(String projet, String eppn, String emargementContext) {

@@ -6,47 +6,62 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 	        <div class="card">
-		    	<div class="card-header">
-	    			<div class="row">
-			    		<div class="col-4">
-					    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
-					    	<span class="fw-bold h5">Projet : </span>
-						    <span th:text="${nomProjet}"/></span>
-					    </div>
-					    <div class="col-8">
-						    <div class="row float-end">
-								<div class="col">
-									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
-								</div>
-								<div class="col">
-									<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
-										class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
-								</div>
-								<div class="col-auto">
-									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
-										class="btn btn-info">ADE</a>
-								</div>
-								<div class="col-auto">
-									<form th:action="@{/{ctx}/manager/adeCampus/removePrefs(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
-										<button class="btn btn-danger" type="submit" title="Supprimer tous les paramètres?"><i class="fa fa-trash"></i></button>
-									</form>
-								</div>
+				<form th:action="@{/{ctx}/manager/adeCampus/saveParams(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+			    	<div class="card-header">
+		    			<div class="row">
+				    		<div class="col-4">
+						    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
+								<span class="fw-bold text-danger" th:text="${projects.get(idProject)}"/><br/>
+								<th:block th:if="${prefComp != null}">
+									<small th:text="${'Modification :  ' + prefComp.userApp.eppn}"></small>
+									<small th:if="${prefComp.dateModification != null}" th:text="${' le ' + prefComp.dateModification}"></small>
+								</th:block>
+								</span>
 						    </div>
-					    </div> 
-	    			</div>
-		    	</div>
-	 			<div class="card-body">
-	 				<div class="row">
-						<th:block th:if="${idProjet eq null}">
-							Vous n'avez pas choisi de projet dans la page principale.
-						</th:block>
-						<th:block th:unless="${idProjet eq null}">
-				 			<div class="col">
-				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-				 					<input type="hidden" name="type" th:value="${'adeStoredComposante' + idProjet}"/>
+						    <div class="col-8">
+							    <div class="row float-end">
+									<div class="col-auto">
+										<th:block th:if="${isAdeConfigOk}" >
+											 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+											 <input type="hidden" name="idProject" th:value="${idProject}" />
+										</th:block>
+										<th:block th:unless="${isAdeConfigOk}">
+											<select class="form-select mb-2" name="idProject" id="projetParam" required>
+												<option value="">----Projets----</option>
+												<option th:each="proj : ${projects}"
+													th:value="${proj.key}" th:text="${proj.value}"
+													th:selected="${idProject eq proj.key}"></option>
+											</select>
+										</th:block>
+									</div>
+									<div class="col-auto">
+										<button class="btn btn-success btn-sm mt-1" type="submit">Enregister</button>
+										<button th:formaction="@{/{ctx}/manager/adeCampus/removePrefs(ctx=${eContext})}" title="Supprimer tous les paramètres?"
+											class="btn btn-warning btn-sm btn-outline mt-1" type="submit">Réinitialiser</button>
+									</div>
+									<div class="col">
+										<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+											class="btn btn-info"><i class="fa-solid fa-home"></i></a>
+										<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
+											class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
+										<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
+											class="btn btn-info">ADE</a>
+									</div>
+							    </div>
+						    </div> 
+		    			</div>
+			    	</div>
+		 			<div class="card-body">
+		 				<div class="row">
+							<th:block th:if="${idProject eq null or #strings.isEmpty(idProject)}">
+								<div class="alert alert-info">
+									Vous n'avez pas sélectionné de projet.
+								</div>
+							</th:block>
+							<th:block th:unless="${idProject eq null or #strings.isEmpty(idProject)}">
+					 			<div class="col">
 									<table class="table table-bordered table-striped caption-top" id="composantesTable">
-										<caption><span class="fw-bold h4">Composantes</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+										<caption class="fw-bold h4">Composantes</caption>
 										<thead>
 										<tr>
 											<th></th>
@@ -54,19 +69,16 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapComposantes}" class="selected">
-									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	<td><input name="composantes" type="checkbox" th:value="${element.value + '@@' + element.key}" 
 									    	th:checked="${valuesComposantes != null and #strings.contains(valuesComposantes, element.key)}"/></td>
 									        <td class="d-none"></td>
 											<td th:text="${element.value}"></td>
 									    </tr>
 									</table>
-								</form>
-							</div>
-				 			<div class="col" th:if="${mapFormations ne null}">
-				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-				 					<input type="hidden" name="type" th:value="${'adeStoredFormation' + idProjet}"/>
+								</div>
+					 			<div class="col" th:if="${mapFormations ne null}">
 									<table class="table table-bordered table-striped caption-top" id="formationsTable">
-										<caption><span class="fw-bold h4">Formations</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>
+										<caption class="fw-bold h4">Formations</caption>
 										<thead>
 										<tr>
 											<th></th>
@@ -74,19 +86,16 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapFormations}" class="selected">
-									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	<td><input name="formations" type="checkbox" th:value="${element.value + '@@' + element.key}" 
 									    	th:checked="${valuesFormations != null and #strings.contains(valuesFormations, element.key)}"/></td>
 									        <td class="d-none"></td>
 											<td th:text="${element.value}"></td>
 									    </tr>
 									</table>
-								</form>
-							</div>
-				 			<div class="col">
-				 				<form th:action="@{/{ctx}/manager/adeCampus/savePref(ctx=${eContext})}" method="post">
-				 					<input type="hidden" name="type" th:value="${'adeStoredSalle' + idProjet}"/>
+								</div>
+					 			<div class="col">
 									<table class="table table-bordered table-striped caption-top" id="composantesTable">
-										<caption><span class="fw-bold h4">Salles</span> <button class="btn btn-success btn-sm float-end" type="submit">Enregister</button></caption>								
+										<caption class="fw-bold h4">Salles</caption>
 										<thead>
 										<tr>
 											<th></th>
@@ -94,16 +103,16 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapSalles}">
-									    	<td><input name="btSelectItem" type="checkbox" th:value="${element.value + '@@' + element.key}" 
+									    	<td><input name="salles" type="checkbox" th:value="${element.value + '@@' + element.key}" 
 									    	th:checked="${valuesSalles!=null and #strings.contains(valuesSalles, element.key)}"/></td>
 									    	<td th:text="${element.value}"></td>
 									    </tr>
 									</table>
-								</form>
-							</div>
-						</th:block>
+								</div>
+							</th:block>
+		 				</div>
 	 				</div>
-	 			</div>
+				</form>
 			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

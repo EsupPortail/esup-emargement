@@ -12,6 +12,8 @@ public interface PrefsRepository extends JpaRepository<Prefs, Long> {
 	
 	List<Prefs> findByUserAppEppnAndNom(String eppn, String nom);
 	
+	List<Prefs> findByNom(String nom);
+	
 	List<Prefs> findByContext(Context context);
 	
 	List<Prefs> findByUserAppEppnAndNomLike(String eppn, String nom);
