@@ -30,6 +30,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TaskRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.web.manager.AdeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,29 +143,34 @@ public class TaskService {
 		taskRepository.save(task);
 		List<String> idList = Arrays.asList(task.getParam().split(","));
 	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	    int nbJours = 3;
-	    Date datesDebutFin [] = getStartEndDates(nbJours);
-	    String dateDebut = dateFormat.format(datesDebutFin[0]);
-	    String dateFin = dateFormat.format(datesDebutFin[1]);
-		task.setDateExecution(new Date());
-		List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
-				dateDebut, dateFin, null, null, null, idList);
-		List<Long> idEvents = adebeans.stream().map(tc -> tc.getEventId()).collect(Collectors.toList());
-		log.info("Id évènements : " + idEvents);
-		log.info("Contexte :" + task.getContext().getKey());
-		log.info("import tâche :" + task.getLibelle());
-		log.info("import # :" + numImport);
-		int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", null, "false", 
-				null, task.getCampus(), idList, adebeans, idProject, dureeMax);
-		int total = nbImports + task.getNbModifs();
-		task.setNbModifs(total);
-		task.setStatus(org.esupportail.emargement.domain.Task.Status.ENDED);
-		task.setDateFinExecution(new Date());
-		taskRepository.save(task);
+	    List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject);
+	    if(!planifications.isEmpty()) {
+		    int nbJours = Integer.valueOf(planifications.get(0));
+		    Date datesDebutFin [] = getStartEndDates(nbJours);
+		    String dateDebut = dateFormat.format(datesDebutFin[0]);
+		    String dateFin = dateFormat.format(datesDebutFin[1]);
+			task.setDateExecution(new Date());
+			List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
+					dateDebut, dateFin, null, null, null, idList);
+			List<Long> idEvents = adebeans.stream().map(tc -> tc.getEventId()).collect(Collectors.toList());
+			log.info("Id évènements : " + idEvents);
+			log.info("Contexte :" + task.getContext().getKey());
+			log.info("import tâche :" + task.getLibelle());
+			log.info("import # :" + numImport);
+			int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", null, "false", 
+					null, task.getCampus(), idList, adebeans, idProject, dureeMax);
+			int total = nbImports + task.getNbModifs();
+			task.setNbModifs(total);
+			task.setStatus(org.esupportail.emargement.domain.Task.Status.ENDED);
+			task.setDateFinExecution(new Date());
+			taskRepository.save(task);
+	    }else {
+	    	log.info("Aucune valeur de planification pour le projet : " + idProject);
+	    }
 	}
 	
-	@Scheduled(cron = "0 51 10 * * ?")
-	//@Scheduled(cron= "${emargement.ade.import.cron}")
+	//@Scheduled(cron = "0 38 14 * * ?")
+	@Scheduled(cron= "${emargement.ade.import.cron}")
 	public void importAdeSession(){
 		List<Context> contextList = contextRepository.findAll();
 		Long dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Long.valueOf(dureeMaxImport);

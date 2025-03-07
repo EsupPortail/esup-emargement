@@ -73,7 +73,7 @@ public class AdeController {
 	
 	private final static String ADE_STORED_FORMATION = "adeStoredFormation";
 	
-	private final static String ADE_PLANIFICATION = "adePlanification";
+	public final static String ADE_PLANIFICATION = "adePlanification";
 	
 	private final static String ITEM = "adeCampus";
 	
@@ -453,20 +453,20 @@ public class AdeController {
 			String adeSalles = ADE_STORED_SALLE + idProject;
 			String adePlanification = ADE_PLANIFICATION + idProject;
 			String eppn = auth.getName();
+			preferencesService.removePrefs(null, adeFormations);
 			if(formations != null) {
-				preferencesService.removePrefs(null, adeFormations);
 				preferencesService.updatePrefs(adeFormations, formations, eppn, emargementContext);
 			}
+			preferencesService.removePrefs(null, adeComposantes);
 			if(composantes != null) {
-				preferencesService.removePrefs(null, adeComposantes);
 				preferencesService.updatePrefs(adeComposantes, composantes, eppn, emargementContext);
 			}
+			preferencesService.removePrefs(null, adeSalles);
 			if(salles != null) {
-				preferencesService.removePrefs(null, adeSalles);
 				preferencesService.updatePrefs(adeSalles, salles, eppn, emargementContext);
 			}
+			preferencesService.removePrefs(null, adePlanification);
 			if(!planification.isEmpty()) {
-				preferencesService.removePrefs(null, adePlanification);
 				preferencesService.updatePrefs(adePlanification, planification, eppn, emargementContext);
 			}
     	}

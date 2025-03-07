@@ -117,8 +117,8 @@
 										Chaque jour une tâche planifiée s'assurera que les évènements à J+n soient importés.
 										<span class="text-danger">Actuellement : <span th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span></span>
 										<select name="planification" class="form-select mt-1">
-											<option value="">--Choisir--</option>
-										    <option th:each="i : ${#numbers.sequence(0, 10)}" th:value="${i}" th:text="${i}" 
+											<option value="">--Aucun--</option>
+										    <option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i}" 
 												th:selected="${!valuePlanification.empty and i.toString() eq valuePlanification[0]}"></option>
 										</select>
 									</div>
