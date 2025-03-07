@@ -941,21 +941,6 @@ table.on('draw', function() {
 });
 }
 
-function getNbItems(table) {
-	var dataMap = {};
-	table.rows().every(function() {
-		var rowNode = this.node();
-		$(rowNode).find('.degree').each(function() {
-			var cellData = table.cell($(this).closest('td')).node().dataset.degree;
-			dataMap[cellData] = (dataMap[cellData] || 0) + 1;
-		});
-	});
-	var dataString = Object.keys(dataMap).map(function(key) {
-		return key + "@" + dataMap[key];
-	}).join(",");
-	return dataString;
-}
-
 function displayEvents(url, table){
 	$('#displayEvents').submit(function(e) {
 		e.preventDefault();
@@ -1002,7 +987,6 @@ function displayEvents(url, table){
 						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 					}
 				});
-				$("#nbItems").val(getNbItems(table));
 			},
 			error: function(error) {
 				console.log('Error: ' + error);
@@ -2128,8 +2112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	//jstree adecampus
 	$('#frmt').on('changed.jstree', function(e, data) {
-		var checkedNodes = data.selected;  // Get checked nodes
-		// Remove parent nodes if their children are checked
+		var checkedNodes = data.selected; 
 		var nodesToRemove = [];
 		checkedNodes.forEach(function(nodeId) {
 			var node = data.instance.get_node(nodeId);
@@ -2141,8 +2124,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 			}
 		});
-
-		// Remove the parent nodes
 		nodesToRemove.forEach(function(nodeId) {
 			var index = checkedNodes.indexOf(nodeId);
 			if (index > -1) {
@@ -2151,26 +2132,37 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 		var r = [];
 		var text = [];
+		var allLibelles = [];
 		checkedNodes.forEach(function(nodeId) {
 			var node = data.instance.get_node(nodeId);
 			text.push(node.text);
 			r.push(node.id);
+			let hierarchy = [];
+		    node.parents.reverse().forEach(function(parentId) {
+		        if (parentId !== "#") {
+		            var parentNode = data.instance.get_node(parentId);
+		            hierarchy.push(parentNode.text);
+		        }
+		    });
+		    hierarchy.push(node.text);
+		    var fullText = hierarchy.join(">");
+		    allLibelles.push(fullText);
 		});
 		$("#idList").val(r.join(', '));
 		$("#idListImport").val(r.join(','));
 		$("#idListTask").val(r.join(', '));
-		$("#textListTask").val(text.join(', '));
-	}).jstree({
-		"checkbox": {
-			"keep_selected_style": false,
-			"three_state": false,
-			"cascade": "up"
-		},
-		"plugins": ["checkbox", "sort", "state"],
-		'core': {
-			'data': []
-		}
-	});
+		$("#textListTask").val(allLibelles.join(', '));
+		}).jstree({
+			"checkbox": {
+				"keep_selected_style": false,
+				"three_state": false,
+				"cascade": "up"
+			},
+			"plugins": ["checkbox", "sort", "state"],
+			'core': {
+				'data': []
+			}
+		});
 
 	var table = $('.tableSalles').DataTable({
 		responsive: true,
@@ -2611,8 +2603,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	if(document.getElementById("projetParam") != null){
-		$("#projetParam").on("change", function(event) {console.log("tttt");
+		$("#projetParam").on("change", function(event) {
 				window.location.href = emargementContextUrl + "/manager/adeCampus/params?idProjet=" + this.value;
+		});
+	}
+	if(document.getElementById("projetTasks") != null){
+		$("#projetTasks").on("change", function(event) {
+				window.location.href = emargementContextUrl + "/manager/adeCampus/tasks?idProjet=" + this.value;
 		});
 	}
 	//absences dans page surveillant

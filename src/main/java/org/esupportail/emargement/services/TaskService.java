@@ -24,7 +24,6 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.Task;
-import org.esupportail.emargement.domain.Task.Status;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -142,9 +141,11 @@ public class TaskService {
 		task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
 		taskRepository.save(task);
 		List<String> idList = Arrays.asList(task.getParam().split(","));
-	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
-	    String dateDebut = dateFormat.format(task.getDateDebut());
-	    String dateFin = dateFormat.format(task.getDateFin());
+	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    int nbJours = 3;
+	    Date datesDebutFin [] = getStartEndDates(nbJours);
+	    String dateDebut = dateFormat.format(datesDebutFin[0]);
+	    String dateFin = dateFormat.format(datesDebutFin[1]);
 		task.setDateExecution(new Date());
 		List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
 				dateDebut, dateFin, null, null, null, idList);
@@ -153,23 +154,17 @@ public class TaskService {
 		log.info("Contexte :" + task.getContext().getKey());
 		log.info("import tâche :" + task.getLibelle());
 		log.info("import # :" + numImport);
-		String codePref = String.format("%s@@%s", task.getLibelle(), task.getComposante());
-		String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 		int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", null, "false", 
-				null, task.getCampus(), idList, adebeans, idProject, dureeMax, codePref, typePref);
+				null, task.getCampus(), idList, adebeans, idProject, dureeMax);
 		int total = nbImports + task.getNbModifs();
 		task.setNbModifs(total);
-		if(task.getNbItems()!= total) {
-			task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
-		}else if(task.getNbItems()== total) {
-			task.setStatus(org.esupportail.emargement.domain.Task.Status.ENDED);
-		}
+		task.setStatus(org.esupportail.emargement.domain.Task.Status.ENDED);
 		task.setDateFinExecution(new Date());
 		taskRepository.save(task);
 	}
 	
-	//@Scheduled(cron = "0 14 14 * * ?")
-	@Scheduled(cron= "${emargement.ade.import.cron}")
+	@Scheduled(cron = "0 51 10 * * ?")
+	//@Scheduled(cron= "${emargement.ade.import.cron}")
 	public void importAdeSession(){
 		List<Context> contextList = contextRepository.findAll();
 		Long dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Long.valueOf(dureeMaxImport);
@@ -179,7 +174,7 @@ public class TaskService {
 			for(Context ctx : contextList) {
 		        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 		            try {
-						List<Task> tasks =  taskRepository.findByContextAndStatusNotLike(ctx, Status.ENDED);
+						List<Task> tasks =  taskRepository.findByContextAndIsActifTrue(ctx);
 						String emargementContext = ctx.getKey();
 						if(!tasks.isEmpty()) {
 							String sessionId = adeService.getSessionId(false, emargementContext);
@@ -192,13 +187,13 @@ public class TaskService {
 								try {
 									processTask(task, emargementContext, dureeMax, sessionId, i);
 									i++;
-									logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+									logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle(), null,
 											null, emargementContext, null);
 								} catch (Exception e) {
 									log.error("Erreur lors de l'import depuis ADE campus", e);
 									task.setStatus(org.esupportail.emargement.domain.Task.Status.FAILED);
 									taskRepository.save(task);
-									logService.log(ACTION.TASK_CREATE, RETCODE.FAILED, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+									logService.log(ACTION.TASK_CREATE, RETCODE.FAILED, task.getLibelle(), null,
 											null, emargementContext, null);
 								}
 							}
@@ -217,4 +212,14 @@ public class TaskService {
 			    executorService.shutdown();
 		}
 	}
+	
+    public Date[] getStartEndDates(int n) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        Date startDate = calendar.getTime();
+        calendar.add(Calendar.DAY_OF_MONTH, n - 1);
+        Date endDate = calendar.getTime();
+        return new Date[]{startDate, endDate};
+    }
 }

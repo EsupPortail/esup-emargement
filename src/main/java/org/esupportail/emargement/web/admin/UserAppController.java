@@ -212,27 +212,6 @@ public class UserAppController {
 		return String.format("redirect:/%s/admin/userApp", emargementContext);
 	}
 	
-	@Transactional
-	@PostMapping(value = "/admin/userApp/importUserAppPrefs")
-	public String importUserAppPrefs(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam String projet,
-			@RequestParam String role) {
-		List<UserApp> userApps = new ArrayList<>();
-		if(role.equals("")) {
-			userApps = userAppRepository.findAll();
-		}else {
-			userApps = userAppRepository.findByUserRoleAndContextKey(Role.valueOf(role), emargementContext, null).getContent();
-		}
-		if(!userApps.isEmpty()) {
-			for(UserApp userApp : userApps){
-				String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, projet);
-				if(typePref!=null && comp!=null) {
-					preferencesService.updatePrefs(typePref, comp, userApp.getEppn(), emargementContext);
-				}
-			}
-		}
-		return String.format("redirect:/%s/admin/userApp", emargementContext);
-	}
-	
 	@GetMapping(value = "/admin/userApp/{id}", produces = "text/html")
     public String show(@PathVariable("id") Long id, Model uiModel) {
 		List<UserApp> users = new ArrayList<>();

@@ -44,6 +44,8 @@
 											class="btn btn-info"><i class="fa-solid fa-home"></i></a>
 										<a title="Salles" th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}"
 											class="btn btn-primary"><i class="fa-solid fa-people-roof"></i></a>
+										<a title="Synchros" th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}"
+											class="btn btn-primary"><i class="fa-solid fa-tasks "></i></a>
 										<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
 											class="btn btn-info">ADE</a>
 									</div>
@@ -108,6 +110,18 @@
 									    	<td th:text="${element.value}"></td>
 									    </tr>
 									</table>
+								</div>
+								<div class="col">
+									<h4 class="fw-bold h4">Planification</h4>
+									<div class="alert alert-info fw-bold"> Vous pouvez choisir sur combien de temps vous planifiez les évènements à importer.
+										Chaque jour une tâche planifiée s'assurera que les évènements à J+n soient importés.
+										<span class="text-danger">Actuellement : <span th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span></span>
+										<select name="planification" class="form-select mt-1">
+											<option value="">--Choisir--</option>
+										    <option th:each="i : ${#numbers.sequence(0, 10)}" th:value="${i}" th:text="${i}" 
+												th:selected="${!valuePlanification.empty and i.toString() eq valuePlanification[0]}"></option>
+										</select>
+									</div>
 								</div>
 							</th:block>
 		 				</div>

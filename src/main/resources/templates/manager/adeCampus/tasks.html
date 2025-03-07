@@ -12,16 +12,25 @@
 					    	<h2>Ade Campus<small class="h5"> - synchro</small></h2>
 					    </div>
 					    <div class="col-8">
-						    <div class="row float-end">
+							<div class="row float-end">
+								<div class="col-auto">
+									<th:block th:if="${isAdeConfigOk}" >
+										 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+										 <input type="hidden" name="idProject" th:value="${idProject}" />
+									</th:block>
+									<th:block th:unless="${isAdeConfigOk}">
+										<select class="form-select mb-2" name="idProject" id="projetTasks" required>
+											<option th:each="proj : ${projects}"
+												th:value="${proj.key}" th:text="${proj.value}"
+												th:selected="${idProject eq proj.key}"></option>
+										</select>
+									</th:block>
+								</div>
 								<div class="col-auto">
 									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
 										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
-								</div>						    
-								<div class="col-auto">
 									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
 										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
-								</div>
-								<div class="col-auto">
 									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
 										class="btn btn-info">ADE</a>
 								</div>									
@@ -31,48 +40,61 @@
 		    	</div>
 	 			<div class="card-body" id="adeTasks">
 	 			<div class="alert alert-info">
+					<span class="fw-bold">Projet : </span> <span class="me-5"  th:text="${projects.get(idProject)}"></span>
+					<span class="fw-bold">Planification : </span> <span class="me-5" th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span>
 					<span class="fw-bold">Exécution de l'import : </span> <span class="me-5" th:text="${cronExpression}"></span>
 					<span class="fw-bold">Durée de l'import : </span> <span th:text="${dureeMaxImport}"></span>
+					<div class="form-check form-switch float-end">
+						<input class="form-check-input" type="checkbox" th:attr ="data-projet=${idProject}"
+							th:checked="${isActif != null and isActif}"
+							hx-post="updatetask"
+							hx-trigger="click"
+							hx-vals='js:{"idProjet": event.target.getAttribute("data-projet"), "isActif": event.target.checked , "isAll" : true}'
+							hx-swap="none"
+							hx-on::after-request="window.location.href = '?isActif=' + this.checked"/>
+					</div>
 				</div>
 				<table class="table table-bordered table-striped tableTasks" id="grid"
 					style="width: 100%">
 					<thead>
 						<tr>
-							<th>Statut</th>
 							<th>Libellé</th>
 							<th>Site</th>
-							<th class="dateItem">Début</th>
-							<th class="dateItem">Fin</th>
-							<th>Params</th>
 							<th class="dateItem">Création</th>
 							<th lass="dateItem">Début import</th>
 							<th lass="dateItem">Fin import</th>
-							<th>Nb évènements</th>
 							<th>Nb imports</th>
+							<th>Statut</th>
+							<th>Actif</th>
 							<th class="text-center">Action</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr th:each="task : ${tasksList}">
-							<td th:text="${#messages.msg('task.' + task.status.name())}"></td>
 							<td th:text="${task.libelle}"></td>
 							<td th:text="${task.campus.site}"></td>
-							<td th:text="${#dates.format(task.dateDebut,'dd-MM-yyyy')}"></td>
-							<td th:text="${#dates.format(task.dateFin,'dd-MM-yyyy')}"></td>							
-							<td th:text="${task.param}"></td>
 							<td th:text="${#dates.format(task.dateCreation, 'dd/MM/YY')}"></td>
-							<td th:text="${#dates.format(task.dateExecution, 'dd/MM/YY HH:mm:ss')}"></td>
-							<td th:text="${#dates.format(task.dateFinExecution, 'dd/MM/YY HH:mm:ss')}"></td>
-							<td class="text-center" th:text="${task.nbItems}"></td>
-							<td class="text-center" th:text="${task.nbModifs}"></td>
+							<td th:text="${#dates.format(task.dateExecution, 'dd/MM/YY HH:mm')}"></td>
+							<td th:text="${#dates.format(task.dateFinExecution, 'dd/MM/YY HH:mm')}"></td>
+							<td th:text="${task.nbModifs}"></td>
+							<td th:text="${#messages.msg('task.' + task.status.name())}"></td>
 							<td class="text-center">
-							<form th:action="@{/{ctx}/manager/adeCampus/task/importEvents(ctx=${eContext})}" method="post">
-								<input type="hidden" name="task" th:value="${task.id}">
-								<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${task.id }"  class="center ms-2" title="Supprimer">
-									<i class="fa fa-trash text-danger"></i></a>
-								<button th:if="${task.status.name() ne 'ENDED'}" type="submit" class="btn btn-success btn-sm ms-2" title="Import manuel"><i class="fa-solid fa-hand"></i></button>
-							</form>
-
+								<div class="form-check form-switch">
+								  <input class="form-check-input" type="checkbox" th:id="${task.id}" th:attr ="data-projet=${idProject}"
+								  	th:checked="${task.isActif != null and task.isActif}"
+								  	hx-post="updatetask"
+						         	hx-trigger="change"
+						         	hx-vals='js:{ "task": event.target.id, "isActif": event.target.checked , 
+									"idProjet": event.target.getAttribute("data-projet"), "isAll" : false}'
+						         	hx-swap="none">
+								</div>
+							<td class="text-center">
+								<form th:action="@{/{ctx}/manager/adeCampus/task/importEvents(ctx=${eContext})}" method="post">
+									<input type="hidden" name="task" th:value="${task.id}">
+									<a data-bs-toggle="modal" th:attr="data-bs-target='#modal-warning'+${task.id }"  class="center ms-2" title="Supprimer">
+										<i class="fa fa-trash text-danger"></i></a>
+									<button type="submit" class="btn btn-success btn-sm ms-2" title="Import manuel"><i class="fa-solid fa-hand"></i></button>
+								</form>
 								<div class="modal fade in" th:id="modal-warning+${task.id}" >
 								    <div class="modal-dialog">
 								        <div class="modal-content">

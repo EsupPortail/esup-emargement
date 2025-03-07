@@ -2,9 +2,7 @@ package org.esupportail.emargement.web.manager;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -74,6 +72,8 @@ public class AdeController {
 	private final static String ADE_STORED_SALLE = "adeStoredSalle";
 	
 	private final static String ADE_STORED_FORMATION = "adeStoredFormation";
+	
+	private final static String ADE_PLANIFICATION = "adePlanification";
 	
 	private final static String ITEM = "adeCampus";
 	
@@ -260,6 +260,7 @@ public class AdeController {
 		uiModel.addAttribute("valuesComposantes", adeService.getPrefByContext(adeComposantes));
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
 		uiModel.addAttribute("valuesFormations", adeService.getPrefByContext(ADE_STORED_FORMATION + idProject));
+		uiModel.addAttribute("valuePlanification", adeService.getPrefByContext(ADE_PLANIFICATION + idProject));
 		uiModel.addAttribute("nomProjet", adeService.getProjectLists(sessionId).get(idProject));
 		return "manager/adeCampus/params";
 	}
@@ -283,17 +284,15 @@ public class AdeController {
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
 			@RequestParam(required = false) Campus campus,
-			@RequestParam String codeComposante, @RequestParam String libelles, @RequestParam String idProject,
+			@RequestParam String codeComposante,
 			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String existingSe,
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
 			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
-			String codePref = String.format("%s@@%s", libelles, codeComposante);
-			String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					codeComposante,	campus,  idList, null, null, null, codePref, typePref);
+					codeComposante,	campus,  idList, null, null, null);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
@@ -315,6 +314,7 @@ public class AdeController {
 		preferencesService.removePrefs(null, ADE_STORED_FORMATION + idProject);
 		preferencesService.removePrefs(null, adeComoosantes);
 		preferencesService.removePrefs(null, ADE_STORED_SALLE + idProject);
+		preferencesService.removePrefs(null, ADE_PLANIFICATION + idProject);
 		return String.format("redirect:/%s/manager/adeCampus/params?idProjet=%s", emargementContext, idProject);
 	}
 	
@@ -376,34 +376,19 @@ public class AdeController {
 			@RequestParam String libelles, @RequestParam String codeComposante,
 			@RequestParam Campus campus,
 			@RequestParam String idProject,
-			@RequestParam String nbItems,
-			@RequestParam(required = false) String strDateMin,
-			@RequestParam(required = false) String strDateMax,
-			final RedirectAttributes redirectAttributes) throws ParseException {
-		if(params.length() == 0 || nbItems.isEmpty()) {
-			redirectAttributes.addFlashAttribute("message","message");
+			final RedirectAttributes redirectAttributes){
+		if(params.length() == 0) {
+			redirectAttributes.addFlashAttribute("message", "message");
 			return String.format("redirect:/%s/manager/adeCampus", emargementContext);
 		}
+
 		String [] splitParams  = params.split(",");
 		String [] splitLibelles  = libelles.split(",");
-		String [] splitNbItems  = nbItems.split(",");
-		Map<String, Integer> mapItems = new HashMap<>();
-		for(int i=0; i<splitNbItems.length; i++) {
-			String [] splitNumber  = splitNbItems[i].split("@");
-			mapItems.put(splitNumber[0].trim(), Integer.valueOf(splitNumber[1].trim()));
-		}
 		for(int i=0; i<splitParams.length; i++) {
 			String param = splitParams[i].trim();
 			String libelle = splitLibelles[i].trim();
-			if(mapItems.get(param) != null) {
 				if(taskRepository.findByContextKeyAndParam(emargementContext, param).isEmpty()){
 					Task task = new Task();
-					if (strDateMin != null) {
-						task.setDateDebut(new SimpleDateFormat("yyyy-MM-dd").parse(strDateMin));
-					}
-					if (strDateMax != null) {
-						task.setDateFin(new SimpleDateFormat("yyyy-MM-dd").parse(strDateMax));
-					}
 					task.setContext(contextRepository.findByKey(emargementContext));
 					task.setAdeProject(idProject);
 					task.setParam(param);
@@ -412,28 +397,38 @@ public class AdeController {
 					task.setNbModifs(0);
 					task.setDateCreation(new Date());
 					task.setCampus(campus);
-					task.setNbItems(mapItems.get(param));
+					task.setIsActif(true);
 					task.setComposante(codeComposante);
 					taskRepository.save(task);
 					log.info("Tâche créée pour ce diplôme : " + libelle);
-					logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+					logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle(), null,
 							null, emargementContext, null);
 				}else {
 					log.info("Une tâche pour ce diplôme [" + libelle + "] existe déjà.");
 				}
-			}else {
-				log.info("Aucun évènement pour ce diplôme : " + libelle);
-			}
 		}
 		return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
 	}
 
 	@GetMapping(value = "/manager/adeCampus/tasks")
-	public String tasks(Model uiModel) {
-		uiModel.addAttribute("tasksList", taskRepository.findAll());
-		Integer dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Integer.valueOf(dureeMaxImport);
-		uiModel.addAttribute("dureeMaxImport", toolUtil.convertirSecondes(dureeMax));
-		uiModel.addAttribute("cronExpression", toolUtil.getCronExpression(cronAde));
+	public String tasks(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false)  String idProjet,
+			@RequestParam(required = false) Boolean isActif) {
+		try {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			String sessionId = adeService.getSessionId(false, emargementContext);
+			String idProject = (idProjet!=null)? idProjet : adeService.getCurrentProject(null, auth.getName(), emargementContext);
+			Integer dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Integer.valueOf(dureeMaxImport);
+			uiModel.addAttribute("tasksList", taskRepository.findByAdeProject(idProject));
+			uiModel.addAttribute("dureeMaxImport", toolUtil.convertirSecondes(dureeMax));
+			uiModel.addAttribute("cronExpression", toolUtil.getCronExpression(cronAde));
+			uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
+			uiModel.addAttribute("idProject", idProject);
+			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
+			uiModel.addAttribute("isActif", isActif);
+			uiModel.addAttribute("valuePlanification", adeService.getPrefByContext(ADE_PLANIFICATION + idProject));
+		} catch (Exception e) {
+			log.error("Erreur lors de connexion session/projet ADE", e);
+		}
 		return "manager/adeCampus/tasks";
 	}
 		
@@ -441,7 +436,7 @@ public class AdeController {
     @PostMapping(value = "/manager/adeCampus/tasks/delete/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Task task) {
     	taskRepository.delete(task);
-    	logService.log(ACTION.TASK_DELETE, RETCODE.SUCCESS, task.getLibelle() + " : "+ task.getDateDebut() + " : " + task.getDateFin() , null,
+    	logService.log(ACTION.TASK_DELETE, RETCODE.SUCCESS, task.getLibelle(), null,
 				null, emargementContext, null);
         return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
     }
@@ -449,12 +444,14 @@ public class AdeController {
     @Transactional
 	@PostMapping(value = "/manager/adeCampus/saveParams")
 	public String saveParams(@PathVariable String emargementContext, @RequestParam(required = false) String composantes, 
-			@RequestParam(required = false) String formations, @RequestParam(required = false) String salles, @RequestParam String idProject)  {
+			@RequestParam(required = false) String formations, @RequestParam(required = false) String salles, @RequestParam(required = false) String planification,
+			@RequestParam String idProject)  {
     	if(!idProject.isEmpty()) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String adeComposantes = adeService.ADE_STORED_COMPOSANTE + idProject;
 			String adeFormations = ADE_STORED_FORMATION + idProject;
 			String adeSalles = ADE_STORED_SALLE + idProject;
+			String adePlanification = ADE_PLANIFICATION + idProject;
 			String eppn = auth.getName();
 			if(formations != null) {
 				preferencesService.removePrefs(null, adeFormations);
@@ -468,7 +465,32 @@ public class AdeController {
 				preferencesService.removePrefs(null, adeSalles);
 				preferencesService.updatePrefs(adeSalles, salles, eppn, emargementContext);
 			}
+			if(!planification.isEmpty()) {
+				preferencesService.removePrefs(null, adePlanification);
+				preferencesService.updatePrefs(adePlanification, planification, eppn, emargementContext);
+			}
     	}
 		return String.format("redirect:/%s/manager/adeCampus/params?idProjet=%s", emargementContext, idProject);
 	}
+    
+    @PostMapping("/manager/adeCampus/updatetask")
+    public String updateTask(@PathVariable String emargementContext, @RequestParam(required = false) Task task, 
+    		@RequestParam(required = false) boolean isActif, @RequestParam String idProjet, @RequestParam boolean isAll) {
+    	if(isAll) {
+    		log.info("isAll");
+    		List<Task> tasks = taskRepository.findByAdeProject(idProjet);
+    		if(!tasks.isEmpty()) {
+    			for (Task t : tasks) {
+    				t.setIsActif(isActif);
+    		    	taskRepository.save(t);
+    			}
+    		}
+    	}else {
+	    	task.setIsActif(isActif);
+	    	taskRepository.save(task);
+    	}
+    	logService.log(ACTION.TASK_UPDATE, RETCODE.SUCCESS, "Toutes : " + isAll, null,
+				null, emargementContext, null);
+        return String.format("redirect:/%s/manager/adeCampus/tasks?idProjet=%s", emargementContext, idProjet);
+    }
 }

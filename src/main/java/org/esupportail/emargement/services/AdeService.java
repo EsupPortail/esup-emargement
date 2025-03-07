@@ -703,7 +703,7 @@ public class AdeService {
 	@Async
 	@Transactional
 	public int saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, Campus campus, 
-			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax, String codePref, String typePref) throws ParseException {
+			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax) throws ParseException {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
@@ -737,7 +737,7 @@ public class AdeService {
 					processLocations(se, ade, sessionId, ctx, sls);
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
-					processInstructors(ade, sessionId, ctx, sls, codePref, typePref);
+					processInstructors(ade, sessionId, ctx, sls);
 					i++;
 					dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
 					if(update && isUpdateOk){
@@ -924,7 +924,7 @@ public class AdeService {
 		}
 	}
 	
-	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls, String codePref, String typePref) {
+	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) {
 		List<Map<Long, String>> listAdeInstructors = ade.getInstructors();
 		if(listAdeInstructors!= null &&!listAdeInstructors.isEmpty()) {
 			String firstId = listAdeInstructors.get(0).keySet().toArray()[0].toString();
@@ -951,9 +951,6 @@ public class AdeService {
 								userApp.setUserRole(Role.MANAGER);
 							}
 							userAppRepository.save(userApp);
-							if(typePref!=null && codePref!=null) {
-								preferencesService.updatePrefs(typePref, codePref, eppn, ctx.getKey());
-							}
 						}
 						//On associe à un surveillant
 						if(!sls.isEmpty()) {
@@ -1036,7 +1033,7 @@ public class AdeService {
 	        
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true);
 			if(!beans.isEmpty()) {
-				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null, null, null);
+				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
 			}
 	    }
 	}
@@ -1144,7 +1141,7 @@ public class AdeService {
 	
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
-			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, String codePref, String typePref)
+			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax)
 			throws IOException, ParserConfigurationException, SAXException, ParseException {
 		int nbImports = 0;
 		if (idEvents != null) {
@@ -1175,7 +1172,7 @@ public class AdeService {
 						groupes.add(groupe.getId());
 					}
 				}
-				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax, codePref, typePref);
+				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax);
 			} else {
 				log.info("Aucun évènement à importer");
 			}
@@ -1220,6 +1217,6 @@ public class AdeService {
 	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext);
 	        return projet;
 	    }
-	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? null : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
+	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? "0" : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
 	}
 }

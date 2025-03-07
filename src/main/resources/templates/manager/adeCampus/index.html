@@ -46,7 +46,7 @@
 		    	</div>
 	 			<div class="card-body" id="gridEvents">
 	 				<div class="alert alert-danger text-center fw-bold" th:if="${#ctx.containsVariable('message')}">
-	 					Vous devez sélectionner obligatoirement les évènements Ade Campus avec des dates de début et de fin afin de planifier les tâches d'import.
+	 					Vous n"avez pas de sélection dans l'arborescence Ade Campus afin de planifier des tâches d'import.
 	 				</div>
 	 				<div class="row">
                     	<div class="col-xl-3 col-lg-3 col-sm-6 border-right vh-100">
@@ -127,7 +127,6 @@
 										<input type="hidden" name="codeComposante" th:value="${codeComposante}" id="hiddenCodeComposante1"/>
 										<input type="hidden" name ="idProject" id="idProject" th:value="${idProject}"/>
 										<input type="hidden" name ="idList" id="idListImport"/>
-										<input type="hidden" name ="nbItems" id="nbItems" value=""/>
 										<div class="row mb-3 p-1 bg-light">
 											<div class="col-auto">
 												<select class="form-select form-select-sm" id="campus" name="campus" required>

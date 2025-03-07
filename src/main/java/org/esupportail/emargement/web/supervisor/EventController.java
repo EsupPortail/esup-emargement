@@ -57,26 +57,26 @@ public class EventController {
 	@GetMapping(value = "/supervisor/events")
 	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String eppn =  auth.getName();
 		uiModel.addAttribute("campuses", campusRepository.findAll());
 		uiModel.addAttribute("existingSe", true);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
-		String eppn =  auth.getName();
 		uiModel.addAttribute("idProject", adeService.getCurrentProject(projet, eppn, emargementContext));
-		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(false, emargementContext)));
+		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(true, emargementContext)));
 		return "supervisor/events/index";
 	}
 
 	@GetMapping(value = "/supervisor/events/adeCampus")
 	public String getTableEvents(@PathVariable String emargementContext, Model uiModel, 
-			@RequestParam(value="existingSe", required = false) String existingSe,
-			@RequestParam(value="idList", required = false) List<String> idList,
-			@RequestParam(value="strDateMin", required = false) String strDateMin,
-			@RequestParam(value="strDateMax", required = false) String strDateMax){
-	
+			@RequestParam(required = false) String existingSe,
+			@RequestParam(required = false) List<String> idList,
+			@RequestParam(required = false) String strDateMin,
+			@RequestParam(required = false) String strDateMax,
+			@RequestParam(required = false) String projet){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext);
-			String idProject = appliConfigService.getProjetAde();
+			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			if(adeService.getConnectionProject(idProject, sessionId)==null) {
 				sessionId = adeService.getSessionId(true, emargementContext);
 				adeService.getConnectionProject(idProject, sessionId);
@@ -97,7 +97,6 @@ public class EventController {
 	@PostMapping(value = "/supervisor/events/adeCampus/importEvents")
 	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
-			@RequestParam(required = false) String libelle, @RequestParam(required = false) String idProject,
 			@RequestParam(required = false) Campus campus,
 			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String existingSe,
@@ -105,10 +104,8 @@ public class EventController {
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
 			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
-			String codePref = String.format("%s@@%s", libelle, idProject);
-			String typePref = String.format("%s%s",adeService.ADE_STORED_COMPOSANTE, idProject);
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					"myEvents",	campus,  idList, null, null, null, codePref, typePref);
+					"myEvents",	campus,  idList, null, null, null);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, StringUtils.join(idList, ","));

@@ -46,6 +46,8 @@ public class Task {
 	
 	private String composante;
 	
+	private Boolean isActif;
+	
     @DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date dateCreation;
     
@@ -55,15 +57,7 @@ public class Task {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
 	private Date dateFinExecution;
     
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-	private Date dateDebut;
-    
-    @DateTimeFormat(pattern = "dd/MM/yyyy")
-	private Date dateFin;
-	
 	private int nbModifs;
-	
-	private int nbItems;
 	
     @ManyToOne
 	private Campus campus;
@@ -148,30 +142,6 @@ public class Task {
 		this.adeProject = adeProject;
 	}
 
-	public Date getDateDebut() {
-		return dateDebut;
-	}
-
-	public void setDateDebut(Date dateDebut) {
-		this.dateDebut = dateDebut;
-	}
-
-	public Date getDateFin() {
-		return dateFin;
-	}
-
-	public void setDateFin(Date dateFin) {
-		this.dateFin = dateFin;
-	}
-
-	public int getNbItems() {
-		return nbItems;
-	}
-
-	public void setNbItems(int nbItems) {
-		this.nbItems = nbItems;
-	}
-
 	public Date getDateFinExecution() {
 		return dateFinExecution;
 	}
@@ -186,5 +156,13 @@ public class Task {
 
 	public void setComposante(String composante) {
 		this.composante = composante;
+	}
+
+	public Boolean getIsActif() {
+		return isActif;
+	}
+
+	public void setIsActif(Boolean isActif) {
+		this.isActif = isActif;
 	}
 }
