@@ -250,12 +250,12 @@ public class AdeController {
 		uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 		List<String> catAde = appliConfigService.getCategoriesAde();
 		Map<String, String> mapFormations = (catAde.size() >1 && !catAde.get(1).isEmpty())? adeService.getMapComposantesFormations(sessionId, catAde.get(1)) : null;
+		String adeComposantes = adeService.ADE_STORED_COMPOSANTE + idProject;
 		uiModel.addAttribute("mapFormations", mapFormations);
 		uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 		uiModel.addAttribute("idProject", idProject);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
-		String adeComposantes = adeService.ADE_STORED_COMPOSANTE + idProject;
 		uiModel.addAttribute("prefComp", !prefsRepository.findByNom(adeComposantes).isEmpty()? prefsRepository.findByNom(adeComposantes).get(0) : null);
 		uiModel.addAttribute("valuesComposantes", adeService.getPrefByContext(adeComposantes));
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
@@ -266,14 +266,17 @@ public class AdeController {
 	}
 	
 	@GetMapping(value = "/manager/adeCampus/salles", produces = "text/html")
-    public String displaySalles(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String codeSalle) 
-    		throws IOException, ParserConfigurationException, SAXException, ParseException {
+    public String displaySalles(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String codeSalle, 
+    		@RequestParam(required = false) String idProjet) 
+    		throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String sessionId = adeService.getSessionId(false, emargementContext);
-		String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext);
+		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
+		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
 		uiModel.addAttribute("listeSalles", adeService.getListClassrooms(sessionId, codeSalle, null, null));
-		uiModel.addAttribute("idProjet", idProject);
+		uiModel.addAttribute("idProject", idProject);
+		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("codeSalle", codeSalle);
 		uiModel.addAttribute("campuses", campusRepository.findAll());		
 		return "manager/adeCampus/salles";

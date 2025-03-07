@@ -2597,6 +2597,19 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.getElementById("searchUrl2").value=window.location.search;
 	}
 	//ADE
+	function handleSelectChange(elementId, action) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.addEventListener("change", function () {
+                if (typeof action === "function") {
+                    action(); // Call function action (form submission case)
+                } else {
+                    window.location.href = `${emargementContextUrl}${action}?idProjet=${this.value}`;
+                }
+            });
+        }
+    }
+
 	if(document.getElementById("projet") != null){
 		$("#projet").on("change", function(event) {
 				$("#projetForm").submit();
@@ -2610,6 +2623,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	if(document.getElementById("projetTasks") != null){
 		$("#projetTasks").on("change", function(event) {
 				window.location.href = emargementContextUrl + "/manager/adeCampus/tasks?idProjet=" + this.value;
+		});
+	}
+	if(document.getElementById("projetSalles") != null){
+		$("#projetSalles").on("change", function(event) {
+				window.location.href = emargementContextUrl + "/manager/adeCampus/salles?idProjet=" + this.value;
 		});
 	}
 	//absences dans page surveillant

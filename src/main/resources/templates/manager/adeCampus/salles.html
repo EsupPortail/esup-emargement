@@ -14,6 +14,19 @@
 					    <div class="col-8">
 						    <div class="row float-end">
 								<div class="col-auto">
+									<th:block th:if="${isAdeConfigOk}" >
+										 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+										 <input type="hidden" name="idProject" th:value="${idProject}" />
+									</th:block>
+									<th:block th:unless="${isAdeConfigOk}">
+										<select class="form-select mb-2" name="idProject" id="projetSalles" required>
+											<option th:each="proj : ${projects}"
+												th:value="${proj.key}" th:text="${proj.value}"
+												th:selected="${idProject eq proj.key}"></option>
+										</select>
+									</th:block>
+								</div>								
+								<div class="col-auto">
 									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
 										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
 									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
@@ -26,10 +39,10 @@
 	    			</div>
 		    	</div>
 	 			<div class="card-body" id="gridSalles">
-					<th:block th:if="${idProjet eq null}">
+					<th:block th:if="${idProject eq null}">
 						Vous n'avez pas choisi de projet dans la page principale.
 					</th:block>
-	 				<th:block th:unless="${idProjet eq null}">
+	 				<th:block th:unless="${idProject eq null}">
 		 				<div th:if="${#lists.isEmpty(valuesSalles)}" class="alert alert-warning" >
 							Veuillez choisir les salles de la liste dans l'onglet "Paramètres"</div>
 						<div th:unless="${#lists.isEmpty(valuesSalles)}">
