@@ -347,3 +347,16 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 	--bs-btn-padding-x: .5rem;
 	--bs-btn-font-size: .75rem;
 }
+.centerTd {
+    text-align: center; /* Centers the content horizontally */
+    white-space: nowrap; /* Prevents wrapping */
+}
+
+.centerTd a, .centerTd form {
+    display: inline-block; /* Ensures inline elements behave properly */
+    margin: 0 5px; /* Adds spacing between buttons */
+    vertical-align: middle; /* Aligns them to the middle */
+}
+.zindexDropdown{
+	z-index: 100000000;
+}

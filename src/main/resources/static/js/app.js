@@ -2653,6 +2653,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	//enable tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+	
+	//Communication
+	document.getElementById("includePdf").addEventListener("change", function () {
+   			var htmltemplate = document.getElementById("htmltemplate");
+			htmltemplate.value = editor1.getContents();
+			var htmltemplatePdf = document.getElementById("htmltemplatePdf");
+			htmltemplatePdf.value = editor1.getContents();
+    });
+	$('#sendCommunication').submit(function(e) {
+	    e.preventDefault(); 
+	    var bodyMsg = document.getElementById("bodyMsg");
+	    bodyMsg.value = editor2.getContents();
+	    this.submit();
+	});
 });
 
 //absences dans assiduité

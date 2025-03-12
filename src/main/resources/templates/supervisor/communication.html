@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid">
+	        <div class="card">
+		    	<div class="card-header">
+					<div class="row">
+			    		<div class="col-lg-4">
+		    				<h2>Communication</h2><span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
+									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span>
+		    			</div>
+		    			<div class="col-lg-8">
+			    			<div class="alert alert-info pb-0">Les champs possibles pour la personnalisation du PDF sont :
+			 				<p><strong>@civilite@ @prenom@ @nom@ @nomSession@ @dateExamen@ @heureConvocation@ @debutEpreuve@
+			 							@finEpreuve@ @dureeEpreuve@ @adresse@ @site@ @salle@</strong>. Aucun n'est obligatoire.
+			 					Pièce jointe (sera personnalisée lors de l'émission du message).</p>
+			 				</div>
+		    			</div>
+		    		</div>
+		    	</div>
+	 			<div class="card-body">
+		 			<div class="row">
+						<div class="col-lg-6">
+							<h3>Message<small class="fs-6"> [envoyé aux personnes de la liste d'émargement]</small></h3>
+							<div class="alert alert-info">
+								<form th:action="@{/{ctx}/supervisor/communication/send(ctx=${eContext})}" method="post" id="sendCommunication"
+									onsubmit="return confirmSubmission()">
+				                    <div class="form-group row mb-0">
+				                        <label for="subject" class="form-label col-lg-2">Sujet : </label>
+				                        <div class="col-lg-10">
+				                        	<input type="text" th:id="subject" th:name="subject" class="form-control" required="required">
+				                        </div>
+				                    </div>
+									<div class="form-check form-check-inline mb-2">
+									   <label class="form-check-label mr-2" for="includePdf">Inclure PDF</label>
+									   <input class="form-check-input" type="checkbox" id="includePdf">
+									</div>
+									<textarea id="emailArea"></textarea>
+									<input type="hidden" id="seId" name="seId" th:value="${sessionEpreuve.id}"/>
+									<input type="hidden" id="slId" name="slId" th:value="${sessionLocation.id}"/>
+									<input type="hidden" id="bodyMsg"  name="bodyMsg" value=" "/>
+									<input type="hidden" value="" name="htmltemplatePdf" id="htmltemplatePdf">
+			                        <div class="row">
+			                            <div class="col-md-6 mt-2">
+			                                <input th:if="${isSendEmails}" type="submit" class="btn btn-success" value="Envoyer">
+			                                <span th:unless="${isSendEmails}" class="text-danger">Envoi d'emails désactivé !!</span>
+			                            </div>
+			                        </div>
+								</form>
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<h3>PDF
+							<a href="#" title="Prévisualiser PDF" class="btn btn-danger btn-sm ms-2" id="pdfPreview"><i class="fa fa-eye"></i></a>
+							</h3>
+							<form id="formPdfConvoc" th:action="@{/{ctx}/supervisor/communication/pdf(ctx=${eContext})}" method="post">
+								<input type="hidden" value="" name="htmltemplate" id="htmltemplate"></form>
+							<div class="alert alert-danger">
+								<textarea id="pdfArea" th:text=${convocationHtml}></textarea>
+							</div>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>

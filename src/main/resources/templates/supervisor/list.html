@@ -61,7 +61,10 @@
 				      <span th:text="${sl.nbInscritsSessionLocation}"></span></li>
 					</ul>
 			    </div>
-			
+				<div th:if="${msgOk != null}"  class="alert alert-success alert-dismissible fade show">
+				   	<strong>Message envoyé avec succès.</strong>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
             <div th:classappend ="${msgError == null} ? 'd-none' : ''" class="alert alert-danger alert-dismissible mt-2" id="customMsg">
             	<span class="fw-bold" th:if="${msgError != null}" th:text="${msgError + ' : '}"></span> Cette personne appartient au groupe des individus non autorisés.
 			</div>
@@ -398,8 +401,8 @@
 										<td class="center tagChecker" th:text="${(tagCheck.tagChecker!=null)? tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom : ''}"> </td>
 										<td  th:if="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}" class="center tagChecker" th:text="${(tagCheck.tagChecker2!=null)? tagCheck.tagChecker2.userApp.prenom + ' ' + tagCheck.tagChecker2.userApp.nom : ''}"> </td>
 										<td class="center tagChecker" th:text="${tagCheck.comment}"> </td>
-										<td class="justify-content-center">
-											<a class="commentTC me-2" title="Ajouter un commentaire" data-bs-toggle="modal" 
+										<td class="centerTd">
+											<a class="commentTC" title="Ajouter un commentaire" data-bs-toggle="modal" 
 												data-bs-target="#commentTagCheckModal"
 												th:attr="data-bs-tcid=${tagCheck.id}, data-bs-comment=${tagCheck.comment}, data-bs-nom=${tagCheck.person != null ? 
 						                        (tagCheck.person.nom != null ? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn) : 

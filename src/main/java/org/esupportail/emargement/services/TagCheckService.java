@@ -711,7 +711,8 @@ public class TagCheckService {
 
 					String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 					if(appliConfigService.isSendEmails()){
-						emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null);
+						boolean addAttachment = htmltemplatePdf.isEmpty()? false : true;
+						emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null, addAttachment);
 					}
 					tc.setDateEnvoiConvocation(new Date());
 					tagCheckRepository.save(tc);

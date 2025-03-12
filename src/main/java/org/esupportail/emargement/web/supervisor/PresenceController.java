@@ -218,9 +218,9 @@ public class PresenceController {
     @GetMapping("/supervisor/presence")
     public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, @PathVariable String emargementContext, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
-    		@RequestParam(value ="tc", required = false) Long tc, @RequestParam(value ="tcer", required = false) String tcer, 
-    		@RequestParam(value ="msgError", required = false) String msgError, @RequestParam(value ="update", required = false) Long update,
-    		@RequestParam(value ="from", required = false) String from){
+    		@RequestParam(required = false) Long tc, @RequestParam(required = false) String tcer, 
+    		@RequestParam(required = false) String msgError, @RequestParam(required = false) Long update,
+    		@RequestParam(required = false) String from){
     	ModelAndView uiModel= new ModelAndView("supervisor/list");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = auth.getName();
@@ -349,6 +349,7 @@ public class PresenceController {
         uiModel.addObject("isQrCodeEnabled", appliConfigService.isQrCodeEnabled());
         uiModel.addObject("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         uiModel.addObject("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
+        uiModel.addObject("isCommunicationEnabled", appliConfigService.isCommunicationDisplayed());
         uiModel.addObject("isCardQrCodeEnabled", appliConfigService.isCardQrCodeEnabled());
         uiModel.addObject("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addObject("active", ITEM);
@@ -372,7 +373,7 @@ public class PresenceController {
     
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
     @ResponseBody
-    public List<SessionLocation> search(@RequestParam(value ="sessionEpreuve") SessionEpreuve sessionEpreuve) {
+    public List<SessionLocation> search(@RequestParam SessionEpreuve sessionEpreuve) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<SessionLocation> sessionLocationList = new ArrayList<>();
 		String eppnAuth = auth.getName();
@@ -397,14 +398,14 @@ public class PresenceController {
     }
     
     @GetMapping("/supervisor/exportCsv/{id}")
-    public void exportTagChecks(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    public void exportTagChecks(@PathVariable String emargementContext, @PathVariable Long id, 
     		 HttpServletResponse response){
     	tagCheckService.exportTagChecks("CSV", id, response, emargementContext, null, false);
     }
     
 	@RequestMapping(value = "/supervisor/{eppn}/photo")
 	@ResponseBody
-	public ResponseEntity<byte[]> getPhoto(@PathVariable("eppn") String eppn) {
+	public ResponseEntity<byte[]> getPhoto(@PathVariable String eppn) {
 		
 		RestTemplate template = new RestTemplate();
 		String uri = null;
@@ -433,15 +434,15 @@ public class PresenceController {
 		return httpResponse;
 	}
 	
-    @PostMapping("/supervisor/emargementPdf")
-    public void exportEmargement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
-    			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
+    @GetMapping("/supervisor/emargementPdf")
+    public void exportEmargement(@PathVariable String emargementContext, @RequestParam Long sessionLocationId, 
+    			@RequestParam Long sessionEpreuveId, HttpServletResponse response){
     	
-    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
+    	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, "Liste", emargementContext);
     }
     
     @PostMapping("/supervisor/saveProcuration")
-    public String saveProcuration(@PathVariable String emargementContext, @RequestParam(value ="substituteId", required = false) Long substituteId, @RequestParam("tcId") Long id) {
+    public String saveProcuration(@PathVariable String emargementContext, @RequestParam(required = false) Long substituteId, @RequestParam("tcId") Long id) {
     	
     	TagCheck tc = tagCheckRepository.findById(id).get();
     	Person p  = null;
@@ -462,7 +463,7 @@ public class PresenceController {
 
     @GetMapping("/supervisor/searchUsersLdap")
     @ResponseBody
-    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
     	List<LdapUser> userAppsList = new ArrayList<>();
@@ -472,7 +473,7 @@ public class PresenceController {
     
     @GetMapping("/supervisor/searchEmails")
     @ResponseBody
-    public String searchEmails(@RequestParam(value="query", required = false) String query){
+    public String searchEmails(@RequestParam(required = false) String query){
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		JSONSerializer serializer = new JSONSerializer();
@@ -482,7 +483,7 @@ public class PresenceController {
     }
     
     @PostMapping("/supervisor/add")
-    public String addFreeUser(@PathVariable String emargementContext, @RequestParam("slId") Long slId, @RequestParam("eppn") String eppn) {
+    public String addFreeUser(@PathVariable String emargementContext, @RequestParam Long slId, @RequestParam String eppn) {
     	
     	SessionLocation sl = sessionLocationRepository.findById(slId).get();
     	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
@@ -500,7 +501,7 @@ public class PresenceController {
     @Transactional
     @PostMapping(value = "/supervisor/tagCheck/{id}")
     @ResponseBody
-    public Boolean delete(@PathVariable("id") Long id) {
+    public Boolean delete(@PathVariable Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	boolean isOk = false;
     	if(sessionEpreuveService.isSessionEpreuveClosed(tagCheck.getSessionEpreuve())) {
@@ -519,8 +520,8 @@ public class PresenceController {
     
     @Transactional
     @PostMapping("/supervisor/savecomment")
-    public String saveComment(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
-    		 @RequestParam("sessionLocationId") Long sessionLocationId, String comment) {
+    public String saveComment(@PathVariable String emargementContext, @RequestParam Long sessionEpreuveId, 
+    		 @RequestParam Long sessionLocationId, String comment) {
     	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
     	se.setComment(comment);
     	sessionEpreuveRepository.save(se);
@@ -531,8 +532,8 @@ public class PresenceController {
     
     @Transactional
     @PostMapping("/supervisor/sendEmailPdf")
-    public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam("sessionEpreuveId") Long sessionEpreuveId, 
-    		 @RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam(value="emails", required = false) List<String> emails, @RequestParam(value="courriels", required = false) 
+    public String sendPdfEmargement(@PathVariable String emargementContext, @RequestParam Long sessionEpreuveId, 
+    		 @RequestParam Long sessionLocationId, @RequestParam(required = false) List<String> emails, @RequestParam(required = false) 
     		String courriels, HttpServletResponse response, final RedirectAttributes redirectAttributes){
     	
     	if(emails!= null && !emails.isEmpty() || courriels !=null) {
@@ -573,7 +574,7 @@ public class PresenceController {
 						document.close();
 						byte[] bytes = bos.toByteArray();
 						InputStream inputStream = new ByteArrayInputStream(bytes);
-		    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream);
+		    			emailService.sendMessageWithAttachment(email, subject, bodyMsg, null, fileName, ccArray, inputStream, true);
 		    			i++;
 		    			bos.close();
 		    		}
@@ -593,7 +594,7 @@ public class PresenceController {
 	
 	@RequestMapping(value = "/supervisor/qrCodeSession/{id}")
     @ResponseBody
-    public String getQrCode(@PathVariable String emargementContext, @PathVariable("id") Long id, HttpServletResponse response) throws WriterException, IOException {
+    public String getQrCode(@PathVariable String emargementContext, @PathVariable Long id, HttpServletResponse response) throws WriterException, IOException {
 		String eppn ="dummy";
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 	    String timestamp = Long.toString(System.currentTimeMillis() / 1000);
@@ -630,8 +631,8 @@ public class PresenceController {
 	
 	@Transactional
 	@PostMapping("/supervisor/tagCheck/updateAbsence")
-    public String updateAbsence(@PathVariable String emargementContext, @RequestParam("motifAbsence") MotifAbsence motifAbsence, @RequestParam("comment") String comment,
-    		@RequestParam("tc") TagCheck tc) throws IOException {
+    public String updateAbsence(@PathVariable String emargementContext, @RequestParam MotifAbsence motifAbsence, @RequestParam String comment,
+    		@RequestParam TagCheck tc) throws IOException {
 		Absence absence = absenceService.createAbsence(tc, new Absence());
 		absence.setCommentaire(comment);
 		absence.setMotifAbsence(motifAbsence);
@@ -661,7 +662,7 @@ public class PresenceController {
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")
-    public String checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam("check") String check) {
+    public String checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam String check) {
 		if("true".equals(check)) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String eppn = auth.getName();
@@ -700,8 +701,8 @@ public class PresenceController {
 	
     @Transactional
     @PostMapping("/supervisor/saveAttachment")
-    public String saveAttachment(@PathVariable String emargementContext, @RequestParam("sessionEpreuve") SessionEpreuve sessionEpreuve, 
-    		@RequestParam("sessionLocationId") Long sessionLocationId, @RequestParam("files") List<MultipartFile> files) throws IOException {
+    public String saveAttachment(@PathVariable String emargementContext, @RequestParam SessionEpreuve sessionEpreuve, 
+    		@RequestParam Long sessionLocationId, @RequestParam List<MultipartFile> files) throws IOException {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	sessionEpreuveService.save(sessionEpreuve, emargementContext, files);
     	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Ajout PJ : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
@@ -711,7 +712,7 @@ public class PresenceController {
     
 	@Transactional
 	@RequestMapping(value = "/supervisor/storedFile/{id}/photo")
-	public void getPhoto(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		storedFileService.getPhoto(id, response);
 	}
 	
@@ -724,7 +725,7 @@ public class PresenceController {
     
     @GetMapping("/supervisor/storedFile/{type}/{id}")
     @ResponseBody
-    public List<StoredFile> getStoredfiles(@PathVariable("type") String type, @PathVariable("id") Long id){
+    public List<StoredFile> getStoredfiles(@PathVariable String type, @PathVariable Long id){
 		return storedFileService.getStoredfiles(type, id);
     }
     
@@ -740,5 +741,33 @@ public class PresenceController {
     		uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle());
     	}
     	return "supervisor/absence/selectMotifs";
+    }
+    
+    @PostMapping("/supervisor/communication/pdf")
+	public void getPdfConvocation(HttpServletResponse response, @RequestParam String htmltemplate) throws Exception {
+    	tagCheckService.getPdfConvocation(response,htmltemplate);
+	}
+	
+    @GetMapping("/supervisor/communication/{sessionEpreuve}/{sessionLocation}")
+    @Transactional
+    public String communicationForm(@PathVariable SessionEpreuve sessionEpreuve, @PathVariable SessionLocation sessionLocation, Model uiModel) {
+    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+    	uiModel.addAttribute("sessionLocation", sessionLocation);
+    	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
+    	uiModel.addAttribute("active", "communication");
+        return "supervisor/communication";
+    }
+    
+	@Transactional
+	@PostMapping(value = "/supervisor/communication/send", produces = "text/html")
+    public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg,
+    		@RequestParam String htmltemplatePdf, @RequestParam Long seId, @RequestParam Long slId, final RedirectAttributes redirectAttributes) throws Exception {
+		if(appliConfigService.isSendEmails()){
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, false, new ArrayList<>(), htmltemplatePdf, emargementContext, true, seId);
+			redirectAttributes.addFlashAttribute("msgOk", "msgOk");
+		}else {
+			log.info("Envoi de mail désactivé :  ");
+		}
+		return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s", emargementContext, seId, slId);
     }
 }

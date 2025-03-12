@@ -20,7 +20,8 @@
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">Participant</a>
 				     </li>
 			    	<li class="nav-item dropdown" th:if="${isAdmin or isManager or isSupervisor}">
-				       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence' or active == 'events' or active == 'calendrierSup'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button"  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				       	<a class="nav-link dropdown-toggle " th:classappend="${active == 'presence' or active == 'events' 
+						or active == 'calendrierSup' or active == 'communication'} ? 'active font-weight-bold' : ''" href="#" id="navbarDropdown" role="button"  data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				         <span th:class="text-capitalize" th:text="${#strings.toLowerCase(surveillantTerme)}"></span>
 				       	</a>			      
 				       	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">

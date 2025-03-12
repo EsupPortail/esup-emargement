@@ -48,7 +48,7 @@ public class AppliConfigService {
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
 		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
-		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT
+		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION
 	}
 	
 	public List<String> getTypes() {
@@ -301,6 +301,11 @@ public class AppliConfigService {
 	
 	public Boolean isParticipantDisplayed() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_PARTICIPANT);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isCommunicationDisplayed() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ENABLE_COMMUNICATION);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 

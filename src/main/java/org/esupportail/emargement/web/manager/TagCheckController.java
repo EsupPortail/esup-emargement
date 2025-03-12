@@ -526,7 +526,7 @@ public class TagCheckController {
 							String qrCodeString = "true," + eppn + "," + slId + "," + mailAdresse + ",qrcode@@@notime@@@" + tc.getContext().getId();
 							String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
 							InputStream inputStream = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 350, 350);
-							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream);
+							emailService.sendMessageWithAttachment(mailAdresse, appliConfigService.getQrCodeSujetMail(), body, null, fileName, cc,  inputStream, true);
 							nbMailEnvoye++;
 						}else {
 							if( tc.getSessionLocationBadged()!= null) {

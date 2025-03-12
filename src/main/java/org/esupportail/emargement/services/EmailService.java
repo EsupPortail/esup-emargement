@@ -51,7 +51,7 @@ public class EmailService {
     }
     
     public void sendMessageWithAttachment(String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
-    		InputStream inputStream) throws MessagingException, IOException {
+    		InputStream inputStream, boolean addAttachment) throws MessagingException, IOException {
          
         MimeMessage message = emailSender.createMimeMessage();
     
@@ -59,7 +59,6 @@ public class EmailService {
         if(!appliConfigService.getTestEmail().isEmpty()) {
 			to = appliConfigService.getTestEmail();
 		}
-         
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text, true);
@@ -67,15 +66,16 @@ public class EmailService {
         if(cc.length>0) {
         	helper.setCc(cc);
         }
-        FileSystemResource file = null;
-        if(inputStream != null) {
-	        helper.addAttachment(fileName,
-	        new ByteArrayResource(IOUtils.toByteArray(inputStream)));
-        }else {
-        	file = new FileSystemResource(new File(pathToAttachment));
-        	helper.addAttachment(fileName, file);
+        if(addAttachment) {
+	        FileSystemResource file = null;
+	        if(inputStream != null) {
+		        helper.addAttachment(fileName,
+		        new ByteArrayResource(IOUtils.toByteArray(inputStream)));
+	        }else {
+	        	file = new FileSystemResource(new File(pathToAttachment));
+	        	helper.addAttachment(fileName, file);
+	        }
         }
-     
         emailSender.send(message);
     }
 }

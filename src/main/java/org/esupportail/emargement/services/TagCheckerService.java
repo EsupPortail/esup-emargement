@@ -178,7 +178,7 @@ public class TagCheckerService {
 							tc.getUserApp().setCivilite(ldapUser.getCivilite());
 							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 							if(appliConfigService.isSendEmails()){
-								emailService.sendMessageWithAttachment(ldapUser.getEmail(), subject, bodyMsg, filePath, "consignes.pdf", new String[0], null);
+								emailService.sendMessageWithAttachment(ldapUser.getEmail(), subject, bodyMsg, filePath, "consignes.pdf", new String[0], null, true);
 							}else {
 								log.info("Envoi de mail désactivé :  ");
 							}
