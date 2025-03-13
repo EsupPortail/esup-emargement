@@ -9,7 +9,7 @@
 		    	<div class="card-header">
 	    			<div class="row">
 			    		<div class="col-4">
-					    	<h2>Ade Campus<small class="h5"> - synchro</small></h2>
+					    	<h2>Ade Campus<small class="h5"> - planification</small></h2>
 					    </div>
 					    <div class="col-8">
 							<div class="row float-end">
@@ -27,12 +27,33 @@
 									</th:block>
 								</div>
 								<div class="col-auto">
-									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
-									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
-										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
-									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
-										class="btn btn-info">ADE</a>
+									<div class="btn-group ms-1">
+										<button type="button" class="btn btn-danger dropdown-toggle mb-1" data-bs-toggle="dropdown" aria-expanded="false">
+											<i class="fas fa-tasks"></i>
+										</button>
+										<ul class="dropdown-menu zindexDropdown">
+											<li>
+												<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+												>Evènements</a>
+											</li>
+											<li>
+												<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+												>Paramètres</a>
+											</li>
+											<li><a class="dropdown-item" title="Importation des salles ADE"
+												th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}">Salles</a>
+											</li>
+											<li>
+												<hr class="dropdown-divider">
+											</li>
+											<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
+												th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+											</li>
+											<li>
+												<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
+											</li>							
+										</ul>
+									</div>									
 								</div>									
 						    </div>
 					    </div> 

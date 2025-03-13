@@ -27,12 +27,33 @@
 									</th:block>
 								</div>								
 								<div class="col-auto">
-									<a title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-										class="btn btn-info"><i class="fa-solid fa-home"></i></a>
-									<a title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
-										class="btn btn-warning"><i class="fa-solid fa-gear"></i></a>
-									<a title="Ade Campus" target="_blank" th:href="${adeHomeUrl}"
-										class="btn btn-info">ADE</a>
+									<div class="btn-group ms-1">
+										<button type="button" class="btn btn-danger dropdown-toggle mb-1" data-bs-toggle="dropdown" aria-expanded="false">
+											<i class="fas fa-tasks"></i>
+										</button>
+										<ul class="dropdown-menu zindexDropdown">
+											<li>
+												<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+												>Evènements</a>
+											</li>
+											<li>
+												<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+												>Paramètres</a>
+											</li>
+											<li><a class="dropdown-item" title="Planification de l'impport ADE" 
+												th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}">Planification</a>
+											</li>
+											<li>
+												<hr class="dropdown-divider">
+											</li>
+											<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
+												th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+											</li>
+											<li>
+												<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
+											</li>							
+										</ul>
+									</div>									
 								</div>									
 						    </div>
 					    </div> 
