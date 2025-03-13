@@ -2655,12 +2655,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 	
 	//Communication
-	document.getElementById("includePdf").addEventListener("change", function () {
-   			var htmltemplate = document.getElementById("htmltemplate");
-			htmltemplate.value = editor1.getContents();
-			var htmltemplatePdf = document.getElementById("htmltemplatePdf");
-			htmltemplatePdf.value = editor1.getContents();
-    });
+	if(document.getElementById("includePdf")){
+		document.getElementById("includePdf").addEventListener("change", function () {
+	   			var htmltemplate = document.getElementById("htmltemplate");
+				htmltemplate.value = editor1.getContents();
+				var htmltemplatePdf = document.getElementById("htmltemplatePdf");
+				htmltemplatePdf.value = editor1.getContents();
+	    });
+	}
 	$('#sendCommunication').submit(function(e) {
 	    e.preventDefault(); 
 	    var bodyMsg = document.getElementById("bodyMsg");
