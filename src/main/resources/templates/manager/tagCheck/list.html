@@ -33,22 +33,72 @@
 					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
 					    </div>
 					    <div class="col-12 col-md-auto">
-					        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+							<div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
 					            <div class="btn-group me-2">
 					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
 					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
 					                <a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-secondary" th:title="${'Ajouter des ' + #strings.toLowerCase(surveillantTerme + 's')}" th:text="${'Ajout ' + #strings.toLowerCase(surveillantTerme + 's')}"></a>
 					            </div>
 					            <button th:if="${countTagChecks > 0}" class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un inscrit"><i class="fas fa-search"></i></button>
-					            <a th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary ms-2" th:if="${!isSessionEpreuveClosed && !isSessionLibre}" title="Ajouter un inscrit"><i class="fa fa-plus fa-lg"></i></a>
-					            <a th:if="${isImportExportEnabled}" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}" class="btn btn-info float-right me-2" title="Importer des inscrits"><i class="fas fa-user-plus"></i></a>
-					            <a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning ms-2" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && !isSessionLibre}" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary"></i></a>
-					            <a th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-danger ms-2" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed}" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
-					            <button type="button" class="btn btn-secondary" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && isConvocationEnabled}" data-bs-toggle="modal" data-bs-target="#convocModal" title="Convocations"><i class="fa fa-envelope"></i></button>
-					            <button type="button" class="btn btn-secondary ms-2" th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed && isQrCodeEnabled}" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="Envoyer un QR Code de participation"><i class="fas fa-qrcode"></i></button>
-					            <button type="button" class="btn btn-info ms-2" th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed && isLinkEmargerEnabled}" data-bs-toggle="modal" data-bs-target="#lienParticipationModal" title="Envoyer un lien de participation à distance"><i class="fas fa-link"></i></button>
-					            <button type="button" class="btn btn-success btnTooltip ms-2" id="btnExport" th:if="${countTagChecks > 0}" data-bs-toggle="collapse" data-bs-target="#exportCollapse" title="Exporter des inscrits en PDF/ CSV"><i class="fas fa-file-export"></i></button>
-					        </div>
+					            <a th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary ms-1" th:if="${!isSessionEpreuveClosed && !isSessionLibre}" title="Ajouter un inscrit"><i class="fa fa-plus fa-lg"></i></a>
+					            <a th:href="@{/{ctx}/manager/sessionEpreuve/repartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-warning ms-1" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && !isSessionLibre}" title="Répartir les inscrits"><i class="fa fa-exchange-alt text-primary"></i></a>
+					            <a th:href="@{/{ctx}/manager/tagCheck/deleteAllTagChecks/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-danger ms-1" th:if="${countTagChecks > 0 && !isSessionEpreuveClosed}" title="Supprimer les inscrits" onclick="return confirm('Confirmez-vous la suppression de tous les inscrits?');"><i class="fa fa-trash"></i></a>
+								<div class="btn-group ms-1">
+									<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+										<i class="fas fa-tasks"></i>
+									</button>
+									<ul class="dropdown-menu zindexDropdown">
+										<li>
+											<a class="dropdown-item" title="Importer des inscrits" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">
+												Importer des inscrits</a>
+										</li>
+										<li><hr class="dropdown-divider"></li>
+										<li>
+											<a class="dropdown-item" title="Export CSV" 
+											th:href="@{/{ctx}/manager/tagCheck/export?sessionId={id}&type=CSV(ctx=${eContext}, id=${sessionEpreuve.id})}">Export CSV</a>
+										</li>
+										<li>
+											<a class="dropdown-item" title="Export PDF" 
+											th:href="@{/{ctx}/manager/tagCheck/export?sessionId={id}&type=PDF(ctx=${eContext}, id=${sessionEpreuve.id})}">Export PDF</a>
+										</li>
+										<li>
+											<a class="dropdown-item" title="Export WS" 
+											th:href="@{/wsrest/export/tagCheck/{id}(id=${sessionEpreuve.id})}">Export WS</a>
+										</li>
+										<th:block th:if="${countTagChecks > 0 && !isSessionEpreuveClosed && isConvocationEnabled}">
+											<li><hr class="dropdown-divider"></li>
+											<li>
+												<a href="#"class="dropdown-item" title="Accéder à l'interface d'envoi de convocations" data-bs-toggle="modal" 
+												data-bs-target="#convocModal">Convocations</a>
+											</li>
+										</th:block>
+										<th:block th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed}">
+											<li><hr class="dropdown-divider"></li>
+											<li th:if="${isQrCodeEnabled}">
+												<a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#qrCodeModal" 
+												title="Envoyer un QR Code de participation">QR Code de participation</a>
+											</li>										
+											<li th:if="${isLinkEmargerEnabled}">
+												<a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#lienParticipationModal" 
+												title="Envoyer un lien de participation à distance">Lien de participation</button>
+											</li>
+										</th:block>
+										<th:block th:if="${isEsupSignatureEnabled}">
+											<li><hr class="dropdown-divider"></li>
+											<li th:if="${countsignedPdf > 0}">
+												<a class="dropdown-item" title="Accéder aux PDF signés"
+												th:href="@{/{ctx}/manager/esupsignature/sessionEpreuve/{id}(ctx=${eContext},id=${sessionEpreuve.id})}"
+													>PDF signés</a>
+											</li>
+											<li>
+												<a class="dropdown-item" title="Envoie le document dans esup-siganture"
+												th:href="@{/{ctx}/manager/tagCheck/esupsignature/{id}(ctx=${eContext},id=${sessionEpreuve.id})}"
+													>Signer PDF</a>
+											</li>
+										</th>	
+									</ul>
+								</div>
+							 </div>
 					    </div>
 					    <div class="alert alert-danger mt-2 mb-0 col-12" th:if="${!isSessionLibre && (countRepartition > 0 || countUnknown > 0 || (isConvocationEnabled && countConvocations > 0) || countCheckedBycard > 0 || notInLdap > 0)}">
 					        <span class="font-weight-bold text-danger me-2" th:if="${countRepartition > 0}" th:text="'A répartir : ' + countRepartition"></span>
@@ -84,24 +134,6 @@
 								</div>
 							</div>	
 						</form>
-		    		</div>
-		    		<div class="collapse" id="exportCollapse">
-		    			<div class="alert alert-info  pl-2 pr-1">
-			    			<form th:action="@{/{ctx}/manager/tagCheck/export(ctx=${eContext})}" method="post">
-								<input type="hidden" id="sessionId" name="sessionId" th:value="${sessionEpreuve.id}" />
-								<input type="hidden" id="tiersTemps" name="tempsAmenage" th:value="${tempsAmenage}" />
-				    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
-				    			<span th:if="${isEsupSignatureEnabled}"> 
-									<a th:if="${countsignedPdf > 0}" th:href="@{/{ctx}/manager/esupsignature/sessionEpreuve/{id}(ctx=${eContext},id=${sessionEpreuve.id})}" 
-					    				class="btn btn-outline-success btn-sm exportWS">PDF signés</a>
-					    			<a th:href="@{/{ctx}/manager/tagCheck/esupsignature/{id}(ctx=${eContext},id=${sessionEpreuve.id})}" 
-					    				class="btn btn-outline-danger btn-sm exportWS">Signer PDF</a>
-				    			</span> 
-								<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
-								<input th:if="${countRepartition eq 0 and !isSessionEpreuveClosed and isQrCodeEnabled}" type="submit" class="btn btn-info btn-sm exportInscrits" name='type' value="QRC" />
-								<a th:href="@{/wsrest/export/tagCheck/{id}(id=${sessionEpreuve.id})}" class="btn btn-primary btn-sm exportWS">WS</a>
-							</form>
-						</div>
 		    		</div>
 		    		<div th:if="${#ctx.containsVariable('isSuccess')}">
 			    		<div class="alert alert-success alert-dismissible fade show" th:if="${isSuccess}">Mails envoyés avec succès

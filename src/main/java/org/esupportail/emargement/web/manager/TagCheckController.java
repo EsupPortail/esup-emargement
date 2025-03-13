@@ -414,8 +414,8 @@ public class TagCheckController {
     	tagCheckService.getPdfConvocation(response,htmltemplate);
 	}
     
-    @PostMapping("/manager/tagCheck/export")
-    public void exportTagChecks(@PathVariable String emargementContext,@RequestParam("type") String type, @RequestParam("sessionId") Long id, 
+    @GetMapping("/manager/tagCheck/export")
+    public void exportTagChecks(@PathVariable String emargementContext,@RequestParam String type, @RequestParam("sessionId") Long id, 
     		 HttpServletResponse response){
     	tagCheckService.exportTagChecks(type, id, response, emargementContext, null, false);
     }

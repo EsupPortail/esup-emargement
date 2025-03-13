@@ -1642,8 +1642,9 @@ public class TagCheckService {
 				String strDateConvocation = (tc.getDateEnvoiConvocation() != null)? dateFormat.format(tc.getDateEnvoiConvocation()) : "";
 				bean.setDateEmargement(strDateEmargment);
 				bean.setDateEnvoiConvocation(strDateConvocation);
-    			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
-				bean.setAbsence(tc.getAbsence()!=null? absence :"");
+    			String absence = tc.getAbsence()!=null? tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' 
+    					+ tc.getAbsence().getMotifAbsence().getStatutAbsence().name() : "";
+				bean.setAbsence(absence);
 				bean.setEstInconnu(BooleanUtils.toString(tc.getIsUnknown(), "Oui", "Non"));
 				bean.setLieuAttendu((tc.getSessionLocationExpected()!=null)? 
 						tc.getSessionLocationExpected().getLocation().getNom() :"");
