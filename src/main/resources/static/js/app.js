@@ -284,57 +284,6 @@ function searchUsersAutocomplete(id, url, paramurl, maxItems) {
 	}
 }
 
-function changeSelectSessionEpreuve2(id, id2, url, change) {
-	var selectOrigin = document.getElementById(id);
-	var selectToPopulate = document.getElementById(id2);
-	var request = new XMLHttpRequest();
-	if (selectOrigin.value != "") {
-		request.open('GET', url + "?sessionEpreuve=" + selectOrigin.value, true);
-		request.onload = function() {
-			if (request.status >= 200 && request.status < 400) {
-				selectToPopulate.innerHTML = "";
-				var data = JSON.parse(this.response);
-				if (data.length == 0) {
-					$(".alertmsg").remove();
-					$("#" + id2).closest(".col").append("<p class='text-danger font-weight-bold alertmsg'>Aucun lieu associé à cette session</p>");
-					option = document.createElement('option');
-					option.value = "";
-					option.textContent = "";
-					selectToPopulate.appendChild(option);
-					$("#" + id2).prop("disabled", true);
-					$("#submitForm").prop("disabled", true);
-				} else {
-					option = document.createElement('option');
-					option.value = "";
-					option.textContent = "";
-					option.setAttribute("data-placeholder", "true");
-					selectToPopulate.appendChild(option);
-					data.forEach(function(value, key) {
-						$(".alertmsg").remove();
-						$("#" + id2).removeAttr("disabled");
-						$("#submitForm").removeAttr("disabled");
-						option = document.createElement('option');
-						if (currentLocation !== undefined) {
-							if (value.id == currentLocation) {
-								option.selected = true;
-							}
-						}
-						option.value = value.id;
-						option.textContent = value.location.nom;
-						selectToPopulate.appendChild(option);
-					});
-					if (change && data.length == 1) {
-						var redirect = "?sessionEpreuve=" + selectOrigin.value + "&location=" + data[0].id;
-						window.location.href = redirect;
-					}
-				}
-			} else {
-				console.log("erreur du serveur!");
-			}
-		};
-		request.send();
-	}
-}
 //Configs
 function displayFormconfig(val, valeur) {
 	var checkTrue = "";
@@ -1076,16 +1025,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#searchField").val(splitEppn[1] + " " + splitEppn[2] + split3);
 			$("#searchValue").val(splitEppn[0]);
 			$("#formSearch").submit();
-		});
-	}
-
-	//select presence
-	var presenceForm = document.getElementById("presenceForm");
-	if (presenceForm != null) {
-		var selectSessionEpreuve = document.getElementById("sessionEpreuvePresence");
-		changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations", false);
-		selectSessionEpreuve.addEventListener("change", function() {
-			changeSelectSessionEpreuve2("sessionEpreuvePresence", "location", emargementContextUrl + "/supervisor/sessionLocation/searchSessionLocations", true);
 		});
 	}
 
@@ -2680,4 +2619,13 @@ document.addEventListener('htmx:afterSwap', function(event) {
         }
         slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
     }, 100);
+	
+	document.addEventListener("htmx:afterRequest", function(event) {
+	        let locationSelect = document.getElementById("location");
+	        if (locationSelect.children.length > 1) {
+	            locationSelect.removeAttribute("disabled");
+	        } else {
+	            locationSelect.setAttribute("disabled", "true");
+	        }
+	    });
 });

@@ -22,6 +22,7 @@ import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
+import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.custom.TagCheckerRepositoryCustom;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -43,6 +44,8 @@ public class SessionLocationService {
 	private LocationRepository locationRepository;
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
+	@Autowired
+	private TagCheckerRepository tagCheckerRepository;
 	@Autowired
 	private UserAppRepositoryCustom userAppRepositoryCustom;
 	@Autowired
@@ -194,5 +197,17 @@ public class SessionLocationService {
     	}
     	
     	return priorities;
+	}
+    
+	public List<SessionLocation> getSessionLocationFromTagChecker(Long id, String eppn) {
+		List<TagChecker> tcs = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(id,
+				eppn);
+		List<SessionLocation> sessionLocations = new ArrayList<>();
+		if (!tcs.isEmpty()) {
+			for (TagChecker tc1 : tcs) {
+				sessionLocations.add(tc1.getSessionLocation());
+			}
+		}
+		return sessionLocations;
 	}
 }

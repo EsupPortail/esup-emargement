@@ -59,6 +59,7 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
+import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.StoredFileService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.TagCheckerService;
@@ -178,7 +179,7 @@ public class PresenceController {
 	PresenceService presenceService;
 	
 	@Resource
-	SessionEpreuveService ssssionEpreuveService;
+	SessionLocationService sessionLocationService; 
 	
 	@Resource
 	ContextService contexteService;
@@ -351,7 +352,8 @@ public class PresenceController {
         uiModel.addObject("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
         uiModel.addObject("isCommunicationEnabled", appliConfigService.isCommunicationDisplayed());
         uiModel.addObject("isCardQrCodeEnabled", appliConfigService.isCardQrCodeEnabled());
-        uiModel.addObject("allSessionEpreuves", ssssionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
+		uiModel.addObject("allSessionLocations", sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), eppnAuth));
+        uiModel.addObject("allSessionEpreuves", sessionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
 		uiModel.addObject("active", ITEM);
 		uiModel.addObject("help", helpService.getValueOfKey(ITEM));
 		uiModel.addObject("isDateOver", isDateOver);
@@ -372,21 +374,16 @@ public class PresenceController {
     }
     
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
-    @ResponseBody
-    public List<SessionLocation> search(@RequestParam SessionEpreuve sessionEpreuve) {
+    public String search(@RequestParam SessionEpreuve sessionEpreuve, @RequestParam(value = "selectedLocation", required = false) Long selectedLocationId, Model uiModel,
+    		 HttpServletResponse response) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<SessionLocation> sessionLocationList = new ArrayList<>();
-		String eppnAuth = auth.getName();
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveIdAndUserAppEppn(sessionEpreuve.getId(), eppnAuth);
-		
-		if(!tcs.isEmpty()) {
-			for(TagChecker tc : tcs) {
-				sessionLocationList.add(tc.getSessionLocation());
-			}
-		}
-        return sessionLocationList;
+    	List<SessionLocation> sessionLocations = sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), auth.getName());
+		uiModel.addAttribute("sessionLocations", sessionLocations);
+		uiModel.addAttribute("selectedLocationId", selectedLocationId);
+		SessionLocation sl = sessionLocations.get(0);
+        String redirectUrl = "?sessionEpreuve=" + sl.getSessionEpreuve().getId() + "&location=" + sl.getId();
+        response.setHeader("HX-Redirect", redirectUrl);
+ 	    return "supervisor/session-locations :: options";
     }
     
     @GetMapping("/supervisor/exportPdf")

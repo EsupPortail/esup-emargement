@@ -1,0 +1,8 @@
+<th:block th:fragment="options">
+    <option value="">Choisir un lieu</option>
+    <option th:each="sl : ${sessionLocations}"
+        th:value="${sl.id}"
+        th:selected="${selectedLocationId != null and sl.id == selectedLocationId}"
+        th:text="${sl.location.nom}">
+    </option>
+</th:block>
