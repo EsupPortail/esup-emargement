@@ -757,7 +757,8 @@ public class TagCheckService {
 		String idSession = splitLocationNom[3];
 		Long id = Long.valueOf(idSession);
 		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-		if(appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().isEmpty()) {
+		Context ctx = sessionEpreuve.getContext();
+		if(appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppn).isEmpty()) {
 			isTagCheckerTagged = true;
 		}
 		if(sessionEpreuve != null) {
@@ -775,12 +776,11 @@ public class TagCheckService {
 				}
 				SessionLocation sessionLocationBadged =  null;
 				TagChecker tagChecker = null;
-				Context ctx = sessionEpreuve.getContext();
 				sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
 				Long sessionLocationBadgedId = sessionLocationBadged.getId();
 				if(sessionEpreuve.getIsSessionLibre()) {
 					isSessionLibre = true;
-					tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(esupNfcTagLog.getEppnInit(), null).getContent().get(0);
+					tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx,esupNfcTagLog.getEppnInit()).get(0);
 				}
 				
 				if (tc ==1 || isSessionLibre || isTagCheckerTagged) {
@@ -824,7 +824,7 @@ public class TagCheckService {
 					try {
 						String comment = "";
 						String eppnInit = esupNfcTagLog.getEppnInit();
-						tagChecker = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppnInit, null).getContent().get(0);
+						tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppnInit).get(0);
 						sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
 						//on regarde si la personne est dans une autre salle de la session
 						Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, id);
