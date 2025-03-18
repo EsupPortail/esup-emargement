@@ -406,12 +406,14 @@ public class AdeService {
                     }
                 } else if (adeAttribute.equals(target)) {
                     String code = resourceElement.getAttribute(adeAttribute);
-                    if("email".equals(adeAttribute)) {
-						// Si plusieurs mails, on prend le 1er
-						String[] splitCode = code.split(";");
-						code = splitCode[0];
+                    if(appliConfigService.getCategoriesAde().get(0).equals(resourceElement.getAttribute("category"))){
+	                    if("email".equals(adeAttribute)) {
+							// Si plusieurs mails, on prend le 1er
+							String[] splitCode = code.split(";");
+							code = splitCode[0];
+	                    }
+	                    listMembers.add(code);
                     }
-                    listMembers.add(code);
                 }
             }
         } catch (ParserConfigurationException | SAXException | IOException e) {
@@ -845,7 +847,10 @@ public class AdeService {
 				String adeAttribute = appliConfigService.getAdeMemberAttribute();
 				if(!allMembers.isEmpty()) {
 					for(String id : allMembers) {
-						allCodes.add(getMembersOfEvent(sessionId, id, adeAttribute).get(0));
+						List<String> codesList = getMembersOfEvent(sessionId, id, adeAttribute);
+						if(!codesList.isEmpty()) {
+							allCodes.add(codesList.get(0));
+						}
 					}
 				}
 				String filter = "code".equals(adeAttribute)? "supannEtuId" : "mail";
@@ -861,10 +866,14 @@ public class AdeService {
 							person.setContext(ctx);
 							if(!users.isEmpty()) {
 								LdapUser ldapUser = users.get(code);
-								person.setEppn(ldapUser.getEppn());
-								person.setNumIdentifiant(ldapUser.getNumEtudiant());
-								person.setType("student");
-								personRepository.save(person);
+								if(ldapUser !=null) {
+									person.setEppn(ldapUser.getEppn());
+									person.setNumIdentifiant(ldapUser.getNumEtudiant());
+									person.setType("student");
+									personRepository.save(person);
+								}else {
+									log.info("code inconnu : " + code);
+								}
 							}else {
 								log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
 							}
