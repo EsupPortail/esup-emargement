@@ -206,10 +206,10 @@ public class AdeService {
     	return fatherId;
     }
 
-	public List<AdeClassroomBean> getListClassrooms(String sessionId, String fatherId, String idItem, List<Long> selectedIds)  throws  ParseException {
+	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds)  throws  ParseException {
 		String detail = "9";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
-		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom&fatherIds=" + fatherId + idParam;
+		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom" + idParam;
 		List<AdeClassroomBean> adeBeans = new ArrayList<>();
 		try {
 			Document doc = getDocument(urlClassroom);
@@ -734,9 +734,9 @@ public class AdeService {
 					processSessionEpreuve(se, campus, ctx);
 					processTypeSession(ade, se, ctx);
 					sessionEpreuveRepository.save(se);
-					processStudents(se, ade, sessionId, groupes, ctx);
+					int nbStudents = processStudents(se, ade, sessionId, groupes, ctx);
 					List<SessionLocation> sls = new ArrayList<>();
-					processLocations(se, ade, sessionId, ctx, sls);
+					processLocations(se, ade, sessionId, ctx, sls, nbStudents);
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
 					processInstructors(ade, sessionId, ctx, sls);
@@ -830,7 +830,8 @@ public class AdeService {
 		se.setTypeSession(typeSession);
 	}
 	
-	private void processStudents(SessionEpreuve se, AdeResourceBean ade, String sessionId, List<Long> groupes, Context ctx) {
+	private int processStudents(SessionEpreuve se, AdeResourceBean ade, String sessionId, List<Long> groupes, Context ctx) {
+		int nbStudents = 0;
 		if(appliConfigService.isMembersAdeImport()) {
 			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
 			if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
@@ -885,6 +886,7 @@ public class AdeService {
 						tc.setPerson(person);
 						tc.setSessionEpreuve(se);
 						tagCheckRepository.save(tc);
+						nbStudents++;
 						if(!groupes.isEmpty()) {
 							groupeService.addPerson(person, groupes);
 						}
@@ -892,23 +894,51 @@ public class AdeService {
 				}
 			}
 		}
+		return nbStudents;
 	}
 	
-	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) throws ParseException {
+	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls, int nbStudents) throws ParseException {
 		List<Map<Long, String>> listAdeClassRooms = ade.getClassrooms();
+		boolean isCapaciteSalleEnabled = appliConfigService.isAdeCampusUpdateCapaciteSalleEnabled();
 		if(listAdeClassRooms!= null && !listAdeClassRooms.isEmpty()) {
-			String firstId = listAdeClassRooms.get(0).keySet().toArray()[0].toString();
-			String fatherIdClassroom = getFatherIdResource(sessionId, firstId, "classroom", "true");
+			int totalSize = 0;
+			int minSize = Integer.MAX_VALUE;
+			Long minIdClassroom = null;
+			for (Map<Long, String> map : listAdeClassRooms) {
+			    for (Entry<Long, String> entry : map.entrySet()) {
+			        List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, entry.getKey().toString(), null);
+			        if(!adeClassroomBeans.isEmpty()) {
+				        for (AdeClassroomBean classroom : adeClassroomBeans) {
+				            totalSize += classroom.getSize();
+				            if (classroom.getSize() < minSize) {
+				                minSize = classroom.getSize();
+				                minIdClassroom = classroom.getIdClassRoom();
+				            }
+				        }
+			        }
+			    }
+			}
 			for(Map<Long, String> map : listAdeClassRooms) {
 				for (Entry<Long, String> entry : map.entrySet()) {
-					List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, fatherIdClassroom, entry.getKey().toString(), null);
+					List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, entry.getKey().toString(), null);
 					if(!adeClassroomBeans.isEmpty()) {
 						for(AdeClassroomBean bean : adeClassroomBeans) {
 							Location location = null;
 							Long adeClassRoomId = bean.getIdClassRoom();
 							if(!locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).isEmpty()){
 								location = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).get(0);
+								if(isCapaciteSalleEnabled && nbStudents>totalSize && location.getAdeClassRoomId().equals(minIdClassroom)) {
+									int adjustment = nbStudents - totalSize + location.getCapacite();
+									location.setCapacite(adjustment);
+									locationRepository.save(location);
+									log.info("Location id Ade : " + location.getAdeClassRoomId() + " , ajustement de la capacité : "  + adjustment );
+								}
 							}else {
+								if(isCapaciteSalleEnabled && nbStudents>totalSize && bean.getIdClassRoom().equals(minIdClassroom)) {
+									int adjustment = nbStudents - totalSize + bean.getSize();
+									bean.setSize(adjustment);
+									log.info("Location id Ade : " + adeClassRoomId + " , ajustement de la capacité : "  + adjustment );
+								}
 								location = new Location();
 								location.setAdeClassRoomId(adeClassRoomId);
 								location.setAdresse(bean.getChemin());

@@ -2,6 +2,7 @@ package org.esupportail.emargement.web.manager;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -274,7 +275,7 @@ public class AdeController {
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
-		uiModel.addAttribute("listeSalles", adeService.getListClassrooms(sessionId, codeSalle, null, null));
+		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms(sessionId, null, null) :  new ArrayList());
 		uiModel.addAttribute("idProject", idProject);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("codeSalle", codeSalle);
@@ -337,7 +338,7 @@ public class AdeController {
 			@RequestParam(value="btSelectItem", required = false) List<Long> idClassrooms, String codeSalle, Campus campus) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		String sessionId = adeService.getSessionId(false, emargementContext);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, codeSalle, null, idClassrooms);
+		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms);
 		if(!adeClassroomBeans.isEmpty()) {
 			Context ctx = contextRepository.findByContextKey(emargementContext);
 			for(AdeClassroomBean bean : adeClassroomBeans) {
