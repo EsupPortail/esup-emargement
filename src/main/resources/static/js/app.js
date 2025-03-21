@@ -801,19 +801,6 @@ function updateJsTree(selectedData, category) {
 	request.send();
 }
 
-function getCapacite(location) {
-	$.ajax({
-		type: 'GET',
-		url: emargementContextUrl + "/manager/sessionLocation/searchCapacite?id=" + addSessionLocation.value,
-		success: function(response) {
-			$("#capacite").val(response);
-		},
-		error: function(error) {
-			console.log("Error: " + error);
-		}
-	});
-}
-
 function getQrCodeSession(url, idImg) {
 	$.ajax({
 		url: url,
@@ -2167,14 +2154,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	var urlEventsimport = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus/importEvents" : "/manager/adeCampus/importEvents";
 	importEvents(emargementContextUrl + urlEventsimport);
 
-	//Create sessionLocation
-	var addSessionLocation = document.getElementById("addSessionLocation");
-	if (addSessionLocation != null) {
-		getCapacite($("#location").val());
-		$("#addSessionLocation").on("change", function(event) {
-			getCapacite($(this).val())
-		});
-	}
 	var qrCodeDisplay = document.getElementById("qrCodeDisplay");
 	if (qrCodeDisplay != null) {
 		var url = emargementContextUrl + "/supervisor/qrCodeSession/" + currentLocation;
@@ -2621,11 +2600,13 @@ document.addEventListener('htmx:afterSwap', function(event) {
     }, 100);
 	
 	document.addEventListener("htmx:afterRequest", function(event) {
-	        let locationSelect = document.getElementById("location");
-	        if (locationSelect.children.length > 1) {
-	            locationSelect.removeAttribute("disabled");
-	        } else {
-	            locationSelect.setAttribute("disabled", "true");
-	        }
-	    });
+		if (document.getElementById("presencePage")){
+			let locationSelect = document.getElementById("location");
+			if (locationSelect.children.length > 1) {
+				locationSelect.removeAttribute("disabled");
+			} else {
+				locationSelect.setAttribute("disabled", "true");
+			}
+		}
+	});
 });

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Location;
@@ -84,10 +83,13 @@ public class SessionLocationController {
 	private final Logger log = LoggerFactory.getLogger(getClass());
     	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
+	public static String getActiveMenu() {
 		return ITEM;
 	}
 	
+	/**
+	 * @param emargementContext  
+	 */
 	@GetMapping(value = "/manager/sessionLocation/sessionEpreuve/{id}", produces = "text/html")
     public String listSesionLocationBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
     		@PageableDefault(size = 20, direction = Direction.ASC, sort = {"isTiersTempsOnly", "priorite"})  Pageable pageable) {
@@ -102,7 +104,7 @@ public class SessionLocationController {
     }
 	
 	@GetMapping(value = "/manager/sessionLocation/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("sessionLocation",  sessionLocationRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/sessionLocation/show";
@@ -119,14 +121,14 @@ public class SessionLocationController {
     }
     
     @GetMapping(value = "/manager/sessionLocation/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	SessionLocation sessionLocation = sessionLocationRepository.findById(id).get();
     	populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
         return "manager/sessionLocation/update";
     }
     
     void populateEditForm(Model uiModel, SessionLocation sessionLocation, Long id) {
-    	List<SessionEpreuve> allSe = new ArrayList<SessionEpreuve>();
+    	List<SessionEpreuve> allSe = new ArrayList<>();
     	SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
     	allSe.add(se);
     	if(sessionLocation.getId() == null && id !=null) {
@@ -135,7 +137,10 @@ public class SessionLocationController {
 	    	List<Location> usedLocations = allSl.stream().map(e->e.getLocation()).collect(Collectors.toList());
 	    	allLocations.removeAll(usedLocations);
 	    	uiModel.addAttribute("allLocations", allLocations);
+	    	Long selectedLocationId = allLocations.isEmpty() ? null : allLocations.get(0).getId();
+	    	uiModel.addAttribute("selectedLocationId", selectedLocationId);
     	}
+    	
     	uiModel.addAttribute("priorityList", sessionLocationService.getPriorityList(se));
     	uiModel.addAttribute("allSessionEpreuves", allSe);
         uiModel.addAttribute("sessionLocation", sessionLocation);
@@ -143,7 +148,7 @@ public class SessionLocationController {
     }
     
     @PostMapping("/manager/sessionLocation/create")
-    public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest){
+    public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel){
     	if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
             return "manager/sessionLocation/create";
@@ -167,7 +172,6 @@ public class SessionLocationController {
         
         uiModel.asMap().clear();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
     	sessionLocation.setContext(contexteService.getcurrentContext());
         sessionLocationRepository.save(sessionLocation);
         log.info("ajout d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
@@ -177,8 +181,8 @@ public class SessionLocationController {
     }
     
     @PostMapping("/manager/sessionLocation/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel, 
-    		HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid SessionLocation sessionLocation, 
+    		BindingResult bindingResult, Model uiModel) {
     	
     	SessionLocation oldSl = sessionLocationRepository.findById(id).get();
     	int capaciteMax = oldSl.getLocation().getCapacite();
@@ -208,7 +212,7 @@ public class SessionLocationController {
     }
     
     @PostMapping(value = "/manager/sessionLocation/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	SessionLocation sessionLocation = sessionLocationRepository.findById(id).get();
     	String seId =  sessionLocation.getSessionEpreuve().getId().toString();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -230,7 +234,7 @@ public class SessionLocationController {
 	
     @GetMapping("/manager/sessionLocation/searchSessionLocations")
     @ResponseBody
-    public List<Location> search(@RequestParam("searchValue") String searchValue, @RequestParam(value ="sessionEpreuve") Long sessionEpreuveId, @RequestParam(value ="locationsUsed") boolean locationsUsed) {
+    public List<Location> search(@RequestParam String searchValue, @RequestParam(value ="sessionEpreuve") Long sessionEpreuveId, @RequestParam boolean locationsUsed) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		HashMap <Long, List<Location>> mapSessions = sessionLocationService.getMapSessions(sessionEpreuveId, locationsUsed);
@@ -239,12 +243,10 @@ public class SessionLocationController {
         return sessionLocationList;
     }
     
-    
     @GetMapping("/manager/sessionLocation/searchCapacite")
     @ResponseBody
-    public int getCapacite(@RequestParam Long id) {
-    	return locationRepository.findById(id).get().getCapacite();
+    public String getCapacite(@RequestParam(value="location") Long id) {
+        int capacite = locationRepository.findById(id).get().getCapacite();
+        return "<input type='number' min='1' id='capacite' name='capacite' class='form-control' required='required' value='" + capacite + "'>";
     }
-    
-    
 }
