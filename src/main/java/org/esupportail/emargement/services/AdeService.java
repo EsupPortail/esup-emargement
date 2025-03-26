@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -383,44 +384,51 @@ public class AdeService {
 
 	    return mapActivities;
 	}
+    
+ 	public List<String> getMembersOfEvent(String sessionId, String idResource, String target) {
+	    String detail = "13";
+	    String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", 
+	                                      urlAde, sessionId, idResource, detail);
+	    List<String> listMembers = new ArrayList<>();
+	    try {
+	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	        factory.setNamespaceAware(true);
+	        DocumentBuilder builder = factory.newDocumentBuilder();
+	        Document doc = builder.parse(urlMembers);
+	        doc.getDocumentElement().normalize();
 	
-    public List<String> getMembersOfEvent(String sessionId, String idResource, String target) {
-        String detail = "13";
-        String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", urlAde, sessionId, idResource, detail);
-        List<String> listMembers = new ArrayList<>();
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(urlMembers);
-            doc.getDocumentElement().normalize();
-
-            NodeList resourceList = doc.getElementsByTagName("resource");
-            String adeAttribute = appliConfigService.getAdeMemberAttribute();
-            for (int i = 0; i < resourceList.getLength(); i++) {
-                Element resourceElement = (Element) resourceList.item(i);
-                if ("members".equals(target)) {
-                    NodeList memberList = resourceElement.getElementsByTagName("member");
-                    for (int j = 0; j < memberList.getLength(); j++) {
-                        Element memberElement = (Element) memberList.item(j);
-                        listMembers.add(memberElement.getAttribute("id"));
-                    }
-                } else if (adeAttribute.equals(target)) {
-                    String code = resourceElement.getAttribute(adeAttribute);
-                    if(appliConfigService.getCategoriesAde().get(0).equals(resourceElement.getAttribute("category"))){
-	                    if("email".equals(adeAttribute)) {
-							// Si plusieurs mails, on prend le 1er
-							String[] splitCode = code.split(";");
-							code = splitCode[0];
+	        XPathFactory xPathFactory = XPathFactory.newInstance();
+	        XPath xpath = xPathFactory.newXPath();
+	
+	        if ("members".equals(target)) {
+	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member/@id", doc, XPathConstants.NODESET);
+	            for (int i = 0; i < memberNodes.getLength(); i++) {
+	                String memberId = memberNodes.item(i).getNodeValue();
+	                listMembers.add(memberId);
+	            }
+	        } else {
+	            String adeAttribute = appliConfigService.getAdeMemberAttribute();
+	            if (adeAttribute.equals(target)) {
+	                String categoryFilter = appliConfigService.getCategoriesAde().get(0);
+	                NodeList resourceNodes = (NodeList) xpath.evaluate(
+	                    "//resource[@category='" + categoryFilter + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
+	
+	                for (int i = 0; i < resourceNodes.getLength(); i++) {
+	                    String code = resourceNodes.item(i).getNodeValue();
+	
+	                    if ("email".equals(adeAttribute)) {
+	                        code = code.split(";")[0];
 	                    }
 	                    listMembers.add(code);
-                    }
-                }
-            }
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            log.error("Erreur lors de la récupération des membres de l'évènement, url : " + urlMembers, e);
-        }
-        return listMembers;
-    }
+	                }
+	            }
+	        }
+	    } catch (Exception e) {
+	        log.error("Erreur lors de la récupération des membres de l'évènement, url : " + urlMembers, e);
+	        e.printStackTrace();
+	    }
+	    return listMembers;
+ 	}
 	
     public Map<String, String> getMapComposantesFormations(String sessionId, String category) {
         String url = String.format("%s?sessionId=%s&function=getResources&tree=true&leaves=false&category=%s&detail=12",
@@ -452,8 +460,9 @@ public class AdeService {
 		String detail = "8";
 		List<AdeResourceBean> adeBeans = new ArrayList<>();
 		if(idEvents != null) {
-			for(Long id : idEvents) {
-				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id + "&detail=" +detail;
+			for (Long id : idEvents) {
+				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id
+						+ "&detail=" + detail;
 				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update);
 			}
 		}else {
@@ -834,26 +843,45 @@ public class AdeService {
 		int nbStudents = 0;
 		if(appliConfigService.isMembersAdeImport()) {
 			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
-			if(listAdeTrainees!= null && !listAdeTrainees.isEmpty()) {
-				List<String> allMembers = new ArrayList<>();
-				for(Map<Long, String> map : listAdeTrainees) {
-					for (Entry<Long, String> entry : map.entrySet()) {
-						List<String> membersOfEvent = getMembersOfEvent(sessionId, entry.getKey().toString(), "members");
-						if(!membersOfEvent.isEmpty()) {
-							allMembers.addAll(membersOfEvent);
-						}
-					}
-				}
-				List <String> allCodes = new ArrayList<>();
-				String adeAttribute = appliConfigService.getAdeMemberAttribute();
-				if(!allMembers.isEmpty()) {
-					for(String id : allMembers) {
-						List<String> codesList = getMembersOfEvent(sessionId, id, adeAttribute);
-						if(!codesList.isEmpty()) {
-							allCodes.add(codesList.get(0));
-						}
-					}
-				}
+			List<String> allMembers = new ArrayList<>();
+			List<String> allCodes = new ArrayList<>();
+			String adeAttribute = appliConfigService.getAdeMemberAttribute();
+			boolean isAdeCampusLimitQueriesEnabled = appliConfigService.isAdeCampusLimitQueriesEnabled();
+			if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
+			    if (isAdeCampusLimitQueriesEnabled) {
+			    	String ids = listAdeTrainees.stream()
+			    		    .flatMap(map -> map.keySet().stream())
+			    		    .map(Object::toString)
+			    		    .collect(Collectors.joining("|"));
+			        allMembers = getMembersOfEvent(sessionId, ids, "members");
+			    } else {
+			    	allMembers = listAdeTrainees.stream()
+			    		    .flatMap(map -> map.keySet().stream())
+			    		    .map(key -> getMembersOfEvent(sessionId, key.toString(), "members"))
+			    		    .filter(list -> !list.isEmpty())
+			    		    .flatMap(List::stream)
+			    		    .collect(Collectors.toList());
+			    }
+			    if (!allMembers.isEmpty()) {
+			    	int chunkSize = 100; // nombre d'id passés dans l'url
+			        Map<Integer, List<String>> chunkedMap = new HashMap<>();
+			        int chunkIndex = 0;
+			        for (int i = 0; i < allMembers.size(); i += chunkSize) {
+			            chunkedMap.put(chunkIndex++, 
+			                new ArrayList<>(allMembers.subList(i, Math.min(i + chunkSize, allMembers.size()))));
+			        }
+			        if (isAdeCampusLimitQueriesEnabled) {
+			        	for (Map.Entry<Integer, List<String>> entry : chunkedMap.entrySet()) {
+			        		allCodes.addAll(getMembersOfEvent(sessionId, String.join("|",  entry.getValue()), adeAttribute));
+			        	}
+			        } else {
+			            allCodes = allMembers.stream()
+				                .map(id -> getMembersOfEvent(sessionId, id, adeAttribute))
+				                .filter(list -> !list.isEmpty())
+				                .map(list -> list.get(0))
+				                .collect(Collectors.toList());
+			        }
+			    }
 				String filter = "code".equals(adeAttribute)? "supannEtuId" : "mail";
 				Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allCodes, filter);
 				if(!allCodes.isEmpty()) {
