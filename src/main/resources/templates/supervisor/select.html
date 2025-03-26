@@ -26,7 +26,7 @@
 					<select name="location" id="location"
                            class="slimSelectClass">
                            <option th:each="sl : ${allSessionLocations}"
-                                   th:selected="(${sl.id == sessionLocation.id})"
+                                   th:selected="${sessionLocation ne null and sl.id eq sessionLocation.id}"
                                    th:value="${sl.id}" th:text="${sl.location.nom}"></option>
                    </select>
 				</div>

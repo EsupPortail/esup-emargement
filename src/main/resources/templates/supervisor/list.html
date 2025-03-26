@@ -164,7 +164,7 @@
 						  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 						</div>
 						<div th:fragment="search_list" th:with="blockId=${(sessionLocation != null) ? sessionLocation.id : ''}" th:id="${'resultsBlock' + blockId}">
-							<div th:if="${#ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
+							<div th:if="${tagCheck ne null and tagCheck.person ne null and #ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
 							  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
 							  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 							</div>
