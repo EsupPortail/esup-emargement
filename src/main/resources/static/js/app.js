@@ -402,29 +402,6 @@ function createSunEditor(id) {
 	return editor;
 }
 
-//Ajax count nb Etu
-function countItem(apogeeBean, countUrl, type) {
-	$.ajax({
-		url: countUrl,
-		contentType: "application/json",
-		data: apogeeBean,
-		success: function(data) {
-			if (type == "matiere") {
-				$("#nbInscritsMatiere").text("[" + data + "]");
-			}
-			if (type == "groupe") {
-				$("#nbInscritsGroupe").text("[" + data + "]");
-			}
-			if (type == "composante") {
-				$("#nbInscritsComposante").text("[" + data + "]");
-			}
-			if (type == "diplome") {
-				$("#nbInscritsEtp").text("[" + data + "]");
-			}
-		}
-	});
-}
-
 //Recherches...
 function submitSearchForm(id, url, endUrl) {
 	var search = document.getElementById(id);
@@ -745,34 +722,6 @@ function chartBar(data1, label1, id, transTooltip, formatDate, data2, label2) {
 		});
 	}
 }
-//Choix lieu import
-function getLocations(type) {
-	$('#formImportCascading' + type).cascadingDropdown({
-		selectBoxes: [{
-			selector: '.step1Import'
-		}, {
-			selector: '.step2Import',
-			requires: ['.step1Import'],
-			source: function(request, response) {
-				$.getJSON(emargementContextUrl + "/manager/extraction/searchLocations", request, function(data) {
-					response($.map(data, function(item, index) {
-						return {
-							label: item.location.nom + " (" + item.capacite + ")",
-							value: item.id,
-						};
-					}));
-				});
-			},
-		}],
-		onChange: function(event, value, requiredValues, requirementsMet) {
-			var sessionEpreuveCsv = $('#sessionEpreuve' + type).val();
-		},
-		onReady: function(event, value, requiredValues, requirementsMet) {
-			$('#sessionLocation' + type).prop("disabled", false)
-		}
-	});
-}
-
 
 //jstree
 function openAndCheckNodes(nodeIds) {
@@ -1158,8 +1107,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	//submit export inscrits
-	var submitExport = document.getElementById('submitExport');
-	if (submitExport != null) {
+	var submitExport = document.getElementById('submitExport')
+	if (submitExport) {
 		var importBtn = document.getElementById('import');
 		$(".statusExport").hide();
 		importBtn.addEventListener('click', function(e) {
@@ -1172,92 +1121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				submitExport.submit();
 			}
 		});
-
-		$('#formApogee').cascadingDropdown({
-			selectBoxes: [{
-				selector: '.step1'
-			}, {
-				selector: '.step2'
-			}, {
-				selector: '.step3',
-			}, {
-				selector: '.step4',
-				requires: ['.step1', '.step2', '.step3'],
-				source: function(request, response) {
-					$.getJSON(emargementContextUrl + "/manager/extraction/search/diplome", request, function(data) {
-						$("#nbCodEtp").text("[" + data.length + "]");
-						response($.map(data, function(item, index) {
-							return {
-								label: item.libEtp,
-								value: item.codEtp,
-								selected: index == 0 // Select first available option
-
-							};
-						}));
-					});
-				},
-			}, {
-				selector: '.step5',
-				requires: ['.step1', '.step2', '.step3', '.step4'],
-				source: function(request, response) {
-					$.getJSON(emargementContextUrl + "/manager/extraction/search/matiere", request, function(data) {
-						$("#nbCodElp").text("[" + data.length + "]");
-						response($.map(data, function(item, index) {
-
-							return {
-								label: item.libElp + " (" + item.codElp + ")",
-								value: item.codElp,
-								selected: index == 0 // Select first available option
-
-							};
-						}));
-					});
-				},
-			}, {
-				selector: '.step6',
-				requires: ['.step1', '.step2', '.step3', '.step4', '.step5'],
-				source: function(request, response) {
-					$.getJSON(emargementContextUrl + "/manager/extraction/search/groupe", request, function(data) {
-						$("#nbCodExtGpe").text("[" + data.length + "]");
-
-						response($.map(data, function(item, index) {
-							return {
-								label: item.libGpe + " (" + item.codExtGpe + ")",
-								value: item.codExtGpe,
-								selected: index == 0 // Select first available option
-
-							};
-						}));
-					});
-				},
-			}],
-			onChange: function(event, value, requiredValues, requirementsMet) {
-				var apogeeBean = {
-					"codCmp": codCmp.value,
-					"codAnu": codAnu.value,
-					"codEtp": codEtp.value,
-					"codElp": codElp.value,
-					"codSes": codSes.value,
-					"codExtGpe": codExtGpe.value
-				};
-				var countUrlGroupe = emargementContextUrl + "/manager/extraction/countAutorises/groupe";
-				var countUrlDiplome = emargementContextUrl + "/manager/extraction/countAutorises/diplome";
-				var countUrlComposante = emargementContextUrl + "/manager/extraction/countAutorises/composante";
-				var countUrl = emargementContextUrl + "/manager/extraction/countAutorises/matiere";
-
-				countItem(apogeeBean, countUrlDiplome, "diplome");
-				countItem(apogeeBean, countUrl, "matiere");
-				countItem(apogeeBean, countUrlGroupe, "groupe");
-				countItem(apogeeBean, countUrlComposante, "composante");
-			}
-		});
 	}
-
-	//Choix lieu import
-	getLocations("Ldap");
-	getLocations("Csv");
-	getLocations("Groupe");
-	getLocations("");
 
 	var importUsersLdapform = document.getElementById('importUsersLdapform');
 	if (importUsersLdapform != null) {
@@ -2467,11 +2331,13 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 	//assiduité page
-	['groupe', 'sessionEpreuve'].forEach(id => {
-	    if (document.getElementById(id)) {
-	        new SlimSelect({ select: `#${id}` });
-	    }
-	});
+	if(document.getElementById("assiduitePage")){
+		['groupe', 'sessionEpreuve'].forEach(id => {
+		    if (document.getElementById(id)) {
+		        new SlimSelect({ select: `#${id}` });
+		    }
+		});
+	}
 	
 	$("#clearFilters").on("click", function(event) {
 		window.location.href = window.location.origin + window.location.pathname;
@@ -2592,21 +2458,23 @@ document.addEventListener('DOMContentLoaded', function() {
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-    setTimeout(() => {
-        if (slimSelectInstance) {
-            slimSelectInstance.destroy();
-        }
-        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
-    }, 100);
-	
-	document.addEventListener("htmx:afterRequest", function(event) {
-		if (document.getElementById("presencePage")){
-			let locationSelect = document.getElementById("location");
-			if (locationSelect.children.length > 1) {
-				locationSelect.removeAttribute("disabled");
-			} else {
-				locationSelect.setAttribute("disabled", "true");
-			}
+	if (document.getElementById("motifAbsence")){
+	    setTimeout(() => {
+	        if (slimSelectInstance) {
+	            slimSelectInstance.destroy();
+	        }
+	        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
+	    }, 100);
+	}
+});
+
+document.addEventListener("htmx:afterRequest", function(event) {
+	if (document.getElementById("presencePage")){
+		let locationSelect = document.getElementById("location");
+		if (locationSelect.children.length > 1) {
+			locationSelect.removeAttribute("disabled");
+		} else {
+			locationSelect.setAttribute("disabled", "true");
 		}
-	});
+	}
 });

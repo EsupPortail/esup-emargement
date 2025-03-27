@@ -29,9 +29,9 @@
 		  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
 				                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
 					                    <div class="row mb-3">
-					                    	<label for="codSes" class="col-lg-2 form-label">Année universitaire</label>
+											<label for="codAnu" class="col-lg-2 form-label">Année universitaire</label>
 					                    	<div class="col-lg-10">
-												<select id="codAnu" name="codAnu" required="required" class="step1"> 
+												<select id="codAnu" name="codAnu" required="required" > 
 													<option th:each="year : ${years}"
 														th:value="${year}" th:text="${year}"></option>
 												</select>
@@ -40,7 +40,7 @@
 										<div class="row mb-3">
 										    <label for="codSes"  class="col-lg-2 form-label">Code session APOGEE</label>
 										    <div class="col-lg-10">
-											    <select id="codSes" name="codSes" class="step2">
+											    <select id="codSes" name="codSes">
 											      <option>0</option>
 											      <option selected="selected">1</option>
 											      <option>2</option>
@@ -49,75 +49,136 @@
 										</div>
 				                    	<div class="row mb-3">
 				                    		<div class="col-lg-2">
-					                    		<label for="composante" class="form-label">Composantes</label>
+												<label for="codCmp" class="form-label">Composantes</label>
 					                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
-												<span class='ml-2 text-primary font-weight-bold' id="nbInscritsComposante">[0]</span>
+												<span id="nbInscritsComposante"
+												      class="ml-2 text-primary font-weight-bold"
+													  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/composante|}"
+												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes"
+												      hx-include="#codAnu, #codSes, #codCmp"
+												      hx-target="#nbInscritsComposante"
+												      hx-swap="innerHTML">[0]</span>
 					                    	</div>
 					                    	<div class="col-lg-10">
-												<select  th:id="codCmp" th:name="codCmp" required="required" class="step3">
-													<option value ="">-----choisir----</option>
-													<option th:each="composante : ${allComposantes}"
-														th:value="${composante.codCmp}" th:text="${composante.libCmp}"></option>
+												<select th:id="codCmp" th:name="codCmp" required="required"
+													th:hx-get="@{|/${eContext}/manager/extraction/search/diplome|}"
+												    hx-trigger="change"
+												    hx-target="#codEtp"
+													hx-include="#codAnu, #codSes, #codCmp">
+												    <option value="">-----choisir----</option>
+												    <option th:each="composante : ${allComposantes}"
+												        th:value="${composante.codCmp}" th:text="${composante.libCmp}"></option>
 												</select>
 											</div>
 										</div>
 				                    	<div class="row mb-3">
 				                    		<div class="col-lg-2">
 					                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
-					                    		<span class='ml-2 text-success font-weight-bold' id='nbCodEtp'>[0]</span>
-												<span class='ml-2 text-primary font-weight-bold' id="nbInscritsEtp">[0]</span>
+												<span id="nbCodEtp"
+												      class="ml-2 text-success font-weight-bold"
+													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/diplome|}"
+												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
+												      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
+												      hx-target="#nbCodEtp"
+												      hx-swap="innerHTML">[0]</span>
+												<span id="nbInscritsEtp"
+												      class="ml-2 text-primary font-weight-bold"
+													  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/diplome|}"
+												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
+												      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
+												      hx-target="#nbInscritsEtp"
+												      hx-swap="innerHTML">[0]</span>
 					                    	</div>
 					                    	<div class="col-lg-10">
-												<select th:id="codEtp" th:name="codEtp" class="step4">
+												<select th:id="codEtp" th:name="codEtp"
+													th:hx-get="@{|/${eContext}/manager/extraction/search/matiere|}"
+													hx-trigger="change"
+													hx-target="#codElp"
+													hx-include="#codAnu, #codSes, #codCmp, #codEtp">
 												</select>
 											</div>
 										</div>	
 				                    	<div class="row mb-3">
 				                    		<div class="col-lg-2">
 					                    		<label for="codElp" id="labelCodElp"  class="form-label">Matières</label>
-					                    		<span class='ml-2 text-success font-weight-bold' id='nbCodElp'>[0]</span>
-					                    		<span class='ml-2 text-primary font-weight-bold' id="nbInscritsMatiere">[0]</span>
+												<span id="nbCodElp"
+												      class="ml-2 text-success font-weight-bold"
+													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/matiere|}"
+												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
+												      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
+												      hx-target="#nbCodElp"
+												      hx-swap="innerHTML">[0]</span>
+												<span id="nbInscritsMatiere"
+											      class="ml-2 text-primary font-weight-bold"
+												  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/matiere|}"
+											      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
+											      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
+											      hx-target="#nbInscritsMatiere"
+											      hx-swap="innerHTML">[0]</span>
 					                    	</div>
 					                    	<div class="col-lg-10">
-												<select th:id="codElp" th:name="codElp" class="step5"></select>
+												<select th:id="codElp" th:name="codElp"
+													th:hx-get="@{|/${eContext}/manager/extraction/search/groupe|}"
+													hx-trigger="change"
+													hx-target="#codExtGpe"
+													hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"></select>
 											</div>
 										</div>	
 				                    	<div class="row mb-3">
 				                    		<div class="col-lg-2">
 					                    		<label for="codExtGpe" id="labelCodExtGpe"  class="form-label">Groupes</label>
-					                    		<span class='ml-2 text-success font-weight-bold' id='nbCodExtGpe'>[0]</span>
-					                    		<span class='ml-2 text-primary font-weight-bold' id="nbInscritsGroupe">[0]</span>
+												<span id="nbCodExtGpe"
+												      class="ml-2 text-success font-weight-bold"
+													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/groupe|}"
+													  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
+													    change from:#codExtGpe"
+												      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
+												      hx-target="#nbCodExtGpe"
+												      hx-swap="innerHTML">[0]</span>
+												<span id="nbInscritsGroupe"
+												  class="ml-2 text-primary font-weight-bold"
+												  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/groupe|}"
+												  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
+												   change from:#codExtGpe"
+												  hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
+												  hx-target="#nbInscritsGroupe"
+												  hx-swap="innerHTML">[0]</span>
 					                    	</div>
 					                    	<div class="col-lg-10">
-												<select th:id="codExtGpe" th:name="codExtGpe" class="step6"></select>
+												<select th:id="codExtGpe" th:name="codExtGpe"></select>
 											</div>
 										</div>
-										<div id="formImportCascading">
-						                    <div class="row mb-3">
-						                    	<div class="col-lg-2">
-						                    		<label for="sessionEpreuve" class="form-label">Session « d’émargement »</label>
-						                    	</div>
-						                    	<div class="col-lg-10">
-													<select name="sessionEpreuve"  id="sessionEpreuve" class="step1Import">
-														<option value ="">-----choisir----</option>
-														<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-															th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
-													</select>
-												</div>
-											</div>
-											<div class="row mb-3">              				
-						                    	<div class="col-lg-2">
-						                    		<label for="lieuImport" class="form-label">Lieu</label>
-						                    	</div>
-						                    	<div class="col-lg-10">	
-													<select name="sessionLocation"  id="sessionLocation" class="step2Import">
-														<option value ="">-----Aucun----</option>
-													</select>
-												</div>
-											</div>
-										</div>				
+									    <div class="row mb-3">
+									        <div class="col-lg-2">
+									            <label for="sessionEpreuve" class="form-label">Session d’émargement</label>
+									        </div>
+									        <div class="col-lg-10">
+									            <select name="sessionEpreuve" id="sessionEpreuve"
+													th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+									                hx-trigger="change"
+									                hx-target="#sessionLocation"
+									                hx-include="#sessionEpreuve"
+									                hx-swap="innerHTML">
+									                <option value="">-----choisir----</option>
+									                <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+									                    th:value="${sessionEpreuve.id}"
+									                    th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+									                </option>
+									            </select>
+									        </div>
+									    </div>
+									    <div class="row mb-3">
+									        <div class="col-lg-2">
+									            <label for="sessionLocation" class="form-label">Lieu</label>
+									        </div>
+									        <div class="col-lg-10">
+									            <select name="sessionLocation" id="sessionLocation">
+									                <option value="">-----Aucun----</option>
+									            </select>
+									        </div>
+									    </div>
 				                        <div class="row">
-			                            <div class="mt-5">
+			                            	<div class="mt-5">
 				                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
 				                                <button id="import" type="submit" class="btn btn-primary" th:object="${apogeebean}" th:formaction="@{/{ctx}/manager/extraction/importFromApogee(ctx=${eContext})}">
 				                                <span class="spinner-border spinner-border-sm mr-2 statusExport" role="status" aria-hidden="true"></span>Importer</button>
@@ -157,24 +218,29 @@
 											    </select>
 										    </div>
 									  	</div>
-									  	<div id="formImportCascadingLdap">
-						                    <div class="row mb-3">
-						                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session « d’émargement »</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionEpreuveLdap"  id="sessionEpreuveLdap" class="step1Import">
-														<option value ="">-----choisir----</option>
-														<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-															th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
-													</select>
-												</div>
-											</div>
-											<div class="row mb-3">              				
-						                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionLocationLdap"  id="sessionLocationLdap" class="step2Import">
-														<option value ="">-----Aucun----</option>
-													</select>
-												</div>
+					                    <div class="row mb-3">
+					                    	<label for="sessionEpreuveLdap" class="col-lg-2 form-label">Session d’émargement</label>
+											<div class="col-lg-10">	
+												<select name="sessionEpreuve" id="sessionEpreuveLdap"
+													th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+												    hx-trigger="change"
+												    hx-target="#sessionLocationLdap"
+												    hx-include="#sessionEpreuveLdap"
+												    hx-swap="innerHTML">
+												    <option value="">-----choisir----</option>
+												    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+												        th:value="${sessionEpreuve.id}"
+												        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+												    </option>
+												</select>
+											</div>		
+										</div>
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
+												<select name="sessionLocationLdap"  id="sessionLocationLdap">
+													<option value ="">-----Aucun----</option>
+												</select>
 											</div>
 										</div>
 										<div class="shadow p-3 bg-body rounded">
@@ -233,24 +299,29 @@
 												<input  type="file" id="files" name="files" class="file" multiple="multiple">
 											</div>
 										</div>
-										<div id="formImportCascadingCsv">
-											<div class="row mb-3">    				
-						                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session « d’émargement »</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionEpreuveCsv"  id="sessionEpreuveCsv" class="step1Import">
-														<option value ="">-----choisir----</option>
-														<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-															th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
-													</select>
-												</div>
+										<div class="row mb-3">    				
+					                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session d’émargement</label>
+					                    	<div class="col-lg-10">	
+												<select name="sessionEpreuve" id="sessionEpreuveCsv"
+														th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+													    hx-trigger="change"
+													    hx-target="#sessionLocationCsv"
+													    hx-include="#sessionEpreuveCsv"
+													    hx-swap="innerHTML">
+													    <option value="">-----choisir----</option>
+													    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+													        th:value="${sessionEpreuve.id}"
+													        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+													    </option>
+													</select>			
 											</div>
-											<div class="row mb-3">              				
-						                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionLocationCsv"  id="sessionLocationCsv" class="step2Import">
-														<option value ="">-----Aucun----</option>
-													</select>
-												</div>
+										</div>
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
+												<select name="sessionLocationCsv"  id="sessionLocationCsv">
+													<option value ="">-----Aucun----</option>
+												</select>
 											</div>
 										</div>
 										<div class="shadow p-3 bg-body rounded">
@@ -301,30 +372,35 @@
 		                				<div class="row mb-3">
 					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Groupes</label>
 					                    	<div class="col-lg-10">	
-												<select name="groupe" id="groupe" multiple="multiple">
+												<select name="groupe" id="groupe" multiple="multiple" required>
 													<option value ="">-----choisir----</option>
 													 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
 												</select>
 											</div> 
 										</div>
-										<div id="formImportCascadingGroupe">
-											<div class="row mb-3">              				
-						                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session « d’émargement »</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionEpreuveGroupe"  id="sessionEpreuveGroupe"  class="step1Import">
-														<option value ="">-----choisir----</option>
-														<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-															th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}"></option>
-													</select>
-												</div>
-											</div>
-											<div class="row mb-3">              				
-						                    	<label for="lieuImportGroupe" class="col-lg-2 form-label">Lieu</label>
-						                    	<div class="col-lg-10">	
-													<select name="sessionLocationGroupe"  id="sessionLocationGroupe" class="step2Import">
-														<option value ="">-----Aucun----</option>
-													</select>
-												</div>
+										<div class="row mb-3">              				
+					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session d’émargement</label>
+											<div class="col-lg-10">	
+												<select name="sessionEpreuve" id="sessionEpreuveGroupe"
+														th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+													    hx-trigger="change"
+													    hx-target="#sessionLocationGroupe"
+													    hx-include="#sessionEpreuveGroupe"
+													    hx-swap="innerHTML">
+													    <option value="">-----choisir----</option>
+													    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+													        th:value="${sessionEpreuve.id}"
+													        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+													    </option>
+													</select>			
+											</div>												
+										</div>
+										<div class="row mb-3">              				
+					                    	<label for="lieuImportGroupe" class="col-lg-2 form-label">Lieu</label>
+					                    	<div class="col-lg-10">	
+												<select name="sessionLocationGroupe"  id="sessionLocationGroupe">
+													<option value ="">-----Aucun----</option>
+												</select>
 											</div>
 										</div>
 				                        <div class="row">

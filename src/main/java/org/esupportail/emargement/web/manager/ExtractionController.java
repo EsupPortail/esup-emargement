@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
+import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -123,14 +124,13 @@ public class ExtractionController {
 	}
 	
 	@GetMapping(value = "/manager/extraction")
-	public String index(Model uiModel, @RequestParam(value = "type", required = false) ExtractionType type){
-
+	public String index(Model uiModel, @RequestParam(required = false) ExtractionType type){
 		uiModel.addAttribute("listTabs", appliConfigService.getListImportExport());
 		return redirectTab(uiModel, importExportService.getDisplayType(type));
 	}
 	
-	@RequestMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
-    public String redirectTab(Model uiModel, @PathVariable("type") ExtractionType type ) {
+	@GetMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
+    public String redirectTab(Model uiModel, @PathVariable ExtractionType type ) {
 		uiModel.addAttribute("type", type.name());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
@@ -139,7 +139,7 @@ public class ExtractionController {
 			if(apogeeService != null) {
 				uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 			} else {
-				uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+				uiModel.addAttribute("allComposantes", new ArrayList<>());
 			}
 		}else if(ExtractionType.groupes.equals(type)) {
 			uiModel.addAttribute("allGroupes", groupeService.getNotEmptyGroupes());
@@ -183,7 +183,7 @@ public class ExtractionController {
 	}
 	
 	@PostMapping(value = "/manager/extraction/csvFromLdap")
-	public void csvFromLdap(@PathVariable String emargementContext, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, HttpServletResponse response){
+	public void csvFromLdap(@PathVariable String emargementContext, @RequestParam List<String> usersGroupLdap, HttpServletResponse response){
 		try {
 			if(!usersGroupLdap.isEmpty()) {
 				String filename = "users.csv";
@@ -252,61 +252,74 @@ public class ExtractionController {
 	
 	@GetMapping("/manager/extraction/search/{param}")
     @ResponseBody
-    public List<ApogeeBean> searchDiplomes(@PathVariable String param, ApogeeBean apogeeBean) {
-		List<ApogeeBean> diplomes = new ArrayList<>();
+    public String searchDiplomes(@PathVariable String param, ApogeeBean apogeeBean) {
+		List<ApogeeBean> apogeeBeans = new ArrayList<>();
+		StringBuilder options = new StringBuilder("<option value=''>Select...</option>");
 		if(apogeeService != null) {
-			HttpHeaders headers = new HttpHeaders();
-			headers.add("Content-Type", "application/json; charset=utf-8");
-			diplomes = apogeeService.searchList(param, apogeeBean);
+			apogeeBeans = apogeeService.searchList(param, apogeeBean);
+			for (ApogeeBean dip : apogeeBeans) {
+				String value = "";
+				String text = "";
+				String detail = "";
+				if("diplome".equals(param)) {
+					text= dip.getLibEtp();
+					value = dip.getCodEtp();
+				}else if("matiere".equals(param)) {
+					text= dip.getLibElp();
+					value = dip.getCodElp();
+					detail = " (" + value + ")";
+				}else if("groupe".equals(param)) {
+					text= dip.getLibGpe();
+					value = dip.getCodExtGpe();
+					detail = " (" + value + ")";
+				}
+		        options.append("<option value='").append(value).append("'>")
+		               .append(text).append(detail).append("</option>");
+		    }
 		} else {
 			log.warn("Apogée non configurée");
 		}
-        return diplomes;
+		return options.toString();
     }
 	
 	@GetMapping("/manager/extraction/searchLocations")
     @ResponseBody
-    public List<SessionLocation>  searchLocations(@RequestParam(value = "sessionEpreuveLdap", required = false) Long sessionEpreuveLdap, 
-    						@RequestParam(value = "sessionEpreuveCsv", required = false) Long sessionEpreuveCsv,
-    						@RequestParam(value = "sessionEpreuveGroupe", required = false) Long sessionEpreuveGroupe,
-    						@RequestParam(value = "sessionEpreuve", required = false) Long sessionEpreuveApogee){
-		Long seId = null;
-		List<SessionLocation>  locations = new ArrayList<>();
-		if(sessionEpreuveLdap != null) {
-			seId = sessionEpreuveLdap;
-		}else if(sessionEpreuveCsv != null) {
-			seId = sessionEpreuveCsv;
-		}else if(sessionEpreuveGroupe != null) {
-			seId = sessionEpreuveGroupe;
-		}else if(sessionEpreuveApogee != null) {
-			seId = sessionEpreuveApogee;
+    public String searchLocations(@RequestParam(required = false) Long sessionEpreuve){
+		StringBuilder options = new StringBuilder("<option value=''>-----Aucun----</option>");
+		if(sessionEpreuve != null) {
+			List<SessionLocation> locations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(sessionEpreuve);
+		    for (SessionLocation sl : locations) {
+		        options.append("<option value='").append(sl.getId()).append("'>")
+		               .append(sl.getLocation().getNom()).append(" (").append(sl.getCapacite()).append(")")
+		               .append("</option>");
+		    }
 		}
-		if(seId != null) {
-	    	HttpHeaders headers = new HttpHeaders();
-			headers.add("Content-Type", "application/json; charset=utf-8");
-			locations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(seId);
-		}
-        return locations;
+		return options.toString();
     }
     
 	@GetMapping("/manager/extraction/countAutorises/{param}")
     @ResponseBody
-    public int countNbEtudiants(@PathVariable String param, ApogeeBean apogeeBean) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
+    public String countNbEtudiants(@PathVariable String param, ApogeeBean apogeeBean) {
 		int nbEtudiants = apogeeService.countAutorises(param, apogeeBean);
-        return nbEtudiants;
+		return "[" + nbEtudiants + "]";
+    }
+	
+	@GetMapping("/manager/extraction/countItems/{param}")
+    @ResponseBody
+    public String countItems(@PathVariable String param, ApogeeBean apogeeBean) {
+		int nbItems = apogeeService.searchList(param, apogeeBean).size();
+		return "[" + nbItems + "]";
     }
 
     @GetMapping("/manager/extraction/ldap/searchGroup")
     @ResponseBody
-    public  List<String> searchGroupsLdap(@RequestParam("searchValue") String searchValue) throws InvalidNameException {
+    public  List<String> searchGroupsLdap(@RequestParam String searchValue) throws InvalidNameException {
     	 List<String> ldapGroups = ldapGroupService.getAllGroupNames(searchValue);
     	return ldapGroups;
     }
     
     @GetMapping("/manager/extraction/ldap/searchUsers")
-    public String searchUsersLdap(Model uiModel,@RequestParam("searchGroup") String searchGroup) throws InvalidNameException {
+    public String searchUsersLdap(Model uiModel,@RequestParam String searchGroup) throws InvalidNameException {
 
 		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
@@ -316,7 +329,7 @@ public class ExtractionController {
 		if(apogeeService != null) {
 			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 		} else {
-			uiModel.addAttribute("allComposantes", new ArrayList<ApogeeBean>());
+			uiModel.addAttribute("allComposantes", new ArrayList<>());
 		}
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
 		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
@@ -327,9 +340,9 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files, @RequestParam(value="sessionEpreuveCsv", required = false) Long id, 
-    		@RequestParam(value= "sessionLocationCsv", required = false) Long slId, @RequestParam(value="importTagchecker", required = false) String importTagchecker,
-    		@RequestParam(value="role", required = false) String role, @RequestParam(value="speciality", required = false) String speciality,
+    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files, @RequestParam(value="sessionEpreuve", required = false) Long id, 
+    		@RequestParam(value= "sessionLocationCsv", required = false) Long slId, @RequestParam(required = false) String importTagchecker,
+    		@RequestParam(required = false) String role, @RequestParam(required = false) String speciality,
     		final RedirectAttributes redirectAttributes) throws Exception {
     	List<InputStream> streams = new ArrayList<>();
     	for(MultipartFile file : files) {
@@ -365,9 +378,9 @@ public class ExtractionController {
     
     @PostMapping("/manager/extraction/importFromLdap")
     @Transactional
-    public String importFromLdap(@PathVariable String emargementContext, @RequestParam(value="sessionEpreuveLdap", required = false) Long id, @RequestParam(value = "usersGroupLdap") List<String> usersGroupLdap, 
-    		@RequestParam(value="sessionLocationLdap", required = false) Long slId, @RequestParam(value="importTagchecker", required = false) String importTagchecker,
-    		@RequestParam(value="role", required = false) String role, @RequestParam(value="speciality", required = false) String speciality, final RedirectAttributes redirectAttributes) throws Exception {
+    public String importFromLdap(@PathVariable String emargementContext, @RequestParam(value="sessionEpreuve", required = false) Long id, @RequestParam List<String> usersGroupLdap, 
+    		@RequestParam(value="sessionLocationLdap", required = false) Long slId, @RequestParam(required = false) String importTagchecker,
+    		@RequestParam(required = false) String role, @RequestParam(required = false) String speciality, final RedirectAttributes redirectAttributes) throws Exception {
     	if(importTagchecker == null) {
     		List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
         	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
@@ -383,7 +396,7 @@ public class ExtractionController {
     
     @PostMapping("/manager/extraction/importFromGroupe")
     @Transactional
-    public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuveGroupe") Long id, @RequestParam("groupe") List<Long> idGroupe,
+    public String importFromGroupe(@PathVariable String emargementContext,  @RequestParam("sessionEpreuve") Long id, @RequestParam("groupe") List<Long> idGroupe,
     		@RequestParam(value="sessionLocationGroupe", required = false) Long slId, final RedirectAttributes redirectAttributes) throws Exception {
     	List<String> usersGroupe = groupeService.getUsersForImport(idGroupe);
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupe);
