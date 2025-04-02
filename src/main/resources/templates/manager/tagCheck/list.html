@@ -5,7 +5,7 @@
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
 		<nav th:replace="fragments/modalMsg :: modalMsg"></nav>
-		<div class="container-fluid">
+		<div class="container-fluid" id="tagChecksListPage">
            	<div class="card">
 				<div class="d-flex justify-content-center align-items-center w-100 pb-2">
 					<div class="toast-container  position-fixed top-0 start-0 p-3">
@@ -113,7 +113,13 @@
 						<form action="#" th:action="@{|/${eContext}/manager/tagCheck/sessionEpreuve/${sid}|}" id="formSearch" class=" alert alert-dark pl-2 pr-0">
 							<div class="row">
 			    				<div class="col">
-									<input type="text" name="eppn" th:value="${eppn}" class="form-control me-1" placeholder="Recherche" id="searchTagCheck">
+									<input type="hidden" th:id="eppn" th:name="eppn"/>
+									<input type="hidden" th:value="${sessionEpreuve.id}" name="seId" id="seId"/>
+									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/tagCheck|}" type="email"
+										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator" hx-include="#seId"
+										autocomplete="off" placeholder="Recherche sur Eppn / num identifiant">
+									<div id="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>	
 								</div>
 								<div class="col">
 					    			<select name="tempsAmenage" id="tempsAmenage" class="form-select  me-1"> 
@@ -178,7 +184,7 @@
 										<button type="button" data-bs-dismiss="toast" class="btn btn-sm btn-primary me-1 userToast" 
 										th:attr="data-whatever=${tagCheck.person.eppn + '//' + tagCheck.person.nom + '//' + tagCheck.person.prenom + '//' + tagCheck.person.numIdentifiant+ '//' + tagCheck.codeEtape}">
 										<i class="fa fa-user" aria-hidden="true"></i></button>
-										<a th:href="@{|/${eContext}/manager/individu?eppnTagCheck=${tagCheck.person.eppn}|}"><span th:text="${tagCheck.person.eppn}"></span></a>
+										<a th:href="@{|/${eContext}/manager/individu?typeSearch=tagCheck&searchString=${tagCheck.person.eppn}|}"><span th:text="${tagCheck.person.eppn}"></span></a>
 									</td>
 									<td th:unless="${tagCheck.person != null}">
 										<a th:href="@{|/${eContext}/manager/individu?eppnTagCheck=${tagCheck.guest.email}|}">

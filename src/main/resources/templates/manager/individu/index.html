@@ -17,25 +17,44 @@
   					<form th:action="@{|/${eContext}/manager/individu|}" id="formSearch" class="mb-3">
 						<div class="row">
 							<input type="hidden" id="datesRange" name="datesRange">
+							<input type="hidden" id="typeSearch" name="typeSearch">
 							<div class="col">
-								<input type="text" placeholder="Recherche Session" name="sessionEpreuve" value="" 
-									class="form-control form-control-underlined border-primary" id="searchSession" >
+								<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="sessionEpreuve"
+									th:hx-get="@{|/${eContext}/supervisor/search/individuSessionEpreuve|}" hx-trigger="keyup changed"
+									hx-target="#searchResults1" hx-indicator=".htmx-indicator" autocomplete="off" 
+									th:attr="placeholder=${'Recherche session'}" >
+								<div id="searchResults1"  class="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>					
 							</div>	
 							<div class="col">
-								<input type="text" placeholder="Recherche Inscrit" name="eppnTagCheck" value="" 
-									class="form-control form-control-underlined border-primary" id="searchIndividuTagCheck" >
+								<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
+									th:hx-get="@{|/${eContext}/supervisor/search/individuTagCheck|}" hx-trigger="keyup changed"
+									hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche Inscrit">
+								<div id="searchResults2" class="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 							</div>
 							<div class="col">
-								<input type="text" placeholder="Recherche Groupe" name="idGroupe" value="" 
-									class="form-control form-control-underlined border-primary" id="searchIndividuGroupe" >
+								<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="groupe"
+									th:hx-get="@{|/${eContext}/supervisor/search/individuGroupe|}" hx-trigger="keyup changed"
+									hx-target="#searchResults3" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche Groupe" >
+								<div id="searchResults3" class="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>						
 							</div>							
 							<div class="col">
-								<input type="text" th:attr="placeholder=${'Recherche ' + surveillantTerme}" name="eppnTagChecker" value="" 
-									class="form-control form-control-underlined border-primary" id="searchIndividuTagChecker" >
+								<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagChecker"
+									th:hx-get="@{|/${eContext}/supervisor/search/individuTagChecker|}" hx-trigger="keyup changed"
+									hx-target="#searchResults4" hx-indicator=".htmx-indicator" autocomplete="off"  th:attr="placeholder=${'Recherche ' + surveillantTerme}" >
+								<div id="searchResults4"  class="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>						
 							</div>
 						</div>
 					</form>
 					<div th:if="${not #lists.isEmpty(tagChecksPage)}">
+						<div class="alert alert-info mt-2 row">
+							<div class="col"><strong>Inscrit : </strong>
+								<span th:text="${individu.person.nom + ' ' + individu.person.prenom}"></span>
+							</div>
+						</div>
 						<table class="table table-hover table-striped table-bordered assiduite2"
 							th:attr="data-export-title=${individu.person.eppn +  '_details_par_annee'}" style="width:100%">
 							<thead class="sticky-top">
@@ -61,7 +80,7 @@
 										(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre? 'table-warning' : '')}">
 									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
 									<td> 
-										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></a>
+										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></a>
 										<th:block th:if="${tagCheck.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>
@@ -119,36 +138,6 @@
 							</tbody>
 						</table>
 					</div>
-					<div th:if="${not #lists.isEmpty(sePage)}">
-						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
-							<div class="col"><strong>Groupe : </strong>
-								<span th:text="${groupe.nom + ' [' + groupe.anneeUniv + ']  -- Sessions'}"></span>
-								<a th:href="@{/{ctx}/manager/individu?idGroupe={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-outline-primary">Voir membres</a>
-							</div>
-						</div>
-						<table class="table assiduite" style="width:100%" th:attr="data-export-title=${groupe.nom + ' [' + groupe.anneeUniv + ']'}">
-							<thead>
-								<tr>
-									<th class="dateItem">Date</th>
-									<th>Session</th>
-									<th>Type</th>
-									<th class="exclude">Voir</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr th:each="se : ${sePage}">
-									<td>
-										<span th:text="${#dates.format(se.dateExamen, 'dd/MM/yy')}"></span><br/>
-										<span th:if="${se.dateFin != null}" th:text="${#dates.format(se.dateFin,'dd/MM/yy')}"></span>
-									</td>
-									<td th:text="${se.nomSessionEpreuve}"></td>
-									<td th:text="${se.typeSession.libelle}"></td>
-									<td><a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(id=${se.id},ctx=${eContext})}" title ="Voir session">
-										<i class="fa fa-eye text-primary"></i></a></td>
-								</tr>
-							</tbody>
-						</table>		
-					</div>
 					<div th:if="${not #lists.isEmpty(tagCheckersPage)}">
 						<div class="alert alert-info mt-2" th:if="${#ctx.containsVariable('individu')}">
 							<strong th:text="${surveillantTerme + ' :'}"></strong>
@@ -167,7 +156,7 @@
 							<tbody>
 								<tr th:each="tagChecker : ${tagCheckersPage}">
 									<td> 
-										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${tagChecker.sessionEpreuve.id},ctx=${eContext})}" 
+										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${tagChecker.sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></a>
 										<th:block th:if="${tagChecker.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
@@ -184,7 +173,6 @@
 						<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('groupe')}">
 							<div class="col"><strong>Groupe : </strong>
 								<span th:text="${groupe.nom + ' [' + groupe.anneeUniv + ']'}"></span>
-								<a th:href="@{/{ctx}/manager/individu?sessions={groupeId}(groupeId=${groupe.id},ctx=${eContext})}" class="ms-2 btn btn-sm btn-primary">Voir sessions</a>
 							</div>
 						</div>
 						<table class="table table-hover table-striped table-bordered assiduite" style="width:100%" 
@@ -214,14 +202,14 @@
 										<span  th:text="${assiduite.value.percentPresent + ' %'}"></span>
 									</td>
 									<td th:text="${assiduite.value.detailPerence}"></td>
-									<td class="text-center"><a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${assiduite.key.eppn}, ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
+									<td class="text-center"><a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${assiduite.key.eppn}, ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 									</td>									
 								</tr>
 							</tbody>
 						</table>						
 					</div>
 					<div class="alert alert-info mt-2 row" th:if="${#ctx.containsVariable('activite')}">
-						<div class="col fw-bold"><strong>Activité : </strong>
+						<div class="col fw-bold"><strong>Session : </strong>
 							<span th:text="${activite.nomSessionEpreuve + #dates.format(activite.dateExamen, ' dd/MM/yy') + 
 													#dates.format(activite.heureEpreuve, ' HH:mm') + '-' + #dates.format(activite.finEpreuve, 'HH:mm')}"></span>
 							 <span class="badge text-bg-success ms-3"><span th:text="${nbBadgeage}"></span> / <span th:text="${#lists.size(activitePage)}"></span></span>
@@ -262,60 +250,6 @@
 									        </th:block>
 									    </span>
 									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div th:if="${#lists.isEmpty(absencesPage)}" class="mt-3">
-						Aucun résultat.
-					</div>
-					<div th:if="${not #lists.isEmpty(absencesPage)}" class="mt-3">
-						<table class="table table-hover table-striped table-bordered table-sm assiduite" style="width:100%" th:attr="data-export-title=${activite}">
-							<thead>
-								<tr>
-									<th>Session</th>
-									<th>Type</th>
-									<th>Date</th>
-									<th>Début</th>
-									<th>Fin</th>
-									<th>Civilité</th>
-									<th>Nom</th>
-									<th>Prénom</th>
-									<th>Num Etu</th>
-									<th>Groupe</th>
-									<th class="text-center">Absence</th>
-									<th class="text-center">Cumul absences (heures)</th>
-									<th class="text-center">Cumul absences (jours)</th>
-									<th class="text-center">Cumul absences (sessions)</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr th:each="tc : ${absencesPage}" th:with="individu=${(tc.person != null) ? tc.person : tc.guest},
-									sessionEpreuve=${tc.sessionEpreuve}">
-									<td>
-										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
-											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
-									</td>
-									<td th:text="${sessionEpreuve.typeSession.key}"></td>
-									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
-									<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
-									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
-									<td th:text="${individu.civilite}"></td>
-									<td>
-										<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
-										<th:block th:if="${sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
-									</td>
-									<td th:text="${individu.prenom}"></td>
-									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
-									<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
-									<!-- >td class="text-center" th:text="${#strings.toUpperCase(tc.tagChecker.userApp.nom) + ' ' + tc.tagChecker.userApp.prenom}"></td-->
-									<td class="text-danger fw-bold">
-										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
-											th:text="${tc.absence.motifAbsence.libelle + ' [' + tc.absence.motifAbsence.typeAbsence + '] '}"></th:block>
-									</td>
-									<td class="text-center" th:text="${mapTcs.get(tc.person.eppn)}"></td>
-									<td class="text-center" th:text="${mapDays.get(tc.person.eppn)}"></td>
-									<td class="text-center" th:text="${mapSessions.get(tc.person.eppn)}"></td>
 								</tr>
 							</tbody>
 						</table>

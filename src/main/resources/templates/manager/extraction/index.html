@@ -191,11 +191,15 @@
 		                     <div class = "col-lg-12" th:if="${type == 'ldap' and #strings.contains(listTabs, 'L')}">
 		                     	<div class="bg-light p-3 ">
 		                     		<div class="card-header h3 pl-2 mb-2">Ldap </div>
-				                    <form id="searchLdapGroupForm" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
+				                    <form id="formSearch" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
 				                   		<div class="row mb-3">
 					                    	<label for="codSes" class="col-lg-2 form-label">Groupes Ldap</label>
 					                    	<div class="col-lg-10">
-												<input type="text" th:value="${group}" name="searchGroup" id="searchGroup" class="form-control" placeholder="Recherchez ici ..."/>
+												<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
+													th:hx-get="@{|/${eContext}/supervisor/search/ldapGroups|}" hx-trigger="keyup changed" required="required"
+													hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche groupe" th:value="${group}">
+												<div id="searchResults2" class="searchResults"></div>
+												<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 											</div>
 										</div>
 									</form>

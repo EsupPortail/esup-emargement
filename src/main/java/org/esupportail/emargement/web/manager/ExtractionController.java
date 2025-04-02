@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
-import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -319,7 +318,7 @@ public class ExtractionController {
     }
     
     @GetMapping("/manager/extraction/ldap/searchUsers")
-    public String searchUsersLdap(Model uiModel,@RequestParam String searchGroup) throws InvalidNameException {
+    public String searchUsersLdap(Model uiModel, @RequestParam(value="searchString") String searchGroup) throws InvalidNameException {
 
 		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);

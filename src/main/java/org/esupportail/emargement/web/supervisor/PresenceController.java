@@ -457,16 +457,6 @@ public class PresenceController {
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
-
-    @GetMapping("/supervisor/searchUsersLdap")
-    @ResponseBody
-    public List<LdapUser> searchLdap(@RequestParam String searchValue) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<>();
-    	userAppsList = ldapService.search(searchValue);
-        return userAppsList;
-    }
     
     @GetMapping("/supervisor/searchEmails")
     @ResponseBody
@@ -480,15 +470,15 @@ public class PresenceController {
     }
     
     @PostMapping("/supervisor/add")
-    public String addFreeUser(@PathVariable String emargementContext, @RequestParam Long slId, @RequestParam String eppn) {
+    public String addFreeUser(@PathVariable String emargementContext, @RequestParam Long slId, @RequestParam String searchString) {
     	
     	SessionLocation sl = sessionLocationRepository.findById(slId).get();
-    	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, eppn, emargementContext, sl);
-    	String msgError = (isBlackListed) ? "&msgError=" + eppn : "";
+    	boolean isBlackListed = presenceService.saveTagCheckSessionLibre(slId, searchString, emargementContext, sl);
+    	String msgError = (isBlackListed) ? "&msgError=" + searchString : "";
     	if(!isBlackListed && sl.getSessionEpreuve().getBlackListGroupe()!=null && BooleanUtils.isTrue(sl.getSessionEpreuve().getIsSaveInExcluded())) {
     		List <Long> idsGpe = new ArrayList<>();
     		idsGpe.add(sl.getSessionEpreuve().getBlackListGroupe().getId());
-    		groupeService.addMember(eppn,idsGpe);
+    		groupeService.addMember(searchString,idsGpe);
     	}
 
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" + msgError , emargementContext, 

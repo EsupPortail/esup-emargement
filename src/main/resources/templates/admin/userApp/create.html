@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="createUserApp">
            	<div class="card">
 		    	<div class="card-header"><h2>Ajouter un agent</h2></div>
 		    	<div  class="alert alert-danger" th:if="${error}">L'agent avec l'eppn <strong><span th:text="${eppn}"></span></strong> existe déjà!!</div>
@@ -13,7 +13,12 @@
 	                    <div class="row mb-3">
 	                    	<label for="eppn" class="col-lg-2 form-label">Eppn</label>
 	                    	<div class="col-lg-10">
-								<input type="email" th:field="*{eppn}" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" >
+								<input type="hidden" th:id="eppn" th:name="eppn"/>
+								<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" type="email"
+									hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+									autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+								<div id="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 							</div>
 						</div>
 						<div class="row mb-3" th:if="${#ctx.containsVariable('ldapUser')}">

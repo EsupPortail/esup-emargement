@@ -32,7 +32,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,7 +42,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -237,13 +235,17 @@ public class SuperAdminController {
     	return String.format("redirect:/%s/superadmin/admins?key=%s", emargementContext, userApp.getContext().getKey());
     }
     
-    @GetMapping("/searchUsersLdap")
-    @ResponseBody
-    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<LdapUser> userAppsList = new ArrayList<>();
-    	userAppsList = ldapService.search(searchValue);
-        return userAppsList;
+    @GetMapping("/superadmin/search-users")
+    public String searchUsers(@RequestParam(required = false)  String username, @RequestParam(required = false) String eppn, Model model) {
+    	if(eppn!=null) {
+    		username = eppn;
+    	}
+        if (username.length() < 3) {
+            model.addAttribute("users", new ArrayList<>());
+        } else {
+            List<LdapUser> userAppsList = ldapService.search(username);
+            model.addAttribute("users", userAppsList);
+        }
+        return "fragments/search-results :: searchResults";
     }
 }

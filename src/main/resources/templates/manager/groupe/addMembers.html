@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="addMembersPage">
 	        <div class="card">
 		    	<div class="card-header"><h2>Ajouter des membres</h2></div>
 	 			<div class="card-body" id="addMembersGroupe">
@@ -19,16 +19,17 @@
 								<div class="col-lg-4">
 									<label for="searchIndividu">Eppn</label>
 									<div class="col">
-										<input type="text" placeholder="Recherche Inscrit"
-											name="eppnTagCheck" value=""
-											class="form-control form-control-underlined border-primary"
-											id="searchIndividu" required="required">
+										<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
+											th:hx-get="@{|/${eContext}/supervisor/search/individuTagCheck|}" hx-trigger="keyup changed" required="required"
+											hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche Inscrit">
+										<div id="searchResults2" class="searchResults"></div>
+										<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 										<p id="tcIdentity" class="form-text"></p>
 									</div>
 								</div>
 								<div class="col-lg-8">
 									<label for="groupes">Importer dans groupe(s)</label> 
-									<select th:id="groupes" th:name="groupes" multiple="multiple">
+									<select th:id="groupes" th:name="groupes" multiple="multiple" required>
 										<option value="" data-placeholder="true"></option>
 										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
 											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>

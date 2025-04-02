@@ -63,7 +63,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -77,7 +76,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.xml.sax.SAXException;
@@ -173,7 +171,7 @@ public class SessionEpreuveController {
 
 	@GetMapping(value = "/manager/sessionEpreuve")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
-			@RequestParam(value="multiSearch", required = false) String multiSearch,
+			@RequestParam(value="multiSearch", required = false) String multiSearch, @RequestParam(required = false) Long searchString,
 			SessionEpreuve sessionSearch,  @RequestParam(value="dateSessions", required = false) String dateSessions,
 			@RequestParam(value="view", required = false) String view) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -192,7 +190,9 @@ public class SessionEpreuveController {
 		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYPERIOD);
 		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYCAMPUS);
 		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYLISTE);
-
+		if(searchString != null) {
+			sessionSearch.setId(searchString);
+		}
 		if(dateSessions == null) {
 			dateSessions = (prefsPeriod.isEmpty())? "all" : prefsPeriod.get(0).getValue();
 		}
@@ -512,16 +512,6 @@ public class SessionEpreuveController {
     			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
     	
     	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
-    }
-    
-    @GetMapping("/manager/sessionEpreuve/search")
-    @ResponseBody
-    public List<SessionEpreuve> search(@RequestParam("searchValue") String searchString) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<SessionEpreuve> sessionEpreuves= sessionEpreuveRepositoryCustom.findAll(searchString);
-    	
-        return sessionEpreuves;
     }
     
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")

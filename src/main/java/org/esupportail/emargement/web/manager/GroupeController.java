@@ -220,7 +220,7 @@ public class GroupeController {
     }
     
     @PostMapping(value = "/manager/groupe/addMember")
-    public String addOneMember(@PathVariable String emargementContext, @RequestParam(value="eppnTagCheck", required = true) String eppnTagCheck,  
+    public String addOneMember(@PathVariable String emargementContext, @RequestParam(value="searchString", required = true) String eppnTagCheck,  
     		@RequestParam(value="groupes") List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

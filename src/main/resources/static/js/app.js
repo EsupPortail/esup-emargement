@@ -176,114 +176,6 @@ function createDateFromString(dateString) {
 	return new Date(adjustedYear, month - 1, day);
 }
 
-function searchUsersAutocomplete(id, url, paramurl, maxItems) {
-	var searchBox = document.getElementById(id);
-	if (searchBox != null) {
-		var awesomplete = new Awesomplete(searchBox, {
-			minChars: 3,
-			maxItems: maxItems,
-			autoFirst: false
-		});
-		searchBox.addEventListener("keyup", function() {
-			if (this.value.length > 2) {
-				var request = new XMLHttpRequest();
-				request.open('GET', url + "?searchValue=" + this.value + paramurl, true);
-				request.onload = function() {
-					if (request.status >= 200 && request.status < 400) {
-						var data = JSON.parse(this.response);
-						var list = [];
-						data.forEach(function(value, key) {
-							var labelNumEtu = "";
-							var valueNumEtu = "";
-							if (id == "searchTagCheck" || id == "searchUserApp") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Prénom : </strong>" + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
-								list.push({
-									label: labelValue,
-									value: value.eppn + "//" + value.nom + "//" + value.prenom + valueNumEtu
-								});
-							} else if (id == "searchAssiduite") {
-								var labelValue = "<strong>Nom Prénom: </strong>" + value.nomPrenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + "<strong class='ms-2'>Code : </strong>" + value.numEtudiant;
-								valueNumEtu =  value.numEtudiant != null ? "//" + value.numEtudiant: "";
-								list.push({
-									label: labelValue,
-									value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
-								});
-							} else if (id == "searchIndividuTagCheck" || id == "searchIndividuTagChecker" || id == "searchIndividu") {
-								var labelValue = "<strong>Nom Prénom: </strong>" + value.nom + " " + value.prenom + "<strong class='ms-2'>Identifiant : </strong>" + value.identifiant + labelNumEtu
-									+ "<strong class='ms-2'>Type : </strong>" + value.typeObject;
-								list.push({
-									label: labelValue,
-									value: value.identifiant + "//" + value.nom + "//" + value.prenom + valueNumEtu
-								});
-							}
-							else if (id == "searchIndividuGroupe") {
-								var labelValue = "<strong>Nom : </strong>" + value.groupe.nom + "<strong> Année : </strong>" + value.groupe.anneeUniv
-								list.push({
-									label: labelValue,
-									value: value.groupe.id + "//" + value.groupe.nom
-								});
-							}else if (id == "searchSession") { 
-								value = value.sessionEpreuve;
-								var realDate = value.dateExamen.substring(0, 10);
-								var splitDate = realDate.split("-");
-								var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
-								var heureExamen = value.heureEpreuve.substring(0, 5);
-								var heureFin = value.finEpreuve.substring(0, 5);
-								var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + 
-									value.campus.site + "<strong class='ms-2'>Date : </strong>" + frDate + "<strong class='ms-2'>Heure : </strong>" + heureExamen + " -" + heureFin;
-								list.push({
-									label: labelValue,
-									value: value.id
-								})
-							}
-							else if (id == "searchLocation") {
-								var labelValue = "<strong>Nom : </strong>" + value.nom + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Adresse : </strong>" +
-									value.adresse;
-								list.push({
-									label: labelValue,
-									value: value.nom + "//" + value.campus.site + "//" + value.adresse
-								});
-							} else if (id == "searchSessionEpreuve") {
-								var realDate = value.dateExamen.substring(0, 10);
-								var splitDate = realDate.split("-");
-								var frDate = splitDate[2] + "-" + splitDate[1] + "-" + splitDate[0];
-								var labelValue = "<strong>Nom : </strong>" + value.nomSessionEpreuve + "<strong class='ms-2'>Site : </strong>" + value.campus.site + "<strong class='ms-2'>Date : </strong>" +
-									frDate;
-								list.push({
-									label: labelValue,
-									value: value.id
-								});
-							} else if (id == "searchGroup") {
-								list.push(value);
-							} else {
-								if (value.numEtudiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numEtudiant;
-									valueNumEtu = "//" + value.numEtudiant
-								}
-								if (value.name != null) {
-									var labelValue = "<strong>Individu: </strong>" + value.name + " " + value.prenom + "<strong class='ms-2'>Eppn : </strong>" + value.eppn + labelNumEtu;
-									list.push({
-										label: labelValue,
-										value: value.eppn + "//" + value.name + "//" + value.prenom + valueNumEtu
-									});
-								}
-								if (value.numIdentifiant != null) {
-									labelNumEtu = "<strong class='ms-2'>N° Identifiant : </strong>" + value.numIdentifiant;
-									valueNumEtu = "//" + value.numEtudiant
-								}
-							}
-						});
-						awesomplete.list = list;
-					} else {
-						console.log("erreur du serveur!");
-					}
-				};
-				request.send();
-			}
-		});
-	}
-}
-
 //Configs
 function displayFormconfig(val, valeur) {
 	var checkTrue = "";
@@ -400,23 +292,6 @@ function createSunEditor(id) {
 		]
 	});
 	return editor;
-}
-
-//Recherches...
-function submitSearchForm(id, url, endUrl) {
-	var search = document.getElementById(id);
-	if (search != null) {
-		search.onfocus = function() {
-			this.value = "";
-		};
-		searchUsersAutocomplete(id, url, endUrl, 100);
-		var formSearch = document.getElementById("formSearch");
-		search.addEventListener("awesomplete-selectcomplete", function(event) {
-			var splitResult = this.value.split("//");
-			search.value = splitResult[0].toString().trim();
-			formSearch.submit();
-		});
-	}
 }
 
 //Couleurs pour graphiques stats
@@ -920,50 +795,6 @@ function setupModal(modalId, fields) {
 }
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
-	//Autocomplete
-	var userAppEppn = document.getElementById("eppn");
-	var numIdentifiant = document.getElementById("numIdentifiant");
-	var superAdmin = document.getElementById("searchSuperAdmin");
-	var searchAssiduite = document.getElementById("searchAssiduite");
-
-	if (userAppEppn != null) {
-		if (superAdmin != null) {
-			searchUsersAutocomplete("eppn", emargementContextUrl + "/searchUsersLdap", "", 100);
-		} else {
-			searchUsersAutocomplete("eppn", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
-		}
-		userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
-			var splitEppn = this.value.split("//");
-			userAppEppn.value = splitEppn[0].toString().trim();
-			if(document.getElementById("resultEppn")!=null){
-				$("#resultEppn").html(splitEppn[1] + " " + splitEppn[2]);
-			}
-		});
-	}
-	//input num Etu
-	if (numIdentifiant != null) {
-		searchUsersAutocomplete("eppn", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
-		if (userAppEppn != null) {
-			userAppEppn.addEventListener("awesomplete-selectcomplete", function(e) {
-				var splitEppn = this.value.split("//");
-				userAppEppn.value = splitEppn[0].toString().trim();
-				numIdentifiant.value = (typeof splitEppn[3] == "undefined") ? "" : splitEppn[3].toString().trim();
-			});
-		}
-	}
-	
-	if (searchAssiduite != null){
-		searchUsersAutocomplete("searchAssiduite", emargementContextUrl + "/supervisor/searchUsersLdap", "", 100);
-		searchAssiduite.addEventListener("awesomplete-selectcomplete", function(e) {
-			var splitEppn = this.value.split("//");
-			var split3 = (splitEppn[3] == undefined)? ''  : " // " + splitEppn[3];
-			searchAssiduite.value = splitEppn[1] + " " + splitEppn[2] + split3;
-			$("#searchField").val(splitEppn[1] + " " + splitEppn[2] + split3);
-			$("#searchValue").val(splitEppn[0]);
-			$("#formSearch").submit();
-		});
-	}
-
 	//Messages modal bilan CSv
 	var dialogMsg = document.querySelector('#modalBilanCsvBody');
 	if (dialogMsg != null) {
@@ -1200,37 +1031,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		repartition.addEventListener('change', function(e) {
 			document.getElementById('formSearch').submit();
 		});
-	}
-
-	//Recherches
-	if (document.getElementById("searchTagCheck") != null) {
-		//     var sessionId = document.getElementById("sessionId");
-		//   submitSearchForm("searchTagCheck", emargementContextUrl + "/manager/tagCheck/searchTagCheck", "&sessionId=" + sessionId.value);
-	} else if (document.getElementById("searchUserApp") != null) {
-		submitSearchForm("searchUserApp", emargementContextUrl + "/admin/userApp/search", "");
-	} else if (document.getElementById("searchLocation") != null) {
-		submitSearchForm("searchLocation", emargementContextUrl + "/admin/location/search", "");
-	} else if (document.getElementById("searchSessionEpreuve") != null) {
-		submitSearchForm("searchSessionEpreuve", emargementContextUrl + "/manager/sessionEpreuve/search", "");
-	} else if (document.getElementById("searchIndividuTagCheck") != null && document.getElementById("searchIndividuTagChecker") != null
-		&& document.getElementById("searchIndividuGroupe") != null && document.getElementById("searchSession") != null) {
-		submitSearchForm("searchIndividuTagCheck", emargementContextUrl + "/manager/individu/search", "&type=tagCheck");
-		submitSearchForm("searchIndividuTagChecker", emargementContextUrl + "/manager/individu/search", "&type=tagChecker");
-		submitSearchForm("searchIndividuGroupe", emargementContextUrl + "/manager/individu/search", "&type=groupe");
-		submitSearchForm("searchSession", emargementContextUrl + "/manager/individu/search", "&type=sessionEpreuve");
-	} else if (document.getElementById("searchIndividu") != null) {
-		searchUsersAutocomplete("searchIndividu", emargementContextUrl + "/manager/individu/search", "&type=tagCheck", 100);
-		searchIndividu.addEventListener("awesomplete-selectcomplete", function(event) {
-			var splitResult = this.value.split("//");
-			searchIndividu.value = splitResult[0].toString().trim();
-			$("#tcIdentity").html(splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
-		});
-	}
-	else if (document.getElementById("searchSuEppn") != null) {
-		submitSearchForm("searchSuEppn", emargementContextUrl + "/superadmin/su/searchUsersLdap", "");
-	}
-	if (document.getElementById("searchLdap") != null) {
-		submitSearchForm("searchLdap", emargementContextUrl + "/supervisor/searchUsersLdap", "");
 	}
 
 	var helpForm = document.getElementById('helpForm');
@@ -1538,17 +1338,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
-	//Extraction ldap
-	var searchGroup = document.getElementById('searchLdapGroupForm');
-	var searchLdapGroupForm = document.getElementById('searchLdapGroupForm');
-	if (searchGroup != null) {
-		searchUsersAutocomplete("searchGroup", emargementContextUrl + "/manager/extraction/ldap/searchGroup", "", 100);
-
-		searchGroup.addEventListener("awesomplete-selectcomplete", function(event) {
-			searchLdapGroupForm.submit();
-		});
-	}
-
 	//select context
 	var selectContext = document.getElementById('selectContext');
 	if (selectContext != null) {
@@ -1845,11 +1634,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	if (document.getElementById("sessionSearch") != null) {
 		$("#formSearch .form-select").on("change", function(event) {
-			$("#searchSessionEpreuve").val(null);
+			$("#searchBox").val(null);
 			document.getElementById("formSearch").submit();
 		});
 		$("#formSearch #resetSearch").on("click", function(event) {
-			$("#searchSessionEpreuve").val(null);
+			$("#searchBox").val(null);
 			$("#statut").val("");
 			$("#typeSession").val("");
 			$("#campus").val("");
@@ -2127,22 +1916,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	$('table.assiduite').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
-
-	let table3 = $('table.assiduite2').DataTable(dataTableOptions).on('buttons-processing', function(e, buttonApi, dataTable, node, config) {
-		title = $(dataTable.table().node()).attr('data-export-title');
-	});
-	 
-	// Refilter the table
-	document.querySelectorAll('#min, #max').forEach((el) => {
-		el.addEventListener('change', () => table3.draw());
-	});
-	
-	sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
-	initTablePresence(sortDate);
-	
 	$('.tableTasks').DataTable({
 		responsive: true,
 		ordering: true,
@@ -2453,6 +2226,74 @@ document.addEventListener('DOMContentLoaded', function() {
 	    bodyMsg.value = editor2.getContents();
 	    this.submit();
 	});
+	
+	//Autocomplete
+	if (document.querySelector('#suPage, #presencePage, #userAppPage, #locationPage, #sessionEpreuvePage, #recherchePage, #addMembersPage, #extractionPage, #createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #assiduitePage, #tagChecksListPage')) {
+		
+	    var searchBoxes = document.querySelectorAll(".searchBox"); // Get all search inputs
+		var formSearch = document.getElementById("formSearch");
+	    searchBoxes.forEach(function (searchBox) {
+	        var awesomplete = new Awesomplete(searchBox, { minChars: 3, maxItems: 100, autoFirst: true });
+	
+	        searchBox.addEventListener("focus", function () {
+	            this.value = "";
+	        });
+	
+	        document.body.addEventListener("htmx:afterSwap", function (event) {
+	            var searchResults = document.querySelector(`#${searchBox.getAttribute("hx-target").substring(1)}`);
+	            if (searchResults && event.detail.target === searchResults) {
+	                var items = Array.from(searchResults.getElementsByClassName("result-item"));
+	                var suggestions = items.map(item => ({
+	                    label: item.innerHTML,
+	                    value: item.dataset.value
+	                }));
+	                awesomplete.list = suggestions;
+	                searchResults.hidden = true;
+	            }
+	        });
+	
+	        searchBox.addEventListener("awesomplete-selectcomplete", function (event) {
+	            var dataValue = event.text.value.trim();
+	            var selectedValue = dataValue.split("//")[0].trim();
+	            this.value = selectedValue;
+	
+	            // Get the closest hidden input related to this search box
+	            var typeSearch = document.getElementById("typeSearch");
+	            if (typeSearch) {
+	                typeSearch.value = this.getAttribute("data-typeSearch") || "";
+	            }
+				searchBoxes.forEach(input => {
+				                if (input !== searchBox) {
+				                    input.disabled = true;
+				                }
+				            });
+				if (document.querySelector("#createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #addMembersPage")){
+					var splitResult = dataValue.split("//");
+					this.value = splitResult[0].toString().trim();
+					if(document.querySelector("#createTagCheckPage, #createUserApp, #createAbsence")){
+						$("#eppn").val(splitResult[0].toString().trim());
+					}
+					if(document.getElementById("resultEppn")){
+						$("#resultEppn").html(splitResult[1] + " " + splitResult[2]);
+					}
+					if(document.getElementById("tcIdentity")){
+						$("#tcIdentity").html(splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
+					}
+				}else{
+					var splitResult = dataValue.split("//");
+					if(document.getElementById("searchField")){
+						var split3 = (splitResult[3] == undefined)? ''  : " // " + splitResult[3];
+						this.value = splitResult[1] + " " + splitResult[2] + split3;
+						$("#searchField").val(splitResult[1] + " " + splitResult[2] + split3);
+						$("#searchValue").val(splitResult[0]);
+					}else if(document.getElementById("tagChecksListPage")){
+						$("#eppn").val(splitResult[0].toString().trim());
+					}
+					formSearch.submit();
+				}
+	        });
+	    });
+	}
 });
 
 //absences dans assiduité

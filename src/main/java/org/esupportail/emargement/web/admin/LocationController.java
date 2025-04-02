@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -83,7 +81,8 @@ public class LocationController {
 	}
 
 	@GetMapping(value = "/admin/location")
-	public String list(Model model, @PageableDefault(direction = Direction.ASC, sort = "nom", size = 1)  Pageable pageable, @RequestParam(value="location", required = false) String location) {
+	public String list(Model model, @PageableDefault(direction = Direction.ASC, sort = "nom", size = 1)  Pageable pageable, 
+			@RequestParam(value="searchString", required = false) String location) {
 		
 		Long count = locationRepository.count();
 		
@@ -197,15 +196,5 @@ public class LocationController {
 			redirectAttributes.addFlashAttribute("error", "constrainttError");
 		}    	
         return String.format("redirect:/%s/admin/location", emargementContext);
-    }
-    
-    @GetMapping("/admin/location/search")
-    @ResponseBody
-    public List<Location> search(@PathVariable String emargementContext, @RequestParam("searchValue") String searchString){
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<Location> locations= locationRepositoryCustom.findAll(searchString, emargementContext);
-    	
-        return locations;
     }
 }

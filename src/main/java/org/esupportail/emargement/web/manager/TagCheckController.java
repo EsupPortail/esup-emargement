@@ -23,7 +23,6 @@ import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence;
-import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -436,22 +435,6 @@ public class TagCheckController {
 		return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
 	
-    @GetMapping("/manager/tagCheck/searchTagCheck")
-    @ResponseBody
-    public List<Person> searchLdap(@RequestParam("searchValue") String searchValue, @RequestParam("sessionId") Long sessionId) {
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-    	List<Person> persons = new ArrayList<>();
-    	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchValue, sessionId);
-    	if(!tagChecksList.isEmpty()) {
-    		tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false);
-    		for(TagCheck tc : tagChecksList) {
-    			persons.add(tc.getPerson());
-    		}
-    	}
-        return persons;
-    }
-    
     @GetMapping("/manager/tagCheck/searchUsersLdap")
     @ResponseBody
     public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {

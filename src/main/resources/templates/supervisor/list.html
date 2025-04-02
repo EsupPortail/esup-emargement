@@ -90,13 +90,14 @@
 											<form th:action="@{/{ctx}/supervisor/add(ctx=${eContext})}" id="formSearch" method="post">
 												<div class="form-group">
 													<div class="col-lg-2">
-														<label for="eppn" class="form-label">Individu</label><span
-															id="searchSuEppnNom"></span>
+														<label for="searchBox" class="form-label">Individu</label>
 													</div>
 													<div class="col-lg-10">
-														<input type="email" th:id="searchLdap" name="eppn"
-															class="form-control"
-															placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+														<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"
+															hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+															autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+														<div id="searchResults"></div>
+														<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 														<input type="hidden" name="slId" th:value="${sessionLocation.id}" />
 													</div>
 												</div>

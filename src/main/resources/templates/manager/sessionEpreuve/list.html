@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="sessionEpreuvePage">
          	<div class="card">
 	    		<div class="card-header">
 	    			<div class="alert alert-danger font-weight-bold" th:if="${error}">Vous devez supprimer tous les lieux, inscrits et <span 
@@ -20,9 +20,11 @@
 					    	<form id="formSearch" th:object="${sessionSearch}" class="row gx-2 gy-2 align-items-center justify-content-end" th:action="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">
 								<input type="hidden" name="multiSearch" value="true" />
 									<div class="col-12 col-md-auto">
-										<input type="text" th:field="*{id}" pattern="[0-9.]+"
-											class="form-control" placeholder="Recherche sur  nom, site"
-											id="searchSessionEpreuve" >
+										<input name="searchString" class="form-control searchBox" pattern="[0-9.]+"
+											th:hx-get="@{|/${eContext}/supervisor/search/sessionEpreuve|}" hx-trigger="keyup changed"
+											hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche sur  nom, site">
+										<div id="searchResults"></div>
+										<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 									</div>
 									<div class="col-12 col-md-auto">
 										<div class="btn-group" role="group" aria-label="Basic radio toggle button group">

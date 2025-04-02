@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<div id="searchResults" th:fragment="searchResults">
+		<th:block th:if="${type eq null or type eq 'ldap'}">
+			<th:block th:each="user : ${users}">
+				<div class="result-item" th:data-value="${user.eppn} + '//' + ${user.name} + '//' + ${user.prenom}">
+					<span class="fw-bold">Individu : </span>
+					<span th:text="${user.name} + ' ' + ${user.prenom}"></span>
+					<span class="fw-bold ms-2">Eppn : </span>
+					<span th:text="${user.eppn}"></span>
+					<th:block th:if="${user.numEtudiant != null}">
+						<span class="fw-bold ms-2"># : </span>
+						<span th:text="${user.numEtudiant}"></span>
+					</th:block>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'userApp'}">
+			<th:block th:each="userApp : ${userApps}">
+				<div class="result-item" th:data-value="${userApp.eppn} + '//' + ${userApp.nom} + '//' + ${userApp.prenom}">
+					<span class="fw-bold">Individu : </span>
+					<span th:text="${userApp.nom} + ' ' + ${userApp.prenom}"></span>
+					<span class="fw-bold ms-2">Eppn : </span>
+					<span th:text="${userApp.eppn}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'location'}">
+			<th:block th:each="location : ${locations}">
+				<div class="result-item" th:data-value="${location.nom} + '//' + ${location.campus.site}">
+					<span class="fw-bold">Nom : </span>
+					<span th:text="${location.nom}"></span>
+					<span class="fw-bold ms-2">Site : </span>
+					<span th:text="${location.campus.site}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'sessionEpreuve'}">
+			<th:block th:each="sessionEpreuve : ${sessionEpreuves}">
+				<div class="result-item" th:data-value="${sessionEpreuve.id}">
+					<span class="fw-bold">Nom : </span>
+					<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
+					<span class="fw-bold ms-2">Site : </span>
+					<span th:text="${sessionEpreuve.campus.site}"></span>
+					<span class="fw-bold ms-2">Date : </span>
+					<span th:text="${#dates.format(sessionEpreuve.dateExamen,'dd-MM-yyyy')}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'individuTagCheck' or type eq 'individuTagChecker'}">
+			<th:block th:each="individu : ${individus}">
+				<div class="result-item" th:data-value="${individu.identifiant} + '//' + ${individu.nom} + '//' + ${individu.prenom}">
+					<span class="fw-bold">Nom Prénom : </span>
+					<span th:text="${individu.nom + ' ' + individu.prenom }"></span>
+					<span class="fw-bold ms-2">Eppn : </span>
+					<span th:text="${individu.identifiant}"></span>
+					<span class="fw-bold ms-2">Type : </span>
+					<span th:text="${individu.typeObject}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'individuSessionEpreuve'}">
+			<th:block th:each="searchBean : ${searchBeans}" th:with="sessionEpreuve=${searchBean.sessionEpreuve}">
+				<div class="result-item" th:data-value="${sessionEpreuve.id}">
+					<span class="fw-bold">Nom : </span>
+					<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
+					<span class="fw-bold ms-2">Site : </span>
+					<span th:text="${sessionEpreuve.campus.site}"></span>
+					<span class="fw-bold ms-2">Date : </span>
+					<span th:text="${#dates.format(sessionEpreuve.dateExamen,'dd-MM-yy') + ' ' + #dates.format(sessionEpreuve.heureEpreuve,'HH:mm')}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'individuGroupe'}">
+			<th:block th:each="searchBean : ${searchBeans}" th:with="groupe=${searchBean.groupe}">
+				<div class="result-item" th:data-value="${groupe.id + '//' + groupe.nom}">
+					<span class="fw-bold">Nom : </span>
+					<span th:text="${groupe.nom}"></span>
+					<span class="fw-bold ms-2">Année : </span>
+					<span th:text="${groupe.anneeUniv}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:if="${type eq 'ldapGroups'}">
+			<th:block th:each="ldapGroup : ${ldapGroups}">
+				<div class="result-item" th:data-value="${ldapGroup}">
+					<span th:text="${ldapGroup}"></span>
+				</div>
+			</th:block>
+		</th:block>
+		<th:block th:each="tagCheck : ${tagChecks}"  th:with="person=${tagCheck.person}">
+			<div class="result-item" th:data-value="${person.eppn} + '//' + ${person.nom} + '//' + ${person.prenom}">
+				<span class="fw-bold">Individu : </span>
+				<span th:text="${person.nom} + ' ' + ${person.prenom}"></span>
+				<span class="fw-bold ms-2">Eppn : </span>
+				<span th:text="${person.eppn}"></span>
+				<th:block th:if="${person.numIdentifiant != null}">
+					<span class="fw-bold ms-2"># : </span>
+					<span th:text="${person.numIdentifiant}"></span>
+				</th:block>
+			</div>
+		</th:block>
+	</div>
+</html>

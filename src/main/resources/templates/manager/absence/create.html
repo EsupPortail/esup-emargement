@@ -3,7 +3,7 @@
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
-		<div class="container-fluid">
+		<div class="container-fluid" id="createAbsence">
            	<div class="card">
 		    	<div class="card-header"><h2>Ajouter une absence</h2></div>
   				<div class="card-body">
@@ -21,8 +21,12 @@
 	                     <div class="row mb-3">
 	                        <label for="eppn"  class="col-lg-2 form-label">Personne</label>
 	                        <div class="col-lg-4">
-								<input type="email" th:id="eppn" th:name="person.eppn" class="form-control" 
-								placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr" required="required">
+								<input type="hidden" th:id="eppn" th:name="person.eppn"/>
+								<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
+									hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+									autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+								<div id="searchResults"></div>
+								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 								<p id="resultEppn" class="fw-bold text-danger mt-2 mb-0"></p>
 	                        </div>
 	                    </div>

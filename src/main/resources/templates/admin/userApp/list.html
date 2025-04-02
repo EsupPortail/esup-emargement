@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="userAppPage">
            	<div class="card">
 	    		<div class="card-header">
 		    		<div class="row">
@@ -30,7 +30,11 @@
 					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
 					   		<div class="row">
 			    				<div class="col">
-									<input type="text" name="eppn" th:value="${eppn}" class="form-control me-1" placeholder="Recherche" id="searchUserApp">
+									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/userApp|}"
+										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+										autocomplete="off" placeholder="Recherche">
+									<div id="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 								</div>
 								<div class="col">
 									<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>

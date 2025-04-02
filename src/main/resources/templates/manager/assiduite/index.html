@@ -49,11 +49,15 @@
 							</div>
 							<div class="col-auto">
 								<div class="input-group">
-									<span class="input-group-text clearable">Nom / Code</span> <input
-										type="search" class="form-control assiduiteControl clearable" placeholder="Recherche obligatoire" id="searchAssiduite" th:value="${assiduiteBean.searchField}">
+									<span class="input-group-text clearable">Nom / Code</span> <input name="searchString" class="form-control searchBox assiduiteControl clearable" 
+									th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" 
+										type="search"hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator" th:value="${assiduiteBean.searchField}"
+										autocomplete="off" placeholder="Recherche obligatoire">
 										<input type="hidden" th:field="*{searchField}" class="clearable"/>
 										<input type="hidden" th:field="*{searchValue}" class="clearable"/>
 								</div>
+								<div id="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 							</div>
 							<div class="col-auto">
 								<select class="assiduiteControl" th:field="*{sessionEpreuve}">

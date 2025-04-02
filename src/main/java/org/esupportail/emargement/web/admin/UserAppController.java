@@ -38,7 +38,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.xml.sax.SAXException;
 
@@ -113,7 +111,7 @@ public class UserAppController {
 	}
 	
 	@GetMapping(value = "/admin/userApp")
-	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="eppn") String eppn,  
+	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="searchString") String eppn,  
 			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Long count = userAppRepository.count();
@@ -317,15 +315,5 @@ public class UserAppController {
 		}
 
         return String.format("redirect:/%s/admin/userApp", emargementContext);
-    }
-    
-    @GetMapping("/admin/userApp/search")
-    @ResponseBody
-    public List<UserApp> search(@RequestParam("searchValue") String searchString){
-    	HttpHeaders headers = new HttpHeaders();
-		headers.add("Content-Type", "application/json; charset=utf-8");
-		List<UserApp> userApps= userAppRepositoryCustom.findAll(searchString);
-		userAppService.setNomPrenom(userApps, true);
-        return userApps;
     }
 }

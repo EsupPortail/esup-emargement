@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id = "suPage">
 			<div class="card">
 				<div class="card-header"><h2>Su</h2></div> 
   				<div class="card-body">
@@ -15,9 +15,13 @@
 			                    	<div class="col-lg-2">
 			                        	<label for="eppn" class="form-label">Individu</label><span id="searchSuEppnNom"></span>
 			                       	</div>
-				                    <div class="col-lg-10">
-				                        <input type="email" th:id="searchSuEppn" name="username" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-				                       </div>
+									<div class="col-lg-10">
+										<input name="username" class="form-control searchBox" th:hx-get="@{|/${eContext}/superadmin/search-users|}"
+											hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+											autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+										<div id="searchResults"></div>
+										<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+									</div>
 								</div>		    
 							</form>
 	  					</div>

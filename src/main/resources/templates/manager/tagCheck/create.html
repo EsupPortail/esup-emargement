@@ -4,7 +4,7 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
+		<div class="container-fluid" id="createTagCheckPage">
            	<div class="card">
            		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
 					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
@@ -40,9 +40,14 @@
 		                    <div class="row mb-3">
 		                        <label for="eppn" class="col-lg-2 form-label">Eppn</label>
 			                    <div class="col-lg-10">
-			                        <input type="email" th:id="eppn" th:name="person.eppn" class="form-control" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-			                       </div>
-			                    </div>
+									<input type="hidden" th:id="eppn" th:name="person.eppn"/>
+									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
+										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+										autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+									<div id="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>			                    
+								</div>
+			                 </div>
 		                    <div class="row mb-3">
 			                    <label for="numIdentifiant" class="col-lg-2 form-label">N° identifiant</label>
 		                    	<div class="col-lg-10">
