@@ -210,15 +210,15 @@ public class SessionEpreuveController {
 		}else{
 			if(sessionSearch.getId()==null) {
 				String prefStatutValue = (sessionSearch.getStatut() == null)? "" : sessionSearch.getStatut().name();
-				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext) ;
+				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext, "dummy") ;
 				String prefTypeValue = (sessionSearch.getTypeSession() == null)? "" : sessionSearch.getTypeSession().getId().toString();
-				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext) ;
+				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext, "dummy") ;
 				String prefPeriodValue = (dateSessions == null)? "all" : dateSessions;
-				preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, prefPeriodValue, auth.getName(), emargementContext) ;
+				preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, prefPeriodValue, auth.getName(), emargementContext, "dummy") ;
 				String prefCampusValue = (sessionSearch.getCampus() == null)? "" : sessionSearch.getCampus().getId().toString();
-				preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS, prefCampusValue, auth.getName(), emargementContext) ;
+				preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS, prefCampusValue, auth.getName(), emargementContext, "dummy") ;
 				String prefsListeValue = (view == null)? "" : view;
-				preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, prefsListeValue, auth.getName(), emargementContext) ;
+				preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, prefsListeValue, auth.getName(), emargementContext, "dummy") ;
 			}
 		}
 		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);

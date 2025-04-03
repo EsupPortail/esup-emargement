@@ -609,8 +609,8 @@ function openAndCheckNodes(nodeIds) {
 	});
 }
 
-function updateJsTree(selectedData, category) {
-	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?category=" + category + "&fatherId=" + selectedData;
+function updateJsTree(selectedData, category, idProject) {
+	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?idProject=" + idProject + "&category=" + category + "&fatherId=" + selectedData;
 	var request = new XMLHttpRequest();
 	request.open('GET', selectedUrl, true);
 	request.onload = function() {
@@ -1774,7 +1774,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else {
 			if(selectedData!="") {
 				$("#spinnerComps").removeClass("d-none");
-				updateJsTree(selectedData, "trainee");
+				updateJsTree(selectedData, "trainee", $("#idProject").val());
 			}
 		}
 		table.clear().draw();
@@ -1788,7 +1788,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		} else {
 			if(selectedData!="") {
 				$("#spinnerComps").removeClass("d-none")
-				updateJsTree(selectedData, category6);
+				updateJsTree(selectedData, category6, $("#idProject").val());
 			}
 		}
 		table.clear().draw();

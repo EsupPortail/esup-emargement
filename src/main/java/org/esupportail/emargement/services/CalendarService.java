@@ -59,7 +59,7 @@ public class CalendarService {
 		String eppn = auth.getName();
 		if(!isAll && calendarPref!=null) {
 			String prefsListeValue = (view == null)? "" : view;
-			preferencesService.updatePrefs(calendarPref, prefsListeValue, eppn, emargementContext) ;
+			preferencesService.updatePrefs(calendarPref, prefsListeValue, eppn, emargementContext, "dummy") ;
 		}
 		List <CalendarDTO> l= new ArrayList<>();
 		//2019-11-25T00:00:00+01:00

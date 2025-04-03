@@ -22,7 +22,6 @@ import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
-import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
@@ -330,7 +329,7 @@ public class PresenceController {
 		
 		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
 		if(from!=null) {
-			preferencesService.updatePrefs(SEE_OLD_SESSIONS, "true", eppnAuth, emargementContext) ;
+			preferencesService.updatePrefs(SEE_OLD_SESSIONS, "true", eppnAuth, emargementContext, "dummy") ;
 		}
 		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
 		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";

@@ -58,11 +58,12 @@ public class EventController {
 	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn =  auth.getName();
+		String idProject =  adeService.getCurrentProject(projet, eppn, emargementContext);
 		uiModel.addAttribute("campuses", campusRepository.findAll());
 		uiModel.addAttribute("existingSe", true);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
-		uiModel.addAttribute("idProject", adeService.getCurrentProject(projet, eppn, emargementContext));
-		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(true, emargementContext)));
+		uiModel.addAttribute("idProject", idProject);
+		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(true, emargementContext, idProject)));
 		return "supervisor/events/index";
 	}
 
@@ -75,10 +76,10 @@ public class EventController {
 			@RequestParam(required = false) String projet){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
-			String sessionId = adeService.getSessionId(false, emargementContext);
+			String sessionId = adeService.getSessionId(false, emargementContext, projet);
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			if(adeService.getConnectionProject(idProject, sessionId)==null) {
-				sessionId = adeService.getSessionId(true, emargementContext);
+				sessionId = adeService.getSessionId(true, emargementContext, projet);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}

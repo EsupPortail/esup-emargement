@@ -8,6 +8,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
+import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.TypeSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -27,6 +28,9 @@ public class StartupRunner implements CommandLineRunner {
 	
 	@Resource
 	AbsenceService absenceService;
+	
+	@Resource
+	PreferencesService preferencesService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -38,6 +42,7 @@ public class StartupRunner implements CommandLineRunner {
         		appliConfigService.updateCatIsMissing(context);
         		typeSessionService.updateTypeSession(context.getKey());
         		absenceService.updateMotifAbsence(context.getKey());
+        		preferencesService.cleanPrefs(context);
         		if(context.getIsActif()==null) {
         			context.setIsActif(true);
         			contextRepository.save(context);

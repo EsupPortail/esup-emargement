@@ -86,7 +86,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -102,7 +101,7 @@ public class AdeService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private final static String ADE_STORED_SESSION = "adeStoredSession";
+	final static String ADE_STORED_SESSION = "adeStoredSession";
 	
 	private final static String ADE_STORED_PROJET = "adeStoredProjet";
 	
@@ -669,36 +668,41 @@ public class AdeService {
 	    return sortByValue(mapProjects);
 	}
 	
-	public NamedNodeMap getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
+	public String getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
 		String urlProject = urlAde + "?sessionId=" + sessionId + "&function=setProject&projectId=" + numProject;
 		Document doc = getDocument(urlProject);
-		return doc.getAttributes();
+		String projectId = doc.getDocumentElement().getAttribute("projectId");
+		return projectId;
 	}
 	
-	public String getSessionId(boolean forceNewId, String emargementContext) throws IOException, ParserConfigurationException, SAXException{
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	public String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
 		String sessionId = "";
-		if(auth != null) {
-			List<Prefs> prefsAdeSession = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_SESSION);
+		if(idProject != null) {
+			String prefSessionAde = ADE_STORED_SESSION + idProject;
+			List<Prefs> prefsAdeSession = prefsRepository.findByNomAllContexts(prefSessionAde);
 			if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty() && !forceNewId){
 				sessionId = prefsAdeSession.get(0).getValue();
 			}
-		}
-		if(sessionId.isEmpty()) {
-			String urlConnexion = "";
-			if(!encryptedUrl.isEmpty()) {
-				urlConnexion = urlAde + "?data=" + encryptedUrl;
-			}else {
-				urlConnexion = urlAde + "?function=connect&login=" + loginAde  + "&password=" + passwordAde;
+			if(sessionId.isEmpty()) {
+				String urlConnexion = "";
+				if(!encryptedUrl.isEmpty()) {
+					urlConnexion = urlAde + "?data=" + encryptedUrl;
+				}else {
+					urlConnexion = urlAde + "?function=connect&login=" + loginAde  + "&password=" + passwordAde;
+				}
+				Document doc = getDocument(urlConnexion);
+				log.debug("Root Element connect :" + doc.getDocumentElement().getNodeName());
+				sessionId = doc.getDocumentElement().getAttribute("id");
+				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+				if(auth != null && !sessionId.isEmpty()) {
+					preferencesService.updatePrefs(prefSessionAde, sessionId, auth.getName(), emargementContext, prefSessionAde) ;
+					log.info("Impossible de sauvegarder le sessionId");
+				}
 			}
-			Document doc = getDocument(urlConnexion);
-			log.debug("Root Element connect :" + doc.getDocumentElement().getNodeName());
-			sessionId = doc.getDocumentElement().getAttribute("id");
+			log.info("Ade sessionId : " + sessionId);
+		}else {
+			log.error("Impossible de récupérer un sessionId car idProject == null");
 		}
-		if(auth != null) {
-			preferencesService.updatePrefs(ADE_STORED_SESSION, sessionId, auth.getName(), emargementContext) ;	
-		}
-		log.info("Ade sessionId : " + sessionId);
 		return sessionId;
 	}
 	
@@ -1060,9 +1064,10 @@ public class AdeService {
         return adeResourceBeans; 
     }
 	
-	public void disconnectSession() {
+	public void disconnectSession(String emargementContext) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		List<Prefs> prefsAdeSession = prefsRepository.findByUserAppEppnAndNom(auth.getName(), ADE_STORED_SESSION);
+		String idProject = getCurrentProject(null, auth.getName(), emargementContext);
+		List<Prefs> prefsAdeSession = prefsRepository.findByNomAllContexts(ADE_STORED_SESSION + idProject);
 		if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty()){
 			try {
 				String url = urlAde + "?sessionId=" + prefsAdeSession.get(0).getValue() + "&function=disconnect";			
@@ -1070,11 +1075,12 @@ public class AdeService {
 				HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
 				con.connect();
 				prefsRepository.delete(prefsAdeSession.get(0));
+				log.info("Déconnexion de la session Ade par l'utilisateur : " + auth.getName());
 			} catch (Exception e) {
-				log.error("impossible de se déconnecter de la session pour l'utilsateur : " + auth.getName(),e);
+				log.error("Impossible de se déconnecter de la session Ade pour l'utilisateur : " + auth.getName(),e);
 			}
 		}else {
-			log.info("Impossible de se déconnecter car aucune session enregistrée pour l'utilsateur : " + auth.getName());
+			log.info("Impossible de se déconnecter car aucune session Ade enregistrée pour l'utilisateur : " + auth.getName());
 		}
 	}
 	
@@ -1084,14 +1090,15 @@ public class AdeService {
 	}
 	
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync) throws IOException, ParserConfigurationException, SAXException, ParseException {
-		String sessionId = getSessionId(false, emargementContext);
+		
 		Map<Long, List<SessionEpreuve>> mapSE = seList.stream().filter(t -> t.getAdeProjectId() != null)
 		        .collect(Collectors.groupingBy(t -> t.getAdeProjectId()));
 		
 		for (Long key : mapSE.keySet()) {
 	        String idProject = String.valueOf(key);
+	        String sessionId = getSessionId(false, emargementContext, idProject);
 	        if(getConnectionProject(idProject, sessionId)==null) {
-				sessionId = getSessionId(true, emargementContext);
+				sessionId = getSessionId(true, emargementContext, idProject);
 				getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
@@ -1104,12 +1111,12 @@ public class AdeService {
 	    }
 	}
 	
-    public String getJsonfile(String fatherId, String emargementContext, String category) {
+    public String getJsonfile(String fatherId, String emargementContext, String category, String idProject) {
         String prettyJson = null;
         String rootComposante = "";
         ObjectMapper xmlMapper = new XmlMapper();
         try {
-            String sessionId = getSessionId(false, emargementContext);
+            String sessionId = getSessionId(false, emargementContext, idProject);
             String detail = "12";
             String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=" + 
             			category + "&detail=" +detail + "&fatherIds=" + fatherId;
@@ -1211,13 +1218,13 @@ public class AdeService {
 			throws IOException, ParserConfigurationException, SAXException, ParseException {
 		int nbImports = 0;
 		if (idEvents != null) {
-			String sessionId = getSessionId(false, emargementContext);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(idProject == null) {
 				idProject = getCurrentProject(null, auth.getName(), emargementContext);
 			}
+			String sessionId = getSessionId(false, emargementContext, idProject);
 			if (getConnectionProject(idProject, sessionId) == null) {
-				sessionId = getSessionId(true, emargementContext);
+				sessionId = getSessionId(true, emargementContext, idProject);
 				getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
@@ -1280,7 +1287,7 @@ public class AdeService {
 	        return appliConfigService.getProjetAde();
 	    }
 	    if (projet != null && !projet.isEmpty()) {
-	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext);
+	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext, "dummy");
 	        return projet;
 	    }
 	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? "0" : getValuesPref(eppn, ADE_STORED_PROJET).get(0);

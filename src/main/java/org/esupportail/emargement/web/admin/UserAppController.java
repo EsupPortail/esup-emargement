@@ -134,11 +134,11 @@ public class UserAppController {
 			model.addAttribute("collapse", "show");
 		}
 		boolean isAdeCampusEnabled = appliConfigService.isAdeCampusEnabled();
+		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		if(isAdeCampusEnabled) {
-			String sessionId = adeService.getSessionId(false, emargementContext);
-			String idProject = appliConfigService.getProjetAde();
+			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 			if(adeService.getConnectionProject(idProject, sessionId)==null) {
-				sessionId = adeService.getSessionId(true, emargementContext);
+				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
@@ -153,7 +153,7 @@ public class UserAppController {
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		model.addAttribute("selectAll", count);
 		model.addAttribute("allRoles", userAppService.getAllRoles(emargementContext, new UserApp()));
-		model.addAttribute("idProject", adeService.getCurrentProject(null, auth.getName(), emargementContext));
+		model.addAttribute("idProject", idProject);
 		return "admin/userApp/list";
 	}
 	
@@ -161,7 +161,9 @@ public class UserAppController {
 	@PostMapping(value = "/admin/userApp/importInstructors")
 	public String importInstructors(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam(required = false) String role,
 			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
-		String sessionId = adeService.getSessionId(false, emargementContext);
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
+		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 		Map<String,String> insts = adeService.getItemsFromInstructors(sessionId, comp.concat("."));
 		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
 		Context ctx = contextRepository.findByContextKey(emargementContext);

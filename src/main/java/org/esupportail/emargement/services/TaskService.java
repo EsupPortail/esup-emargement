@@ -132,10 +132,11 @@ public class TaskService {
 		}
 	}
 	
-	public void processTask(Task task, String emargementContext, Long dureeMax, String sessionId, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		String idProject = task.getAdeProject();
+		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 		if(adeService.getConnectionProject(idProject, sessionId)==null) {
-			sessionId = adeService.getSessionId(true, emargementContext);
+			sessionId = adeService.getSessionId(true, emargementContext, idProject);
 			adeService.getConnectionProject(idProject, sessionId);
 			log.info("Récupération du projet Ade " + idProject);
 		}
@@ -183,7 +184,6 @@ public class TaskService {
 						List<Task> tasks =  taskRepository.findByContextAndIsActifTrue(ctx);
 						String emargementContext = ctx.getKey();
 						if(!tasks.isEmpty()) {
-							String sessionId = adeService.getSessionId(false, emargementContext);
 							int i = 1;
 							StopWatch time = new StopWatch( );
 							time.start( );
@@ -191,7 +191,7 @@ public class TaskService {
 							for(Task task : tasks) {
 								log.info("import # :" + i);
 								try {
-									processTask(task, emargementContext, dureeMax, sessionId, i);
+									processTask(task, emargementContext, dureeMax, i);
 									i++;
 									logService.log(ACTION.TASK_CREATE, RETCODE.SUCCESS, task.getLibelle(), null,
 											null, emargementContext, null);
@@ -208,7 +208,7 @@ public class TaskService {
 							log.info("Aucun import à effectuer, la liste des tâches est vide pour le contexte : " +  emargementContext);
 						}
 		                Thread.sleep(10);
-		            } catch (InterruptedException | IOException | ParserConfigurationException | SAXException e) {
+		            } catch (InterruptedException e) {
 		            	log.error("Erreur lors de l'import ADE", e);
 		            }
 		        }, executorService);

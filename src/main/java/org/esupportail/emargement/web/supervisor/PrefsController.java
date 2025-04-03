@@ -104,6 +104,6 @@ public class PrefsController {
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
-		preferencesService.updatePrefs(pref, value, eppn, emargementContext) ;
+		preferencesService.updatePrefs(pref, value, eppn, emargementContext, "dummy") ;
     }
 }
