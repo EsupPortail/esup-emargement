@@ -142,7 +142,6 @@ public class UserAppController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			model.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 			model.addAttribute("comps", adeService.getItemsFromInstructors(sessionId, null));
 			model.addAttribute("projects", adeService.getProjectLists(sessionId));
 		}
@@ -213,7 +212,7 @@ public class UserAppController {
 	}
 	
 	@GetMapping(value = "/admin/userApp/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
 		List<UserApp> users = new ArrayList<>();
 		users.add(userAppRepository.findById(id).get());
 		
@@ -230,7 +229,7 @@ public class UserAppController {
     }
     
     @GetMapping(value = "/admin/userApp/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	List<UserApp> userApps = new ArrayList<>();
     	userApps.add(userApp);
@@ -256,7 +255,7 @@ public class UserAppController {
     }
     
     @PostMapping("/admin/userApp/create")
-    public String create(@PathVariable String emargementContext, @RequestParam(value="myEppn", required = false) String myEppn, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, 
+    public String create(@PathVariable String emargementContext, @RequestParam(required = false) String myEppn, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors() || userApp.getEppn().isEmpty()&& myEppn == null) {
             populateEditForm(uiModel, userApp, emargementContext);
@@ -286,7 +285,7 @@ public class UserAppController {
     }
     
     @PostMapping("/admin/userApp/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel) {
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "admin/userApp/update";
@@ -303,7 +302,7 @@ public class UserAppController {
     }
     
     @PostMapping(value = "/admin/userApp/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	try {
 			userAppRepository.delete(userApp);
