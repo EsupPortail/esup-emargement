@@ -117,6 +117,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<TagCheck> findByContextAndSessionLocationBadgedIdAndPersonEppnEquals(Context ctx, Long id, String eppn);
 	
 	//remplace native query getSessionLocationIdExpected
+	List<TagCheck> findTagCheckByGuestEmailAndSessionEpreuve(String email, SessionEpreuve sessionEpreuve);
+	
 	List<TagCheck> findTagCheckByPersonEppnAndSessionEpreuve(String eppn, SessionEpreuve sessionEpreuve);
 	
 	Long countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(Long id);
@@ -209,12 +211,18 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(SessionLocation sl, String Eppn);
 	
-	List<TagCheck> findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(SessionEpreuve se, String Eppn);
+	List<TagCheck> findBySessionLocationExpectedAndGuestEmailAndIsUnknownFalse(SessionLocation sl, String Eppn);
+	
+	List<TagCheck> findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(SessionEpreuve se, String eppn);
+	
+	List<TagCheck> findBySessionEpreuveAndGuestEmailAndIsUnknownFalse(SessionEpreuve se, String email);
 	
 	List <TagCheck> findByAbsence(Absence absence);
 	
 	//countSessionEpreuveIdExpected
 	Long countByPersonEppnAndSessionEpreuveDateExamen(String eppn, Date date);
+	
+	Long countByGuestEmailAndSessionEpreuveDateExamen(String email, Date date);
 	
 	@Query(value = "select count(*) from tag_check where session_epreuve_id = :id and type_emargement= :type and context_id = :ctxId", nativeQuery = true)
 	Long countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(Long id, String type, Long ctxId);

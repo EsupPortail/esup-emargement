@@ -72,7 +72,7 @@
 												data-bs-target="#convocModal">Convocations</a>
 											</li>
 										</th:block>
-										<th:block th:if="${countForButtonLinkOrQrCode > 0 && !isSessionEpreuveClosed}">
+										<th:block th:if="${!isSessionEpreuveClosed}">
 											<li><hr class="dropdown-divider"></li>
 											<li th:if="${isQrCodeEnabled}">
 												<a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#qrCodeModal" 

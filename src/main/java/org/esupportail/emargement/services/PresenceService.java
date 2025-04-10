@@ -326,6 +326,7 @@ public class PresenceService {
 	//Pour emargement manuel et qrCode
 	public List<TagCheck> updatePresents(String presence, SessionLocation validLocation) throws ParseException {
 		String eppn = null;
+		String email = null; 
 		TagChecker tagChecker = null;
 		boolean isTagCheckerNeeded = true;
 		boolean isValid = true;
@@ -413,6 +414,9 @@ public class PresenceService {
 			    		sessionLocationId = Long.valueOf(splitPresence[2].trim());
 			    	}
 		    	}
+		    	if(splitPresence.length >3) {
+		    		email = (splitPresence.length >3)? splitPresence[3] : "";
+		    	}
 		    	if(ctx!=null) {
 			    	List<SessionLocation> sls = sessionLocationRepository.findByContextAndId(ctx, sessionLocationId);
 			    	sessionLocation = sls.get(0);
@@ -421,7 +425,11 @@ public class PresenceService {
 			    	List<TagCheck> tcs = new ArrayList<>();
 			    	if(!sessionEpreuve.isSessionLibre) {
 						try {
-							tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
+							if(!eppn.isEmpty()) {
+								tcs = tagCheckRepository.findTagCheckByPersonEppnAndSessionEpreuve(eppn, sessionEpreuve);
+							}else {
+								tcs = tagCheckRepository.findTagCheckByGuestEmailAndSessionEpreuve(email, sessionEpreuve);
+							}
 							if(tcs.isEmpty()) {
 								//comparaison avec les heures de début et de fin
 					    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -458,12 +466,24 @@ public class PresenceService {
 			    		}else{
 				    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				    		Date date = dateFormat.parse(dateFormat.format(new Date()));
-				    		Long countSe = tagCheckRepository.countByPersonEppnAndSessionEpreuveDateExamen(eppn, date);
-							List <TagCheck> checkOtherLocation = tagCheckRepository.findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(sessionEpreuve, eppn);
+				    		Long countSe = 0L;
+				    		List <TagCheck> checkOtherLocation = new ArrayList<>();
+				    		if(eppn != null && !eppn.isEmpty()) {
+				    			countSe = tagCheckRepository.countByPersonEppnAndSessionEpreuveDateExamen(eppn, date);
+								checkOtherLocation = tagCheckRepository.findBySessionEpreuveAndPersonEppnAndIsUnknownFalse(sessionEpreuve, eppn);
+				    		}else if(email != null && !email.isEmpty()) {
+				    			countSe = tagCheckRepository.countByGuestEmailAndSessionEpreuveDateExamen(email, date);
+				    			checkOtherLocation = tagCheckRepository.findBySessionEpreuveAndGuestEmailAndIsUnknownFalse(sessionEpreuve, email);
+				    		}
 							SessionLocation sessionLocationExpected = checkOtherLocation.get(0).getSessionLocationExpected();
 				    		if(!tcs.isEmpty()) {
 								if(sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
-									List <TagCheck> tcsTemp = tagCheckRepository.findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(sessionLocation, eppn);
+									List <TagCheck> tcsTemp = new ArrayList<>();
+									if(eppn != null && !eppn.isEmpty()) {
+										tcsTemp = tagCheckRepository.findBySessionLocationExpectedAndPersonEppnAndIsUnknownFalse(sessionLocation, eppn);
+									}else if(email != null && !email.isEmpty()) {
+										tcsTemp = tagCheckRepository.findBySessionLocationExpectedAndGuestEmailAndIsUnknownFalse(sessionLocation, email);
+									}
 									if(tcsTemp.isEmpty()) {
 										comment = "Inconnu dans cette salle, Salle attendue : " +  sessionLocationExpected.getLocation().getNom();
 										isUnknown = true;
@@ -518,7 +538,6 @@ public class PresenceService {
 		    		SessionEpreuve se = sessionLocation.getSessionEpreuve();
 			    	Groupe gpe = se.getBlackListGroupe();
 					boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);	
-			    	String email = (splitPresence.length >3)? splitPresence[3] : "";
 			    	TagCheck presentTagCheck = null;
 			    	if((isQrCode || isQrcodeCarte) && se.getIsSessionLibre()){
 			    		presentTagCheck = tagCheckService.saveUnknownTagCheck("", ctx, eppn, se, sessionLocationBadged, tagChecker, true, typeEmargement);
