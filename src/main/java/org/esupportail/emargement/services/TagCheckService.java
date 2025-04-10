@@ -318,7 +318,6 @@ public class TagCheckService {
 		    	if(rows.size()>0) {
 		    		int i = 0; int j = 0; int k = 0; int l=0;
 		    		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
-		    		Map<String, List<Absence>> absences = getMapAbsences(se.getDateExamen(), se.getDateFin());
 		    		for(List<String> row : rows) {
 			    		if(se != null) {
 			    			TagCheck tc = new TagCheck();
@@ -332,9 +331,7 @@ public class TagCheckService {
 			    			Long tcTest = 0L;
 			    			//Pour Guest
 			    			String [] splitLine = null;
-			    			if(line.contains(",")) {
-			    				splitLine = line.split(",");
-			    			}else if(line.contains(";")) {
+			    			if(line.contains(";")) {
 			    				splitLine = line.split(";");
 			    			}
 			    			if(!line.startsWith("#")) {

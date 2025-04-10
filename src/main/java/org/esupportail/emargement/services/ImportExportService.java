@@ -40,19 +40,17 @@ public class ImportExportService {
 	ApogeeService apogeeService;
 	
 	public  List<List<String>>  readAll(Reader reader) throws Exception {
-		char separator = ';';
 		List<List<String>> rows = new ArrayList<>();
 		try {
-			CSVReader csv = new CSVReaderBuilder(reader)
-					.withCSVParser(new CSVParserBuilder().withSeparator(separator).build()).build();
-			
-			for (String[] nextLine : csv) {
-				rows.add(new ArrayList<>(Arrays.asList(nextLine)));
-			}
-			csv.close();
+		    CSVReader csv = new CSVReaderBuilder(reader).build(); // Uses default ',' separator
+		    
+		    for (String[] nextLine : csv) {
+		        rows.add(new ArrayList<>(Arrays.asList(nextLine)));
+		    }
+		    csv.close();
 		} catch (Exception e) {
-			rows = null;
-			log.error("Csv mal formé", e);
+		    rows = null;
+		    log.error("Csv mal formé", e);
 		}
 		return rows;
 	}
