@@ -22,6 +22,8 @@ public class AdeResourceBean {
 	
 	public List<Map<Long,String>> category6;
 	
+	public List<Map<Long,String>> superGroupe;
+
 	public boolean isAlreadyimport;
 	
 	public Date lastUpdate;
@@ -114,5 +116,13 @@ public class AdeResourceBean {
 
 	public void setActivityId(Long activityId) {
 		this.activityId = activityId;
+	}
+
+	public List<Map<Long, String>> getSuperGroupe() {
+		return superGroupe;
+	}
+
+	public void setSuperGroupe(List<Map<Long, String>> superGroupe) {
+		this.superGroupe = superGroupe;
 	}
 }

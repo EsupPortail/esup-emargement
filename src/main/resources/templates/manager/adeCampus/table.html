@@ -11,6 +11,11 @@
 				        <th:block th:text="${'[' + entry.key + ']'}"></th:block> 
 				    </th:block>
 			    </th:block>
+				<th:block th:each="element : ${event.superGroupe}">
+				     <th:block th:each="entry: ${element}">
+				        <th:block th:text="${'[' + entry.key + ']'}"></th:block>
+				    </th:block>
+				</th:block>
 			</td>
 			<td>
 				<th:block th:each="element : ${event.instructors}">
@@ -48,6 +53,11 @@
 				        <span th:text="${'[' + entry.value + ']'}"></span> 
 				    </span>
 			    </span>
+				<span th:each="element : ${event.superGroupe}">
+				     <span th:each="entry: ${element}">
+				        <span th:text="${'[' + entry.value + ']'}"></span>
+				    </span>
+				</span>
 			</td>										
 			<td>
 				<span th:each="element : ${event.instructors}">

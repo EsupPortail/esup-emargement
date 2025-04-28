@@ -284,7 +284,6 @@ public class AdeController {
 	
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/importEvents")
-	@ResponseBody
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
 			@RequestParam(required = false) Campus campus,
 			@RequestParam String codeComposante,
@@ -298,7 +297,7 @@ public class AdeController {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
 					codeComposante,	campus,  idList, null, idProject, null);
 		
-		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
+		return String.format("redirect:/%s/manager/adeCampus/Events?strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
 	}
 	
