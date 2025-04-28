@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,7 @@ public class AppliConfigService {
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
 		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS, 
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
-		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE
+		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION
 	}
 	
 	public List<String> getTypes() {
@@ -220,9 +221,16 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
-	public  List<String> getCategoriesAde() {
+	public String getCategoriesAde() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_CATEGORIES);
-		return splitConfigValues(appliConfig);
+		if(appliConfig==null) {
+			return "";
+		}
+		if(appliConfig.getValue().contains(",")){
+			String splitConfig [] = appliConfig.getValue().split(",");
+			return  splitConfig[0].trim();
+		}
+		return appliConfig.getValue();
 	}
 	
 	public  String getProjetAde() {
@@ -323,6 +331,11 @@ public class AppliConfigService {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_SUPERGROUPE);
 		return appliConfig==null ? "" : appliConfig.getValue().trim();
 	}
+	
+	public  String getFormationAde() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_FORMATION);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
 		List <AppliConfigKey> listKey = Arrays.asList(AppliConfigKey.values());
@@ -368,8 +381,20 @@ public class AppliConfigService {
 				appliconfig.setCategory(messageSource.getMessage("config.cat.".concat(suffixe), null, null));
 				appliconfig.setDescription(messageSource.getMessage("config.desc.".concat(suffixe), null, null));
 				appliconfig.setKey(messageSource.getMessage("config.key.".concat(suffixe), null, null));
-				appliconfig.setType(TypeConfig.valueOf(messageSource.getMessage("config.type.".concat(suffixe), null, null)));
-				appliconfig.setValue(messageSource.getMessage("config.value.".concat(suffixe), null, null));
+				TypeConfig typeConfig = TypeConfig.valueOf(messageSource.getMessage("config.type.".concat(suffixe), null, null));
+				appliconfig.setType(typeConfig);
+				String value;
+				try {
+				    value = messageSource.getMessage("config.value.".concat(suffixe), null, null);
+				} catch (NoSuchMessageException e) {
+					if (TypeConfig.BOOLEAN.equals(typeConfig)) {
+						value = "false";
+					}else {
+						value = "";
+					}
+					log.info("Valeur vide pour la configuration, on met une valeur par défaut (" + suffixe + ")", e);
+				}
+				appliconfig.setValue(value);
 				appliConfigRepository.save(appliconfig);
 				nb++;
 			}

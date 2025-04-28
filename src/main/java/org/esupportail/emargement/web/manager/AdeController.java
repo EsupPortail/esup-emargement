@@ -191,8 +191,8 @@ public class AdeController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			List<String> catAde = appliConfigService.getCategoriesAde();
-			String formationCat = (catAde.size() >1 && !catAde.get(1).isEmpty())? catAde.get(1) : null;
+			String fomrAde = appliConfigService.getFormationAde();
+			String formationCat = (fomrAde!=null && !fomrAde.isEmpty())? fomrAde : null;
 			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 			uiModel.addAttribute("values", adeService.getPrefByContext(adeService.ADE_STORED_COMPOSANTE + idProject));
 			uiModel.addAttribute("valuesFormation", adeService.getPrefByContext(ADE_STORED_FORMATION + idProject));
@@ -248,8 +248,8 @@ public class AdeController {
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 		uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
-		List<String> catAde = appliConfigService.getCategoriesAde();
-		Map<String, String> mapFormations = (catAde.size() >1 && !catAde.get(1).isEmpty())? adeService.getMapComposantesFormations(sessionId, catAde.get(1)) : null;
+		String formAde = appliConfigService.getFormationAde();
+		Map<String, String> mapFormations = (formAde!=null && !formAde.isEmpty())? adeService.getMapComposantesFormations(sessionId, formAde) : null;
 		String adeComposantes = adeService.ADE_STORED_COMPOSANTE + idProject;
 		uiModel.addAttribute("mapFormations", mapFormations);
 		uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));

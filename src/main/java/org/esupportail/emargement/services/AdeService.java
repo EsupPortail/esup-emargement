@@ -406,7 +406,7 @@ public class AdeService {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if ("category5".equals(category)) {
+	                if (appliConfigService.getCategoriesAde().equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
 	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members"));
@@ -415,7 +415,7 @@ public class AdeService {
 	        } else {
 	            String adeAttribute = appliConfigService.getAdeMemberAttribute();
 	            if (adeAttribute.equals(target)) {
-	                String categoryFilter = appliConfigService.getCategoriesAde().get(0);
+	                String categoryFilter = appliConfigService.getCategoriesAde();
 	                NodeList resourceNodes = (NodeList) xpath.evaluate(
 	                    "//resource[@category='" + categoryFilter + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
 	                for (int i = 0; i < resourceNodes.getLength(); i++) {
@@ -550,7 +550,8 @@ public class AdeService {
 												String category = element3.getAttribute("category");
 												Long id = !element3.getAttribute("id").isEmpty()? Long.valueOf(element3.getAttribute("id")) : null;
 												String name = element3.getAttribute("name");
-												if(appliConfigService.getCategoriesAde().get(1).equals(category)){
+												String formationAde = appliConfigService.getFormationAde();
+												if(formationAde!=null && !formationAde.isEmpty() && formationAde.equals(category)){
 													List<Map<Long,String>> category6 = (adeResourceBean.getCategory6() == null)? 
 															new ArrayList<>() : adeResourceBean.getCategory6();
 															HashMap<Long, String> mapCategory6= new HashMap<>();
