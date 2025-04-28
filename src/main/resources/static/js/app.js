@@ -710,7 +710,9 @@ function displayEvents(url, table){
 			url: url,
 			data: formData,
 			success: function(response) {
-				table.destroy();
+				if(table != null){
+					table.destroy();
+				}
 				$("#tableEvents").html(response);
 				$("#spinnerLoad").addClass("d-none");
 				table = $('.tableFoo').DataTable({
@@ -755,25 +757,30 @@ function displayEvents(url, table){
 	});
 }
 
-function importEvents(url){
-	$("#importBtn").on('click', function() {
-		$("#displayEventsImport").submit(function(event) {
-			event.preventDefault();
-			$("#spinnerLoad").removeClass("d-none");
-			$.ajax({
-				url: url,
-				type: "POST",
-				data: $("#displayEventsImport").serialize(), // Serialize form data
-				success: function() {
-					$('#displayEvents').submit();
-				},
-				error: function(error) {
-					console.log("Error: " + error);
-				}
-			});
+function importEvents(url) {
+	$("#displayEventsImport").off('submit').on('submit', function(event) {
+		event.preventDefault();
+		$("#spinnerLoad").removeClass("d-none");
+		$.ajax({
+			url: url,
+			type: "POST",
+			data: $(this).serialize(),
+			success: function() {
+				$('#displayEvents').submit();
+			},
+			error: function(error) {
+				console.log("Error:", error);
+			},
+			complete: function() {
+				$("#spinnerLoad").addClass("d-none");
+			}
 		});
 	});
+	$("#importBtn").off('click').on('click', function() {
+		$("#displayEventsImport").submit();
+	});
 }
+
 function setupModal(modalId, fields) {
   const modal = document.getElementById(modalId);
   if (modal) {
