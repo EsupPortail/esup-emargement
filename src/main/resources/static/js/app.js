@@ -758,13 +758,14 @@ function displayEvents(url, table){
 }
 
 function importEvents(url) {
-	$("#displayEventsImport").off('submit').on('submit', function(event) {
+	$("#importBtn").off('click').on('click', function(event) {
 		event.preventDefault();
+		const $form = $("#displayEventsImport");
 		$("#spinnerLoad").removeClass("d-none");
 		$.ajax({
 			url: url,
 			type: "POST",
-			data: $(this).serialize(),
+			data: $form.serialize(),
 			success: function() {
 				$('#displayEvents').submit();
 			},
@@ -775,9 +776,6 @@ function importEvents(url) {
 				$("#spinnerLoad").addClass("d-none");
 			}
 		});
-	});
-	$("#importBtn").off('click').on('click', function() {
-		$("#displayEventsImport").submit();
 	});
 }
 
