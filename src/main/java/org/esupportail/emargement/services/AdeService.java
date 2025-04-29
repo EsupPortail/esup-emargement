@@ -1,15 +1,16 @@
 package org.esupportail.emargement.services;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -40,7 +42,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
@@ -1180,15 +1181,16 @@ public class AdeService {
             // Save the modified XML to a file
             DOMSource source = new DOMSource(doc); 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            StreamResult streamResult = new StreamResult(byteArrayOutputStream);
+            OutputStreamWriter writer = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8);
+            StreamResult streamResult = new StreamResult(writer);
 
-            // Create a Transformer and perform the transformation
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             transformer.transform(source, streamResult);
+            writer.flush(); // Make sure everything is written
 
-			ByteArrayInputStream in = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-			String inContent = new String(IOUtils.toByteArray(in));
+            String inContent = byteArrayOutputStream.toString(StandardCharsets.UTF_8.name());
 			String temp = removeXmlDeclaration2(inContent);
                 
             JsonNode jsonNode = xmlMapper.readTree(temp); 
