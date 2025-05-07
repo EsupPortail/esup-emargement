@@ -11,12 +11,17 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
+@FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
+@Filter(name = "contextFilter", condition = "context_id= :context")
 public class Absence {
 	
 	@Id
