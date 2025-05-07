@@ -1204,6 +1204,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	if (document.getElementById('presencePage') != null || document.getElementById('unknownPage') != null) {
 		const uuid = ID();
 		const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
+		sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
+		initTablePresence(sortDate);
 		eventSource.addEventListener('tc', response => {
 			var tagCheck = JSON.parse(response.data);
 			if (!tagCheck.isBlacklisted) {
@@ -1256,7 +1258,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					if (tagCheck.tagChecker!=null && tagCheck.tagChecker.userApp.eppn==eppnAuth){
 						displayToast();
 					}
-					sortDate = (triBadgeage == 'true')? [0, 'asc'] : [4, 'desc'];
 					initTablePresence(sortDate);
 				});
 			}
