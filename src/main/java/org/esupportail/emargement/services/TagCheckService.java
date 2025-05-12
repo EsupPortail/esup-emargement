@@ -407,10 +407,12 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
-					    			/*
-									if(absences.get(eppn)!=null) {
-										tc.setAbsence(Motif.JUSTIFIE);
-									}*/
+					    			Date endDate =  se.getDateExamen() == null? se.getDateExamen() : se.getDateExamen();
+					    			List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
+		                                      se.getDateExamen(), endDate);
+					    			if(!absences.isEmpty()) {
+					    				tc.setAbsence(absences.get(0));
+					    			}
 					    			if(sessionLocationId != null) {
 					    				if(checkImportIntoSessionLocations(sessionLocationId, rows.size())) {
 					    					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();

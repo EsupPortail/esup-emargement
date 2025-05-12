@@ -7,6 +7,7 @@
            	<div class="card">
 		    	<div class="card-header"><h2>Modifier une absence</h2></div>
   				<div class="card-body">
+					<div class="alert alert-info">Si les dates de cette absence ne sont pas bonnes, vous devez supprimer cette absence et en créer une nouvelle.</div>
                     <form action="#" th:action="@{/{ctx}/manager/absence/update/{id}(ctx=${eContext},id=${absence.id})}" th:object="${absence}" method="post" enctype="multipart/form-data">
 						<div class="row mb-3">
 							<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
@@ -29,28 +30,28 @@
 							<label for="dateExamen" class="col-lg-2 form-label">Date de début</label>
 		                    <div class="col-lg-10">
 		                        <input type="date"  id="strDateDebut" placeholder="dd/MM/YYYY" name="strDateDebut" class="form-control"
-		                        th:value="${#dates.format(absence.dateDebut, 'yyyy-MM-dd')}" required="required">
+		                        th:value="${#dates.format(absence.dateDebut, 'yyyy-MM-dd')}" required="required" disabled>
 		                    </div>
 	                    </div>
 	                    <div class="row mb-3">		                    
 		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin</label>
 		                    <div class="col-lg-10">
 		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
-		                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}">
+		                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}" disabled>
 		                    </div>
 	                    </div>
 	                    <div class="row mb-3">
 		                    <label for="heureDebut" class="col-lg-2 form-label">Heure de début</label>
 	                       	<div class="col-lg-10">
 		                        <input type="time" th:field="*{heureDebut}" class="form-control" id="heureDebut"
-		                        	required="required">
+		                        	required="required" disabled>
 	                        </div>
 	                    </div>
 	                    <div class="row mb-3">
 	                        <label for="finEpreuve" class="col-lg-2 form-label">Heure de fin</label>
 	                        <div class="col-lg-10">
 	                        	<input type="time" th:field="*{heureFin}" class="form-control" id="heureFin"
-	                        		required="required">
+	                        		required="required" disabled>
 	                        </div>
 	                    </div>	                    
 	                    <div class="row mb-3">

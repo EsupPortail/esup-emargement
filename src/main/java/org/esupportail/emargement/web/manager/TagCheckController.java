@@ -255,18 +255,22 @@ public class TagCheckController {
     }
 	
     @GetMapping(value = "/manager/tagCheck", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam("sessionEpreuve") Long sessionEpreuve, @RequestParam(value="type", required = false) String type) {
+    public String createForm(Model uiModel, @RequestParam Long sessionEpreuve, @RequestParam(value="type", required = false) String type, @RequestParam(required = false) String modal) {
     	TagCheck tagCheck = new TagCheck();
     	populateEditForm(uiModel, tagCheck, sessionEpreuve);
     	if(type == null) {
     		type = "interne";
     	}
     	uiModel.addAttribute("type", type);
+	    if(modal != null){
+	    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
+        	return "manager/tagCheck/create-modal :: modal-step4";
+        }  
         return "manager/tagCheck/create";
     }
     
     @GetMapping(value = "/manager/tagCheck/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
     	populateEditForm(uiModel, tagCheck, tagCheck.getSessionEpreuve().getId());

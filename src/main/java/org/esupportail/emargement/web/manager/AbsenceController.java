@@ -140,8 +140,8 @@ public class AbsenceController {
     @Transactional
     @PostMapping("/manager/absence/create")
     public String create(@PathVariable String emargementContext, @Valid Absence absence, BindingResult bindingResult, 
-    		Model uiModel,  @RequestParam("strDateDebut") String strDateDebut, 
-    		@RequestParam("strDateFin") String strDateFin) throws ParseException, IOException {
+    		Model uiModel,  @RequestParam String strDateDebut, 
+    		@RequestParam String strDateFin) throws ParseException, IOException {
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
     	DateFormat df = new SimpleDateFormat("HH:mm");
@@ -153,15 +153,38 @@ public class AbsenceController {
         uiModel.asMap().clear();
         String eppn = absence.getPerson().getEppn();
         List<Person> persons = personRepository.findByEppn(eppn);
+        absence.setDateDebut(dateDebut);
+        absence.setDateFin(dateFin);
+        absence.setContext(contexteService.getcurrentContext());
+        absence.setDateModification(new Date());
+        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
+        
         if(!persons.isEmpty()) {
-        	 absence.setPerson(persons.get(0));
+        	 Person p = persons.get(0);
+        	 absence.setPerson(p);
+        	 absenceRepository.save(absence);
+        	 log.info("Nouvelle abxence pour " + p.getEppn());
         	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
         	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
-        	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, dateDebut, dateFin, heureDebut, heureFin);
+        	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
+        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin());
+        	 overlapsList.remove(absence);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {
+        			 tc.setAbsence(absence);
         			 tagCheckRepository.save(tc);
         		 }
+        	 }
+        	 if(!overlapsList.isEmpty()) {
+        		 for(Absence abs : overlapsList) {
+        			 List <TagCheck> tagChecks = tagCheckRepository.findByAbsence(abs);
+        			 for(TagCheck tagCheck : tagChecks) {
+        				 tagCheck.setAbsence(null);
+        				 tagCheckRepository.save(tagCheck);
+        			 }
+        			 absenceRepository.delete(abs);
+        		 }
+        		 log.info("Les absences de " + p.getEppn() + " ont été remplacées.");
         	 }
         }else {
         	List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
@@ -177,15 +200,9 @@ public class AbsenceController {
             	}
             	personRepository.save(person);
             	absence.setPerson(person);
+            	absenceRepository.save(absence);
         	}
         }
-
-        absence.setDateDebut(dateDebut);
-        absence.setDateFin(dateFin);
-        absence.setContext(contexteService.getcurrentContext());
-        absence.setDateModification(new Date());
-        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
-        absenceRepository.save(absence);
         if(absence.getFiles() != null && !absence.getFiles().isEmpty()) {
 			for(MultipartFile file : absence.getFiles()) {
 				if(file.getSize()>0) {
@@ -200,32 +217,20 @@ public class AbsenceController {
     }
     
     @PostMapping("/manager/absence/update/{id}")
-    public String update(@PathVariable String emargementContext, @Valid Absence absence, 
-    		@RequestParam("strDateDebut") String strDateDebut, @RequestParam String strDateFin) throws ParseException, IOException{
-    	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
-    	Date dateFin= !strDateFin.isEmpty() ? new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin) : new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
-    	DateFormat df = new SimpleDateFormat("HH:mm");
+    public String update(@PathVariable String emargementContext, @Valid Absence absence) throws IOException{
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	absence.setDateDebut(dateDebut);
-        absence.setDateFin(dateFin);
-        absence.setDateModification(new Date());
-        absence.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
-        personRepository.save(absence.getPerson());
-    	absenceRepository.save(absence);
-    	LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
-		LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
-		List<TagCheck> tcs = tagCheckRepository.findByDates(absence.getPerson().getEppn(), dateDebut, dateFin,
-				heureDebut, heureFin);
-		if (!tcs.isEmpty()) {
-			for (TagCheck tc : tcs) {
-				tagCheckRepository.save(tc);
-			}
-		}
+    	Absence absense_orig = absenceRepository.findById(absence.getId()).get();
+    	absense_orig.setDateModification(new Date());
+    	absense_orig.setCommentaire(absence.getCommentaire());
+    	absense_orig.setMotifAbsence(absence.getMotifAbsence());
+    	absense_orig.setUserApp(userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
+        personRepository.save(absense_orig.getPerson());
+    	absenceRepository.save(absense_orig);
         if(absence.getFiles() != null && !absence.getFiles().isEmpty()) {
 			for(MultipartFile file : absence.getFiles()) {
 				if(file.getSize()>0) {
 					StoredFile sf = new StoredFile();
-					sf.setAbsence(absence);
+					sf.setAbsence(absense_orig);
 					storedFileService.setStoredFile(sf, file, emargementContext, null);
 					storedFileRepository.save(sf);
 				}

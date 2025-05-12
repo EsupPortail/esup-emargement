@@ -349,22 +349,19 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			+ "(select person_id from groupe_person where groupe_id= :gpeId)", nativeQuery = true)
 	List<Long> findSessionEpreuveIdByTagCheckGroupe(Long gpeId);
 	
-	@Query(
-		    value = "SELECT t.* " +
-		            "FROM tag_check t " +
-		            "JOIN person p ON t.person_id = p.id " +
-		            "JOIN session_epreuve s ON t.session_epreuve_id = s.id " +
-		            "WHERE p.eppn = :eppn " +
-		            "AND ( " +
-		                    "(s.date_examen BETWEEN :dateDebut AND :dateFin) " +
-		                    "OR " + 
-		                    "(s.date_fin BETWEEN :dateDebut AND :dateFin) " +
-		                ") " +
-		            "AND s.heure_epreuve BETWEEN :heureDebut AND :heurefin " +
-		            "AND s.fin_epreuve BETWEEN :heureDebut AND :heurefin " ,
-		    nativeQuery = true
-		)
-		List<TagCheck> findByDates(String eppn, Date dateDebut, Date dateFin, LocalTime heureDebut, LocalTime heurefin);
+	@Query(value = "SELECT t.* " +
+	        "FROM tag_check t, person p, session_epreuve s " +
+	        "WHERE t.person_id = p.id " +
+	        "AND s.id = t.session_epreuve_id " +
+	        "AND p.eppn = :eppn " +
+	        "AND ( " +
+	        "  (s.date_fin IS NULL AND s.date_examen BETWEEN :dateDebut AND :dateFin) " +
+	        "  OR (s.date_fin IS NOT NULL AND s.date_examen <= :dateFin AND s.date_fin >= :dateDebut) " +
+	        ") " +
+            "AND s.heure_epreuve BETWEEN :heureDebut AND :heurefin " +
+            "AND s.fin_epreuve BETWEEN :heureDebut AND :heurefin " ,
+	        nativeQuery = true)
+	List<TagCheck> findByDates(String eppn, Date dateDebut, Date dateFin, LocalTime heureDebut, LocalTime heurefin);
 
 	List<TagCheck> findBySessionEpreuveIdAndPersonEppn(Long id, String eppn);
 }

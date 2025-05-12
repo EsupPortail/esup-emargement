@@ -241,6 +241,7 @@
 									<div id="motifAbsenceSelectContainer">
 									    <select id="motifAbsence" name="motifAbsence" class="mb-2" required="required"
 									        hx-target="#motifAbsence">
+											<option th:if="${motifAbsences.size()>1}" value="">----Choisir----</option>
 									        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
 												th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
 									    </select>
