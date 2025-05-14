@@ -1866,62 +1866,27 @@ document.addEventListener('DOMContentLoaded', function() {
 					}
 				}
 			],
-			pageLength: -1,
+			pageLength: 100,
 			lengthMenu: [
 				[10, 25, 50, -1],
 				[10, 25, 50, 'All']
 			],
-			 dom: '<"d-flex justify-content-end"fB>rt<"bottom"lip><"clear">',
+			dom: '<"top d-flex justify-content-between"fB>rt<"bottom"flp><"clear">',
 			buttons: [
 			    {
 			        extend: 'csv',
 			        className: 'btn btn-success btn-sm ms-2', // if you want the same styling like before
-			        split: [
-			            {
-			                extend: 'pdf',
-			                orientation: 'landscape',
-			                pageSize: 'LEGAL',
-			                exportOptions: {
-			                    orthogonal: 'filter',
-			                    columns: ':not(.exclude)'
-			                },
-			                title: function() { return 'assiduite_' + title; }
-			            },
-			            {
-			                extend: 'excel',
-			                exportOptions: {
-			                    orthogonal: 'filter',
-			                    columns: ':not(.exclude)'
-			                },
-			                title: function() { return 'assiduite_' + title; }
-			            },
-			            {
-			                extend: 'copy',
-			                exportOptions: {
-			                    orthogonal: 'filter',
-			                    columns: ':not(.exclude)'
-			                },
-			                title: function() { return 'assiduite_' + title; }
-			            },
-			            {
-			                extend: 'print',
-			                exportOptions: {
-			                    orthogonal: 'filter',
-			                    columns: ':not(.exclude)'
-			                },
-			                title: function() { return 'assiduite_' + title; }
-			            }
-			        ],
 			        exportOptions: {
 			            orthogonal: 'filter',
 			            columns: ':not(.exclude)'
 			        },
-			        title: function() { return 'assiduite_' + title; }
+			         title: function() { return 'assiduite'; }
 			    }
 			]
 		}
 	}
-
+	$('table.assiduite').DataTable(dataTableOptions);
+	$('table.assiduite2').DataTable(dataTableOptions);
 	$('.tableTasks').DataTable({
 		responsive: true,
 		ordering: true,
