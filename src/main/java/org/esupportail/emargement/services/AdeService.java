@@ -44,6 +44,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AdeClassroomBean;
 import org.esupportail.emargement.domain.AdeInstructorBean;
 import org.esupportail.emargement.domain.AdeResourceBean;
@@ -63,6 +64,7 @@ import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
@@ -135,6 +137,9 @@ public class AdeService {
 	
 	@Autowired
 	private CampusRepository campusRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
 	
 	@Autowired
 	private TypeSessionRepository typeSessionRepository;
@@ -1001,6 +1006,12 @@ public class AdeService {
 							TagCheck tc = new TagCheck();
 							//A voir 
 							//tc.setCodeEtape(codeEtape);
+							Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
+							List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
+                                    se.getDateExamen(), endDate);
+							if(!absences.isEmpty()) {
+			    				tc.setAbsence(absences.get(0));
+			    			}
 							tc.setContext(ctx);
 							tc.setPerson(person);
 							tc.setSessionEpreuve(se);

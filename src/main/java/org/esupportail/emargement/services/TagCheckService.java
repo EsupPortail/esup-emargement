@@ -407,7 +407,7 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
-					    			Date endDate =  se.getDateExamen() == null? se.getDateExamen() : se.getDateExamen();
+					    			Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 					    			List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
 		                                      se.getDateExamen(), endDate);
 					    			if(!absences.isEmpty()) {
