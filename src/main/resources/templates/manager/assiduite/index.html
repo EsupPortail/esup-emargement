@@ -110,7 +110,7 @@
 									sessionEpreuve=${tc.sessionEpreuve}">
 									<td scope="col"><input type="checkbox" th:value="${tc.id}" class="checkboxes" name="checkedValues"></td>
 									<td>
-										<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
+										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
 							            <th:block th:if="${tc.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
@@ -120,7 +120,7 @@
 									<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
 									<td th:text="${individu.civilite}"></td>
 									<td>
-										<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+										<a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
 									</td>
 									<td th:text="${individu.prenom}"></td>
 									<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
