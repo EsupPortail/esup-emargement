@@ -113,4 +113,10 @@ public class AbsenceService {
 		absenceRepository.save(absence);
 		return absence;
 	}
+	
+	@Transactional
+	public void deleteAbsence(Absence absence) {
+		absenceRepository.delete(absence);
+	}
+	
 }

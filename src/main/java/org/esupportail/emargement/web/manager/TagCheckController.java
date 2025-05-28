@@ -330,6 +330,7 @@ public class TagCheckController {
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
     
+    @Transactional
     @PostMapping("/manager/tagCheck/update/{id}")
     public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, @RequestParam(value="motifAbsence", required =false) MotifAbsence motifAbsence, 
     		BindingResult bindingResult, Model uiModel) throws IOException {
@@ -359,6 +360,9 @@ public class TagCheckController {
     			Absence absence = new Absence();
     			absence.setMotifAbsence(motifAbsence);
     			tc.setAbsence(absenceService.createAbsence(tc, absence));
+    		}else {
+    			absenceService.deleteAbsence(tc.getAbsence());
+    			tc.setAbsence(null);
     		}
     		tagCheckService.save(tc, emargementContext);
     	}
