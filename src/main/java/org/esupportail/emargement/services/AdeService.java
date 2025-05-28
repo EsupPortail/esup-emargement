@@ -258,6 +258,51 @@ public class AdeService {
 		return adeBeans;
 	}
 	
+	public List<AdeClassroomBean> getListClassrooms2(String sessionId, String idItem, List<Long> selectedIds)  throws  ParseException {
+		String detail = "9";
+		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" +detail + "&category=classroom";
+		List<AdeClassroomBean> adeBeans = new ArrayList<>();
+		try {
+		    Document doc = getDocument(urlClassroom);
+		    XPath xpath = XPathFactory.newInstance().newXPath();
+		    doc.getDocumentElement().normalize();
+
+		    // Get all <leaf> nodes under the first <branch> of category=classroom
+		    String xpathExpr = String.format("//branch[@id='%s']//leaf", idItem);
+		    NodeList leafNodes = (NodeList) xpath.evaluate(xpathExpr, doc, XPathConstants.NODESET);
+		    if (leafNodes.getLength() == 0) {
+		        log.info("Aucune salle trouvée");
+		    } else {
+		        for (int i = 0; i < leafNodes.getLength(); i++) {
+		            Element element = (Element) leafNodes.item(i);
+		            Long id = Long.valueOf(element.getAttribute("id"));
+
+		            if ((selectedIds != null && !selectedIds.isEmpty() && selectedIds.contains(id)) || selectedIds == null) {
+		                AdeClassroomBean adeClassroomBean = new AdeClassroomBean();
+		                adeClassroomBean.setIdClassRoom(id);
+		                adeClassroomBean.setChemin(element.getAttribute("path"));
+		                adeClassroomBean.setNom(element.getAttribute("name"));
+		                adeClassroomBean.setSize(Integer.valueOf(element.getAttribute("size")));
+		                adeClassroomBean.setType(element.getAttribute("type"));
+
+		                boolean isAlreadyimport = locationRepository.countByAdeClassRoomId(id) > 0;
+		                adeClassroomBean.setAlreadyimport(isAlreadyimport);
+
+		                if (!element.getAttribute("lastUpdate").isEmpty()) {
+		                    Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element.getAttribute("lastUpdate"));
+		                    adeClassroomBean.setLastUpdate(lastUpdate);
+		                }
+
+		                adeBeans.add(adeClassroomBean);
+		            }
+		        }
+		    }
+		} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException | ParseException e) {
+		    log.error("Erreur lors de la récupération de la liste des salles, URL : {}", urlClassroom, e);
+		}
+		return adeBeans;
+	}
+	
 	public List<AdeInstructorBean> getListInstructors(String sessionId, String fatherId, String idItem) {
 		String detail = "10";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";

@@ -274,7 +274,7 @@ public class AdeController {
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
-		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms(sessionId, null, null) :  new ArrayList());
+		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList());
 		uiModel.addAttribute("idProject", idProject);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("codeSalle", codeSalle);
