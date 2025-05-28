@@ -34,48 +34,50 @@ public class EmailService {
 	private String noReply;
  
     public void sendSimpleMessage(String to, String subject, String text, String [] cc) {
-        
-        SimpleMailMessage message = new SimpleMailMessage();
-        if(!appliConfigService.getTestEmail().isEmpty()) {
-			to = appliConfigService.getTestEmail();
-		}
-        message.setTo(to); 
-        message.setSubject(subject); 
-        message.setText(text);
-        message.setFrom(noReply.concat("@").concat(nomDomaine));
-        if(cc.length>0) {
-        	message.setCc(cc);
-        }
-        emailSender.send(message);
+    	if(appliConfigService.isSendEmails()) {
+	        SimpleMailMessage message = new SimpleMailMessage();
+	        if(!appliConfigService.getTestEmail().isEmpty()) {
+				to = appliConfigService.getTestEmail();
+			}
+	        message.setTo(to); 
+	        message.setSubject(subject); 
+	        message.setText(text);
+	        message.setFrom(noReply.concat("@").concat(nomDomaine));
+	        if(cc.length>0) {
+	        	message.setCc(cc);
+	        }
+	        emailSender.send(message);
+    	}
        
     }
     
     public void sendMessageWithAttachment(String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
     		InputStream inputStream, boolean addAttachment) throws MessagingException, IOException {
-         
-        MimeMessage message = emailSender.createMimeMessage();
-    
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        if(!appliConfigService.getTestEmail().isEmpty()) {
-			to = appliConfigService.getTestEmail();
-		}
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(text, true);
-        helper.setFrom(noReply.concat("@").concat(nomDomaine));
-        if(cc.length>0) {
-        	helper.setCc(cc);
-        }
-        if(addAttachment) {
-	        FileSystemResource file = null;
-	        if(inputStream != null) {
-		        helper.addAttachment(fileName,
-		        new ByteArrayResource(IOUtils.toByteArray(inputStream)));
-	        }else {
-	        	file = new FileSystemResource(new File(pathToAttachment));
-	        	helper.addAttachment(fileName, file);
+    	if(appliConfigService.isSendEmails()) {
+	        MimeMessage message = emailSender.createMimeMessage();
+	    
+	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+	        if(!appliConfigService.getTestEmail().isEmpty()) {
+				to = appliConfigService.getTestEmail();
+			}
+	        helper.setTo(to);
+	        helper.setSubject(subject);
+	        helper.setText(text, true);
+	        helper.setFrom(noReply.concat("@").concat(nomDomaine));
+	        if(cc.length>0) {
+	        	helper.setCc(cc);
 	        }
-        }
-        emailSender.send(message);
+	        if(addAttachment) {
+		        FileSystemResource file = null;
+		        if(inputStream != null) {
+			        helper.addAttachment(fileName,
+			        new ByteArrayResource(IOUtils.toByteArray(inputStream)));
+		        }else {
+		        	file = new FileSystemResource(new File(pathToAttachment));
+		        	helper.addAttachment(fileName, file);
+		        }
+	        }
+	        emailSender.send(message);
+    	}
     }
 }
