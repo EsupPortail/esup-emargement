@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -108,7 +109,7 @@ public class TaskService {
 	}
 	
 	@Scheduled(cron= "${emargement.ade.sync.cron}")
-	public void updateAdeSessionEpreuve() throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public void updateAdeSessionEpreuve() throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		List<Context> contextList = contextRepository.findAll();
 		if(!contextList.isEmpty()) {
 			for(Context ctx : contextList) {
@@ -126,15 +127,18 @@ public class TaskService {
 					ses = sessionEpreuveRepository.findByContextAndDateExamenGreaterThanEqual(ctx, today);
 				}
 				log.info("Début syncrhonisation ADE");
-			    adeService.updateSessionEpreuve(ses, ctx.getKey(), "cron");
+			    adeService.updateSessionEpreuve(ses, ctx.getKey(), "cron", ctx);
 			    log.info("Fin syncrhonisation ADE");
 			}
 		}
 	}
 	
-	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		String idProject = task.getAdeProject();
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		if(adeService.getProjectLists(sessionId).isEmpty()) {
+			adeService.disconnectSession(emargementContext);
+		}
 		if(adeService.getConnectionProject(idProject, sessionId)==null) {
 			sessionId = adeService.getSessionId(true, emargementContext, idProject);
 			adeService.getConnectionProject(idProject, sessionId);
@@ -151,8 +155,9 @@ public class TaskService {
 		    String dateDebut = dateFormat.format(datesDebutFin[0]);
 		    String dateFin = dateFormat.format(datesDebutFin[1]);
 			task.setDateExecution(new Date());
+			Context ctx = contextRepository.findByKey(emargementContext);
 			List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
-					dateDebut, dateFin, null, null, null, idList);
+					dateDebut, dateFin, null, null, null, idList, ctx);
 			List<Long> idEvents = adebeans.stream().map(tc -> tc.getEventId()).collect(Collectors.toList());
 			log.info("Id évènements : " + idEvents);
 			log.info("Contexte :" + task.getContext().getKey());

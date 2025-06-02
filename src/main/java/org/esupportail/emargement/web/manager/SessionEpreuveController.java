@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -553,9 +554,10 @@ public class SessionEpreuveController {
     
 	@Transactional
     @PostMapping("/manager/sessionEpreuve/updateAde/{id}")
-	public String  updateSessionAde(@PathVariable String emargementContext, @PathVariable("id") List<SessionEpreuve> listSe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public String  updateSessionAde(@PathVariable String emargementContext, @PathVariable("id") List<SessionEpreuve> listSe) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		if(listSe != null) {
-			adeService.updateSessionEpreuve(listSe, emargementContext, "manual");
+			Context ctx = contextRepository.findByKey(emargementContext);
+			adeService.updateSessionEpreuve(listSe, emargementContext, "manual", ctx);
 		}
 		
 		return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);

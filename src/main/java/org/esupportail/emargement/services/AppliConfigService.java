@@ -216,8 +216,18 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	public Boolean isAdeCampusGroupeAutoEnabled(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CREATE_GROUPE_AUTO, ctx);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
 	public Boolean isMembersAdeImport() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_IMPORT_MEMBERS);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isMembersAdeImport(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_MEMBERS, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
@@ -293,6 +303,11 @@ public class AppliConfigService {
 		return appliConfig==null ? "code" : appliConfig.getValue().trim();
 	}
 	
+	public  String getAdeMemberAttribute(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_MEMBER_ATTRIBUTE, ctx);
+		return appliConfig==null ? "code" : appliConfig.getValue().trim();
+	}
+	
 	public String getListImportExport() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.LIST_IMPORTEXPORT);
 		return appliConfig==null ? "ALCG" : appliConfig.getValue();
@@ -321,9 +336,19 @@ public class AppliConfigService {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_UPDATE_CAPACITE_SALLE);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
+	
+	public Boolean isAdeCampusUpdateCapaciteSalleEnabled(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_UPDATE_CAPACITE_SALLE, ctx);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
 
 	public Boolean isAdeCampusLimitQueriesEnabled() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_LIMIT_QUERIES);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
+	}
+	
+	public Boolean isAdeCampusLimitQueriesEnabled(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_LIMIT_QUERIES, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
@@ -332,8 +357,18 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue().trim();
 	}
 	
+	public  String getAdeSuperGroupe(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_SUPERGROUPE, ctx);
+		return appliConfig==null ? "" : appliConfig.getValue().trim();
+	}
+	
 	public  String getFormationAde() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_FORMATION);
+		return appliConfig==null ? "" : appliConfig.getValue();
+	}
+	
+	public  String getFormationAde(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_FORMATION, ctx);
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 

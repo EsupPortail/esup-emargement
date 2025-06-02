@@ -10,7 +10,9 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Campus;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.CampusRepository;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.slf4j.Logger;
@@ -44,6 +46,9 @@ public class EventController {
 	
 	@Autowired
 	CampusRepository campusRepository;
+	
+	@Autowired	
+	ContextRepository contextRepository;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -83,7 +88,8 @@ public class EventController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
-			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList));
+			Context ctx = contextRepository.findByKey(emargementContext);
+			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx));
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
 			uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);

@@ -186,6 +186,9 @@ public class AdeController {
 		try {
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+			if(adeService.getProjectLists(sessionId).isEmpty()) {
+				adeService.disconnectSession(emargementContext);
+			}
 			if(adeService.getConnectionProject(idProject, sessionId)==null) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
@@ -228,7 +231,8 @@ public class AdeController {
 			}
 			uiModel.addAttribute("currentComposante", codeComposante);
 			if("myEvents".equals(codeComposante) || idList.size()>0) {
-				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList));
+				Context ctx = contextRepository.findByKey(emargementContext);
+				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx));
 			}
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
@@ -303,11 +307,9 @@ public class AdeController {
 	
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/task/importEvents")
-	public String importEventFromTask(@PathVariable String emargementContext,@RequestParam Task task) throws IOException, ParserConfigurationException, SAXException, ParseException {
+	public String importEventFromTask(@PathVariable String emargementContext,@RequestParam Task task) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		Long dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Long.valueOf(dureeMaxImport);
-		
 		taskService.processTask(task, emargementContext, dureeMax, 1);
-		
 		return String.format("redirect:/%s/manager/adeCampus/tasks", emargementContext);
 	}
 	
