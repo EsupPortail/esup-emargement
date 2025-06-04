@@ -436,7 +436,7 @@ public class AdeService {
 	    return mapActivities;
 	}
 	
- 	public List<String> getMembersOfEvent(String sessionId, String idResource, String target) {
+ 	public List<String> getMembersOfEvent(String sessionId, String idResource, String target, Context ctx) {
 	    String detail = "13";
 	    String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", 
 	                                      urlAde, sessionId, idResource, detail);
@@ -452,21 +452,23 @@ public class AdeService {
 	        XPath xpath = xPathFactory.newXPath();
 	
 	        if ("members".equals(target)) {
+	        	log.info("Début de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member", doc, XPathConstants.NODESET);
 	            for (int i = 0; i < memberNodes.getLength(); i++) {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if (appliConfigService.getCategoriesAde().equals(category)) {
+	                if (appliConfigService.getCategoriesAde(ctx).equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
-	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members"));
+	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members", ctx));
 	                }
 	            }
+	            log.info("Fin de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	        } else {
-	            String adeAttribute = appliConfigService.getAdeMemberAttribute();
+	            String adeAttribute = appliConfigService.getAdeMemberAttribute(ctx);
 	            if (adeAttribute.equals(target)) {
-	                String categoryFilter = appliConfigService.getCategoriesAde();
+	                String categoryFilter = appliConfigService.getCategoriesAde(ctx);
 	                NodeList resourceNodes = (NodeList) xpath.evaluate(
 	                    "//resource[@category='" + categoryFilter + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
 	                for (int i = 0; i < resourceNodes.getLength(); i++) {
@@ -925,25 +927,25 @@ public class AdeService {
 			    		    .flatMap(map -> map.keySet().stream())
 			    		    .map(Object::toString)
 			    		    .collect(Collectors.joining("|"));
-			    	allMembers1 = getMembersOfEvent(sessionId, ids, "members");
+			    	allMembers1 = getMembersOfEvent(sessionId, ids, "members", ctx);
 			    	if(listAdeSuperGroupes != null && !listAdeSuperGroupes.isEmpty()) {
 				    	String ids2 = listAdeSuperGroupes.stream()
 				    		    .flatMap(map -> map.keySet().stream())
 				    		    .map(Object::toString)
 				    		    .collect(Collectors.joining("|"));
-				        allMembers2 = getMembersOfEvent(sessionId, ids2, "members");
+				        allMembers2 = getMembersOfEvent(sessionId, ids2, "members", ctx);
 			    	}
 			    } else {
 			    	allMembers1 = listAdeTrainees.stream()
 			    		    .flatMap(map -> map.keySet().stream())
-			    		    .map(key -> getMembersOfEvent(sessionId, key.toString(), "members"))
+			    		    .map(key -> getMembersOfEvent(sessionId, key.toString(), "members", ctx))
 			    		    .filter(list -> !list.isEmpty())
 			    		    .flatMap(List::stream)
 			    		    .collect(Collectors.toList());
 			    	if(listAdeSuperGroupes != null && !listAdeSuperGroupes.isEmpty()) {
 						allMembers2 = listAdeSuperGroupes.stream()
 				    		    .flatMap(map -> map.keySet().stream())
-				    		    .map(key -> getMembersOfEvent(sessionId, key.toString(), "members"))
+				    		    .map(key -> getMembersOfEvent(sessionId, key.toString(), "members", ctx))
 				    		    .filter(list -> !list.isEmpty())
 				    		    .flatMap(List::stream)
 				    		    .collect(Collectors.toList());
@@ -964,11 +966,11 @@ public class AdeService {
 			        }
 			        if (isAdeCampusLimitQueriesEnabled) {
 			        	for (Map.Entry<Integer, List<String>> entry : chunkedMap.entrySet()) {
-			        		allCodes.addAll(getMembersOfEvent(sessionId, String.join("|",  entry.getValue()), adeAttribute));
+			        		allCodes.addAll(getMembersOfEvent(sessionId, String.join("|",  entry.getValue()), adeAttribute, ctx));
 			        	}
 			        } else {
 			            allCodes = allMembers.stream()
-				                .map(id -> getMembersOfEvent(sessionId, id, adeAttribute))
+				                .map(id -> getMembersOfEvent(sessionId, id, adeAttribute, ctx))
 				                .filter(list -> !list.isEmpty())
 				                .map(list -> list.get(0))
 				                .collect(Collectors.toList());

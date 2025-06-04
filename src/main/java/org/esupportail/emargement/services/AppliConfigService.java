@@ -231,8 +231,8 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
-	public String getCategoriesAde() {
-		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_CATEGORIES);
+	public String getCategoriesAde(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CATEGORIES, ctx);
 		if(appliConfig==null) {
 			return "";
 		}
