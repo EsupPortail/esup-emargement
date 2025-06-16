@@ -89,7 +89,7 @@ public class EventController {
 				log.info("Récupération du projet Ade " + idProject);
 			}
 			Context ctx = contextRepository.findByKey(emargementContext);
-			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx));
+			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx, false));
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
 			uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
@@ -112,7 +112,7 @@ public class EventController {
 			@RequestParam(required = false) List<Long> existingGroupe,
 			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					"myEvents",	campus,  idList, null, null, null);
+					"myEvents",	campus, idList, null, null, null, false);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, StringUtils.join(idList, ","));

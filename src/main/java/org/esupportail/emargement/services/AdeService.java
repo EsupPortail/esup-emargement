@@ -22,9 +22,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -392,7 +394,6 @@ public class AdeService {
 	    Map<String, String> mapClassrooms = new HashMap<>();
 	    String urlClassroom = String.format("%s?sessionId=%s&function=getResources&tree=true&detail=8&category=classroom", 
 	                                         urlAde, sessionId);
-	    
 	    try {
 	        Document doc = getDocument(urlClassroom);
 	        XPath xpath = XPathFactory.newInstance().newXPath();
@@ -434,6 +435,77 @@ public class AdeService {
 	    }
 
 	    return mapActivities;
+	}
+	
+	public boolean haveAnyMemberGroupsBeenUpdated(AdeResourceBean ade, String sessionId, Context ctx) {
+		if (ade.getLastImport() != null) {
+			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.FRANCE);
+			try {
+				// Helper to build and test update from XML
+				BiFunction<String, String, Boolean> checkResourceUpdated = (id, baseUrl) -> {
+					try {
+						String urlMembers = String.format(
+								"%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=13", baseUrl, sessionId,
+								id);
+						DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+						factory.setNamespaceAware(true);
+						DocumentBuilder builder = factory.newDocumentBuilder();
+						Document doc = builder.parse(new java.net.URL(urlMembers).openStream());
+						doc.getDocumentElement().normalize();
+
+						XPath xpath = XPathFactory.newInstance().newXPath();
+						String lastUpdateStr = xpath.evaluate("//resource/@lastUpdate", doc);
+						if (lastUpdateStr == null || lastUpdateStr.isEmpty())
+							return false;
+
+						Date lastUpdateDate = sdf.parse(lastUpdateStr);
+						boolean isAfter = lastUpdateDate.after(ade.getLastImport());
+						return isAfter;
+					} catch (Exception e) {
+						e.printStackTrace();
+						return false;
+					}
+				};
+				// Handle with campus limitation enabled
+				List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+				List<Map<Long, String>> listAdeSuperGroupes = ade.getSuperGroupe();
+				boolean isAdeCampusLimitQueriesEnabled = appliConfigService.isAdeCampusLimitQueriesEnabled(ctx);
+				if (isAdeCampusLimitQueriesEnabled) {
+					if (listAdeTrainees != null) {
+						String ids = listAdeTrainees.stream().flatMap(map -> map.keySet().stream())
+								.map(Object::toString).collect(Collectors.joining("|"));
+						if (checkResourceUpdated.apply(ids, urlAde))
+							return true;
+					}
+					if (listAdeSuperGroupes != null) {
+						String ids2 = listAdeSuperGroupes.stream().flatMap(map -> map.keySet().stream())
+								.map(Object::toString).collect(Collectors.joining("|"));
+						if (checkResourceUpdated.apply(ids2, urlAde))
+							return true;
+					}
+				} else {
+					if (listAdeTrainees != null) {
+						for (Map<Long, String> map : listAdeTrainees) {
+							for (Long id : map.keySet()) {
+								if (checkResourceUpdated.apply(id.toString(), urlAde))
+									return true;
+							}
+						}
+					}
+					if (listAdeSuperGroupes != null) {
+						for (Map<Long, String> map : listAdeSuperGroupes) {
+							for (Long id : map.keySet()) {
+								if (checkResourceUpdated.apply(id.toString(), urlAde))
+									return true;
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 	
  	public List<String> getMembersOfEvent(String sessionId, String idResource, String target, Context ctx) {
@@ -552,20 +624,24 @@ public class AdeService {
 						}
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						boolean isAlreadyimport = (sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0)? true : false;
-						if(existingSe == null && !isAlreadyimport || "true".equals(existingSe)|| update){
+						if(existingSe == null && !isAlreadyimport && !update|| "true".equals(existingSe)|| update){
 							SessionEpreuve se = null;
+							if(isAlreadyimport) {
+								List<SessionEpreuve> ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
+								se = ses.get(0);
+							}else {
+								se = new SessionEpreuve();
+							}
 							String activityId = element.getAttribute("activityId");
 							adeResourceBean.setActivityId(Long.valueOf(activityId));
 							if(update) {
-								List<SessionEpreuve> ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
-								se = (ses != null) ? ses.get(0) :  null;
 								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, activityId);
 								AdeResourceBean beanActivity2 = activities2.get(activityId);
 								if(beanActivity2!= null) {
 									adeResourceBean.setTypeEvent(beanActivity2.getTypeEvent());
 								}
+								adeResourceBean.setLastImport(se!=null? se.getDateImport() : null);
 							}else {
-								se = new SessionEpreuve();
 								AdeResourceBean beanActivity = activities.get(activityId);
 								if(beanActivity!= null) {
 									adeResourceBean.setTypeEvent(beanActivity.getTypeEvent());
@@ -794,12 +870,13 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			if(sessionEpreuveRepository.countByAdeEventIdAndContext(ade.eventId, ctx)==0 && !update || update){
+			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndContext(ade.eventId, ctx)==0 ? false : true;
+			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;
 				Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
-				if(update && se.getDateExamen().compareTo(today)>=0) {
-					if(se.getDateImport() != null && ade.getLastUpdate().compareTo(se.getDateImport())>=0) {
+				if(isSessionExisted && update && se.getDateExamen().compareTo(today)>=0) {
+					if(ade.getLastImport() != null && ade.getLastUpdate().compareTo(ade.getLastImport())>=0) {
 						clearSessionRelatedData(se);
 						isUpdateOk = true;
 					}else{
@@ -811,7 +888,15 @@ public class AdeService {
 					se.setAdeProjectId(Long.parseLong(idProject));
 					se.setDateCreation(new Date());
 				}
-				if(!update || update && isUpdateOk){
+				boolean isMembersChanged = false;
+				if(update) {
+					isMembersChanged = haveAnyMemberGroupsBeenUpdated(ade,sessionId, ctx);
+				}
+				if(update && isMembersChanged && !isUpdateOk) {
+					List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(se.getAdeEventId());
+					tagCheckRepository.deleteAll(tcs);
+				}
+				if(!isSessionExisted || !update || update && isUpdateOk){
 					processSessionEpreuve(se, campus, ctx);
 					processTypeSession(ade, se, ctx);
 					sessionEpreuveRepository.save(se);
@@ -1022,7 +1107,7 @@ public class AdeService {
 							tc.setSessionEpreuve(se);
 							tagCheckRepository.save(tc);
 							nbStudents++;
-							if(!groupes.isEmpty()) {
+							if(groupes!=null && !groupes.isEmpty()) {
 								groupeService.addPerson(person, groupes);
 							}
 						}
@@ -1150,7 +1235,7 @@ public class AdeService {
 	}
 	
 	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, 
-			String codeComposante, List<String> idList, Context ctx) throws IOException, ParserConfigurationException, SAXException, ParseException{
+			String codeComposante, List<String> idList, Context ctx, boolean update) throws IOException, ParserConfigurationException, SAXException, ParseException{
         List<AdeResourceBean> adeResourceBeans = new ArrayList<>();
 
 		if("myEvents".equals(codeComposante)) {
@@ -1159,11 +1244,11 @@ public class AdeService {
 			if(!ldapUsers.isEmpty()) {
 				String supannEmpId = ldapUsers.get(0).getNumPersonnel();
 				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
-				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, false, ctx);
+				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
 			}	
 		}else if(idList !=null && !idList.isEmpty()){
 			for(String id : idList) {
-		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, false, ctx);
+		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
 		        adeResourceBeans.addAll(beansTrainee);
 			}
 		}
@@ -1212,7 +1297,6 @@ public class AdeService {
 				log.info("Récupération du projet Ade " + idProject);
 			}
 	        List<Long> idEvents  = mapSE.get(key).stream().map(o -> o.getAdeEventId()).collect(Collectors.toList());
-	        
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx);
 			if(!beans.isEmpty()) {
 				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
@@ -1324,7 +1408,7 @@ public class AdeService {
 	
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
-			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax)
+			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update)
 			throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		int nbImports = 0;
 		if (idEvents != null) {
@@ -1341,7 +1425,7 @@ public class AdeService {
 			Context ctx = contextRepository.findByKey(emargementContext);
 			if(beans == null) {
 				beans = getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe,
-						codeComposante, idList, ctx);
+						codeComposante, idList, ctx, update);
 			}
 			if (!beans.isEmpty()) {
 				List<Long> groupes = new ArrayList<>();
@@ -1355,7 +1439,7 @@ public class AdeService {
 						groupes.add(groupe.getId());
 					}
 				}
-				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, false, null, groupes, dureeMax);
+				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, update, null, groupes, dureeMax);
 			} else {
 				log.info("Aucun évènement à importer");
 			}

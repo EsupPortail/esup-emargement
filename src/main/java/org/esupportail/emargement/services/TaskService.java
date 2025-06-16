@@ -154,14 +154,14 @@ public class TaskService {
 			task.setDateExecution(new Date());
 			Context ctx = contextRepository.findByKey(emargementContext);
 			List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
-					dateDebut, dateFin, null, null, null, idList, ctx);
+					dateDebut, dateFin, null, null, null, idList, ctx, true);
 			List<Long> idEvents = adebeans.stream().map(tc -> tc.getEventId()).collect(Collectors.toList());
 			log.info("Id évènements : " + idEvents);
 			log.info("Contexte :" + task.getContext().getKey());
 			log.info("import tâche :" + task.getLibelle());
 			log.info("import # :" + numImport);
 			int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", null, "false", 
-					null, task.getCampus(), idList, adebeans, idProject, dureeMax);
+					null, task.getCampus(), idList, adebeans, idProject, dureeMax, true);
 			int total = nbImports + task.getNbModifs();
 			task.setNbModifs(total);
 			task.setStatus(org.esupportail.emargement.domain.Task.Status.ENDED);

@@ -28,6 +28,8 @@ public class AdeResourceBean {
 	
 	public Date lastUpdate;
 	
+	public Date lastImport;
+	
 	public String typeEvent;
 	
 	public Long getEventId() {
@@ -125,4 +127,13 @@ public class AdeResourceBean {
 	public void setSuperGroupe(List<Map<Long, String>> superGroupe) {
 		this.superGroupe = superGroupe;
 	}
+
+	public Date getLastImport() {
+		return lastImport;
+	}
+
+	public void setLastImport(Date lastImport) {
+		this.lastImport = lastImport;
+	}
+	
 }

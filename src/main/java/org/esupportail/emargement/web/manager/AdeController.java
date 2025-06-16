@@ -229,7 +229,7 @@ public class AdeController {
 			uiModel.addAttribute("currentComposante", codeComposante);
 			if("myEvents".equals(codeComposante) || idList.size()>0) {
 				Context ctx = contextRepository.findByKey(emargementContext);
-				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx));
+				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx, false));
 			}
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
@@ -296,7 +296,7 @@ public class AdeController {
 			@RequestParam(required = false) String newGroupe,
 			@RequestParam(required = false) String idProject) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					codeComposante,	campus,  idList, null, idProject, null);
+					codeComposante,	campus,  idList, null, idProject, null, false);
 		
 		return String.format("redirect:/%s/manager/adeCampus/Events?strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));
