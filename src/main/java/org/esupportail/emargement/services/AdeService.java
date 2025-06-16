@@ -1288,6 +1288,7 @@ public class AdeService {
 		for (Long key : mapSE.keySet()) {
 	        String idProject = String.valueOf(key);
 	        String sessionId = getSessionId(false, emargementContext, idProject);
+	        getConnectionProject(idProject, sessionId);
 			if(getProjectLists(sessionId).isEmpty()) {
 				disconnectSession(emargementContext);
 			}
@@ -1417,6 +1418,7 @@ public class AdeService {
 				idProject = getCurrentProject(null, auth.getName(), emargementContext);
 			}
 			String sessionId = getSessionId(false, emargementContext, idProject);
+			getConnectionProject(idProject, sessionId);
 			if (getProjectLists(sessionId).isEmpty()) {
 				sessionId = getSessionId(true, emargementContext, idProject);
 				getConnectionProject(idProject, sessionId);

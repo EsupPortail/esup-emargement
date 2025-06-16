@@ -186,6 +186,7 @@ public class AdeController {
 		try {
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+			adeService.getConnectionProject(idProject, sessionId);
 			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
@@ -221,6 +222,7 @@ public class AdeController {
 		try {
 			String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+			adeService.getConnectionProject(idProject, sessionId);
 			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
@@ -248,6 +250,12 @@ public class AdeController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		adeService.getConnectionProject(idProject, sessionId);
+		if(adeService.getProjectLists(sessionId).isEmpty()) {
+			sessionId = adeService.getSessionId(true, emargementContext, idProject);
+			adeService.getConnectionProject(idProject, sessionId);
+			log.info("Récupération du projet Ade " + idProject);
+		}
 		uiModel.addAttribute("mapComposantes", adeService.getMapComposantesFormations(sessionId, "trainee"));
 		String formAde = appliConfigService.getFormationAde();
 		Map<String, String> mapFormations = (formAde!=null && !formAde.isEmpty())? adeService.getMapComposantesFormations(sessionId, formAde) : null;

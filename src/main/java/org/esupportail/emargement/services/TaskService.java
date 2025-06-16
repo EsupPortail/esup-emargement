@@ -136,6 +136,7 @@ public class TaskService {
 	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		String idProject = task.getAdeProject();
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		adeService.getConnectionProject(idProject, sessionId);
 		if(adeService.getProjectLists(sessionId).isEmpty()) {
 			sessionId = adeService.getSessionId(true, emargementContext, idProject);
 			adeService.getConnectionProject(idProject, sessionId);

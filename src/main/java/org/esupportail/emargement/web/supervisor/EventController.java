@@ -83,6 +83,7 @@ public class EventController {
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext, projet);
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
+			adeService.getConnectionProject(idProject, sessionId);
 			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, projet);
 				adeService.getConnectionProject(idProject, sessionId);
