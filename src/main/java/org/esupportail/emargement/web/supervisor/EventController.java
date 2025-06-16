@@ -83,7 +83,7 @@ public class EventController {
 		try {
 			String sessionId = adeService.getSessionId(false, emargementContext, projet);
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
-			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, projet);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
@@ -110,7 +110,7 @@ public class EventController {
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
-			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
 					"myEvents",	campus,  idList, null, null, null);
 		

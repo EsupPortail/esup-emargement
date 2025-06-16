@@ -137,7 +137,7 @@ public class UserAppController {
 		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		if(isAdeCampusEnabled) {
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
-			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);

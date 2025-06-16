@@ -187,9 +187,6 @@ public class AdeController {
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 			if(adeService.getProjectLists(sessionId).isEmpty()) {
-				adeService.disconnectSession(emargementContext);
-			}
-			if(adeService.getConnectionProject(idProject, sessionId)==null) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
@@ -224,7 +221,7 @@ public class AdeController {
 		try {
 			String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
-			if(adeService.getConnectionProject(idProject, sessionId)==null) {
+			if(adeService.getProjectLists(sessionId).isEmpty()) {
 				sessionId = adeService.getSessionId(true, emargementContext, idProject);
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
@@ -297,7 +294,7 @@ public class AdeController {
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
 			@RequestParam(required = false) String newGroupe,
-			@RequestParam(required = false) String idProject) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			@RequestParam(required = false) String idProject) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
 					codeComposante,	campus,  idList, null, idProject, null);
 		

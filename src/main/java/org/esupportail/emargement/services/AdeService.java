@@ -1206,7 +1206,7 @@ public class AdeService {
 			if(getProjectLists(sessionId).isEmpty()) {
 				disconnectSession(emargementContext);
 			}
-	        if(getConnectionProject(idProject, sessionId)==null) {
+	        if(getProjectLists(sessionId).isEmpty()) {
 				sessionId = getSessionId(true, emargementContext, idProject);
 				getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
@@ -1325,7 +1325,7 @@ public class AdeService {
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax)
-			throws IOException, ParserConfigurationException, SAXException, ParseException {
+			throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -1333,7 +1333,7 @@ public class AdeService {
 				idProject = getCurrentProject(null, auth.getName(), emargementContext);
 			}
 			String sessionId = getSessionId(false, emargementContext, idProject);
-			if (getConnectionProject(idProject, sessionId) == null) {
+			if (getProjectLists(sessionId).isEmpty()) {
 				sessionId = getSessionId(true, emargementContext, idProject);
 				getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
