@@ -91,7 +91,7 @@ public class AbsenceService {
 		absence.setContext(ctx);
 		SessionEpreuve se = tc.getSessionEpreuve();
 		absence.setDateDebut(se.getDateExamen());
-		absence.setDateFin(se.getDateFin());
+		absence.setDateFin(se.getDateFin() != null? se.getDateFin() : se.getDateExamen());
 		absence.setHeureDebut(se.getHeureEpreuve());
 		absence.setHeureFin(se.getFinEpreuve());
 		absence.setPerson(tc.getPerson());
