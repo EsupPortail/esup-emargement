@@ -980,7 +980,11 @@ public class AdeService {
 				Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allCodes, filter);
 				if(!allCodes.isEmpty()) {
 					for (String code : allCodes) {
-						List<Person> persons = personRepository.findByNumIdentifiant(code);
+						String numIdentifiant = code;
+						if("mail".equals(filter)) {
+							numIdentifiant = users.get(code).getNumEtudiant();
+						}
+						List<Person> persons = personRepository.findByNumIdentifiant(numIdentifiant);
 						Person person = null;
 						boolean isUnknown = false;
 						if(!persons.isEmpty()) {
@@ -1119,7 +1123,8 @@ public class AdeService {
 								}
 								userApp.setContextPriority(0);
 								userApp.setEppn(ldapUsers.get(0).getEppn());
-								userApp.setUserRole(Role.MANAGER);
+								Role role = appliConfigService.isAdeCampusInstructorManager(ctx)? Role.MANAGER : Role.SUPERVISOR;
+								userApp.setUserRole(role);
 							}
 							userAppRepository.save(userApp);
 						}
