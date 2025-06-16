@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -135,28 +136,52 @@ public class LdapService {
 	}
 	
 	public Map<String, LdapUser> getLdapUsersFromNumList(List<String> numList, String filter) {
-		if(!numList.isEmpty()) {
-			LdapQuery queryBuilder = LdapQueryBuilder.query().where(filter).is(numList.get(0));
-			for (int i = 1; i < numList.size(); i++) {
-				queryBuilder = ((ContainerCriteria) queryBuilder).or(filter).is(numList.get(i));
-			}
-			Iterable<LdapUser> validators = ldapUserRepository.findAll(queryBuilder);
-			if ("supannEtuId".equals(filter)) {
-				return StreamSupport.stream(validators.spliterator(), false)
-						.collect(Collectors.toMap(LdapUser::getNumEtudiant, Function.identity()));
-			} else if ("eduPersonPrincipalName".equals(filter)) {
-				return StreamSupport.stream(validators.spliterator(), false)
-						.collect(Collectors.toMap(LdapUser::getEppn, Function.identity()));
-			} else if ("supannEmpId".equals(filter)) {
-				return StreamSupport.stream(validators.spliterator(), false)
-						.collect(Collectors.toMap(LdapUser::getNumPersonnel, Function.identity()));
-			}else if ("mail".equals(filter)) {
-				return StreamSupport.stream(validators.spliterator(), false)
-						.collect(Collectors.toMap(LdapUser::getEmail, Function.identity()));
-			}else {
-				return new HashMap<>();
-			}
-		}
-		return new HashMap<>();
+	    if (numList == null || numList.isEmpty()) {
+	        return new HashMap<>();
+	    }
+
+	    LdapQuery queryBuilder = LdapQueryBuilder.query().where(filter).is(numList.get(0));
+	    for (int i = 1; i < numList.size(); i++) {
+	        queryBuilder = ((ContainerCriteria) queryBuilder).or(filter).is(numList.get(i));
+	    }
+
+	    Iterable<LdapUser> validators = ldapUserRepository.findAll(queryBuilder);
+
+	    // Merge function to keep the first encountered LdapUser in case of duplicate keys
+	    BinaryOperator<LdapUser> mergeFunction = (existing, replacement) -> existing;
+
+	    switch (filter) {
+	        case "supannEtuId":
+	            return StreamSupport.stream(validators.spliterator(), false)
+	                    .collect(Collectors.toMap(
+	                            LdapUser::getNumEtudiant,
+	                            Function.identity(),
+	                            mergeFunction
+	                    ));
+	        case "eduPersonPrincipalName":
+	            return StreamSupport.stream(validators.spliterator(), false)
+	                    .collect(Collectors.toMap(
+	                            LdapUser::getEppn,
+	                            Function.identity(),
+	                            mergeFunction
+	                    ));
+	        case "supannEmpId":
+	            return StreamSupport.stream(validators.spliterator(), false)
+	                    .collect(Collectors.toMap(
+	                            LdapUser::getNumPersonnel,
+	                            Function.identity(),
+	                            mergeFunction
+	                    ));
+	        case "mail":
+	            return StreamSupport.stream(validators.spliterator(), false)
+	                    .collect(Collectors.toMap(
+	                            LdapUser::getEmail,
+	                            Function.identity(),
+	                            mergeFunction
+	                    ));
+	        default:
+	            return new HashMap<>();
+	    }
 	}
+
 }
