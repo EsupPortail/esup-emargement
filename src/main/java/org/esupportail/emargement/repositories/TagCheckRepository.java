@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -350,18 +351,25 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	List<Long> findSessionEpreuveIdByTagCheckGroupe(Long gpeId);
 	
 	@Query(value = "SELECT t.* " +
-	        "FROM tag_check t, person p, session_epreuve s " +
-	        "WHERE t.person_id = p.id " +
-	        "AND s.id = t.session_epreuve_id " +
-	        "AND p.eppn = :eppn " +
+	        "FROM tag_check t " +
+	        "JOIN person p ON t.person_id = p.id " +
+	        "JOIN session_epreuve s ON s.id = t.session_epreuve_id " +
+	        "WHERE p.eppn = :eppn " +
 	        "AND ( " +
-	        "  (s.date_fin IS NULL AND s.date_examen BETWEEN :dateDebut AND :dateFin) " +
-	        "  OR (s.date_fin IS NOT NULL AND s.date_examen <= :dateFin AND s.date_fin >= :dateDebut) " +
+	        "  s.date_examen > :dateDebut AND s.date_examen < :dateFin " +
+	        "  OR (s.date_examen = :dateDebut AND s.heure_epreuve >= :heureDebut) " +
+	        "  OR (s.date_examen = :dateFin AND s.heure_epreuve <= :heureFin) " +
 	        ") " +
-            "AND s.heure_epreuve BETWEEN :heureDebut AND :heurefin " +
-            "AND s.fin_epreuve BETWEEN :heureDebut AND :heurefin " ,
+	        "AND ( " +
+	        "  s.date_fin IS NULL OR ( " +
+	        "    s.date_fin > :dateDebut AND s.date_fin < :dateFin " +
+	        "    OR (s.date_fin = :dateDebut AND s.fin_epreuve >= :heureDebut) " +
+	        "    OR (s.date_fin = :dateFin AND s.fin_epreuve <= :heureFin) " +
+	        "  )" +
+	        ")",
 	        nativeQuery = true)
-	List<TagCheck> findByDates(String eppn, Date dateDebut, Date dateFin, LocalTime heureDebut, LocalTime heurefin);
+	List<TagCheck> findByDates(@Param("eppn") String eppn, @Param("dateDebut") Date dateDebut, @Param("dateFin") Date dateFin, 
+			@Param("heureDebut") LocalTime heureDebut, @Param("heureFin") LocalTime heurefin);
 
 	List<TagCheck> findBySessionEpreuveIdAndPersonEppn(Long id, String eppn);
 }
