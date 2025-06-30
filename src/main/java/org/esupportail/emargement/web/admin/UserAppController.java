@@ -174,24 +174,23 @@ public class UserAppController {
 		for (Map.Entry<String, LdapUser> entry : map.entrySet()) {
 			String eppn = entry.getValue().getEppn();
 			LdapUser ldapUser = entry.getValue();
-			if(!users.stream()
-            .anyMatch(user -> eppn.equals(user.getEppn()))) {
-				UserApp userApp = new UserApp();
-				ldapUser.getEppn();
-				userApp = new UserApp();
-				userApp.setContext(ctx);
-				String temp = insts.get(ldapUser.getNumPersonnel());
-				String splitInst[] = temp.split("\\.");
-				if(splitInst.length > 1) {
-					userApp.setSpeciality(splitInst[1]);
-				}
-				userApp.setDateCreation(new Date());
-				userApp.setContextPriority(0);
-				userApp.setEppn(eppn);
-				userApp.setUserRole(role!=null? Role.SUPERVISOR :Role.MANAGER);
-				userAppRepository.save(userApp);
-
-				i++;
+			if (eppn != null && !users.stream()
+			        .anyMatch(user -> eppn.equals(user.getEppn()))) {
+			    UserApp userApp = new UserApp();
+			    String temp = insts.get(ldapUser.getNumPersonnel());
+			    if (temp != null) {
+			        String[] splitInst = temp.split("\\.");
+			        if (splitInst.length > 1) {
+			            userApp.setSpeciality(splitInst[1]);
+			        }
+			    }
+			    userApp.setContext(ctx);
+			    userApp.setDateCreation(new Date());
+			    userApp.setContextPriority(0);
+			    userApp.setEppn(eppn);
+			    userApp.setUserRole(role != null ? Role.SUPERVISOR : Role.MANAGER);
+			    userAppRepository.save(userApp);
+			    i++;
 			}else {
 				if(update !=null) {
 					UserApp userApp = userAppRepository.findByEppnAndContextKey(eppn, emargementContext);
