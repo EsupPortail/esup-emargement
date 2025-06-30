@@ -28,6 +28,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Prefs;
@@ -41,6 +42,7 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -94,6 +96,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	PrefsRepository prefsRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
 	
 	@Autowired
 	ContextRepository contextRepository;
@@ -724,6 +729,12 @@ public class SessionEpreuveService {
 	        		newTagCheck.setPerson(t.getPerson());
 	        		newTagCheck.setGuest(t.getGuest());
 	        		newTagCheck.setSessionEpreuve(newSe);
+	        		Date endDate =  newSe.getDateFin() != null? newSe.getDateFin() : newSe.getDateExamen();
+	        		List<Absence> absences = absenceRepository.findOverlappingAbsences(t.getPerson(),
+	        				newSe.getDateExamen(), endDate);
+					if(!absences.isEmpty()) {
+						newTagCheck.setAbsence(absences.get(0));
+	    			}
 	        		tagCheckRepository.save(newTagCheck);
 	        	}
 	        }
