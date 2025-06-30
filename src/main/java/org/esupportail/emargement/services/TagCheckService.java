@@ -357,6 +357,9 @@ public class TagCheckService {
 										}
 				    				}else {
 				    					ldapUsers = ldapUserRepository.findByEppnEquals(line);
+				    					if(ldapUsers.isEmpty()) {
+				    						ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(line);
+				    					}
 				    					if(!ldapUsers.isEmpty() || !checkLdap) {
 				    						eppn =(!ldapUsers.isEmpty())? ldapUsers.get(0).getEppn() : line;
 				    						List<Person> existingPersons = personRepository.findByEppn(eppn);
