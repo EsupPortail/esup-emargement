@@ -759,6 +759,9 @@ public class AdeService {
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
 					processInstructors(ade, sessionId, ctx, sls);
+					if (appliConfigService.isAdeImportAfficherGroupes()) {
+						se.setIsGroupeDisplayed(true);
+					}
 					i++;
 					dataEmitterService.sendDataImport(String.valueOf(i).concat("/").concat(total));
 					if(update && isUpdateOk){
