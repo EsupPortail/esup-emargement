@@ -628,23 +628,24 @@ public class PresenceController {
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
 	
-	@Transactional
-	@PostMapping("/supervisor/tagCheck/deleteAbsence/{id}")
-    public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc) {
+    public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc, final RedirectAttributes redirectAttributes) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Absence absence = tc.getAbsence();
-		tc.setAbsence(null);
-    	tagCheckService.save(tc, emargementContext);
-		List<StoredFile> files = storedFileRepository.findByAbsence(absence);
-		if(!files.isEmpty()) {
-			storedFileRepository.deleteAll(files);
+		List <TagCheck> tcs = tagCheckRepository.findByAbsence(absence);
+		if(tcs.size() == 1) {
+			tc.setAbsence(null);
+	    	tagCheckService.save(tc, emargementContext);
+			List<StoredFile> files = storedFileRepository.findByAbsence(absence);
+			if(!files.isEmpty()) {
+				storedFileRepository.deleteAll(files);
+			}
+				absenceRepository.delete(absence);
+				logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
+		}else{
+			redirectAttributes.addFlashAttribute("duplicate", "duplicate");
 		}
-		absenceRepository.delete(absence);
-    	logService.log(ACTION.DELETE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
-
     	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
-
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")

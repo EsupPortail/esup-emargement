@@ -65,6 +65,10 @@
 				   	<strong>Message envoyé avec succès.</strong>
 					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 				</div>
+				<div th:if="${duplicate != null}"  class="alert alert-warning alert-dismissible fade show">
+				   	<strong>Cette absence est déjà associée à une autre session/période pour cette même personne. Veuillez la gérer dans l"interface dédiée.</strong>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
             <div th:classappend ="${msgError == null} ? 'd-none' : ''" class="alert alert-danger alert-dismissible mt-2" id="customMsg">
             	<span class="fw-bold" th:if="${msgError != null}" th:text="${msgError + ' : '}"></span> Cette personne appartient au groupe des individus non autorisés.
 			</div>
