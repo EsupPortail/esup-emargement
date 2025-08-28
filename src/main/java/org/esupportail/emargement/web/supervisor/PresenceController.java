@@ -628,6 +628,8 @@ public class PresenceController {
     			tc.getSessionEpreuve().getId(), tc.getSessionLocationExpected().getId());
     }
 	
+	@Transactional
+	@PostMapping("/supervisor/tagCheck/deleteAbsence/{id}")
     public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") TagCheck tc, final RedirectAttributes redirectAttributes) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Absence absence = tc.getAbsence();

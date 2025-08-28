@@ -17,7 +17,6 @@ import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
@@ -323,8 +322,8 @@ public class ExtractionController {
 		List<LdapUser> ldapMembers = ldapGroupService.getLdapMembers(searchGroup) ;
     	uiModel.addAttribute("group", searchGroup);
     	uiModel.addAttribute("ldapMembers", ldapMembers);
-    	Statut statuts [] = {Statut.CLOSED, Statut.CANCELLED};
-    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByStatutNotInOrderByDateExamen(Arrays.asList(statuts)));
+		String statuts [] = {"OPENED", "STANDBY"};
+    	uiModel.addAttribute("allSessionEpreuves", sessionEpreuveRepository.findSessionEpreuveByStatutSessionKeyInOrderByDateExamen(Arrays.asList(statuts)));
 		if(apogeeService != null) {
 			uiModel.addAttribute("allComposantes", apogeeService.getComposantes());
 		} else {

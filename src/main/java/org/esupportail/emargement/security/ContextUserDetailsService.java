@@ -147,7 +147,4 @@ public class ContextUserDetailsService extends AbstractCasAssertionUserDetailsSe
 		}
 		return extraRoles;
 	}
-
 }
-
-

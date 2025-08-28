@@ -17,6 +17,7 @@ import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.StatutSession;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
@@ -38,6 +39,7 @@ import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StatutSessionRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -124,6 +126,9 @@ public class ContextService {
 	@Autowired
 	AbsenceRepository absenceRepository;
 	
+	@Autowired
+	StatutSessionRepository statutSessionRepository;
+	
 	public String getDefaultContext() {
 		String defaultContext = null;
 		Authentication auth = SecurityContextHolder.getContext()
@@ -203,6 +208,8 @@ public class ContextService {
 		typeSessionRepository.deleteAll(typeSessions);
 		List<EsupSignature> signs = esupSignatureRepository.findByContext(context);
 		esupSignatureRepository.deleteAll(signs);
+		List<StatutSession> statutSessions = statutSessionRepository.findByContext(context);
+		statutSessionRepository.deleteAll(statutSessions);
 		contextRepository.delete(context);
 	
 	}

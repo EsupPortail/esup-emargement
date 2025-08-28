@@ -135,7 +135,7 @@
 									<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td>
 							            <th:block th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></th:block>
-							            <th:block th:if="${tc.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+							            <th:block th:if="${tc.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>

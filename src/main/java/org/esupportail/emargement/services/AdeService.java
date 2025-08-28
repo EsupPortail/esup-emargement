@@ -58,7 +58,6 @@ import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
@@ -950,7 +949,7 @@ public class AdeService {
 	    Date heureConvocation = c.getTime();
 	    se.setHeureConvocation(heureConvocation);
 		se.setContext(ctx);
-		se.setStatut(Statut.STANDBY);
+		se.setStatutSession(sessionEpreuveService.getStatutSession(se));
 		if(se.getTypeBadgeage()==null) {
 			se.setTypeBadgeage(TypeBadgeage.SESSION);
 		}

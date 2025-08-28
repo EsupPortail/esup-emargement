@@ -14,7 +14,6 @@ import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
@@ -61,12 +60,12 @@ public class SessionLocationService {
 	
 	public HashMap <Long, List<Location>> getMapSessions(Long sessionEpreuveId, boolean locationsUsed){
 		
-		 HashMap <Long, List<Location>> mapSessions = new  HashMap <Long, List<Location>>();
+		 HashMap <Long, List<Location>> mapSessions = new HashMap <>();
 		 
 		 List<SessionEpreuve> allSessionEpreuves = sessionEpreuveRepository.findAll();
 		 SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
 		 List<Location> locationsCampus = locationRepository.findLocationByCampus(se.getCampus());
-		 List<Long> ids = new ArrayList<Long>();
+		 List<Long> ids = new ArrayList<>();
 		 for(Location l : locationsCampus ) {
 			 ids.add(l.getId());
 		 }
@@ -75,7 +74,7 @@ public class SessionLocationService {
 		 
 		 for(SessionEpreuve sessionEpreuve : allSessionEpreuves) {
 			 List<Location> allLocations = locationRepository.findLocationByCampus(se.getCampus());
-			 List<Location> newLocations = new ArrayList<Location>();
+			 List<Location> newLocations = new ArrayList<>();
 			 for(SessionLocation sessionLocation : allSesssionLocations) {
 				if(sessionLocation.getSessionEpreuve().equals(sessionEpreuve)) {
 					newLocations.add(sessionLocation.getLocation());
@@ -148,7 +147,7 @@ public class SessionLocationService {
 
     public List<String> findWsRestLocations(String eppn, String emargementContext){
     	
-    	List<String> locations = new ArrayList<String>();
+    	List<String> locations = new ArrayList<>();
     	try {
 			List<UserApp> userApps = userAppRepositoryCustom.findByEppn(eppn);
 			log.info("Nb userApp : " + userApps.size());
@@ -164,7 +163,7 @@ public class SessionLocationService {
 					checkIfDateFinIsOk = check;
 				}
 				log.debug("var checkIfDateFinIsOk :" + checkIfDateFinIsOk);
-				if(!Statut.CLOSED.equals(tc.getSessionEpreuve().getStatut()) && (check==0 || check<=0 && checkIfDateFinIsOk>=0)) {
+				if(!"CLOSED".equals(tc.getSessionEpreuve().getStatutSession().getKey()) && (check==0 || check<=0 && checkIfDateFinIsOk>=0)) {
 					SessionLocation sl = tc.getSessionLocation();
 					SessionEpreuve se = sl.getSessionEpreuve();
 					DateFormat df = new SimpleDateFormat("HH:mm");

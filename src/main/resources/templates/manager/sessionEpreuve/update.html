@@ -166,14 +166,14 @@
 							</div>
 						</div>
 						<div class="row mb-3">
-							<label class="col-lg-2 form-check-label" th:for="${statut}">
+							<label class="col-lg-2 form-check-label" th:for="keyStatut">
 						        Statut
 						    </label>
 							<div class="col-lg-10">
-								<select th:field="*{statut}" class="form-select" required="required">
-									<option value="">----Choisir----</option>
-								    <option th:each="statut : ${T(org.esupportail.emargement.domain.SessionEpreuve.Statut).values()}" 
-								        th:value="${statut}" th:text="#{'session.statut.' + ${#strings.toLowerCase(statut)}}"></option>
+								<select name="keyStatut" class="form-select">
+									<option th:value="${sessionEpreuve.statutSession.key}" th:text="${sessionEpreuve.statutSession.libelle}"></option>
+								    <option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
+								    <option th:if="${sessionEpreuve.statutSession.key ne 'PROCESSED'}" value="PROCESSED">Traité</option>
 								</select>
 							</div>
 						</div>

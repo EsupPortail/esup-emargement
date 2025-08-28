@@ -1,6 +1,5 @@
 package org.esupportail.emargement.services;
 
-
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +11,6 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.web.manager.ExtractionController.ExtractionType;
 import org.slf4j.Logger;
@@ -72,9 +70,9 @@ public class ImportExportService {
 	}
 	
 	public List<SessionEpreuve> getNotFreeSessionEpreuve(){
-		List<SessionEpreuve> newSe = new LinkedList<SessionEpreuve>();
-		Statut statuts [] = {Statut.CLOSED, Statut.CANCELLED};
-		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByStatutNotInOrderByDateExamen(Arrays.asList(statuts));
+		List<SessionEpreuve> newSe = new LinkedList<>();
+		String statuts [] = {"OPENED", "STANDBY"};
+		List<SessionEpreuve> se  = sessionEpreuveRepository.findSessionEpreuveByStatutSessionKeyInOrderByDateExamen(Arrays.asList(statuts));
 		if(!se.isEmpty()) {
 			for (SessionEpreuve item : se) {
 				newSe.add(item);

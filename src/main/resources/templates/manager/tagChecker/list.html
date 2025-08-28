@@ -12,7 +12,7 @@
 					        <h2 th:text="${surveillantTerme + 's'}"></h2>
 					        <small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></small>
 					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
-					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
 					    </div>
 					    <div class="col-12 col-md-auto">
 					        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">

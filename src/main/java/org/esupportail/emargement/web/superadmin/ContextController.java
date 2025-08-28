@@ -130,6 +130,7 @@ public class ContextController {
 		contextRepository.save(context);
 		appliConfigService.updateAppliconfig(context);
 		typeSessionService.updateTypeSession(key);
+		sessionEpreuveService.updateStatutSession(key);
 		absenceService.updateMotifAbsence(key);
 		ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
 		userDetails.getAvailableContexts().add(key);

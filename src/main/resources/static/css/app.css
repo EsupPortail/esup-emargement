@@ -360,3 +360,7 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 .zindexDropdown{
 	z-index: 100000000;
 }
+.bg-brown {
+  background-color: brown !important;
+  color: white; /* Optional: ensure text is readable */
+}

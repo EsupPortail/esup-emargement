@@ -44,7 +44,6 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
@@ -59,6 +58,7 @@ import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StatutSessionRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.security.ContextHelper;
@@ -113,6 +113,9 @@ public class TagCheckService {
 	
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
+	
+	@Autowired
+	StatutSessionRepository statutSessionRepository;
 	
 	@Resource
 	ImportExportService importExportService;
@@ -1579,7 +1582,7 @@ public class TagCheckService {
 				tc.setPerson(p);
 				tc.getSessionEpreuve().setDateArchivage(new Date());
 				tc.getSessionEpreuve().setLoginArchivage(loginArchivage);
-				tc.getSessionEpreuve().setStatut(Statut.CLOSED);
+				tc.getSessionEpreuve().setStatutSession(statutSessionRepository.findByKey("CLOSED"));
 				tagCheckRepository.save(tc);
 			}
 		}
@@ -1847,7 +1850,7 @@ public class TagCheckService {
             Person person = tc.getPerson();
             String eppn = person.getEppn();
             SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
-            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+            if (sessionEpreuve != null && !"CANCELLED".equals(sessionEpreuve.getStatutSession().getKey())) {
                 Date heureDebut = sessionEpreuve.getHeureEpreuve();
                 Date heureFin = sessionEpreuve.getFinEpreuve();
                 if (heureDebut != null && heureFin != null) {
@@ -1876,7 +1879,7 @@ public class TagCheckService {
             String eppn = person.getEppn();
             SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
             long totalDaysForTagCheck = 0;
-            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+            if (sessionEpreuve != null && !"CANCELLED".equals(sessionEpreuve.getStatutSession().getKey())) {
                 Date startDate = sessionEpreuve.getDateExamen();
                 Date endDate = sessionEpreuve.getDateFin();
                 if(endDate == null) {
@@ -1903,7 +1906,7 @@ public class TagCheckService {
             Person person = tc.getPerson();
             String eppn = person.getEppn();
             SessionEpreuve sessionEpreuve = tc.getSessionEpreuve();
-            if (sessionEpreuve != null && !Statut.CANCELLED.equals(sessionEpreuve.getStatut())) {
+            if (sessionEpreuve != null && !"CANCELLED".equals(sessionEpreuve.getStatutSession().getKey())) {
             	long sessionCountForTagCheck = 1;
                 result.put(eppn, result.getOrDefault(eppn, 0L) + sessionCountForTagCheck);
             }
