@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Absence;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AbsenceRepository extends JpaRepository<Absence, Long>{
+	
+	List<Absence> findByContext(Context context);
+	
 	List<Absence> findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(Date date, Date date2);
 	 
 	@Query("SELECT a FROM Absence a WHERE a.dateDebut <= :endDate AND a.dateFin >= :startDate")

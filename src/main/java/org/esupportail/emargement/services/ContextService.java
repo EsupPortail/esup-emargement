@@ -2,6 +2,7 @@ package org.esupportail.emargement.services;
 
 import java.util.List;
 
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.Campus;
@@ -11,6 +12,7 @@ import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Log;
+import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -18,8 +20,10 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.Task;
 import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.BigFileRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
@@ -29,6 +33,7 @@ import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.GuestRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -36,6 +41,7 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.TaskRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextHelper;
@@ -109,6 +115,15 @@ public class ContextService {
 	@Autowired	
 	EsupSignatureRepository esupSignatureRepository;
 	
+	@Autowired
+	TaskRepository taskRepository;
+	
+	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
+	
+	@Autowired
+	AbsenceRepository absenceRepository;
+	
 	public String getDefaultContext() {
 		String defaultContext = null;
 		Authentication auth = SecurityContextHolder.getContext()
@@ -162,12 +177,18 @@ public class ContextService {
 		groupeRepository.deleteAll(groupes);
 		List<SessionEpreuve> sessionEpreuves =  sessionEpreuveRepository.findSessionEpreuveByContext(context);
 		sessionEpreuveRepository.deleteAll(sessionEpreuves);
+		List<Task> tasks = taskRepository.findByContext(context);
+		taskRepository.deleteAll(tasks);
 		List<Campus> campuses = campusRepository.findByContext(context);
 		campusRepository.deleteAll(campuses);
 		List<Location> locations = locationRepository.findLocationByContext(context);
 		locationRepository.deleteAll(locations);
 		List<Prefs> prefs = prefsRepository.findByContext(context);
 		prefsRepository.deleteAll(prefs);
+		List<Absence> absences = absenceRepository.findByContext(context);
+		absenceRepository.deleteAll(absences);
+		List<MotifAbsence> motifAbsences = motifAbsenceRepository.findByContext(context);
+		motifAbsenceRepository.deleteAll(motifAbsences);
 		List<UserApp> userApps =  userAppRepository.findByContext(context);
 		userAppRepository.deleteAll(userApps);
 		List<Person> persons =  personRepository.findByContext(context);

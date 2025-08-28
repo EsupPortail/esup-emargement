@@ -2,6 +2,7 @@ package org.esupportail.emargement.repositories;
 
 import java.util.List;
 
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
@@ -10,7 +11,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MotifAbsenceRepository extends JpaRepository<MotifAbsence, Long>{
-
+	
+	List<MotifAbsence> findByContext(Context context);
+	
 	List<MotifAbsence> findByContextKey(String key);
 	
 	List<MotifAbsence> findByIsActifTrueOrderByLibelle();
