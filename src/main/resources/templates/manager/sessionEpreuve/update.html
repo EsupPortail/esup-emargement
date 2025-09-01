@@ -42,7 +42,7 @@
 								<select th:field="*{campus}" class="form-control" required="required">
 									<option value="">----Choisir----</option>
 									<option th:each="campus : ${allCampuses}"
-										th:value="${campus.id}" th:text="${campus.site}"></option>
+										th:selected="${campus.isDefault != null and campus.isDefault}" th:value="${campus.id}" th:text="${campus.site}"></option>
 								</select>
 							</div>
 						</div>	 	                    
@@ -64,12 +64,6 @@
 		                        	th:value="${#dates.format(strDateFin, 'yyyy-MM-dd')}" id="dateFinSessionEpreuve">
 		                    </div>       
 	                    </div> 
-	                   <div class="row mb-3">
-		                   <label for="heureConvocation" class="col-lg-2 form-label">Convocation</label>
-		                   <div class="col-lg-10">
-		                        <input type="time" th:field="*{heureConvocation}" class="form-control" id="heureConvocation" required="required">
-		                    </div>
-	                    </div>
 	                    <div class="row mb-3">
 		                    <label for="heureEpreuve" class="col-lg-2 form-label">Début</label>
 	                       	<div class="col-lg-10">
@@ -82,87 +76,17 @@
 	                        	<input type="time" th:field="*{finEpreuve}" class="form-control" id="finEpreuve" required="required">
 	                        </div>
 	                    </div>
-	                    <div class="row mb-3">
-		                    <label for="file" class="col-lg-2 form-label">Pièces jointes</label>
-		                    <div class="col-lg-10">
-			                    <div class="file-loading">
-				 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
-				 				</div>
-			 				</div>
-						</div>
-	                    <div class="row mb-3">
-	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
-	                        <div class="col-lg-10">
-	                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
-	                        </div>
-	                    </div>
-	                   <fieldset  class="row mb-3">
-	                   		<label class="form-label col-lg-2">Type de badgeage</label>
-							<div class="col-lg-10">
- 								<div class="form-check form-check-inline" th:each="type : ${T(org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage).values()}">
-								  <input class="form-check-input" type="radio" th:field="*{typeBadgeage}" th:value="${type}" th:checked="${true}">
-								  <label class="form-check-label" th:for="${#ids.prev('typeBadgeage')}" th:text="${type}"></label>
-								</div>
-						    </div>
-						</fieldset >	  	                    
-	                   	<div class="row mb-3">
-							<label class="col-lg-2 form-check-label"  th:for="${isSessionLibre}">
-						        Session Libre
-						     </label>
-							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isSessionLibre}" th:disabled="${isSessionLibreDisabled}">
-								</div>
-						    </div>
-						</div>
 						<div class="row mb-3">
-	                    	<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure</label>
-	                    	<div class="col-lg-4">
-								<select id="blackListGroupe" name="blackListGroupe" >
-									<option value="">----Choisir----</option>
-									<option th:if="${sessionEpreuve.blackListGroupe!=null}" th:each="groupe : ${allGroupes}"
-										th:value="${groupe.id}" th:text="${groupe.nom}" th:selected="${groupe.id==sessionEpreuve.blackListGroupe.id}"></option>
-									<option th:unless="${sessionEpreuve.blackListGroupe!=null}" th:each="groupe : ${allGroupes}"
-										th:value="${groupe.id}" th:text="${groupe.nom}"></option>
-								</select>
-							</div>
-							<label class="col-lg-3 form-check-label"  th:for="${isSaveInExcluded}">
-						        Enregistrement automatique
-						    </label>
-							<div class="col-lg-3">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isSaveInExcluded}">
-								</div>
-						    </div>
-						</div>
-						<div class="row mb-3">
-							<label class="col-lg-2 form-check-label"  th:for="${isGroupeDisplayed}">
-						        Afficher groupes
-	                    		<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.displayGroupe}">
-		                    	<i class="fas fa-question-circle"></i></a>
-						     </label>
+							<label class="col-lg-2 form-check-label" th:for="${isSessionLibre}">
+								Session Libre
+								<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.sessionlibre}">
+									<i class="fas fa-question-circle"></i></a>
+							</label>
 							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isGroupeDisplayed}">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" th:field="*{isSessionLibre}"
+										th:disabled="${isSessionLibreDisabled}" checked="checked">
 								</div>
-						    </div>
-						</div>
-						<div class="row mb-3">
-							<label class="col-lg-2 form-check-label"  th:for="${isProcurationEnabled}">
-						        Procuration activée
-						    </label>
-							<div class="col-lg-10">
-								 <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isProcurationEnabled}">
-								</div>
-						    </div>
-						</div>
-						<div class="row mb-3">
-							<label for="maxBadgeageAlert" class="col-lg-2 form-label">Alerte
-								badgeage max</label>
-							<div class="col-lg-10">
-								<input type="number" min="1" th:field="*{maxBadgeageAlert}"
-									class="form-control" value="1" required="required">
 							</div>
 						</div>
 						<div class="row mb-3">
@@ -175,6 +99,119 @@
 								    <option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
 								    <option th:if="${sessionEpreuve.statutSession.key ne 'PROCESSED'}" value="PROCESSED">Traité</option>
 								</select>
+							</div>
+						</div>						
+						<div class="accordion" id="accordionOptions">
+							<div class="accordion-item">
+								<h2 class="accordion-header">
+									<button class="accordion-button" type="button" data-bs-toggle="collapse"
+										data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+										Autres options
+									</button>
+								</h2>
+								<div id="collapseOne" class="accordion-collapse collapse"
+									data-bs-parent="#accordionOptions">
+									<div class="accordion-body">
+										<div class="row mb-3">
+											<label for="heureConvocation" class="col-lg-2 form-label">Convocation
+												<a class="contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.heures}">
+													<i class="fas fa-question-circle"></i></a>
+											</label>
+											<div class="col-lg-10">
+												<input type="time" th:field="*{heureConvocation}" class="form-control"
+													id="heureConvocation">
+											</div>
+										</div>
+										<fieldset class="row mb-3">
+											<label class="form-label col-lg-2">Type de badgeage
+												<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.typebadgeage}">
+												                                       <i class="fas fa-question-circle"></i></a> 
+											</label>											<div class="col-lg-10">
+												<div class="form-check form-check-inline"
+													th:each="type : ${T(org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage).values()}">
+													<input class="form-check-input" type="radio" th:field="*{typeBadgeage}"
+														th:value="${type}" th:checked="${true}">
+													<label class="form-check-label" th:for="${#ids.prev('typeBadgeage')}"
+														th:text="${type}"></label>
+												</div>
+											</div>
+										</fieldset>
+										<div class="row mb-3">
+											<label for="file" class="col-lg-2 form-label">Pièces jointes</label>
+											<div class="col-lg-10">
+												<div class="file-loading">-->
+													<input type="file" class="form-control-file" id="files" name="files[]"
+														multiple>
+												</div>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<label for="comment" class="col-lg-2 form-label">Commentaire</label>
+											<div class="col-lg-10">
+												<textarea th:field="*{comment}" class="form-control"></textarea>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<label for="blackListGroupe" class="col-lg-2 form-label">Groupe à exclure
+												<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.groupe}">
+													<i class="fas fa-question-circle"></i></a>
+											</label>
+											<div class="col-lg-4">
+												 <select id="blackListGroupe" name="blackListGroupe" >
+                                                       <option value="">----Choisir----</option>
+                                                       <option th:if="${sessionEpreuve.blackListGroupe!=null}" th:each="groupe : ${allGroupes}"
+                                                               th:value="${groupe.id}" th:text="${groupe.nom}" th:selected="${groupe.id==sessionEpreuve.blackListGroupe.id}"></option>
+                                                       <option th:unless="${sessionEpreuve.blackListGroupe!=null}" th:each="groupe : ${allGroupes}"
+                                                               th:value="${groupe.id}" th:text="${groupe.nom}"></option>
+	                                               </select>
+											</div>
+											<label class="col-lg-3 form-check-label" th:for="${isSaveInExcluded}">
+												Enregistrement automatique
+											</label>
+											<div class="col-lg-3">
+												<div class="form-check  form-switch">
+													<input class="form-check-input" type="checkbox"
+														th:field="*{isSaveInExcluded}">
+												</div>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<label class="col-lg-2 form-check-label" th:for="${isGroupeDisplayed}">
+												Afficher groupes
+												<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.displayGroupe}">
+													<i class="fas fa-question-circle"></i></a>
+											</label>
+											<div class="col-lg-10">
+												<div class="form-check  form-switch">
+													<input class="form-check-input" type="checkbox"
+														th:field="*{isGroupeDisplayed}">
+												</div>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<label class="col-lg-2 form-check-label" th:for="${isProcurationEnabled}">
+												Procuration activée
+												<a class=" contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.procuration}">
+													<i class="fas fa-question-circle"></i></a>
+											</label>
+											<div class="col-lg-10">
+												<div class="form-check  form-switch">
+													<input class="form-check-input" type="checkbox"
+														th:field="*{isProcurationEnabled}">
+												</div>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<label for="maxBadgeageAlert" class="col-lg-2 form-label">Alerte
+												badgeage max
+											</label>
+											<div class="col-lg-10">
+												<input type="number" min="1" th:field="*{maxBadgeageAlert}"
+													class="form-control" value="1" required="required">
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 						<div class="row mb-3">

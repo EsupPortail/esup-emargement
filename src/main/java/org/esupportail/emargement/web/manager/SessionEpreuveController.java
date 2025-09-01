@@ -357,6 +357,12 @@ public class SessionEpreuveController {
 	                         @RequestHeader(value = "HX-Request", required = false) String hxRequest) {
 	    SessionEpreuve sessionEpreuve = new SessionEpreuve();
 	    sessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
+	    sessionEpreuve.setCampus(
+	    		campusRepository.findAll().stream()
+	    	        .filter(c -> Boolean.TRUE.equals(c.getIsDefault()))
+	    	        .findFirst()
+	    	        .orElse(null)
+	    	);
 	    populateEditForm(uiModel, sessionEpreuve, anneeUniv, emargementContext);
 	    uiModel.addAttribute("currentAnneeUniv", anneeUniv);
 	    if (hxRequest != null) {
