@@ -23,7 +23,6 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserApp;
@@ -205,7 +204,6 @@ public class SessionEpreuveController {
 		if(multiSearch == null) {
 			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
 			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
-			sessionSearch.setStatut((selectedStatut.isEmpty())? null : Statut.valueOf(selectedStatut));
 			sessionSearch.setStatutSession((selectedStatut.isEmpty())? null : statutSessionRepository.findByKey(selectedStatut));
 			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();
 			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
@@ -479,7 +477,6 @@ public class SessionEpreuveController {
     	if(keyStatut!= null && !keyStatut.isEmpty()) {
     		sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(keyStatut));
     	}
-    	sessionEpreuve.setStatutSession(sessionEpreuveService.getStatutSession(sessionEpreuve));
     	sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
