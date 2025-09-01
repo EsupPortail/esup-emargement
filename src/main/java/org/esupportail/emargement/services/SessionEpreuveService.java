@@ -697,6 +697,21 @@ public class SessionEpreuveService {
 		return currentYear;
 	}
 	
+	public int getCurrentAnneeUnivFromDate(Date date) {
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(date);
+
+	    int year = cal.get(Calendar.YEAR);
+	    int month = cal.get(Calendar.MONTH);
+
+	    int currentYear = year;
+	    if (month < Calendar.SEPTEMBER) {
+	        currentYear = year - 1;
+	    }
+
+	    return currentYear;
+	}
+	
 	public void duplicateAll(List<Long> idSessions, int jours){
 		for(Long id : idSessions) {
 			duplicateSessionEpreuve(id, true, jours);
@@ -928,7 +943,7 @@ public class SessionEpreuveService {
 						} else {
 							se.setIsSessionLibre(false);
 						}
-						se.setAnneeUniv(String.valueOf(getCurrentanneUniv()));
+						se.setAnneeUniv(String.valueOf(getCurrentAnneeUnivFromDate(se.getDateExamen())));
 						sessionEpreuveRepository.save(se);
 						i++;
 					}

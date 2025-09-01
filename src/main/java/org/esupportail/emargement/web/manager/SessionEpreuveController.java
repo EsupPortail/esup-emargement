@@ -392,9 +392,7 @@ public class SessionEpreuveController {
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-        uiModel.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-        uiModel.addAttribute("anneeUniv", anneeUniv);
         Date date = Calendar.getInstance().getTime();  
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
         String strDate = dateFormat.format(date);  
@@ -438,6 +436,7 @@ public class SessionEpreuveController {
         }
 		sessionEpreuve.setContext(contexteService.getcurrentContext());
 		sessionEpreuve.setStatutSession(sessionEpreuveService.getStatutSession(sessionEpreuve));
+		sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
 		sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
@@ -483,6 +482,7 @@ public class SessionEpreuveController {
     	if(keyStatut!= null && !keyStatut.isEmpty()) {
     		sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(keyStatut));
     	}
+    	sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
     	sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());

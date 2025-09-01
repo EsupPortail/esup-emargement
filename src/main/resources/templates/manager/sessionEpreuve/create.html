@@ -21,16 +21,6 @@
 				<form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/create(ctx=${eContext})}"
 					th:object="${sessionEpreuve}" method="post" enctype="multipart/form-data">
 					<div class="row mb-3">
-						<label for="anneeUniv" class="col-lg-2 form-label">*Année</label>
-						<div class="col-lg-10">
-							<select id="anneeUniv" name="anneeUniv" required="required" class="form-control">
-								<option th:each="year : ${years}" th:value="${#strings.substringBefore(year,'/')}"
-									th:text="${year}" th:selected="${#strings.substringBefore(year,'/') == anneeUniv}">
-								</option>
-							</select>
-						</div>
-					</div>
-					<div class="row mb-3">
 						<label for="typeSession" class="col-lg-2 form-label">*Type</label>
 						<div class="col-lg-10">
 							<select id="typeSession" name="typeSession" required="required" class="form-control">

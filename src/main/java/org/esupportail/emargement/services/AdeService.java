@@ -942,7 +942,7 @@ public class AdeService {
 	}
 	
 	private void processSessionEpreuve(SessionEpreuve se, Campus campus, Context ctx) {
-		se.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+		se.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(se.getDateExamen())));
 		Calendar c = Calendar.getInstance();
 	    c.setTime(se.getHeureEpreuve());
 	    c.add(Calendar.MINUTE, -15);
