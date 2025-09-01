@@ -91,6 +91,59 @@ function checkAll() {
     });
 }
 
+  function initializeFileInput(fileInput) {
+    if (seId === "") {
+        $("#files").fileinput({
+            theme: "fas",
+            language: "fr",
+            maxFileSize: 1000,
+            maxFileCount: 10,
+            mainClass: "input-group-lg",
+            dropZoneEnabled: false
+        });
+    } else {
+        let rootUrlSe = `${emargementContextUrl}/supervisor/storedFile/`;
+        let deleteUrl = `${emargementContextUrl}/supervisor/storedFile/delete`;
+
+        fetch(`${rootUrlSe}${typePj}/${seId}`)
+            .then(response => response.json())
+            .then(data => {
+                let urls = [];
+                let configsArray = [];
+
+                data.forEach(value => {
+                    urls.push(`${rootUrlSe}${value.id}/photo`);
+                    configsArray.push({
+                        type: value.contentType.includes("pdf") ? "pdf" : "image",
+                        filetype: value.contentType,
+                        caption: value.filename,
+                        downloadUrl: `${rootUrlSe}${value.id}/photo`,
+                        size: value.fileSize,
+                        key: value.id
+                    });
+                });
+
+                $("#files").fileinput({
+                    theme: "fas",
+                    initialPreview: urls,
+                    initialPreviewAsData: true,
+                    initialPreviewConfig: configsArray,
+                    deleteUrl: deleteUrl,
+                    overwriteInitial: false,
+                    language: "fr",
+                    maxFileSize: 1000,
+                    maxFileCount: 10,
+                    mainClass: "input-group-lg",
+                    allowedPreviewTypes: ['image', 'html', 'text', 'video', 'audio', 'flash', 'object', 'pdf']
+                });
+            })
+            .catch(error => console.error("Error loading files:", error));
+        }
+		$("#files").on("filepredelete", function(event, key, jqXHR, data) {
+		    return !confirm("Êtes-vous sûr de vouloir supprimer ce fichier ?");
+		});
+    }
+
 //affinage repartition
 function displayAffinage(classes, isTiers) {
 	var total = 0;
@@ -1392,76 +1445,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 
 	var fileInput = document.querySelector('#files');
-
-	if (fileInput != null) {
-		if (seId == "") {
-			$("#files").fileinput({
-				theme: "fas",
-				language: "fr",
-				maxFileSize: 1000,
-				maxFileCount: 10,
-				mainClass: "input-group-lg",
-				dropZoneEnabled: false
-			});
-		} else {
-			const config = {
-				type: "",
-				filetype: "",
-				caption: "",
-				downloadUrl: false,
-				size: "",
-				width: "120px",
-				key: 0
-			};
-			var urls = [];
-			var configsArray = [];
-			var rootUrlSe = emargementContextUrl + "/supervisor/storedFile/";
-			var deleteUrl = emargementContextUrl + "/supervisor/storedFile/delete";
-			var request = new XMLHttpRequest();
-			request.open('GET', emargementContextUrl + "/supervisor/storedFile/" + typePj + "/" + seId, true);
-			request.onload = function() {
-				if (request.status >= 200 && request.status < 400) {
-					var data = JSON.parse(this.response);
-					data.forEach(function(value, key) {
-						urls.push(rootUrlSe + value.id + "/photo");
-						const me = Object.create(config);
-						if (value.contentType.indexOf("pdf") !== -1) {
-							me.type = "pdf";
-						} else {
-							me.type = "image";
-						}
-						me.filetype = value.contentType;
-						me.caption = value.filename,
-							me.downloadUrl = rootUrlSe + value.id + "/photo",
-							me.size = value.fileSize,
-							// me.width= "120px",
-							me.key = value.id
-						configsArray.push(me);
-					});
-					$("#files").fileinput({
-						theme: "fas",
-						initialPreview: urls,
-						initialPreviewAsData: true,
-						initialPreviewConfig: configsArray,
-						deleteUrl: deleteUrl,
-						overwriteInitial: false,
-						language: "fr",
-						maxFileSize: 1000,
-						maxFileCount: 10,
-						mainClass: "input-group-lg",
-						allowedPreviewTypes: ['image', 'html', 'text', 'video', 'audio', 'flash', 'object', 'pdf']
-					});
-				}
-			}
-			request.send();
-		}
-	}
-	$("#files").on("filepredelete", function(jqXHR) {
-		var abort = true;
-		if (confirm("Are you sure you want to delete this image?")) {
-			abort = false;
-		}
-	});
+    initializeFileInput(fileInput) ;
+	  
 
 	//Select all !!
 	$("#selectAll").click(function() {
@@ -1880,7 +1865,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			            orthogonal: 'filter',
 			            columns: ':not(.exclude)'
 			        },
-			         title: function() { return 'assiduite'; }
+			        title: function() { return 'assiduite'; }
 			    }
 			]
 		}
@@ -2177,7 +2162,29 @@ document.addEventListener('DOMContentLoaded', function() {
         format: 'hex',
         opacity: false
     });
-	
+
+	const hash = window.location.hash;
+	if (hash.startsWith("#openmodal-")) {
+		const id = hash.replace("#openmodal-", "");
+		fetch(emargementContextUrl + `/manager/sessionEpreuve/${id}?modal=true`)
+			.then(res => res.text())
+			.then(html => {
+				const modalEl = document.getElementById("show-modal");
+				modalEl.querySelector(".modal-content").innerHTML = html;
+				new bootstrap.Modal(modalEl).show();
+				history.replaceState(null, '', window.location.pathname + window.location.search);
+			});
+	}
+	if (hash === "#openmodal") {
+		const modalEl = document.getElementById("show-modal");
+		new bootstrap.Modal(modalEl).show();
+		history.replaceState(null, '', window.location.pathname + window.location.search);
+	}
+	document.addEventListener('click', function(event) {
+		if (event.target.classList.contains('closeModal')) {
+			window.location.reload();
+		}
+	});
 	//enable tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -2277,6 +2284,29 @@ document.addEventListener('htmx:afterSwap', function(event) {
 	        }
 	        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
 	    }, 100);
+	}
+	if (document.getElementById("blackListGroupe")!=null){
+		if (event.target.id === "modal-content") {
+			new SlimSelect({
+				select: '#blackListGroupe'
+			});
+
+			let fileInput = document.querySelector('#files');
+			if (fileInput) {
+				initializeFileInput(fileInput);
+			}
+		}
+     }
+	 if (document.getElementById("modal-step3")){
+	     initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
+	     initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
+	 }
+});
+
+document.addEventListener('htmx:afterSettle', function(evt) {
+	if (document.getElementById("modal-step3")){
+		$('#my-select').hide();
+		$('#my-select2').hide();
 	}
 });
 
