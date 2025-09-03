@@ -223,7 +223,7 @@ public class AppliConfigService {
 	
 	public Boolean isAdeImportAfficherGroupes() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_IMPORT_AFFICHER_GROUPES);
-		return appliConfig!=null && "false".equalsIgnoreCase(appliConfig.getValue());
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 
 	public  List<String> getCategoriesAde() {
