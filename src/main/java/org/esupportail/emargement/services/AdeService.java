@@ -69,6 +69,7 @@ import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
@@ -167,6 +168,9 @@ public class AdeService {
 	@Autowired
 	private PersonRepository personRepository;
 	
+    @Autowired
+    private GroupeRepository groupeRepository;
+
     @Resource 
     private PreferencesService preferencesService;
     
@@ -997,8 +1001,23 @@ public class AdeService {
 	
 	private int processStudents(SessionEpreuve se, AdeResourceBean ade, String sessionId, List<Long> groupes, Context ctx) {
 		int nbStudents = 0;
-		if(appliConfigService.isMembersAdeImport(ctx)) {
+
+        if ("aucune".equals(appliConfigService.getAdeImportSourceParticipants(ctx))) {
+            // Pas d'import des participants
+            return nbStudents;
+        }
+
+        // Reprise de la liste des participants "trainee" telle que déclarée dans ADE
 			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+        if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
+            // Chaque élément de listAdeTrainees représente un groupe d'étudiants
+            // Reste a récupérer la liste des étudiants qui composent le groupe
+            // Plusieurs options possibles (Cf. configuration du contexte):
+            // - Dans ADE les étudiants sont déclarés en tant que membre du groupe (source = ade)
+            // - Les étudiants ne sont pas déclarés dans ADE mais il y a un groupe du même nom dans esup-emargement
+            //   qui contient la liste des étudiants (source = esup-emargement)
+            switch (appliConfigService.getAdeImportSourceParticipants(ctx)) {
+                case "ade":
 			List<Map<Long, String>> listAdeSuperGroupes = ade.getSuperGroupe();
 			Set<String> membersSet = new HashSet<>();
 			List<String> allMembers1 = new ArrayList<>();
@@ -1006,7 +1025,6 @@ public class AdeService {
 			List<String> allCodes = new ArrayList<>();
 			String adeAttribute = appliConfigService.getAdeMemberAttribute(ctx);
 			boolean isAdeCampusLimitQueriesEnabled = appliConfigService.isAdeCampusLimitQueriesEnabled(ctx);
-			if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
 			    if (isAdeCampusLimitQueriesEnabled) {
 			    	String ids = listAdeTrainees.stream()
 			    		    .flatMap(map -> map.keySet().stream())
@@ -1061,6 +1079,7 @@ public class AdeService {
 				                .collect(Collectors.toList());
 			        }
 			    }
+
 				String filter = "code".equals(adeAttribute)? "supannEtuId" : "mail";
 				Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allCodes, filter);
 				if(!allCodes.isEmpty()) {
@@ -1113,8 +1132,47 @@ public class AdeService {
 						}
 					}
 				}
+                    break;
+                case "esup-emargement":
+                    allMembers = new ArrayList<>();
+                    for(Map<Long, String> map : listAdeTrainees) {
+                        for (Entry<Long, String> entry : map.entrySet()) {
+                            // Import des étudiants depuis le groupe esup-emargement (unique) portant le même nom que le groupe ADE
+                            //
+                            // Recherche par nom du groupe dans esup-emargement
+                            String expectedGroupName = entry.getValue();
+                            List<Groupe> groupesDuNomGroupeADE = groupeRepository.findByNomLikeIgnoreCase(expectedGroupName);
+                            if (1 == groupesDuNomGroupeADE.size()) {
+                                Groupe groupe = groupesDuNomGroupeADE.get(0);
+                                log.debug("Un groupe esup-emargement (unique) portant le même nom que le groupe ADE ["+groupe.getNom()+"] a été trouvé.");
+
+                                // On récupère toutes les personnes du groupes et on les associe à la session
+                                Set<Person> persons = groupe.getPersons();
+                                for (Person person: persons) {
+                                    TagCheck tc = new TagCheck();
+                                    //A voir
+                                    //tc.setCodeEtape(codeEtape);
+                                    tc.setContext(ctx);
+                                    tc.setPerson(person);
+                                    tc.setSessionEpreuve(se);
+                                    tagCheckRepository.save(tc);
+                                    nbStudents++;
 			}
+                            } else if (0 == groupesDuNomGroupeADE.size()) {
+                                log.debug("Aucun groupe portant le nom ["+expectedGroupName+"] n'a été trouvé dans esup-emargement.");
+                            } else {
+                                log.warn("Mmmm... Il semblerait qu'il y ait, dans esup-emargement, plusieurs groupes ("+groupesDuNomGroupeADE.size()+") portant le nom ["+expectedGroupName+"]");
 		}
+                        }
+                    }
+                    break;
+                default:
+                    log.error("Mode ["+appliConfigService.getAdeImportSourceParticipants(ctx)+"] non supporté");
+                    // throw new Exception("Mode ["+appliConfigService.getAdeImportSourceParticipants()+"] non supporté");
+                    // FIXME Gestion des erreurs
+            } // switch source participants
+        } // listAdeTrainees not empty test
+
 		return nbStudents;
 	}
 	
