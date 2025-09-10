@@ -202,7 +202,7 @@ public class SessionEpreuveController {
 			dateSessions = (prefsPeriod.isEmpty())? "all" : prefsPeriod.get(0).getValue();
 		}
 		if(multiSearch == null) {
-			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
+			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getLastAnneeUniv(emargementContext)));
 			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
 			sessionSearch.setStatutSession((selectedStatut.isEmpty())? null : statutSessionRepository.findByKey(selectedStatut));
 			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();

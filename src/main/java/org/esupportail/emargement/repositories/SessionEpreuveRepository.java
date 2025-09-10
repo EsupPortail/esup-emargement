@@ -159,6 +159,9 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	@Query(value = "select distinct annee_univ from session_epreuve where context_id = :ctxId order by annee_univ ", nativeQuery = true)
 	List<String> findDistinctAnneeUniv(Long ctxId);
 	
+	@Query(value = "select distinct annee_univ from session_epreuve where context_id = :ctxId order by annee_univ desc ", nativeQuery = true)
+	List<String> findDistinctAnneeUnivOrderByDesc(Long ctxId);
+	
 	@Query(value = "select distinct type_session.id,libelle from session_epreuve, type_session where  session_epreuve.type_session_id = type_session.id and session_epreuve.context_id = :ctxId", nativeQuery = true)
 	List<Object[]> findDistinctTypeSession(Long ctxId);
 	

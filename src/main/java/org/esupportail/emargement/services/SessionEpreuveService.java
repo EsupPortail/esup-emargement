@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -654,37 +656,36 @@ public class SessionEpreuveService {
 	}
 	
 	public List<String> getYears(String ctx) {
-		
-		List<String> years = new ArrayList<>();
+	    List<String> years = new ArrayList<>();
 
+	    Context context = contextRepository.findByContextKey(ctx);
+	    List<String> anneeUnivs;
+	    if ("all".equals(ctx)) {
+	        anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUnivAll();
+	    } else {
+	        anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUniv(context.getId());
+	    }
+
+	    if (anneeUnivs != null && !anneeUnivs.isEmpty()) {
+	    	Set<Integer> uniqueYears = anneeUnivs.stream()
+	    	        .map(Integer::valueOf)
+	    	        .collect(Collectors.toCollection(() -> new TreeSet<Integer>(Comparator.reverseOrder())));
+	  
+	    	for (Integer year : uniqueYears) {
+	            years.add(year + "/" + (year + 1));
+	        }
+	    }
+
+	    return years;
+	}
+	
+	public String getLastAnneeUniv(String ctx) {
 		Context context = contextRepository.findByContextKey(ctx);
-		List<String> anneeUnivs = null;
-		if("all".equals(ctx)) {
-			anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUnivAll();
-		}else {
-			 anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUniv(context.getId());
+		List<String> anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUnivOrderByDesc(context.getId());
+		if (!anneeUnivs.isEmpty()) {
+			return anneeUnivs.get(0);
 		}
-		
-		int year = Calendar.getInstance().get(Calendar.YEAR);
-		int month = Calendar.getInstance().get(Calendar.MONTH);
-		int start = year;
-		if(month<8) {
-			start = year-1;
-		}
-		int end = start +1;
-		if(!anneeUnivs.isEmpty()) {
-			start = Integer.valueOf(anneeUnivs.get(0));
-			if(month<8) {
-				end = year;
-			}else {
-				end = year + 1;
-			}
-		}
-		
-		for(int i= start;i<end; i++) {
-			years.add(String.valueOf(i) + "/" + String.valueOf(i + 1));
-		}
-		return years;
+		return String.valueOf(getCurrentanneUniv());
 	}
 	
 	public int getCurrentanneUniv() {
