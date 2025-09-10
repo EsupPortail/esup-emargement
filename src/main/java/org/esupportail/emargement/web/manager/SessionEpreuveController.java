@@ -480,7 +480,11 @@ public class SessionEpreuveController {
         uiModel.asMap().clear();
     	sessionEpreuve.setContext(contexteService.getcurrentContext());
     	if(keyStatut!= null && !keyStatut.isEmpty()) {
-    		sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(keyStatut));
+    		if(keyStatut.equals("FORWARDED") ||  keyStatut.equals("PROCESSED") || keyStatut.equals("CANCELLED")) {
+    			sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(keyStatut));
+    		}else {
+    			sessionEpreuve.setStatutSession(sessionEpreuveService.getStatutSession(sessionEpreuve));
+    		}
     	}
     	sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
     	sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
