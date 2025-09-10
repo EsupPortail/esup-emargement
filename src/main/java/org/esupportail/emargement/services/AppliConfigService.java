@@ -47,7 +47,8 @@ public class AppliConfigService {
 		CONSIGNE_SUJET_MAIL, CONSIGNE_BODY_MAIL, LISTE_GESTIONNAIRES, AUTO_CLOSE_SESSION, SEND_EMAILS, TEST_EMAIL, RETENTION_LOGS,
 		PROCURATION_MAX, CONVOC_ENABLED, EMAIL_LINK_EMARGER, EMAIL_SUJET_LINK_EMARGER, QRCODE_SUJET_MAIL,
 		QRCODE_BODY_MAIL, ENABLE_QRCODE, ENABLE_EMARGER_LINK, ENABLE_PHOTO_ESUPNFCTAG, ENABLE_USER_QRCODE, ENABLE_SESSION_QRCODE, ENABLE_CARD_QRCODE,
-		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_IMPORT_AFFICHER_GROUPES,
+		BEFORE_START_EMARGER_LINK, ADE_SURVEILLANT, ADE_PROJET, ADE_CATEGORIES, ADE_IMPORT_MEMBERS, ADE_IMPORT_SOURCE_PARTICIPANTS,
+    ADE_IMPORT_AFFICHER_GROUPES,
 		ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS,
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
 		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION,
@@ -222,17 +223,40 @@ public class AppliConfigService {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CREATE_GROUPE_AUTO, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
-
+  
+	/**
+	 * @deprecated Cf. getAdeImportSourceParticipants
+	 * @return
+	 */
 	public Boolean isMembersAdeImport() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_IMPORT_MEMBERS);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 
+	/**
+	 * @deprecated Cf. getAdeImportSourceParticipants
+	 * @return
+	 */
 	public Boolean isMembersAdeImport(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_MEMBERS, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 
+	public String getAdeImportSourceParticipants(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_SOURCE_PARTICIPANTS, ctx);
+		String source = appliConfig==null ? "" : appliConfig.getValue();
+		if (0 == source.length()) {
+			// Pour compatibilité
+			if (isMembersAdeImport(ctx)) {
+				source = "ade";
+			} else {
+				source = "aucune";
+			}
+		}
+
+		return source;
+	}
+	
 	public Boolean isAdeImportAfficherGroupes(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_AFFICHER_GROUPES, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
