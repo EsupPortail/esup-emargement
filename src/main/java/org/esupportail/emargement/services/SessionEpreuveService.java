@@ -37,7 +37,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
@@ -624,32 +623,15 @@ public class SessionEpreuveService {
 		}
 	}
 	
-	public List<SessionEpreuve> getListSessionEpreuveByTagchecker(String eppn, String nom){
-		
-		Page<TagChecker> tagCheckerList = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null);
-		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppn, nom);
-		Prefs pref = null;
-		if(!prefs.isEmpty()) {
-			pref = prefs.get(0);
-		}
+	public List<SessionEpreuve> getListSessionEpreuveByTagchecker(String eppn, String key) {
+		Page<TagChecker> tagCheckerList = tagCheckerRepository
+				.findByUserAppEppnAndSessionLocationSessionEpreuveStatutSessionKeyAndSessionLocationSessionEpreuveAnneeUniv(eppn, key,
+						String.valueOf(getCurrentanneUniv()), null);
 		List<SessionEpreuve> newList = new ArrayList<>();
-		for (TagChecker tc :  tagCheckerList.getContent()) {
+		for (TagChecker tc : tagCheckerList.getContent()) {
 			SessionEpreuve se = tc.getSessionLocation().getSessionEpreuve();
-			if(!newList.contains(se) && !"CLOSED".equals(se.getStatutSession().getKey()) && !"CANCELLED".equals(se.getStatutSession().getKey())) {
-				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
-					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
-					int checkIfDateFinIsOk = -1;
-					if(se.getDateFin() != null) {
-						checkIfDateFinIsOk = toolUtil.compareDate(se.getDateFin(), new Date(), "yyyy-MM-dd");
-					}else {
-						checkIfDateFinIsOk = check;
-					}
-					if(check>=0 || checkIfDateFinIsOk>=0) {
-						newList.add(se);
-					}
-				}else {
-					newList.add(se);
-				}
+			if(!newList.contains(se)){
+				newList.add(se);
 			}
 		}
 		return newList;
@@ -678,7 +660,7 @@ public class SessionEpreuveService {
 
 	    return years;
 	}
-	
+
 	public String getLastAnneeUniv(String ctx) {
 		Context context = contextRepository.findByContextKey(ctx);
 		List<String> anneeUnivs = sessionEpreuveRepository.findDistinctAnneeUnivOrderByDesc(context.getId());

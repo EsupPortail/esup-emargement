@@ -1,4 +1,14 @@
 //insert before
+function initSlimSelects() {
+  document.querySelectorAll('select.slimSelectClass').forEach(function (el) {
+    if (!el.slimSelect) { // prevent double init
+      el.slimSelect = new SlimSelect({
+        select: el,
+        placeholder: el.getAttribute('data-placeholder') || 'Choisir...'
+      });
+    }
+  });
+}
 function insertBefore(el, referenceNode) {
 	referenceNode.parentNode.insertBefore(el, referenceNode);
 }
@@ -1364,18 +1374,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 
-		if (document.getElementById('sessionEpreuvePresence') != null) {
-			new SlimSelect({
-				select: '#sessionEpreuvePresence',
-				placeholder: 'Choisir une session'
-			});
-		}
-		if (document.getElementById('location') != null) {
-			new SlimSelect({
-				select: '#location',
-				placeholder: 'Choisir un lieu'
-			});
-		}
+		initSlimSelects();
+		
 		$("#searchTagCheck").change(function() {
 			$("#collapseTable").removeClass("d-none");
 			$("#collapseTable table tbody").empty();
@@ -1481,99 +1481,84 @@ document.addEventListener('DOMContentLoaded', function() {
 	if (dialogMsg != null) {
 		$('#modalUser').modal('show');
 	}
-
-	//Activation webcam
-	$(document).on('change', '#webCamCheck', function() {
-		var value = (this.checked) ? "true" : "false";
-		var redirect = window.location.origin + window.location.pathname;
-		var request = new XMLHttpRequest();
-		request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=enableWebcam&value=" + value, true);
-		request.onload = function() {
-			if (request.status >= 200 && request.status < 400) {
-				if( value == "true"){
-					$("#webCamDiv").removeClass("d-none");
-				}else{
-					$("#webCamDiv").removeClass("d-none");
-					$("#webCamDiv").addClass("d-none");
+	
+	const myOffcanvas = document.getElementById('offcanvasWebcam')
+	if(myOffcanvas != null){
+		myOffcanvas.addEventListener('shown.bs.offcanvas', event => {
+			var qrCodeCam = document.getElementById("qrCodeCam");
+			if (qrCodeCam != null) {
+				var video = document.createElement("video");
+				var canvasElement = document.getElementById("canvas");
+				var canvas = canvasElement.getContext("2d");
+				var loadingMessage = document.getElementById("loadingMessage");
+		
+				function drawLine(begin, end, color) {
+					canvas.beginPath();
+					canvas.moveTo(begin.x, begin.y);
+					canvas.lineTo(end.x, end.y);
+					canvas.lineWidth = 4;
+					canvas.strokeStyle = color;
+					canvas.stroke();
 				}
-			}
-		}
-		request.send();
-	});
-
-	var qrCodeCam = document.getElementById("qrCodeCam");
-	if (qrCodeCam != null) {
-		var video = document.createElement("video");
-		var canvasElement = document.getElementById("canvas");
-		var canvas = canvasElement.getContext("2d");
-		var loadingMessage = document.getElementById("loadingMessage");
-
-		function drawLine(begin, end, color) {
-			canvas.beginPath();
-			canvas.moveTo(begin.x, begin.y);
-			canvas.lineTo(end.x, end.y);
-			canvas.lineWidth = 4;
-			canvas.strokeStyle = color;
-			canvas.stroke();
-		}
-
-		// Use facingMode: environment to attemt to get the front camera on phones
-		navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-			video.srcObject = stream;
-			video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-			video.play();
-			requestAnimationFrame(tick);
-		});
-		let isCodeScanned = false;
-		function tick() {
-			loadingMessage.innerText = "⌛ Loading video..."
-			if (video.readyState === video.HAVE_ENOUGH_DATA) {
-				loadingMessage.hidden = true;
-				canvasElement.hidden = false;
-				canvasElement.height = video.videoHeight;
-				canvasElement.width = video.videoWidth;
-				canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-				var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-				var code = jsQR(imageData.data, imageData.width, imageData.height, {
-					inversionAttempts: "dontInvert",
+		
+				// Use facingMode: environment to attemt to get the front camera on phones
+				navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+					video.srcObject = stream;
+					video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+					video.play();
+					requestAnimationFrame(tick);
 				});
-				if (code) {
-					drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-					drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-					drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-					drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
-				}
-				if (!isCodeScanned) {
-					if (code) {
-						var value = code.data;
-						var sessionData = qrCodeCam.getAttribute("data-qrcode");
-						if (sessionData != null) {
-							var splitCode = value.split("value=");
-							value = splitCode[1] + "@@@" + sessionData;
+				let isCodeScanned = false;
+				function tick() {
+					loadingMessage.innerText = "⌛ Loading video..."
+					if (video.readyState === video.HAVE_ENOUGH_DATA) {
+						loadingMessage.hidden = true;
+						canvasElement.hidden = false;
+						canvasElement.height = video.videoHeight;
+						canvasElement.width = video.videoWidth;
+						canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+						var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+						var code = jsQR(imageData.data, imageData.width, imageData.height, {
+							inversionAttempts: "dontInvert",
+						});
+						if (code) {
+							drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+							drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+							drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+							drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
 						}
-						var prefix = "";
-						if (qrCodeCam.hasAttribute('data-role')) {
-							prefix = emargementContextUrl + "/";
+						if (!isCodeScanned) {
+							if (code) {
+								var value = code.data;
+								var sessionData = qrCodeCam.getAttribute("data-qrcode");
+								if (sessionData != null) {
+									var splitCode = value.split("value=");
+									value = splitCode[1] + "@@@" + sessionData;
+								}
+								var prefix = "";
+								if (qrCodeCam.hasAttribute('data-role')) {
+									prefix = emargementContextUrl + "/";
+								}
+								var location = document.getElementById("location");
+								var valLocation = (location != null) ? location.value : null;
+								updatePresence(prefix + "updatePresents", value, valLocation);
+								isCodeScanned = true;
+								console.log("QR Code scanned once.");
+								setTimeout(() => {
+									isCodeScanned = false;
+									console.log("Simulated scan. Code scanned only once.");
+								}, 2000); //
+							} else {
+								isCodeScanned = false; // Reset the flag if no QR code is found
+							}
 						}
-						var location = document.getElementById("location");
-						var valLocation = (location != null) ? location.value : null;
-						updatePresence(prefix + "updatePresents", value, valLocation);
-						isCodeScanned = true;
-						console.log("QR Code scanned once.");
-						setTimeout(() => {
-							isCodeScanned = false;
-							console.log("Simulated scan. Code scanned only once.");
-						}, 2000); //
-					} else {
-						isCodeScanned = false; // Reset the flag if no QR code is found
 					}
+					requestAnimationFrame(tick);
 				}
+				tick();
 			}
-			requestAnimationFrame(tick);
-		}
-		tick();
+		})
 	}
-
 	//Affinage reparttion
 	$(".affinage").inputSpinner();
 
@@ -2301,6 +2286,9 @@ document.addEventListener('htmx:afterSwap', function(event) {
 	     initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
 	     initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
 	 }
+	 if (event.target.querySelector('select.slimSelectClass')) {
+	    initSlimSelects();
+	  }
 });
 
 document.addEventListener('htmx:afterSettle', function(evt) {

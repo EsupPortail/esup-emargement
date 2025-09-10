@@ -26,7 +26,6 @@ import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.StoredFile;
@@ -88,6 +87,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -200,9 +200,6 @@ public class PresenceController {
 	
 	private final static String ITEM = "presence";
 	
-	private final static String SEE_OLD_SESSIONS = "seeOldSessions";
-	private final static String ENABLE_WEBCAM = "enableWebcam";
-	
 	@Autowired
 	ToolUtil toolUtil;
 	
@@ -216,14 +213,34 @@ public class PresenceController {
 	private String appUrl;
 
     @GetMapping("/supervisor/presence")
-    public ModelAndView getListPresence(@Valid SessionEpreuve sessionEpreuve, @PathVariable String emargementContext, 
+    public Object  getListPresence(@Valid SessionEpreuve sessionEpreuve, @PathVariable String emargementContext, 
     		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
     		@RequestParam(required = false) Long tc, @RequestParam(required = false) String tcer, 
     		@RequestParam(required = false) String msgError, @RequestParam(required = false) Long update,
-    		@RequestParam(required = false) String from){
-    	ModelAndView uiModel= new ModelAndView("supervisor/list");
+    		@RequestParam(defaultValue = "OPENED") String keyStatut,
+    		@RequestHeader(value = "HX-Request", required = false) String hxRequest){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = auth.getName();
+    	List<SessionEpreuve> allSessionEpreuves = sessionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, keyStatut);
+    	if (hxRequest != null) {
+    		String params = "";
+    		if(!allSessionEpreuves.isEmpty()) {
+    			SessionEpreuve se = allSessionEpreuves.get(0);
+    			params = "&sessionEpreuve=" + se.getId();
+    			List<SessionLocation>  allSessionLocations = sessionLocationService.getSessionLocationFromTagChecker(se.getId(), eppnAuth);
+    			if(!allSessionLocations.isEmpty()) {
+    				params += "&location=" + allSessionLocations.get(0).getId();
+    			}
+    		}
+            String redirectUrl = String.format("/%s/supervisor/presence?keyStatut=%s%s",
+                                               emargementContext, keyStatut, params);
+            return ResponseEntity.ok()
+                    .header("HX-Redirect", redirectUrl)
+                    .build();
+        }
+
+    	ModelAndView uiModel= new ModelAndView("supervisor/list");
+
     	uiModel.addObject("scrollTop", appliConfigService.isScrollTopEnabled());
     	uiModel.addObject("eppnAuth", eppnAuth);
     	if(update!=null) {
@@ -327,13 +344,6 @@ public class PresenceController {
 		
 		isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
 		
-		List<Prefs> prefs = prefsRepository.findByUserAppEppnAndNom(eppnAuth, SEE_OLD_SESSIONS);
-		if(from!=null) {
-			preferencesService.updatePrefs(SEE_OLD_SESSIONS, "true", eppnAuth, emargementContext, "dummy") ;
-		}
-		List<Prefs> prefsWebCam = prefsRepository.findByUserAppEppnAndNom(eppnAuth, ENABLE_WEBCAM);
-		String oldSessions = (!prefs.isEmpty())? prefs.get(0).getValue() : "false";
-		String enableWebCam = (!prefsWebCam.isEmpty())? prefsWebCam.get(0).getValue() : "false";
 		if(tagCheckPage != null) {
 			uiModel.addObject("tagCheckPage", tagCheckPage.getContent());
 		}
@@ -352,15 +362,14 @@ public class PresenceController {
         uiModel.addObject("isCommunicationEnabled", appliConfigService.isCommunicationDisplayed());
         uiModel.addObject("isCardQrCodeEnabled", appliConfigService.isCardQrCodeEnabled());
 		uiModel.addObject("allSessionLocations", sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), eppnAuth));
-        uiModel.addObject("allSessionEpreuves", sessionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, SEE_OLD_SESSIONS));
+        uiModel.addObject("allSessionEpreuves", allSessionEpreuves);
 		uiModel.addObject("active", ITEM);
+		uiModel.addObject("keyStatut", keyStatut);
 		uiModel.addObject("help", helpService.getValueOfKey(ITEM));
 		uiModel.addObject("isDateOver", isDateOver);
 		uiModel.addObject("isTodaySe", isTodaySe);
 		uiModel.addObject("eppn", presentId);
 		uiModel.addObject("selectAll", totalAll);
-		uiModel.addObject("oldSessions", Boolean.valueOf(oldSessions));
-		uiModel.addObject("enableWebcam", Boolean.valueOf(enableWebCam));
 		uiModel.addObject("msgError", ldapService.getPrenomNom(msgError));
 		uiModel.addObject("emails",  appliConfigService.getListeGestionnaires());
 		uiModel.addObject("displayTagCheckers",  appliConfigService.isTagCheckerDisplayed());
@@ -373,15 +382,16 @@ public class PresenceController {
     }
     
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
-    public String search(@RequestParam SessionEpreuve sessionEpreuve, @RequestParam(value = "selectedLocation", required = false) Long selectedLocationId, Model uiModel,
-    		 HttpServletResponse response) {
+    public String search(@RequestParam SessionEpreuve sessionEpreuve, @RequestParam(value = "selectedLocation", required = false) Long selectedLocationId, 
+    		Model uiModel, HttpServletResponse response) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	List<SessionLocation> sessionLocations = sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), auth.getName());
 		uiModel.addAttribute("sessionLocations", sessionLocations);
 		uiModel.addAttribute("selectedLocationId", selectedLocationId);
 		SessionLocation sl = sessionLocations.get(0);
-        String redirectUrl = "?sessionEpreuve=" + sl.getSessionEpreuve().getId() + "&location=" + sl.getId();
-        response.setHeader("HX-Redirect", redirectUrl);
+		String urlKey = "&keyStatut=" + sessionEpreuve.getStatutSession().getKey();
+		String redirectUrl = "?sessionEpreuve=" + sl.getSessionEpreuve().getId() + "&location=" + sl.getId() + urlKey;
+		response.setHeader("HX-Redirect", redirectUrl);
  	    return "supervisor/session-locations :: options";
     }
     

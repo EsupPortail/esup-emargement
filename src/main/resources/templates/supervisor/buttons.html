@@ -58,10 +58,9 @@
 				</li>
 			</ul>
 		</div>
-		<label title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
-			data-bs-toggle="buttons"> <input type="checkbox"
-			class="btn-check" id="webCamCheck" th:checked="${enableWebcam}">
-			<i class="fas fa-video"></i>
-		</label>
+		<button th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}"
+			title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
+			data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"><i
+				class="fas fa-video"></i></button>
 	</div>
 </html>

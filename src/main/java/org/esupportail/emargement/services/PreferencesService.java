@@ -67,7 +67,7 @@ public class PreferencesService {
 	
 	public void cleanPrefs(Context ctx) {
 		List<Prefs> prefs = null;
-		String noms [] = {"adeStoredSession"};
+		String noms [] = {"adeStoredSession", "enableWebcam"};
 		for(String nom : Arrays.asList(noms)) {
 			prefs = prefsRepository.findByNomAndContext(nom, ctx);
 			if(!prefs.isEmpty()) {

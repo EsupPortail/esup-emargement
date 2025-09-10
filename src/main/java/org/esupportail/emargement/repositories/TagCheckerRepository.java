@@ -38,6 +38,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	Page<TagChecker> findTagCheckerByUserAppEppnEquals(String eppn, Pageable pageable);
 	
+	Page<TagChecker> findByUserAppEppnAndSessionLocationSessionEpreuveStatutSessionKeyAndSessionLocationSessionEpreuveAnneeUniv(String eppn, String key, String anneeuniv, Pageable pageable);
+	
 	List<TagChecker> findByContextAndUserAppEppn(Context ctx, String eppn);
 	
 	List<TagChecker> findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(String eppn, Date startDate, Date endDate, 
