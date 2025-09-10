@@ -44,11 +44,11 @@ public class SessionEpreuve implements ContextSupport {
     
     public static enum TypeBadgeage {
        SALLE, SESSION
-    };
+    }
     
     public static enum Statut {
        OPENED, STANDBY, CLOSED, CANCELLED
-     };
+     }
      
 	@Column
 	@Enumerated(EnumType.STRING)
@@ -56,6 +56,9 @@ public class SessionEpreuve implements ContextSupport {
     
     @ManyToOne
     private TypeSession typeSession;
+    
+    @ManyToOne
+    private StatutSession statutSession;
     
     @ManyToOne
     private Campus campus;
@@ -150,13 +153,6 @@ public class SessionEpreuve implements ContextSupport {
     private Long adeEventId;
     
     private Long adeProjectId;
-    
-    public boolean isSessionEpreuveClosed() {
-    	if(Statut.CLOSED.equals(getStatut())){
-    		return true;
-    	}
-		return false;
-    }
     
 	public Groupe getBlackListGroupe() {
 		return blackListGroupe;
@@ -460,5 +456,13 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setIsSecondTag(Boolean isSecondTag) {
 		this.isSecondTag = isSecondTag;
+	}
+
+	public StatutSession getStatutSession() {
+		return statutSession;
+	}
+
+	public void setStatutSession(StatutSession statutSession) {
+		this.statutSession = statutSession;
 	}
 }

@@ -14,7 +14,6 @@ import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.CalendarDTO;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
@@ -99,11 +98,11 @@ public class CalendarService {
 	    		c.setStart(strStart);
 	    		String strSEnd = null;
 	    		String color = "#3788d8";
-	    		if(Statut.OPENED.equals(se.getStatut())) {
+	    		if("OPENED".equals(se.getStatutSession().getKey())) {
 	    			color = "#008000";
-	    		}else if(Statut.CLOSED.equals(se.getStatut())) {
+	    		}else if("CLOSED".equals(se.getStatutSession().getKey())) {
 	    			color = "#ff0000";
-	    		}else if(Statut.STANDBY.equals(se.getStatut())) {
+	    		}else if("STANDBY".equals(se.getStatutSession().getKey())) {
 	    			color = "#ffa500";
 	    		}
 	    		if(se.getDateFin() != null && !dateFormat.format(se.getDateExamen()).equals(dateFormat.format(se.getDateFin()))) {

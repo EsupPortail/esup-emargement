@@ -81,7 +81,7 @@
 									<td th:text="${tagCheck.sessionEpreuve.anneeUniv}"></td>
 									<td> 
 										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${tagCheck.sessionEpreuve.id},ctx=${eContext})}" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></a>
-										<th:block th:if="${tagCheck.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+										<th:block th:if="${tagCheck.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tagCheck.sessionEpreuve.typeSession.key}"></td>
 									<td>
@@ -158,7 +158,7 @@
 									<td> 
 										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${tagChecker.sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${tagChecker.sessionEpreuve.nomSessionEpreuve}"></a>
-										<th:block th:if="${tagChecker.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+										<th:block th:if="${tagChecker.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
 									<td th:text="${tagChecker.sessionLocation.location.campus.site}"></td>
@@ -213,7 +213,7 @@
 							<span th:text="${activite.nomSessionEpreuve + #dates.format(activite.dateExamen, ' dd/MM/yy') + 
 													#dates.format(activite.heureEpreuve, ' HH:mm') + '-' + #dates.format(activite.finEpreuve, 'HH:mm')}"></span>
 							 <span class="badge text-bg-success ms-3"><span th:text="${nbBadgeage}"></span> / <span th:text="${#lists.size(activitePage)}"></span></span>
-							 <th:block th:if="${activite.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+							 <th:block th:if="${activite.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 						</div>
 					</div>
 					<div th:if="${#lists.isEmpty(activitePage) and #ctx.containsVariable('activite')}">

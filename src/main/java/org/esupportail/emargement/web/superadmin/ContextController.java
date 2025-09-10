@@ -9,12 +9,14 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.custom.ContextRepositoryCustom;
 import org.esupportail.emargement.security.ContextUserDetails;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TypeSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,12 @@ public class ContextController {
 	@Resource
 	AppliConfigService appliConfigService;
 	
+	@Resource
+	SessionEpreuveService sessionEpreuveService;
+	
+	@Resource
+	AbsenceService absenceService;
+	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
 		return ITEM;
@@ -116,17 +124,20 @@ public class ContextController {
         	return String.format("redirect:/%s/superadmin/context?form", emargementContext);
         }
 		String eppn = auth.getName();
+		String key = context.getKey();
 		context.setCreateur(eppn);
 		context.setDateCreation(new Date());
 		contextRepository.save(context);
 		appliConfigService.updateAppliconfig(context);
-		typeSessionService.updateTypeSession(context.getKey());
+		typeSessionService.updateTypeSession(key);
+		sessionEpreuveService.updateStatutSession(key);
+		absenceService.updateMotifAbsence(key);
 		ContextUserDetails userDetails = (ContextUserDetails)auth.getPrincipal();
-		userDetails.getAvailableContexts().add(context.getKey());
-		userDetails.getAvailableContextIds().put(context.getKey(),context.getId());
-		log.info("Création contexte : " + "Url : ".concat(context.getKey()));
-		logService.log(ACTION.AJOUT_CONTEXTE, RETCODE.SUCCESS, "Url : ".concat(context.getKey()).concat(" value : ").
-				concat(context.getKey()), eppn, null, 
+		userDetails.getAvailableContexts().add(key);
+		userDetails.getAvailableContextIds().put(key,context.getId());
+		log.info("Création contexte : " + "Url : ".concat(key));
+		logService.log(ACTION.AJOUT_CONTEXTE, RETCODE.SUCCESS, "Url : ".concat(key).concat(" value : ").
+				concat(key), eppn, null, 
 				emargementContext, null);
 		return String.format("redirect:/%s/superadmin/context", emargementContext);
     }

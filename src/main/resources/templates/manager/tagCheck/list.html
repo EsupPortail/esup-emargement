@@ -30,7 +30,7 @@
 					        <h2>Inscrits <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span></h2>
 					        <span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' + sessionEpreuve.campus.site}"></span>
 					        <span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
-					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
 					    </div>
 					    <div class="col-12 col-md-auto">
 							<div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
@@ -234,7 +234,7 @@
 									<td class ="center"><a th:href="@{/{ctx}/manager/tagCheck/{id}(id=${tagCheck.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
 										<a th:if="${!isSessionEpreuveClosed}" th:href="@{/{ctx}/manager/tagCheck/{id}?form(id=${tagCheck.id},ctx=${eContext})}">
 										<i class="fa fa-pen text-warning ms-2"></i></a>
-										<a th:if="${!tagCheck.sessionEpreuve.isSessionEpreuveClosed} "data-bs-toggle="modal" data-bs-target="#modal-warning" 
+										<a th:if="${tagCheck.sessionEpreuve.statutSession.key ne 'CLOSED'} "data-bs-toggle="modal" data-bs-target="#modal-warning" 
 											th:attr="data-bs-target='#modal-warning'+${tagCheck.id }"><i class="fa fa-trash text-danger ms-2"></i></a>
 										<div class="modal modal-warning fade in" th:id="modal-warning+${tagCheck.id}" >
 										    <div class="modal-dialog">

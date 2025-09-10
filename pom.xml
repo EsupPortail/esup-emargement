@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.esupportail.emargement</groupId>
 	<artifactId>esup-emargement</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.5-SNAPSHOT</version>
 	<name>esup-emargement</name>
 	<packaging>war</packaging>
 	<description>Application emargement</description>
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>5.3.7</version>
+			<version>5.3.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
@@ -188,7 +188,7 @@
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
 		  <artifactId>bootstrap5-tags</artifactId>
-		  <version>1.6.15</version>
+		  <version>1.7.5</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -239,7 +239,7 @@
  		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>bootstrap-icons</artifactId>
-		    <version>1.11.3</version>
+		    <version>1.13.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -249,7 +249,7 @@
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>suneditor</artifactId>
-		    <version>2.47.5</version>
+		    <version>2.47.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>

@@ -12,7 +12,7 @@
 					        <h2>Lieux de Session</h2>
 					        <small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' + sessionEpreuve.campus.site}"></small>
 					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
-					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.isSessionEpreuveClosed} ? ' -- Session cloturée'"></span>
+					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
 					    </div>
 					    <div class="col-12 col-md-auto" th:if="${!isSessionEpreuveClosed}">
 					        <div class="d-flex justify-content-md-end gap-2">
@@ -52,9 +52,9 @@
 								<td class="center d-none d-sm-table-cell d-md-table-cell"><i th:class="${sessionLocation.isTiersTempsOnly} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
 								<td class="center d-xs-table-cell d-none d-sm-table-cell d-md-table-cell" th:text="${sessionLocation.capacite}"></td>
 								<td class ="center"><a th:href="@{/{ctx}/manager/sessionLocation/{id}(id=${sessionLocation.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-									<a  th:if="${!sessionLocation.sessionEpreuve.isSessionEpreuveClosed} " 
+									<a  th:if="${sessionLocation.sessionEpreuve.statutSession.key ne 'CLOSED'} " 
 										th:href="@{/{ctx}/manager/sessionLocation/{id}?form(id=${sessionLocation.id},ctx=${eContext})}"><i class="fa fa-pen text-warning ms-2"></i></a>
-									<a th:if="${!sessionLocation.sessionEpreuve.isSessionEpreuveClosed} " data-bs-toggle="modal" data-bs-target="#modal-warning" 
+									<a th:if="${sessionLocation.sessionEpreuve.statutSession.key ne 'CLOSED'} " data-bs-toggle="modal" data-bs-target="#modal-warning" 
 														th:attr="data-bs-target='#modal-warning'+${sessionLocation.id }"><i class="fa fa-trash text-danger ms-2"></i></a>
 									<div class="modal modal-warning fade in" th:id="modal-warning+${sessionLocation.id}" >
 									    <div class="modal-dialog">

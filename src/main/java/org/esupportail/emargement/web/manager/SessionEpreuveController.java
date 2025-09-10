@@ -23,7 +23,6 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserApp;
@@ -34,6 +33,7 @@ import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StatutSessionRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
@@ -75,6 +75,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -112,6 +113,9 @@ public class SessionEpreuveController {
 	
 	@Autowired	
 	ContextRepository contextRepository;
+	
+	@Autowired
+	StatutSessionRepository statutSessionRepository;
 	
     @Resource
     SessionEpreuveService sessionEpreuveService;
@@ -172,9 +176,9 @@ public class SessionEpreuveController {
 
 	@GetMapping(value = "/manager/sessionEpreuve")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
-			@RequestParam(value="multiSearch", required = false) String multiSearch, @RequestParam(required = false) Long searchString,
-			SessionEpreuve sessionSearch,  @RequestParam(value="dateSessions", required = false) String dateSessions,
-			@RequestParam(value="view", required = false) String view) {
+			@RequestParam(required = false) String multiSearch, @RequestParam(required = false) Long searchString,
+			SessionEpreuve sessionSearch,  @RequestParam(required = false) String dateSessions,
+			@RequestParam(required = false) String view) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
 		Context ctx = contextRepository.findByKey(emargementContext);
@@ -200,7 +204,7 @@ public class SessionEpreuveController {
 		if(multiSearch == null) {
 			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
 			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
-			sessionSearch.setStatut((selectedStatut.isEmpty())? null : Statut.valueOf(selectedStatut));
+			sessionSearch.setStatutSession((selectedStatut.isEmpty())? null : statutSessionRepository.findByKey(selectedStatut));
 			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();
 			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
 			String selectedCampus= (prefsCampus.isEmpty())? "" : prefsCampus.get(0).getValue();
@@ -210,7 +214,7 @@ public class SessionEpreuveController {
 			view = selectedListe.isEmpty()? "all" : selectedListe;
 		}else{
 			if(sessionSearch.getId()==null) {
-				String prefStatutValue = (sessionSearch.getStatut() == null)? "" : sessionSearch.getStatut().name();
+				String prefStatutValue = (sessionSearch.getStatutSession() == null)? "" : sessionSearch.getStatutSession().getKey();
 				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext, "dummy") ;
 				String prefTypeValue = (sessionSearch.getTypeSession() == null)? "" : sessionSearch.getTypeSession().getId().toString();
 				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext, "dummy") ;
@@ -235,7 +239,7 @@ public class SessionEpreuveController {
 			List<SessionEpreuve> ses = new ArrayList<>();
 			ses.add(se);
 			sessionEpreuvePage = new PageImpl<>(ses);
-			sessionSearch.setStatut(se.getStatut());
+			sessionSearch.setStatutSession(se.getStatutSession());
 			sessionSearch.setTypeSession(se.getTypeSession());
 			sessionSearch.setAnneeUniv(se.getAnneeUniv());
 			sessionSearch.setId(null);			
@@ -253,7 +257,7 @@ public class SessionEpreuveController {
         model.addAttribute("sessionEpreuvePage", sessionEpreuvePage);
         model.addAttribute("help", helpService.getValueOfKey(ITEM));
         model.addAttribute("sessionSearch", sessionSearch);
-        model.addAttribute("statuts", Statut.values());
+        model.addAttribute("statuts", statutSessionRepository.findAll());
         model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
         model.addAttribute("sites", campusRepository.findByOrderBySite());
         model.addAttribute("dateSessions", dateSessions);
@@ -263,7 +267,7 @@ public class SessionEpreuveController {
 	}
 
 	@GetMapping(value = "/manager/sessionEpreuve/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel, @RequestParam(required = false) String modal) {
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
 		List<SessionEpreuve> list = new ArrayList<>();
 		list.add(se);
@@ -271,11 +275,14 @@ public class SessionEpreuveController {
         uiModel.addAttribute("sessionEpreuve", list.get(0));
         uiModel.addAttribute("attachments", storedFileRepository.findBySessionEpreuve(list.get(0)));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
+        if(modal != null){
+        	return "manager/sessionEpreuve/show :: modalContent";
+        }
         return "manager/sessionEpreuve/show";
     }
 	
 	@GetMapping(value = "/manager/sessionEpreuve/repartition/{id}", produces = "text/html")
-    public String repartitionList(@PathVariable("id") Long id, Model uiModel, @ModelAttribute(value ="tagCheckOrderValue") String tagCheckOrderValue) {
+    public String repartitionList(@PathVariable Long id, Model uiModel, @ModelAttribute String tagCheckOrderValue) {
 		uiModel.addAttribute("countTagChecksTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, true));
 		uiModel.addAttribute("countTagChecksNotTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, false));
 		uiModel.addAttribute("countTagChecksRepartisTiersTemps", tagCheckService.countNbTagCheckRepartitionNotNull(id, true));
@@ -294,12 +301,12 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/executeRepartition/{id}", produces = "text/html")
-    public String executeRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    public String executeRepartition(@PathVariable String emargementContext, @PathVariable Long id, 
     		@RequestParam(value="alphaOrder", required = false) String tagCheckOrder, final RedirectAttributes redirectAttributes) {
 		
 		boolean isOver = sessionEpreuveService.executeRepartition(id, tagCheckOrder);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
-		if(Statut.CLOSED.equals(sessionEpreuve.getStatut())){
+		if("CLOSED".equals(sessionEpreuve.getStatutSession().getKey())){
 			isOver = true;
 			log.info("Pas de répartition possible , la session " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
 		}
@@ -316,7 +323,7 @@ public class SessionEpreuveController {
     }
 	
 	@GetMapping(value = "/manager/sessionEpreuve/tagCheckList/{id}", produces = "text/html")
-    public String getTagCheckList(@PathVariable("id") Long id, Model uiModel, @PageableDefault(size = 1, direction = Direction.ASC, sort = "person")  Pageable pageable) {
+    public String getTagCheckList(@PathVariable Long id, Model uiModel, @PageableDefault(size = 1, direction = Direction.ASC, sort = "person")  Pageable pageable) {
 		
 		Long count = tagCheckRepository.countBySessionLocationExpectedId(id);
 				
@@ -336,7 +343,7 @@ public class SessionEpreuveController {
 	
 	@Transactional
 	@GetMapping(value = "/manager/sessionEpreuve/deleteRepartition/{id}", produces = "text/html")
-    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id) {
+    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable Long id) {
 		tagCheckService.resetSessionLocationExpected(id);
 		SessionEpreuve sessionEpreuve =  sessionEpreuveRepository.findById(id).get();
 		log.info("Réinitialisation de la répartition possible pour la session : " + sessionEpreuve.getNomSessionEpreuve());
@@ -344,17 +351,28 @@ public class SessionEpreuveController {
         return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
 	
-    @GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
-    public String createForm(@PathVariable String emargementContext, Model uiModel, @RequestParam(value = "anneeUniv", required = false) String anneeUniv) {
-    	SessionEpreuve SessionEpreuve = new SessionEpreuve();
-    	SessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
-    	populateEditForm(uiModel, SessionEpreuve, anneeUniv, emargementContext);
-    	uiModel.addAttribute("currentAnneeUniv", anneeUniv);
-        return "manager/sessionEpreuve/create";
-    }
+	@GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
+	public String createForm(@PathVariable String emargementContext, Model uiModel, 
+	                         @RequestParam(required = false) String anneeUniv, 
+	                         @RequestHeader(value = "HX-Request", required = false) String hxRequest) {
+	    SessionEpreuve sessionEpreuve = new SessionEpreuve();
+	    sessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
+	    sessionEpreuve.setCampus(
+	    		campusRepository.findAll().stream()
+	    	        .filter(c -> Boolean.TRUE.equals(c.getIsDefault()))
+	    	        .findFirst()
+	    	        .orElse(null)
+	    	);
+	    populateEditForm(uiModel, sessionEpreuve, anneeUniv, emargementContext);
+	    uiModel.addAttribute("currentAnneeUniv", anneeUniv);
+	    if (hxRequest != null) {
+	    	return "manager/sessionEpreuve/create-modal :: modal-create";
+	    }
+	    return "manager/sessionEpreuve/create";
+	}
     
     @GetMapping(value = "/manager/sessionEpreuve/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
     	boolean isSessionLibreDisabled = true;
@@ -374,9 +392,7 @@ public class SessionEpreuveController {
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-        uiModel.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-        uiModel.addAttribute("anneeUniv", anneeUniv);
         Date date = Calendar.getInstance().getTime();  
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
         String strDate = dateFormat.format(date);  
@@ -385,8 +401,8 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/create")
     public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
-    		Model uiModel, final RedirectAttributes redirectAttributes, @RequestParam("strDateExamen") String strDateExamen, 
-    		@RequestParam("strDateFin") String strDateFin) throws IOException, ParseException {
+    		Model uiModel, final RedirectAttributes redirectAttributes, @RequestParam String strDateExamen, 
+    		@RequestParam String strDateFin, @RequestHeader(value = "HX-Request", required = false) String hxRequest) throws IOException, ParseException {
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
     	if(sessionEpreuve.getHeureConvocation() == null) {
@@ -419,16 +435,29 @@ public class SessionEpreuveController {
         	return String.format("redirect:/%s/manager/sessionEpreuve?form", emargementContext);
         }
 		sessionEpreuve.setContext(contexteService.getcurrentContext());
+		sessionEpreuve.setStatutSession(sessionEpreuveService.getStatutSession(sessionEpreuve));
+		sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
 		sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
 		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
-		return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());        
+		
+		 if (hxRequest != null) {
+			 uiModel.addAttribute("sessionEpreuve",sessionEpreuve);
+			 return "manager/sessionEpreuve/modal-show1 ::show-modal";
+		 }
+		 return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
+		 /*
+		 return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s#openmodal-%d", 
+				emargementContext, 
+				sessionEpreuve.getAnneeUniv(),
+				sessionEpreuve.getId() 
+			);    */
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
     public String update(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, 
-    		@RequestParam("strDateExamen") String strDateExamen, @RequestParam("strDateFin") String strDateFin, BindingResult bindingResult, 
+    		@RequestParam String strDateExamen, @RequestParam String strDateFin, @RequestParam(required = false) String keyStatut, BindingResult bindingResult, 
     		Model uiModel) throws IOException, ParseException {
         
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
@@ -441,7 +470,7 @@ public class SessionEpreuveController {
     		sessionEpreuve.setDateFin(dateFin);
     		compareDebutFin = toolUtil.compareDate(sessionEpreuve.getDateExamen(), sessionEpreuve.getDateFin(), "yyyy-MM-dd");
     	}
- 
+    	
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || compareDebutFin > 0) {
             populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
@@ -450,6 +479,10 @@ public class SessionEpreuveController {
         }
         uiModel.asMap().clear();
     	sessionEpreuve.setContext(contexteService.getcurrentContext());
+    	if(keyStatut!= null && !keyStatut.isEmpty()) {
+    		sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(keyStatut));
+    	}
+    	sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
     	sessionEpreuveService.save(sessionEpreuve, emargementContext, null);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
@@ -459,8 +492,8 @@ public class SessionEpreuveController {
     }
     
     @PostMapping(value = "/manager/sessionEpreuve/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, 
-    		@RequestParam(value = "view", required = false)String view, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, 
+    		@RequestParam(required = false)String view, final RedirectAttributes redirectAttributes) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
     	String nom = sessionEpreuve.getNomSessionEpreuve();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -482,7 +515,7 @@ public class SessionEpreuveController {
     @Transactional
     @PostMapping(value = "/manager/sessionEpreuve/actions")
     public String actions(@PathVariable String emargementContext, @RequestParam(value = "checkedValues") List<Long> ids, 
-    		@RequestParam(value = "action") String action, final RedirectAttributes redirectAttributes) {
+    		@RequestParam String action, final RedirectAttributes redirectAttributes) {
     	List<SessionEpreuve> ses = sessionEpreuveRepository.findAllById(ids);
     	if(!ses.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -499,9 +532,9 @@ public class SessionEpreuveController {
         				logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.FAILED, "Nom : " + nom, auth.getName(), null, emargementContext, null);
         			}  
     			}else if(("close").equals(action)){
-    				se.setStatut(Statut.CLOSED);
+    				se.setStatutSession(statutSessionRepository.findByKey("CLOSED"));
     	        	sessionEpreuveRepository.save(se);
-    			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut " + Statut.CLOSED.name(), auth.getName(), null, emargementContext, null);
+    			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut CLOSED.", auth.getName(), null, emargementContext, null);
         		}
     	    }	
     	}
@@ -509,16 +542,16 @@ public class SessionEpreuveController {
     }
     
     @PostMapping("/manager/sessionEpreuve/emargement")
-    public void exportEamrgement(@PathVariable String emargementContext, @RequestParam("sessionLocationId") Long sessionLocationId, 
-    			@RequestParam("sessionEpreuveId") Long sessionEpreuveId, @RequestParam("type") String type, HttpServletResponse response){
+    public void exportEamrgement(@PathVariable String emargementContext, @RequestParam Long sessionLocationId, 
+    			@RequestParam Long sessionEpreuveId, @RequestParam String type, HttpServletResponse response){
     	
     	sessionEpreuveService.exportEmargement(response, sessionLocationId, sessionEpreuveId, type, emargementContext);
     }
     
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")
     @Transactional
-    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes, @ModelAttribute(value="form") PropertiesForm  propertiesForm,
-    		@RequestParam(value="alphaOrder") String alphaOrder){
+    public String affinerRepartition(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes, @ModelAttribute(value="form") PropertiesForm  propertiesForm,
+    		@RequestParam String alphaOrder){
 		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext, alphaOrder);
 		 redirectAttributes.addFlashAttribute("tagCheckOrderValue", alphaOrder);
     	 return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
@@ -526,26 +559,32 @@ public class SessionEpreuveController {
     
     @Transactional
     @GetMapping("/manager/sessionEpreuve/duplicate/{id}")
-    public String duplicateSession(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes){
-    	
-    	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id);
+    public String duplicateSession(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes){
+    	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id, false, 0);
     	redirectAttributes.addFlashAttribute("duplicate", "duplicate");
     	return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext, newSe.getId());
-    	
+    }
+    
+    @Transactional
+    @PostMapping("/manager/sessionEpreuve/duplicateAll")
+    public String duplicateAllSessions(@PathVariable String emargementContext, @RequestParam int jours, 
+    		@RequestParam List<Long> idSessions){
+    	sessionEpreuveService.duplicateAll(idSessions, jours);
+    	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
     
     @PostMapping("/manager/sessionEpreuve/changeStatut/{id}")
-    public String changeStatut(@PathVariable String emargementContext, @PathVariable("id") Long id, 
-    		@RequestParam("statut") Statut statut, @RequestParam(value="view", required = false) String view, final RedirectAttributes redirectAttributes){
+    public String changeStatut(@PathVariable String emargementContext, @PathVariable Long id, 
+    		@RequestParam String statut, @RequestParam(required = false) String view, final RedirectAttributes redirectAttributes){
     	
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	sessionEpreuve.setStatut(statut);
+    	sessionEpreuve.setStatutSession(statutSessionRepository.findByKey(statut));
     	sessionEpreuveRepository.save(sessionEpreuve);
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	
     	redirectAttributes.addFlashAttribute("currentAnneeUniv", sessionEpreuve.getAnneeUniv());
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
-    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + "changement statut " + statut.name(), auth.getName(), null, emargementContext, null);
+    	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve() + " : " + "changement statut " + statut, auth.getName(), null, emargementContext, null);
     	if(view!=null) {
     		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
     	}
@@ -567,7 +606,7 @@ public class SessionEpreuveController {
     public String cleanup(Model model){
     	Date today = new Date();
     	model.addAttribute("autoClose", appliConfigRepository.findAppliConfigByKey("AUTO_CLOSE_SESSION").get(0).getValue());
-    	model.addAttribute("notClosed", sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(today, Statut.CLOSED, today, Statut.CLOSED));
+    	model.addAttribute("notClosed", sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutSessionKeyNotOrDateFinLessThanAndStatutSessionKeyNot(today, "CLOSED", today, "CLOSED"));
     	model.addAttribute("noTagCheck", sessionEpreuveRepository.findSessionEpreuveWithNoTagCheck(new Date(), contexteService.getcurrentContext().getId()));
     	model.addAttribute("noTagChecker", sessionEpreuveRepository.findSessionEpreuveWithNoTagChecker(new Date(), contexteService.getcurrentContext().getId()));
     	model.addAttribute("noSessionLocation", sessionEpreuveRepository.findSessionEpreuveWithNoSessionLocation(new Date(), contexteService.getcurrentContext().getId()));
@@ -578,15 +617,15 @@ public class SessionEpreuveController {
 
     @Transactional
     @PostMapping("/manager/sessionEpreuve/cleanup/{type}")
-	public String cleanupsession(@PathVariable String emargementContext, @PathVariable("type") String type){
+	public String cleanupsession(@PathVariable String emargementContext, @PathVariable String type){
     	Date today = new Date();
     	if(type!=null) {
     		if("notClosed".equals(type)){
     			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    			for(SessionEpreuve se :  sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutNotOrDateFinLessThanAndStatutNot(today, Statut.CLOSED, today, Statut.CLOSED)) {
-    				se.setStatut(Statut.CLOSED);
+    			for(SessionEpreuve se :  sessionEpreuveRepository.findByDateExamenLessThanAndDateFinIsNullAndStatutSessionKeyNotOrDateFinLessThanAndStatutSessionKeyNot(today, "CLOSED", today, "CLOSED")){
+    				se.setStatutSession(statutSessionRepository.findByKey("CLOSED"));
     				sessionEpreuveRepository.save(se);
-    			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut " + Statut.CLOSED.name(), auth.getName(), null, emargementContext, null);
+    			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut CLOSED", auth.getName(), null, emargementContext, null);
     			}
     		}else if("noTagCheck".equals(type)){
     			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoTagCheck(new Date(), contexteService.getcurrentContext().getId()));

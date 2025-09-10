@@ -112,7 +112,7 @@
 									<td>
 										<a th:href="@{/{ctx}/manager/individu?typeSearch=sessionEpreuve&searchString={id}(id=${sessionEpreuve.id},ctx=${eContext})}" 
 											th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
-							            <th:block th:if="${tc.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+							            <th:block th:if="${tc.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 									</td>
 									<td th:text="${sessionEpreuve.typeSession.key}"></td>
 									<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>

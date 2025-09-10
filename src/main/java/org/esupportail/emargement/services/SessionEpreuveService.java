@@ -6,11 +6,14 @@ import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,6 +31,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -37,6 +41,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.StatutSession;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -49,6 +54,7 @@ import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.StatutSessionRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -84,6 +90,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	private SessionLocationRepository sessionLocationRepository;
+	
+	@Autowired
+	StatutSessionRepository statutSessionRepository;
 
 	@Autowired
 	private CampusRepository campusRepository;
@@ -565,30 +574,51 @@ public class SessionEpreuveService {
         document.close();
     }
 	
-	@Scheduled(cron = "0 0 7 * * ?")//Tous les jours à 10h
-	public void closeSessions(){
-		List<AppliConfig> configs =  appliConfigRepository.findAppliConfigByKey(AppliConfigKey.AUTO_CLOSE_SESSION.name());
-		for(AppliConfig config : configs) {
-			if("true".equals(config.getValue())) {
-				List<SessionEpreuve> list = sessionEpreuveRepository.findSessionEpreuveByContext(config.getContext());
-				if(!list.isEmpty()) {
-					for(SessionEpreuve se : list) {
-						int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
-						int checkIfDateFinIsOk = -1;
-						if(se.getDateFin() != null) {
-							checkIfDateFinIsOk = toolUtil.compareDate(se.getDateFin(), new Date(), "yyyy-MM-dd");
+	@Scheduled(cron= "${emargement.sessions.statut.update}")
+	@Transactional
+	public void endedOrcloseSessions(){
+		List<Context> contextList = contextRepository.findAll();
+		if(!contextList.isEmpty()) {
+			log.info("Début de mise à jour statut sessions");
+			for(Context ctx : contextList) {
+				String ctxKey = ctx.getKey();
+				log.info("--Contexte : " + ctxKey);
+				Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
+				List<AppliConfig> configs = appliConfigRepository.findAppliConfigByKeyAndContext(AppliConfigKey.AUTO_CLOSE_SESSION.name(), ctx);
+				String [] keys = "true".equals(configs.get(0).getValue()) ? new String[]  {"PROCESSED", "CANCELLED", "CLOSED"} : 
+					new String[] {"CLOSED", "PROCESSED", "CANCELLED", "ENDED"};
+				List<SessionEpreuve> ses =  sessionEpreuveRepository.findByContextAndDateExamenLessThanAndStatutSessionKeyNotIn(ctx, today, Arrays.asList(keys));
+				if(!ses.isEmpty()) {
+					String value = configs.get(0).getValue();
+					int i = 0;
+					for (SessionEpreuve se : ses) {
+						if("true".equals(value)) {
+							se.setStatutSession(statutSessionRepository.findByKeyAndContext("CLOSED", ctx));
+							i++;
 						}else {
-							checkIfDateFinIsOk = check;
+							se.setStatutSession(statutSessionRepository.findByKeyAndContext("ENDED", ctx));
+							i++;
 						}
-						if(check<0 && checkIfDateFinIsOk < 0) {
-							se.setStatut(Statut.CLOSED);
-							sessionEpreuveRepository.save(se);
-							logService.log(ACTION.CLOSE_SESSION, RETCODE.SUCCESS, "Session : " + se.getNomSessionEpreuve() , null, null, se.getContext().getKey(), null);
-							log.info("cloture utomatique de session " + se.getNomSessionEpreuve());
-						}
+						sessionEpreuveRepository.save(se);
+					}
+					if("true".equals(value)){
+						logService.log(ACTION.CLOSE_SESSION, RETCODE.SUCCESS, "Sessions clôturées : " + i , null, null, ctxKey, null);
+					}else {
+						logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Statut Terminé - nb sessions : " + i, null, null, ctxKey, null);
 					}
 				}
+				List<SessionEpreuve> sesToday = sessionEpreuveRepository.findByContextAndDateExamenAndStatutSessionKey(ctx, today,"STANDBY");
+				if(!sesToday.isEmpty()) {
+					int j = 0;
+					for (SessionEpreuve seToday : sesToday) {
+						seToday.setStatutSession(statutSessionRepository.findByKeyAndContext("OPENED", ctx));
+						sessionEpreuveRepository.save(seToday);
+						j++;
+					}
+					logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Statut Ouverte - nb sessions : " + j, null, null, ctxKey, null);
+				}
 			}
+			log.info("Fin de mise à jour statut sessions");
 		}
 	}
 	
@@ -603,7 +633,7 @@ public class SessionEpreuveService {
 		List<SessionEpreuve> newList = new ArrayList<>();
 		for (TagChecker tc :  tagCheckerList.getContent()) {
 			SessionEpreuve se = tc.getSessionLocation().getSessionEpreuve();
-			if(!newList.contains(se) && !Statut.CLOSED.equals(se.getStatut()) && !Statut.CANCELLED.equals(se.getStatut())) {
+			if(!newList.contains(se) && !"CLOSED".equals(se.getStatutSession().getKey()) && !"CANCELLED".equals(se.getStatutSession().getKey())) {
 				if(pref != null && "false".equals(pref.getValue()) || pref == null) {
 					int check = toolUtil.compareDate(se.getDateExamen(), new Date(), "yyyy-MM-dd");
 					int checkIfDateFinIsOk = -1;
@@ -667,32 +697,67 @@ public class SessionEpreuveService {
 		return currentYear;
 	}
 	
-	 public SessionEpreuve duplicateSessionEpreuve(Long id){
+	public int getCurrentAnneeUnivFromDate(Date date) {
+	    Calendar cal = Calendar.getInstance();
+	    cal.setTime(date);
+
+	    int year = cal.get(Calendar.YEAR);
+	    int month = cal.get(Calendar.MONTH);
+
+	    int currentYear = year;
+	    if (month < Calendar.SEPTEMBER) {
+	        currentYear = year - 1;
+	    }
+
+	    return currentYear;
+	}
+	
+	public void duplicateAll(List<Long> idSessions, int jours){
+		for(Long id : idSessions) {
+			duplicateSessionEpreuve(id, true, jours);
+		}
+	}
+	
+	 public SessionEpreuve duplicateSessionEpreuve(Long id, boolean isSameName, int jours){
 		SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
 		Context context = originalSe.getContext();
         SessionEpreuve newSe = new SessionEpreuve();
+        if(jours>0) {
+        	 Instant instant = originalSe.getDateExamen().toInstant().plus(jours, ChronoUnit.DAYS);
+             newSe.setDateExamen(Date.from(instant));
+             if(originalSe.getDateFin() != null) {
+            	 Instant instant2 = originalSe.getDateFin().toInstant().plus(jours, ChronoUnit.DAYS);
+            	 newSe.setDateFin(Date.from(instant2));
+             }else {
+            	 newSe.setDateFin(null);
+             }
+        }else {
+        	 newSe.setDateExamen(new Date());
+        	 newSe.setDateFin(null);
+        }
         newSe.setAnneeUniv(originalSe.getAnneeUniv());
         newSe.setCampus(originalSe.getCampus());
         newSe.setContext(context);
-        newSe.setDateExamen(new Date());
         newSe.setFinEpreuve(originalSe.getFinEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
-        newSe.setStatut(null);
         newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
         newSe.setComment(originalSe.getComment());
         newSe.setTypeBadgeage(originalSe.getTypeBadgeage());
         newSe.setIsSessionLibre(originalSe.isSessionLibre);
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
-        newSe.setStatut(originalSe.getStatut());
-        String newNomEpreuve = "";
+        newSe.setStatutSession(getStatutSession(originalSe));
         int  x = 0 ;
         Long count = 0L;
         do {
           x++;
         } while (count!=0);
-        newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
-        newSe.setNomSessionEpreuve(newNomEpreuve);
+        if(!isSameName) {
+        	String newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
+        	newSe.setNomSessionEpreuve(newNomEpreuve);
+        }else {
+        	newSe.setNomSessionEpreuve(originalSe.getNomSessionEpreuve());
+        }
         newSe.setTypeSession(originalSe.getTypeSession());
         newSe.setHeureEpreuve(originalSe.getHeureEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
@@ -739,9 +804,9 @@ public class SessionEpreuveService {
 	        	}
 	        }
         }
-        
+        boolean isOver = executeRepartition(newSe.getId(), "alpha");
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	log.info("Cpoie de la session : " + originalSe.getNomSessionEpreuve());
+    	log.info("Copie de la session : " + originalSe.getNomSessionEpreuve());
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
 
         return newSe;
@@ -773,7 +838,7 @@ public class SessionEpreuveService {
 	 }
 	 
 	 public boolean isSessionEpreuveClosed(SessionEpreuve se) {
-		 if(Statut.CLOSED.equals(se.getStatut())) {
+		 if("CLOSED".equals(se.getStatutSession().getKey())) {
 			 return true;
 		 }
 		return false;
@@ -871,18 +936,14 @@ public class SessionEpreuveService {
 						if (!record.get("commentaire").isEmpty()) {
 							se.setComment(record.get("commentaire"));
 						}
-						if (!record.get("statut").isEmpty() && "O".equalsIgnoreCase(record.get("statut"))) {
-							se.setStatut(Statut.OPENED);
-						} else {
-							se.setStatut(Statut.STANDBY);
-						}
+						se.setStatutSession(getStatutSession(se));
 						if (!record.get("session_libre").isEmpty()
 								&& "O".equalsIgnoreCase(record.get("session_libre"))) {
 							se.setIsSessionLibre(true);
 						} else {
 							se.setIsSessionLibre(false);
 						}
-						se.setAnneeUniv(String.valueOf(getCurrentanneUniv()));
+						se.setAnneeUniv(String.valueOf(getCurrentAnneeUnivFromDate(se.getDateExamen())));
 						sessionEpreuveRepository.save(se);
 						i++;
 					}
@@ -898,5 +959,82 @@ public class SessionEpreuveService {
 		log.info(bilanImport);
 		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Import CSV : " + i , null, null, emargementContext, null);
 		return bilanImport;
+	}
+	
+	@Transactional
+	public int updateStatutSession(String emargementcontext) {
+		int nb= 0;
+		int nbStatut = 7;
+		List<StatutSession> list = statutSessionRepository.findByContextKey(emargementcontext);
+		if(list.isEmpty()) {
+			for(int i=0; i<nbStatut; i++) {
+				StatutSession statutSession = new StatutSession();
+				Context ctx = contextRepository.findByKey(emargementcontext);
+				statutSession.setContext(ctx);
+				statutSession.setLibelle(messageSource.getMessage("statutSession." + i + ".libelle", null, null));
+				statutSession.setColor(messageSource.getMessage("statutSession." + i + ".color", null, null));
+				statutSession.setDescription(messageSource.getMessage("statutSession." + i + ".description", null, null));
+				statutSession.setIsClickable(Boolean.valueOf(messageSource.getMessage("statutSession." + i + ".isClickable", null, null)));
+				statutSession.setIsDefault(Boolean.valueOf(messageSource.getMessage("statutSession." + i + ".isDefault", null, null)));
+				statutSession.setIsVisible(Boolean.valueOf(messageSource.getMessage("statutSession." + i + ".isVisible", null, null)));
+				statutSession.setOrdre(Integer.valueOf(messageSource.getMessage("statutSession." + i + ".ordre", null, null)));
+				statutSession.setKey(messageSource.getMessage("statutSession." + i + ".key", null, null));
+				statutSessionRepository.save(statutSession);
+				nb++;
+			}
+			log.info("Ajout de status de session : " + nb );
+			logService.log(ACTION.CREATE_STATUTS_SESSION, RETCODE.SUCCESS, "Ajout de statuts de session : " + nb, null,  null, "all", null);
+		}
+		return nb;
+	}
+	
+	public StatutSession getStatutSession(SessionEpreuve se) {
+	    LocalDate today = LocalDate.now();
+	    Date dateExamenDate = se.getDateExamen();
+	    Date dateFinDate = se.getDateFin();
+	    LocalDate dateExamen = dateExamenDate.toInstant()
+	        .atZone(ZoneId.systemDefault())
+	        .toLocalDate();
+	    if (dateFinDate != null) {
+	        LocalDate dateFin = dateFinDate.toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDate();
+	        if ((today.isEqual(dateExamen) || today.isAfter(dateExamen)) &&
+	            (today.isEqual(dateFin) || today.isBefore(dateFin))) {
+	            return statutSessionRepository.findByKey("OPENED");
+	        }
+			return statutSessionRepository.findByKey("STANDBY");
+	    }
+		if (today.isEqual(dateExamen)) {
+		    return statutSessionRepository.findByKey("OPENED");
+		} else if (today.isAfter(dateExamen)) {
+		    return statutSessionRepository.findByKey("ENDED");
+		} else {
+		    return statutSessionRepository.findByKey("STANDBY");
+		}
+	}
+	
+	@Transactional
+	public void migrateAllStatutSession(Context context) {
+		log.info("Migration des statuts de session : ");
+		List<SessionEpreuve> ses = sessionEpreuveRepository.findSessionEpreuveByContext(context);
+		if(!ses.isEmpty()) {
+			for(SessionEpreuve se : ses) {
+				// OPENED, STANDBY, CLOSED, CANCELLED
+				log.info("Maj statut session : " + se.getNomSessionEpreuve());
+				if(se.getStatutSession()==null) {
+					Statut statut = se.getStatut()!=null ? se.getStatut() : Statut.STANDBY;
+					StatutSession  statutSession  =  statutSessionRepository.findByKeyAndContext(statut.name(), context);
+					log.info(statutSession.getKey());
+					se.setStatutSession(statutSession);
+					sessionEpreuveRepository.save(se);
+					log.info("Maj statut Session pour " + se.getNomSessionEpreuve());
+				}else {
+					log.info("Aucune Maj statut session pour : " + se.getNomSessionEpreuve());
+				}
+			}	
+		}else {
+			log.info("RAS");
+		}
 	}
 }

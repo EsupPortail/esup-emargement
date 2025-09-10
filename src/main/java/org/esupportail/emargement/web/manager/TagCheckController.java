@@ -24,7 +24,6 @@ import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.SessionEpreuve;
-import org.esupportail.emargement.domain.SessionEpreuve.Statut;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
@@ -373,7 +372,7 @@ public class TagCheckController {
     @PostMapping(value = "/manager/tagCheck/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
-    	if(Statut.CLOSED.equals(tagCheck.getSessionEpreuve().getStatut())) {
+    	if("CLOSED".equals(tagCheck.getSessionEpreuve().getStatutSession().getKey())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
     	}else {
     		List<EsupSignature> list = esupSignatureRepository.findByTagCheck(tagCheck);

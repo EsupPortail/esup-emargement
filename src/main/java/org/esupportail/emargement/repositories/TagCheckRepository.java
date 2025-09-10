@@ -319,30 +319,44 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	//STATS
 	@Query(value = "select (CASE WHEN session_location_badged_id IS NOT NULL THEN 'Present' WHEN session_location_badged_id IS NULL THEN 'Absent' END) as tagcheck,  count(*) "
-			+ "from tag_check, session_epreuve where tag_check.session_epreuve_id = session_epreuve.id AND tag_check.context_id = :context and session_location_expected_id is not null "
-			+ "AND statut = 'CLOSED' and annee_univ like :anneeUniv group by tagcheck order by count desc", nativeQuery = true)
+			+ "from tag_check, session_epreuve, statut_session where "
+			+ "tag_check.session_epreuve_id = session_epreuve.id  "
+			+ "AND session_epreuve.statut_session_id = statut_session.id " 
+			+ "AND tag_check.context_id = :context and session_location_expected_id is not null "
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by tagcheck order by count desc", nativeQuery = true)
 	List<Object[]> countPresenceByContext(Long context, String anneeUniv);
 	
-	@Query(value = "SELECT CAST(DATE_PART('month', tag_date) AS INTEGER) AS month, count(*) AS count FROM tag_check, session_epreuve "
-			+ "WHERE tag_check.session_epreuve_id = session_epreuve.id AND tag_date is not null AND tag_check.context_id=:context AND statut = 'CLOSED' and annee_univ like :anneeUniv GROUP BY month", nativeQuery = true)
+	@Query(value = "SELECT CAST(DATE_PART('month', tag_date) AS INTEGER) AS month, count(*) AS count FROM tag_check, session_epreuve, statut_session "
+			+ "WHERE tag_check.session_epreuve_id = session_epreuve.id "
+			+ "AND session_epreuve.statut_session_id = statut_session.id " 
+			+ "AND tag_date is not null AND tag_check.context_id=:context AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv GROUP BY month", nativeQuery = true)
 	List<Object[]> countTagCheckByYearMonth(Long context, String anneeUniv);
 	
-	@Query(value = "select key, CASE WHEN tag_date is null THEN 'Absent' ELSE 'Présent' END AS presence, count(*) as count  from tag_check, session_epreuve, context where  "
-			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "and statut = 'CLOSED' and annee_univ like :anneeUniv group by key, presence order by key, presence, count desc", nativeQuery = true)
+	@Query(value = "select statut_session.key as session_key,"
+			+ "CASE WHEN tag_date is null THEN 'Absent' ELSE 'Présent' END AS presence, count(*) as count  from tag_check, "
+			+ "session_epreuve, context, statut_session where  "
+			+ "tag_check.context_id=context.id and tag_check.session_epreuve_id=session_epreuve.id "
+			+ "AND session_epreuve.statut_session_id = statut_session.id " 
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv "
+			+ "group by statut_session.key, presence "
+            + "order by session_key, presence, count desc",nativeQuery = true)
 	List<Object[]> countTagChecksByContext(String anneeUniv);
 	
 	@Query(value = "SELECT to_char(date_trunc('minute',  tag_date), 'HH24:MI') as timeTag, count(*) as count FROM tag_check where session_epreuve_id = :seId and tag_date is not null "
 			+ "and  type_emargement='CARD' GROUP BY timeTag order by timeTag", nativeQuery = true)
 	List<Object[]> countTagChecksByTimeBadgeage(Long seId);
 	
-	@Query(value = "select type_emargement , count(*) as count from tag_check, context, session_epreuve  where "
-			+ "tag_check.context_id=context.id and  tag_check.session_epreuve_id=session_epreuve.id "
-			+ "AND tag_check.context_id=:context and  type_emargement is not null AND statut = 'CLOSED' and annee_univ like :anneeUniv group by type_emargement", nativeQuery = true)
+	@Query(value = "select type_emargement , count(*) as count from tag_check, context, session_epreuve, statut_session where "
+			+ "tag_check.context_id=context.id and tag_check.session_epreuve_id=session_epreuve.id "
+			+ "AND session_epreuve.statut_session_id = statut_session.id " 
+			+ "AND tag_check.context_id=:context and  type_emargement is not null AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by type_emargement", nativeQuery = true)
 	List<Object[]> countTagChecksByTypeBadgeage(Long context, String anneeUniv);
 	
-	@Query(value = "select event_count, count(*) as users_count from (select count(eppn)  as event_count from tag_check, person, session_epreuve where tag_check.person_id = person.id "
-			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null AND statut = 'CLOSED'"
+	@Query(value = "select event_count, count(*) as users_count from (select count(eppn)  as event_count from tag_check, person, session_epreuve, "
+			+ "statut_session where tag_check.person_id = person.id "
+			+ "AND session_epreuve.statut_session_id = statut_session.id " 
+			+ "and tag_check.session_epreuve_id=session_epreuve.id and tag_check.context_id = :context and session_location_badged_id is not null "
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') "
 			+ "and annee_univ like :anneeUniv  group by eppn) t group by event_count", nativeQuery = true)
 	List<Object[]> countTagCheckBySessionLocationBadgedAndPerson(Long context, String anneeUniv);
 	

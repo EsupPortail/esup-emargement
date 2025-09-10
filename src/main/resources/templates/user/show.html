@@ -43,7 +43,7 @@
 			            <dt class="col-sm-2">Nom</dt>
 			            <dd class="col-sm-10">
 				            <th:block th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></th:block>
-				            <th:block th:if="${tc.sessionEpreuve.statut.name() eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+				            <th:block th:if="${tc.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
 			            </dd>   
 			            <dt class="col-sm-2">Site</dt>
 			            <dd class="col-sm-10" th:text="${tc.sessionEpreuve.campus.site}"></dd>
