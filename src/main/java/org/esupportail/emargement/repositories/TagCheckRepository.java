@@ -74,7 +74,11 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonEppn(Long id);
 	
+	List<TagCheck> findBySessionEpreuveIdOrderByPersonEppn(Long id);
+	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsTrueOrderByPersonNumIdentifiant(Long id);
+	
+	List<TagCheck> findBySessionEpreuveIdOrderByPersonNumIdentifiant(Long id);
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsTrueOrderByPersonNumIdentifiant(Long id);
 	
@@ -82,13 +86,19 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonNumIdentifiant(Long id);
 	
+	List<TagCheck> findBySessionEpreuveIdAndSessionLocationExpectedIsNullOrderByPersonNumIdentifiant(Long id);
+	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsFalse(Long id);
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalse(Long id);
 	
+	List<TagCheck> findBySessionEpreuveIdAndSessionLocationExpectedIsNull(Long id);
+	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonEppn(Long id);
 	
 	List<TagCheck> findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(Long id);
+	
+	List<TagCheck> findBySessionEpreuveIdAndSessionLocationExpectedIsNullOrderByPersonEppn(Long id);
 	
 	Long countBySessionLocationExpected(SessionLocation sl);
 	
@@ -143,6 +153,8 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsTrueAndSessionLocationExpectedId(Long id, Long sid);
 	
 	Long countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalseAndSessionLocationExpectedId(Long id, Long sid);
+	
+	Long countBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndSessionLocationExpectedId(Long id, Long sid);
 	
 	List<TagCheck> findTagCheckBySessionLocationExpectedIdAndPersonEppnEquals(Long id, String eppn);
 	

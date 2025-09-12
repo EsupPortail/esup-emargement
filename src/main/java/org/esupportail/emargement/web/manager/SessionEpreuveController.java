@@ -283,12 +283,16 @@ public class SessionEpreuveController {
 	
 	@GetMapping(value = "/manager/sessionEpreuve/repartition/{id}", produces = "text/html")
     public String repartitionList(@PathVariable Long id, Model uiModel, @ModelAttribute String tagCheckOrderValue) {
+		Long totalArepartirTagChecks = tagCheckService.countNbTagCheckRepartitionNull(id, true) + tagCheckService.countNbTagCheckRepartitionNull(id, false);
+		Long totalRepartisTagChecks = tagCheckService.countNbTagCheckRepartitionNotNull(id, true) + tagCheckService.countNbTagCheckRepartitionNotNull(id, false);
 		uiModel.addAttribute("countTagChecksTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, true));
 		uiModel.addAttribute("countTagChecksNotTiersTemps", tagCheckService.countNbTagCheckRepartitionNull(id, false));
 		uiModel.addAttribute("countTagChecksRepartisTiersTemps", tagCheckService.countNbTagCheckRepartitionNotNull(id, true));
 		uiModel.addAttribute("countTagChecksRepartisNotTiersTemps", tagCheckService.countNbTagCheckRepartitionNotNull(id, false));
 		uiModel.addAttribute("capaciteTotaleTiersTemps", sessionEpreuveService.countCapaciteTotalSessionLocations(id, true));
 		uiModel.addAttribute("capaciteTotaleNotTiersTemps", sessionEpreuveService.countCapaciteTotalSessionLocations(id, false));
+		uiModel.addAttribute("totalArepartirTagChecks", totalArepartirTagChecks);
+		uiModel.addAttribute("totalRepartisTagChecks", totalRepartisTagChecks);
 		uiModel.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(id).get());
 		uiModel.addAttribute("help", helpService.getValueOfKey("repartition"));
 		uiModel.addAttribute("tagCheckOrderValue", (tagCheckOrderValue.isEmpty())? null : tagCheckOrderValue);
@@ -555,9 +559,9 @@ public class SessionEpreuveController {
     @PostMapping("/manager/sessionEpreuve/affinerRepartition/{id}")
     @Transactional
     public String affinerRepartition(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes, @ModelAttribute(value="form") PropertiesForm  propertiesForm,
-    		@RequestParam String alphaOrder){
-		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext, alphaOrder);
-		 redirectAttributes.addFlashAttribute("tagCheckOrderValue", alphaOrder);
+    		@RequestParam String tagCheckOrder){
+		 sessionEpreuveService.affinageRepartition(propertiesForm, emargementContext, tagCheckOrder);
+		 redirectAttributes.addFlashAttribute("tagCheckOrderValue", tagCheckOrder);
     	 return String.format("redirect:/%s/manager/sessionEpreuve/repartition/%s", emargementContext, id);
     }
     

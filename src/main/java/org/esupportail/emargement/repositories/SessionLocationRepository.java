@@ -24,6 +24,8 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 	
 	List<SessionLocation> findSessionLocationBySessionEpreuveIdOrderByIsTiersTempsOnlyAscPrioriteAscCapaciteDesc(Long id);
 	
+	List<SessionLocation> findBySessionEpreuveIdOrderByPriorite(Long id);
+	
 	List<SessionLocation> findSessionLocationBySessionEpreuveIdAndIsTiersTempsOnlyTrueOrderByPriorite(Long id);
 	
 	List<SessionLocation> findSessionLocationBySessionEpreuveIdAndIsTiersTempsOnlyFalseOrderByPriorite(Long id);

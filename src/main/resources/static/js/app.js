@@ -1590,10 +1590,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 		var submitAffinage = document.getElementById("affinerButton");
 		if (submitAffinage != null) {
-			submitAffinage.addEventListener('click', function(e) {
-				var formAffinage = document.getElementById("formAffinage");
-				formAffinage.submit();
-			});
+		    submitAffinage.addEventListener('click', function(e) {
+		        var formAffinage = document.getElementById("formAffinage");
+
+		        // Récupère le bouton radio sélectionné
+		        var selectedRadio = document.querySelector('input[name="tagCheckOrder"]:checked');
+
+		        if (selectedRadio) {
+		            // Supprime les anciens inputs "tagCheckOrder" du formulaire
+		            var oldInputs = formAffinage.querySelectorAll('input[name="tagCheckOrder"]');
+		            oldInputs.forEach(el => el.remove());
+
+		            // Crée un hidden input pour transmettre la valeur
+		            var hiddenInput = document.createElement("input");
+		            hiddenInput.type = "hidden";
+		            hiddenInput.name = "tagCheckOrder";
+		            hiddenInput.value = selectedRadio.value;
+
+		            formAffinage.appendChild(hiddenInput);
+		        }
+
+		        formAffinage.submit();
+		    });
 		}
 	})
 
