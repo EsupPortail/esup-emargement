@@ -17,7 +17,7 @@
 					    <li class="nav-item"><a th:classappend="${type == 'externe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=externe(ctx=${eContext},id=${id})}">EXTERNE</a></li>
 					 </ul>	
 			  		<div th:if="${type == 'interne'}">
-	                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
+	                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post" id="createTagCheckForm">
 	                    	<div class="row mb-3 mt-3">
 		                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
 		                    	<div class="col-lg-10">
@@ -41,7 +41,7 @@
 		                        <label for="eppn" class="col-lg-2 form-label">Eppn</label>
 			                    <div class="col-lg-10">
 									<input type="hidden" th:id="eppn" th:name="person.eppn"/>
-									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
+									<input id="searchString" name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
 										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
 										autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
 									<div id="searchResults"></div>

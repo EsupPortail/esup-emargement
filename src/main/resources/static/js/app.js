@@ -2275,6 +2275,18 @@ document.addEventListener('DOMContentLoaded', function() {
 	        });
 	    });
 	}
+	var createTagCheckForm = document.getElementById("createTagCheckForm");
+	if (createTagCheckForm != null) {
+		createTagCheckForm.addEventListener("submit", function(e) {
+			const eppn = document.getElementById("searchString").value.trim();
+			const numIdentifiant = document.getElementById("numIdentifiant").value.trim();
+
+			if (!eppn && !numIdentifiant) {
+				e.preventDefault();
+				alert("Veuillez renseigner soit l’Eppn, soit le N° identifiant.");
+			}
+		});
+	}
 });
 
 //absences dans assiduité
