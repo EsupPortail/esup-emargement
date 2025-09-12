@@ -89,8 +89,9 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapComposantes}" class="selected">
-									    	<td><input name="composantes" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-									    	th:checked="${valuesComposantes != null and #strings.contains(valuesComposantes, element.key)}"/></td>
+											<td><input name="composantes" type="checkbox" th:value="${element.value + '@@' + element.key}"
+												th:checked="${valuesComposantes != null and valuesComposantes.contains(element.value + '@@' + element.key)}" />
+											</td>
 									        <td class="d-none"></td>
 											<td th:text="${element.value}"></td>
 									    </tr>
@@ -106,8 +107,9 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapFormations}" class="selected">
-									    	<td><input name="formations" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-									    	th:checked="${valuesFormations != null and #strings.contains(valuesFormations, element.key)}"/></td>
+											<td><input name="formations" type="checkbox" th:value="${element.value + '@@' + element.key}"
+													th:checked="${valuesFormations != null and valuesFormations.contains(element.value + '@@' + element.key)}" />
+											</td>
 									        <td class="d-none"></td>
 											<td th:text="${element.value}"></td>
 									    </tr>
@@ -123,8 +125,8 @@
 										</tr>
 										</thead>
 									    <tr th:each="element : ${mapSalles}">
-									    	<td><input name="salles" type="checkbox" th:value="${element.value + '@@' + element.key}" 
-									    	th:checked="${valuesSalles!=null and #strings.contains(valuesSalles, element.key)}"/></td>
+											<td><input name="salles" type="checkbox" th:value="${element.value + '@@' + element.key}"
+													th:checked="${valuesSalles != null and valuesSalles.contains(element.value + '@@' + element.key)}" /></td>
 									    	<td th:text="${element.value}"></td>
 									    </tr>
 									</table>
