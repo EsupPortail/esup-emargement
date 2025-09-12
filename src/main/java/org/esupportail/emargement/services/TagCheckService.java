@@ -298,7 +298,7 @@ public class TagCheckService {
     }
     
     public List<Integer> importTagCheckCsv(Reader reader,  List<List<String>> finalList, Long sessionEpreuveId, 
-    		String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Long sessionLocationId) throws Exception {
+    		String emargementContext, Map<String,String> mapEtapes, Boolean checkLdap, Long sessionLocationId, TagCheck tcToImport) throws Exception {
     	List<List<String>> rows  = new ArrayList<>();
     	List<Integer> bilanCsv = new ArrayList<>();
     	if(reader!=null) {
@@ -413,6 +413,10 @@ public class TagCheckService {
 					    			tc.setContext(contexteService.getcurrentContext());
 					    			tc.setPerson(person);
 					    			tc.setGuest(guest);
+					    			if(tcToImport != null) {
+					    				tc.setComment(tcToImport.getComment());
+					    				tc.setIsTiersTemps(tcToImport.getIsTiersTemps());
+					    			}
 					    			Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 					    			List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
 		                                      se.getDateExamen(), endDate);

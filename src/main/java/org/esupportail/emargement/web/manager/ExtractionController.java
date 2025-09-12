@@ -348,7 +348,7 @@ public class ExtractionController {
     	}
     	SequenceInputStream is = new SequenceInputStream(Collections.enumeration(streams));
     	if(importTagchecker == null) {
-	    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId);
+	    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId, null);
 	    	redirectAttributes.addFlashAttribute("paramUrl", id);
 	    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
 	    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
@@ -367,7 +367,7 @@ public class ExtractionController {
         List<ApogeeBean> futursInscrits = apogeeService.getListeFutursInscrits(apogeebean);
         List<List<String>> finalList = apogeeService.getListeFutursInscritsDirectImport(futursInscrits);
         Map<String,String> mapEtapes = apogeeService.getMapEtapes(apogeebean, futursInscrits);
-        List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, mapEtapes, true, slId);
+        List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, apogeebean.getSessionEpreuve().getId(), emargementContext, mapEtapes, true, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", apogeebean.getSessionEpreuve().getId());
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	redirectAttributes.addFlashAttribute("seLink", apogeebean.getSessionEpreuve());
@@ -381,7 +381,7 @@ public class ExtractionController {
     		@RequestParam(required = false) String role, @RequestParam(required = false) String speciality, final RedirectAttributes redirectAttributes) throws Exception {
     	if(importTagchecker == null) {
     		List<List<String>> finalList = tagCheckService.getListForimport(usersGroupLdap);
-        	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
+        	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId, null);
         	redirectAttributes.addFlashAttribute("paramUrl", id);
         	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
         	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
@@ -398,7 +398,7 @@ public class ExtractionController {
     		@RequestParam(value="sessionLocationGroupe", required = false) Long slId, final RedirectAttributes redirectAttributes) throws Exception {
     	List<String> usersGroupe = groupeService.getUsersForImport(idGroupe);
     	List<List<String>> finalList = tagCheckService.getListForimport(usersGroupe);
-    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId);
+    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, id, emargementContext, null, true, slId, null);
     	redirectAttributes.addFlashAttribute("paramUrl", id);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());

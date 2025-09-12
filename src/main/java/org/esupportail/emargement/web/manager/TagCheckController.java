@@ -319,12 +319,12 @@ public class TagCheckController {
         }
         uiModel.asMap().clear();
         List<List<String>> finalList = tagCheckService.setAddList(tagCheck);
-        Map<String,String> mapTempEtapes = new HashMap <String,String>();
+        Map<String,String> mapTempEtapes = new HashMap <>();
         if(tagCheck.getCodeEtape()!=null) {
         	mapTempEtapes.put("addUser", tagCheck.getCodeEtape());
         }
     	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(null, finalList, tagCheck.getSessionEpreuve().getId(), emargementContext, mapTempEtapes, 
-    			tagCheck.getCheckLdap(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null);
+    			tagCheck.getCheckLdap(), (tagCheck.getSessionLocationExpected() != null)?  tagCheck.getSessionLocationExpected().getId() : null, tagCheck);
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, tagCheck.getSessionEpreuve().getId());
     }
@@ -360,8 +360,10 @@ public class TagCheckController {
     			absence.setMotifAbsence(motifAbsence);
     			tc.setAbsence(absenceService.createAbsence(tc, absence));
     		}else {
-    			absenceService.deleteAbsence(tc.getAbsence());
-    			tc.setAbsence(null);
+    			if(tc.getAbsence() != null) {
+	    			absenceService.deleteAbsence(tc.getAbsence());
+	    			tc.setAbsence(null);
+    			}
     		}
     		tagCheckService.save(tc, emargementContext);
     	}
