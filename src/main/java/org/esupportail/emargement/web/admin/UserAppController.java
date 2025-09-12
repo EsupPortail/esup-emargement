@@ -188,7 +188,7 @@ public class UserAppController {
 			    userApp.setDateCreation(new Date());
 			    userApp.setContextPriority(0);
 			    userApp.setEppn(eppn);
-			    userApp.setUserRole(role != null ? Role.SUPERVISOR : Role.MANAGER);
+			    userApp.setUserRole(role == null ? Role.MANAGER : Role.SUPERVISOR);
 			    userAppRepository.save(userApp);
 			    i++;
 			}else {
