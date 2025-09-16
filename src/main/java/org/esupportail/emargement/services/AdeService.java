@@ -913,7 +913,7 @@ public class AdeService {
 		return projectId;
 	}
 	
-	public String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
+	protected String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
 		String sessionId = "";
 		if(idProject != null) {
 			String prefSessionAde = ADE_STORED_SESSION + idProject;

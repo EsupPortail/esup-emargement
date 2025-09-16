@@ -85,15 +85,10 @@ public class EventController {
 			@RequestParam(required = false) String projet){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
-			// Est-ce normal que l'appel à sessionId soit avant getCurrentProject ? Que se passe-t-il si projet=null ? 
-			String sessionId = adeService.getSessionId(false, emargementContext, projet);
+			// Si projet est null alors on récupère l'id du projet en cours
+			// sinon on utilise projet et on l'enregistre en tant que projet en cours
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
-			adeService.getConnectionProject(idProject, sessionId);
-			if(adeService.getProjectLists(sessionId).isEmpty()) {
-				sessionId = adeService.getSessionId(true, emargementContext, projet);
-				adeService.getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
+			String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 			Context ctx = contextRepository.findByKey(emargementContext);
 			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx, false));
 			uiModel.addAttribute("strDateMin", strDateMin);
