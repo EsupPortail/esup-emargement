@@ -266,8 +266,10 @@ public class AdeController {
     		@RequestParam(required = false) String idProjet) 
 			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		// Si idProjet est null alors on récupère l'id du projet en cours
+		// sinon on utilise idProjet et on l'enregistre en tant que projet en cours
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
-		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
 		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList());
@@ -318,9 +320,10 @@ public class AdeController {
 	@Transactional
 	@PostMapping(value = "/manager/adeCampus/importClassrooms")
 	public String importClassrooms(@PathVariable String emargementContext, 
-			@RequestParam(value="btSelectItem", required = false) List<Long> idClassrooms, String codeSalle, Campus campus) throws IOException, ParserConfigurationException, SAXException, ParseException {
+			@RequestParam(value="btSelectItem", required = false) List<Long> idClassrooms, String codeSalle, Campus campus) throws AdeApiRequestException, ParseException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String sessionId = adeService.getSessionId(false, emargementContext, adeService.getCurrentProject(null, auth.getName(), emargementContext));		
+		String projectId = adeService.getCurrentProject(null, auth.getName(), emargementContext);
+		String sessionId = adeService.getSessionIdByProjectId(projectId, emargementContext);
 		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms);
 		if(!adeClassroomBeans.isEmpty()) {
 			Context ctx = contextRepository.findByContextKey(emargementContext);
@@ -402,8 +405,10 @@ public class AdeController {
 			@RequestParam(required = false) Boolean isActif) {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+  			// Si idProjet est null alors on récupère l'id du projet en cours
+			// sinon on utilise idProjet et on l'enregistre en tant que projet en cours
 			String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
-			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+			String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 			Integer dureeMax =  (dureeMaxImport == null || dureeMaxImport.isEmpty())? null : Integer.valueOf(dureeMaxImport);
 			uiModel.addAttribute("tasksList", taskRepository.findByAdeProject(idProject));
 			uiModel.addAttribute("dureeMaxImport", toolUtil.convertirSecondes(dureeMax));

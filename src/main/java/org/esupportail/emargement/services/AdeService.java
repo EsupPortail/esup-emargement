@@ -1458,7 +1458,7 @@ public class AdeService {
         String rootComposante = "";
         ObjectMapper xmlMapper = new XmlMapper();
         try {
-            String sessionId = getSessionId(false, emargementContext, idProject);
+            String sessionId = getSessionIdByProjectId(idProject, emargementContext);
             String detail = "12";
             String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=" + 
             			category + "&detail=" +detail + "&fatherIds=" + fatherId;

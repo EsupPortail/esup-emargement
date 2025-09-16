@@ -64,12 +64,15 @@ public class EventController {
 	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, XPathExpressionException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn =  auth.getName();
+		// Si projet est null alors on récupère l'id du projet en cours
+		// sinon on utilise projet et on l'enregistre en tant que projet en cours
 		String idProject =  adeService.getCurrentProject(projet, eppn, emargementContext);
 		uiModel.addAttribute("campuses", campusRepository.findAll());
 		uiModel.addAttribute("existingSe", true);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("idProject", idProject);
-		uiModel.addAttribute("projects", adeService.getProjectLists(adeService.getSessionId(true, emargementContext, idProject)));
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
+		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		return "supervisor/events/index";
 	}
 

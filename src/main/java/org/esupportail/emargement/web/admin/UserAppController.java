@@ -155,10 +155,10 @@ public class UserAppController {
 	@Transactional
 	@PostMapping(value = "/admin/userApp/importInstructors")
 	public String importInstructors(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam(required = false) String role,
-			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
+			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws AdeApiRequestException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
-		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		Map<String,String> insts = adeService.getItemsFromInstructors(sessionId, comp.concat("."));
 		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
 		Context ctx = contextRepository.findByContextKey(emargementContext);
