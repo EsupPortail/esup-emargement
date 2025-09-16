@@ -11,6 +11,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.AdeService;
@@ -60,7 +61,7 @@ public class EventController {
 	}
 	
 	@GetMapping(value = "/supervisor/events")
-	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException{
+	public String index(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String projet) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, XPathExpressionException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn =  auth.getName();
 		String idProject =  adeService.getCurrentProject(projet, eppn, emargementContext);
@@ -81,6 +82,7 @@ public class EventController {
 			@RequestParam(required = false) String projet){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
+			// Est-ce normal que l'appel à sessionId soit avant getCurrentProject ? Que se passe-t-il si projet=null ? 
 			String sessionId = adeService.getSessionId(false, emargementContext, projet);
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			adeService.getConnectionProject(idProject, sessionId);
@@ -111,7 +113,7 @@ public class EventController {
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
-			@RequestParam(required = false) String newGroupe) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+			@RequestParam(required = false) String newGroupe) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
 					"myEvents",	campus, idList, null, null, null, false);
 		

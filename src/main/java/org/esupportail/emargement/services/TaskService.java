@@ -25,6 +25,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.Task;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -109,7 +110,7 @@ public class TaskService {
 	}
 	
 	@Scheduled(cron= "${emargement.ade.sync.cron}")
-	public void updateAdeSessionEpreuve() throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+	public void updateAdeSessionEpreuve() throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		List<Context> contextList = contextRepository.findAll();
 		if(!contextList.isEmpty()) {
 			for(Context ctx : contextList) {
@@ -133,15 +134,9 @@ public class TaskService {
 		}
 	}
 	
-	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		String idProject = task.getAdeProject();
-		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
-		adeService.getConnectionProject(idProject, sessionId);
-		if(adeService.getProjectLists(sessionId).isEmpty()) {
-			sessionId = adeService.getSessionId(true, emargementContext, idProject);
-			adeService.getConnectionProject(idProject, sessionId);
-			log.info("Récupération du projet Ade " + idProject);
-		}
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
 		taskRepository.save(task);
 		List<String> idList = Arrays.asList(task.getParam().split(","));
