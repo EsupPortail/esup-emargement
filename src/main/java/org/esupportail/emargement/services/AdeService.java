@@ -627,9 +627,12 @@ public class AdeService {
 						}
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						String activityId = element.getAttribute("activityId");
+						Long activityIdValue = Long.valueOf(activityId);
 						boolean isAlreadyimport = false;
 						Date dateExamen = formatter.parse(element.getAttribute("date"));
-						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx)>0){
+						Date heureDebut = formatter1.parse(element.getAttribute("startHour"));
+						Date heureFin = formatter1.parse(element.getAttribute("endHour"));
+						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx)>0){
 							isAlreadyimport = true;
 						}else if(sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0) {
 							isAlreadyimport = true;
@@ -638,8 +641,8 @@ public class AdeService {
 							SessionEpreuve se = null;
 							if(isAlreadyimport) {
 								List<SessionEpreuve> ses = null;
-								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx);
+								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx);
 									se = ses.get(0);
 								}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
 									ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
@@ -648,7 +651,7 @@ public class AdeService {
 							}else {
 								se = new SessionEpreuve();
 							}
-							adeResourceBean.setActivityId(Long.valueOf(activityId));
+							adeResourceBean.setActivityId(activityIdValue);
 							if(update) {
 								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, activityId);
 								AdeResourceBean beanActivity2 = activities2.get(activityId);
@@ -665,18 +668,18 @@ public class AdeService {
 							if(se!=null) {
 								se.setNomSessionEpreuve( element.getAttribute("name"));
 								se.setDateExamen(dateExamen);
-								se.setHeureEpreuve(formatter1.parse(element.getAttribute("startHour")));
-								se.setFinEpreuve(formatter1.parse(element.getAttribute("endHour")));
+								se.setHeureEpreuve(heureDebut);
+								se.setFinEpreuve(heureFin);
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
-								se.setAdeActiviteId(Long.valueOf(activityId));
+								se.setAdeActiviteId(activityIdValue);
 								//pour l'instant
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));
 								}
 								adeResourceBean.setSessionEpreuve(se);
 								if(isAlreadyimport) {
-									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).get(0).getDateCreation());
+									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
 									}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
 										se.setDateCreation(sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).get(0).getDateCreation());
 									}
