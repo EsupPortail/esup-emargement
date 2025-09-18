@@ -15,6 +15,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -112,7 +113,7 @@ public class UserAppController {
 	
 	@GetMapping(value = "/admin/userApp")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false, value="searchString") String eppn,  
-			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+			@PageableDefault(size = 1, direction = Direction.ASC, sort = "eppn")  Pageable pageable) throws AdeApiRequestException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Long count = userAppRepository.count();
 		
@@ -136,13 +137,7 @@ public class UserAppController {
 		boolean isAdeCampusEnabled = appliConfigService.isAdeCampusEnabled();
 		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		if(isAdeCampusEnabled) {
-			String sessionId = adeService.getSessionId(false, emargementContext, idProject);
-			adeService.getConnectionProject(idProject, sessionId);
-			if(adeService.getProjectLists(sessionId).isEmpty()) {
-				sessionId = adeService.getSessionId(true, emargementContext, idProject);
-				adeService.getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
+			String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 			model.addAttribute("comps", adeService.getItemsFromInstructors(sessionId, null));
 			model.addAttribute("projects", adeService.getProjectLists(sessionId));
 		}
@@ -160,10 +155,10 @@ public class UserAppController {
 	@Transactional
 	@PostMapping(value = "/admin/userApp/importInstructors")
 	public String importInstructors(@PathVariable String emargementContext, @RequestParam String comp, @RequestParam(required = false) String role,
-			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws IOException, ParserConfigurationException, SAXException {
+			@RequestParam(required = false) String update, final RedirectAttributes redirectAttributes) throws AdeApiRequestException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String idProject =  adeService.getCurrentProject(null, auth.getName(), emargementContext);
-		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		Map<String,String> insts = adeService.getItemsFromInstructors(sessionId, comp.concat("."));
 		Map<String, LdapUser> map =ldapService.getLdapUsersFromNumList(new ArrayList<>(insts.keySet()),"supannEmpId");
 		Context ctx = contextRepository.findByContextKey(emargementContext);
