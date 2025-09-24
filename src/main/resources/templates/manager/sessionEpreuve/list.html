@@ -206,7 +206,8 @@
 												<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
 												<label>Nombre de jours à ajouter : </label>
 												<select name="jours" class="form-select mt-1">
-													<option value="">--Aucun--</option>
+													<option value="100">-- Même date --</option>
+													<option value="101">-- Aujourd'hui' --</option>
 													<option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i}"
 														th:selected="${i.toString() eq '7'}"></option>
 												</select>

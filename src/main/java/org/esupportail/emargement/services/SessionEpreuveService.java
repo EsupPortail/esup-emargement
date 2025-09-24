@@ -765,14 +765,21 @@ public class SessionEpreuveService {
 		Context context = originalSe.getContext();
         SessionEpreuve newSe = new SessionEpreuve();
         if(jours>0) {
-        	 Instant instant = originalSe.getDateExamen().toInstant().plus(jours, ChronoUnit.DAYS);
-             newSe.setDateExamen(Date.from(instant));
-             if(originalSe.getDateFin() != null) {
-            	 Instant instant2 = originalSe.getDateFin().toInstant().plus(jours, ChronoUnit.DAYS);
-            	 newSe.setDateFin(Date.from(instant2));
-             }else {
-            	 newSe.setDateFin(null);
-             }
+        	if(jours == 100){
+        		newSe.setDateExamen(originalSe.getDateExamen());
+        		newSe.setDateFin(originalSe.getDateFin());
+        	}else if(jours == 101){
+        		newSe.setDateExamen(new Date());
+        	}else {
+	        	 Instant instant = originalSe.getDateExamen().toInstant().plus(jours, ChronoUnit.DAYS);
+	             newSe.setDateExamen(Date.from(instant));
+	             if(originalSe.getDateFin() != null) {
+	            	 Instant instant2 = originalSe.getDateFin().toInstant().plus(jours, ChronoUnit.DAYS);
+	            	 newSe.setDateFin(Date.from(instant2));
+	             }else {
+	            	 newSe.setDateFin(null);
+	             }
+        	}
         }else {
         	 newSe.setDateExamen(new Date());
         	 newSe.setDateFin(null);
@@ -788,7 +795,7 @@ public class SessionEpreuveService {
         newSe.setIsSessionLibre(originalSe.isSessionLibre);
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
-        newSe.setStatutSession(getStatutSession(originalSe));
+        newSe.setStatutSession(getStatutSession(newSe));
         int  x = 0 ;
         Long count = 0L;
         do {
@@ -863,7 +870,8 @@ public class SessionEpreuveService {
 		 esupSignatureService.deleteAllBySessionEpreuve(se);
 		 storedFileService.deleteAllStoredFiles(se);
 		 sessionEpreuveRepository.delete(se);
-		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), auth.getName(), null, se.getContext().getKey(), null);
+		 String eppnCible = auth !=null ? auth.getName() : "system";
+		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), eppnCible, null, se.getContext().getKey(), null);
 	 }
 	 
 	 @Transactional
