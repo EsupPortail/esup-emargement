@@ -1137,9 +1137,15 @@ public class AdeService {
 						if(!allCodes.isEmpty()) {
 							for (String code : allCodes) {
 								String numIdentifiant = code;
-								if("mail".equals(filter)) {
-									numIdentifiant = users.get(code).getNumEtudiant();
-								}
+                                if("mail".equals(filter)) {
+                                    LdapUser ldapUser = users.get(code);
+                                    if (ldapUser != null) {
+                                        numIdentifiant = ldapUser.getNumEtudiant();
+                                    } else {
+                                        log.warn("Utilisateur LDAP non trouvé pour le code : " + code);
+                                        continue; 
+                                    }
+                                }
 								List<Person> persons = personRepository.findByNumIdentifiant(numIdentifiant);
 								Person person = null;
 								boolean isUnknown = false;
