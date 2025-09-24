@@ -173,7 +173,7 @@ public class TaskService {
 	    }
 	}
 	
-	//@Scheduled(cron = "0 38 14 * * ?")
+	//@Scheduled(cron = "0 01 12 * * ?")
 	@Scheduled(cron= "${emargement.ade.import.cron}")
 	public void importAdeSession(){
 		List<Context> contextList = contextRepository.findAll();
@@ -219,7 +219,12 @@ public class TaskService {
 			}
 			 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 			    executorService.shutdown();
-		}
+			log.info("Début de vérification des sessions ADE orphelines");
+		    for(Context ctx : contextList) {
+		    	adeService.checkEvents(ctx);
+		    }
+		    log.info("Fin de vérification des sessions ADE orphelines");
+ 		}
 	}
 	
     public Date[] getStartEndDates(int n) {

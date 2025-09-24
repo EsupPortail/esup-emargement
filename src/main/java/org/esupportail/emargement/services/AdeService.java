@@ -13,6 +13,8 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -603,6 +605,35 @@ public class AdeService {
 			setEvents(urlEvents, adeBeans, existingSe, sessionId, resourceId, update, ctx);
 		}
 		return adeBeans;
+	}
+	
+	@Transactional
+	public void checkEvents(Context context) {
+		Date today = Date.from(LocalDate.now()
+			    .atStartOfDay(ZoneId.systemDefault())
+			    .toInstant());
+		List<SessionEpreuve>ses = sessionEpreuveRepository.findByContextAndDateCreationLessThanAndDateExamenGreaterThanEqual(context, today, today);
+		if(!ses.isEmpty()) {
+			for (SessionEpreuve se : ses) {
+				if(se.getAdeProjectId()!=null && se.getAdeEventId()!=null) {
+					try {
+						String sessionId = getSessionId(false, context.getKey(), String.valueOf(se.getAdeProjectId()));
+						String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + se.getAdeEventId() + "&detail=8";
+						Document doc = getDocument(urlEvent);
+						doc.getDocumentElement().normalize();
+						NodeList list = doc.getElementsByTagName("event");
+						if(list.getLength() == 0) {
+							sessionEpreuveService.delete(se);
+							log.info("Aucun idEvent correspondant dans ADE. On supprime la session." + se.getNomSessionEpreuve() + " [ " + se.getAdeEventId() + "]");
+						}
+					}catch (ParserConfigurationException | SAXException | IOException e) {
+						log.error("Erreur lors de la récupération des évènements, id : " + se.getAdeEventId(), e);
+					}
+				}
+			}
+		}else {
+			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
+		}
 	}
 	
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {
