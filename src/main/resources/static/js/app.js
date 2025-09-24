@@ -2319,6 +2319,30 @@ document.addEventListener('htmx:afterSwap', function(event) {
 	 if (event.target.querySelector('select.slimSelectClass')) {
 	    initSlimSelects();
 	  }
+	if (document.getElementById('extractionPage') !== null) {
+		const slimConfigs = [
+			{ elements: ['codCmp', 'sessionEpreuve', 'sessionEpreuveLdap', 'sessionEpreuveGroupe', 'sessionEpreuveCsv', 'groupe', 'sessionLocationCsv', 'sessionLocationLdap', 'sessionLocationGroupe', 'sessionLocation'] },
+			{ elements: ['codSes', 'codAnu'], options: { showSearch: false } },
+			{ elements: ['codEtp', 'codElp', 'codExtGpe'], options: { allowDeselect: true, enabled: true } }
+		];
+		slimConfigs.forEach(config => {
+			config.elements.forEach(id => {
+				const element = document.getElementById(id);
+				if (element) {
+					// Détruire l’ancienne instance si déjà créée
+					if (element.slim) {
+						element.slim.destroy();
+					}
+					const options = config.options || {};
+					const slim = new SlimSelect({ select: `#${id}`, ...options });
+					if (options.enabled) {
+						slim.enable();
+					}
+					element.slim = slim;
+				}
+			});
+		});
+	}
 });
 
 document.addEventListener('htmx:afterSettle', function(evt) {
