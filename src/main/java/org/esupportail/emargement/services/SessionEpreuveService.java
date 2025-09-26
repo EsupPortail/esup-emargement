@@ -1042,6 +1042,7 @@ public class SessionEpreuveService {
 	    LocalDate today = LocalDate.now();
 	    Date dateExamenDate = se.getDateExamen();
 	    Date dateFinDate = se.getDateFin();
+	    Context ctx = se.getContext();
 	    LocalDate dateExamen = dateExamenDate.toInstant()
 	        .atZone(ZoneId.systemDefault())
 	        .toLocalDate();
@@ -1051,16 +1052,16 @@ public class SessionEpreuveService {
 	            .toLocalDate();
 	        if ((today.isEqual(dateExamen) || today.isAfter(dateExamen)) &&
 	            (today.isEqual(dateFin) || today.isBefore(dateFin))) {
-	            return statutSessionRepository.findByKey("OPENED");
+	            return statutSessionRepository.findByKeyAndContext("OPENED", ctx);
 	        }
-			return statutSessionRepository.findByKey("STANDBY");
+			return statutSessionRepository.findByKeyAndContext("STANDBY", ctx);
 	    }
 		if (today.isEqual(dateExamen)) {
-		    return statutSessionRepository.findByKey("OPENED");
+		    return statutSessionRepository.findByKeyAndContext("OPENED", ctx);
 		} else if (today.isAfter(dateExamen)) {
-		    return statutSessionRepository.findByKey("ENDED");
+		    return statutSessionRepository.findByKeyAndContext("ENDED", ctx);
 		} else {
-		    return statutSessionRepository.findByKey("STANDBY");
+		    return statutSessionRepository.findByKeyAndContext("STANDBY", ctx);
 		}
 	}
 	

@@ -624,7 +624,8 @@ public class AdeService {
 						NodeList list = doc.getElementsByTagName("event");
 						if(list.getLength() == 0) {
 							sessionEpreuveService.delete(se);
-							log.info("Aucun idEvent correspondant dans ADE. On supprime la session." + se.getNomSessionEpreuve() + " [ " + se.getAdeEventId() + "]");
+							log.info("Aucun idEvent correspondant dans ADE. On supprime la session." + se.getNomSessionEpreuve() + 
+									" [ idEvent :" + se.getAdeEventId() + ", idActivity : "+ se.getAdeActiviteId() + "]");
 						}
 					}catch (ParserConfigurationException | SAXException | IOException e) {
 						log.error("Erreur lors de la récupération des évènements, id : " + se.getAdeEventId(), e);
