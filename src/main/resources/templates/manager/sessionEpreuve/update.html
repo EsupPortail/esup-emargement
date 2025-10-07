@@ -49,11 +49,6 @@
 								<input type="date" placeholder="dd/MM/YYYY" name="strDateExamen" class="form-control" 
 								required="required" id="dateSessionEpreuve" th:value="${#dates.format(strDateExamen, 'yyyy-MM-dd')}">           	
 		                    </div>
-		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs jours)</small></label>
-		                    <div class="col-lg-4">
-		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
-		                        	th:value="${#dates.format(strDateFin, 'yyyy-MM-dd')}" id="dateFinSessionEpreuve">
-		                    </div>       
 	                    </div> 
 	                    <div class="row mb-3">
 		                    <label for="heureEpreuve" class="col-lg-2 form-label">Début</label>
@@ -103,6 +98,13 @@
 								<div id="collapseOne" class="accordion-collapse collapse"
 									data-bs-parent="#accordionOptions">
 									<div class="accordion-body">
+										<div class="row mb-3">
+											<label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs
+													jours)</small></label>
+											<div class="col-lg-10">
+												<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control">
+											</div>
+										</div>
 										<div class="row mb-3">
 											<label for="heureConvocation" class="col-lg-2 form-label">Convocation
 												<a class="contextualHelp" data-bs-toggle="tooltip" th:title="#{help.ctx.session.heures}">
