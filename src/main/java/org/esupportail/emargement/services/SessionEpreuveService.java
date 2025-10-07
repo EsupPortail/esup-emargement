@@ -652,11 +652,18 @@ public class SessionEpreuveService {
 					String value = configs.get(0).getValue();
 					int i = 0;
 					for (SessionEpreuve se : ses) {
+						Date dateFin = se.getDateFin();
+						boolean isBeforeOrEqualToday = dateFin != null
+								&& DateUtils.truncate(dateFin, Calendar.DATE).before(today);
 						if("true".equals(value)) {
-							se.setStatutSession(statutSessionRepository.findByKeyAndContext("CLOSED", ctx));
+							if(dateFin == null || isBeforeOrEqualToday) {
+								se.setStatutSession(statutSessionRepository.findByKeyAndContext("CLOSED", ctx));
+							}
 							i++;
 						}else {
-							se.setStatutSession(statutSessionRepository.findByKeyAndContext("ENDED", ctx));
+							if(dateFin == null || isBeforeOrEqualToday) {
+								se.setStatutSession(statutSessionRepository.findByKeyAndContext("ENDED", ctx));
+							}
 							i++;
 						}
 						sessionEpreuveRepository.save(se);
