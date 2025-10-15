@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.AbsenceRepository;
@@ -26,6 +28,7 @@ import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -96,6 +99,9 @@ public class AbsenceController {
 	@Resource
 	TagCheckService tagCheckService;
 	
+	@Resource
+	AbsenceService absenceService;
+
 	private final static String ITEM = "absence";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -171,8 +177,10 @@ public class AbsenceController {
         	 overlapsList.remove(absence);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {
-        			 tc.setAbsence(absence);
-        			 tagCheckRepository.save(tc);
+        			 if(absenceService.absenceCouvreSession(absence, tc.getSessionEpreuve())) {
+            			 tc.setAbsence(absence);
+            			 tagCheckRepository.save(tc);
+        			 }
         		 }
         	 }
         	 if(!overlapsList.isEmpty()) {
