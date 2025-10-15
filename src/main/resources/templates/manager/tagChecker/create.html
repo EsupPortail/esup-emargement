@@ -6,7 +6,11 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
            	<div class="card">
-		    	<div class="card-header"><h2  th:text="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}"></h2></div>
+		    	<div class="card-header"><h2  th:text="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}"></h2>
+			        <small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' à ' + se.campus.site}"></small>
+			        <small class="text-muted h5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
+			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>	
+		    	</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/manager/tagChecker/create(ctx=${eContext})}" th:object="${tagChecker}" method="post">
 						<div class="row mb-3">
@@ -40,7 +44,7 @@
 						<div class="row mb-3">
 	                    	<label for="userApp" class="col-lg-2 form-label">Agent</label>
 	                    	<div class="col-lg-5">
-								<div th:if="${not #lists.isEmpty(tcs)}"class="mb-3 . notUsed">
+								<div th:if="${not #lists.isEmpty(tcs)}"class="mb-3 notUsed">
 									<select id="my-select2" name="users" multiple="multiple">
 										<option th:each="tc : ${tcs}" 
 												th:value="${tc.userApp.id}"
@@ -50,11 +54,12 @@
 							</div>
 	                    	<div class="col-lg-5">
 								<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
-								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 . notUsed">
+								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 notUsed">
 									<select id="my-select" name="users" multiple="multiple">
 										<option th:each="userApp : ${allUserApps}" 
 												th:value="${userApp.id}"
-												th:text="${userApp.nom + ' ' + userApp.prenom}"/>
+												th:text="${userApp.nom + ' ' + userApp.prenom}"
+												th:selected="${allList.contains(userApp.id)}" />
 									</select>
 								</div>
 							</div>

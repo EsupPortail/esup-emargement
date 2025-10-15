@@ -6,12 +6,18 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
 	        <div class="card">
-		    	<div class="card-header"><h2 >Inscription</h2></div>
+				<div class="card-header" th:with="se =${tagCheck.sessionEpreuve}">
+					<h2>Inscription</h2>
+					<small class="text-muted h5"
+						th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' à ' + se.campus.site}"></small>
+					<small class="text-muted h5" th:if="${se.dateFin != null}"
+						th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
+					<span class="font-weight-bold text-danger"
+						th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
+				</div>				
 	 				<div class="card-body">
 					<dl class="row"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'bg-success-subtle' : '') +
 										(tagCheck.isUnknown ? 'bg-warning-subtle' : '')}">
-			            <dt class="col-sm-2">Session</dt>
-			            <dd class="col-sm-10" th:text="${tagCheck.sessionEpreuve.nomSessionEpreuve}"></dd>
 			            <dt class="col-sm-2">Type</dt>
 			            <dd class="col-sm-10" th:if="${tagCheck.person != null}" th:text="${tagCheck.person.type}"></dd>
 			            <dd class="col-sm-10" th:if="${tagCheck.guest != null}">Externe</dd>

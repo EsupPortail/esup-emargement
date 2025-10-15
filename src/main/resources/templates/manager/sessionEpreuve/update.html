@@ -99,10 +99,10 @@
 									data-bs-parent="#accordionOptions">
 									<div class="accordion-body">
 										<div class="row mb-3">
-											<label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs
-													jours)</small></label>
-											<div class="col-lg-10">
-												<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control">
+											<label for="dateExamen" class="col-lg-2 form-label">Date de fin <small><br />(si plusieurs jours)</small></label>
+											<div class="col-lg-4">
+												<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
+													th:value="${#dates.format(strDateFin, 'yyyy-MM-dd')}" id="dateFinSessionEpreuve">
 											</div>
 										</div>
 										<div class="row mb-3">
