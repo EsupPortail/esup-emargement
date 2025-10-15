@@ -193,7 +193,7 @@
 								</div>
 							</div>
 							<div class="modal fade" id="clonesModal" tabindex="-1" aria-hidden="true">
-								<div class="modal-dialog">
+								<div class="modal-dialog modal-lg">
 									<form th:action="@{/{ctx}/manager/sessionEpreuve/duplicateAll(ctx=${eContext})}" method="post"
 										onsubmit="return confirmSubmission()">
 										<input type="hidden" id="checkedValues2" name="idSessions" value="">src/main/java/org/esupportail/emargement/services/SessionEpreuveService.java
@@ -204,13 +204,14 @@
 											</div>
 											<div class="modal-body">
 												<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
-												<label>Nombre de jours à ajouter : </label>
-												<select name="jours" class="form-select mt-1">
-													<option value="100">-- Même date --</option>
-													<option value="101">-- Aujourd'hui' --</option>
-													<option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i}"
-														th:selected="${i.toString() eq '7'}"></option>
-												</select>
+												<p class="mb-3">🗓️ Sélectionnez plusieurs dates distinctes</p>
+												<input type="text" id="datepicker" name="jours" class="form-control mb-3" placeholder="Cliquez pour choisir des dates" required>
+												<input type="text" name="newName" class="form-control mb-3" 
+												placeholder="Vous pouvez ici affecter un nouveau nom aux sessions sélectionnées" />
+												<div>
+													<strong>Dates sélectionnées :</strong>
+													<div id="badgesContainer" class="mt-3"></div>
+												</div>
 											</div>
 											<div class="modal-footer">
 												<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
@@ -353,10 +354,10 @@
 																<div class="col-lg-12">
 																	<select id="statut" name="statut" class="form-select" required="required">
 																		<option th:value="${sessionEpreuve.statutSession.key}" th:text="${sessionEpreuve.statutSession.libelle}"></option>
-																		<option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
+																	    <option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
 																		<option th:if="${sessionEpreuve.statutSession.key ne 'OPENED'}" value="OPENED">En cours</option>
 																		<option th:if="${sessionEpreuve.statutSession.key ne 'STANDBY'}" value="STANDBY">En attente</option>
-																	    <option th:if="${sessionEpreuve.statutSession.key ne 'CLOSED'}" value="CLOSED">Clôturé</option>
+																		<option th:if="${sessionEpreuve.statutSession.key ne 'CLOSED'}" value="CLOSED">Clôturé</option>
 																		<option th:if="${sessionEpreuve.statutSession.key ne 'ENDED'}" value="ENDED">Terminé</option>
 																	    <option th:if="${sessionEpreuve.statutSession.key ne 'PROCESSED'}" value="PROCESSED">Traité</option>
 																	</select>														</select>

@@ -568,16 +568,16 @@ public class SessionEpreuveController {
     @Transactional
     @GetMapping("/manager/sessionEpreuve/duplicate/{id}")
     public String duplicateSession(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes){
-    	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id, false, 0);
+    	SessionEpreuve newSe = sessionEpreuveService.duplicateSessionEpreuve(id, false, "", "");
     	redirectAttributes.addFlashAttribute("duplicate", "duplicate");
     	return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext, newSe.getId());
     }
     
     @Transactional
     @PostMapping("/manager/sessionEpreuve/duplicateAll")
-    public String duplicateAllSessions(@PathVariable String emargementContext, @RequestParam int jours, 
+    public String duplicateAllSessions(@PathVariable String emargementContext, @RequestParam String jours, @RequestParam String newName,
     		@RequestParam List<Long> idSessions){
-    	sessionEpreuveService.duplicateAll(idSessions, jours);
+    	sessionEpreuveService.duplicateAll(idSessions, jours, newName);
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
     

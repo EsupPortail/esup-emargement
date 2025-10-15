@@ -60,6 +60,9 @@
 		<script th:src="@{/webjars/datatables-buttons/js/buttons.html5.min.js}"></script>
 		<script th:src="@{/webjars/datatables-buttons/js/buttons.print.min.js}"></script>
 		<script th:src="@{/webjars/jstree/jstree.min.js}"></script>
+		<script th:src="@{/webjars/flatpickr/dist/flatpickr.min.js}"></script>
+		<script th:src="@{/webjars/flatpickr/dist/l10n/fr.js}"></script>
+
 		<script type="module" th:src="@{/webjars/bootstrap5-tags/tags.min.js}"></script>
 		<script type="module">
       	import Tags from "/webjars/bootstrap5-tags/tags.min.js";
@@ -90,6 +93,7 @@
 		<link th:href="@{/webjars/bootstrap-daterangepicker/css/bootstrap-daterangepicker.css}" rel="stylesheet">
 		<link th:href="@{/webjars/jquery-minicolors/jquery.minicolors.css}" rel="stylesheet">
 		<link th:href="@{/resources/css/sol.css}" rel="stylesheet">
+		<link th:href="@{/webjars/flatpickr/dist/flatpickr.min.css}" rel="stylesheet">
 		<link th:href="@{/resources/css/app.css}" rel="stylesheet">
 		<title th:text="#{${'title.' + active}(${title},${surveillantTerme})}">Application Emargement</title>
 	</head>

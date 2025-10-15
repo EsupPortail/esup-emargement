@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -761,32 +762,28 @@ public class SessionEpreuveService {
 	    return currentYear;
 	}
 	
-	public void duplicateAll(List<Long> idSessions, int jours){
+	public void duplicateAll(List<Long> idSessions, String jours, String newName){
 		for(Long id : idSessions) {
-			duplicateSessionEpreuve(id, true, jours);
+			String [] splitJours = jours.split(",");
+			for(int i=0; i<splitJours.length;i++) {
+				duplicateSessionEpreuve(id, true, splitJours[i], newName);
+			}
 		}
 	}
 	
-	 public SessionEpreuve duplicateSessionEpreuve(Long id, boolean isSameName, int jours){
+	 public SessionEpreuve duplicateSessionEpreuve(Long id, boolean isSameName, String jour, String newName){
 		SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
 		Context context = originalSe.getContext();
         SessionEpreuve newSe = new SessionEpreuve();
-        if(jours>0) {
-        	if(jours == 100){
-        		newSe.setDateExamen(originalSe.getDateExamen());
-        		newSe.setDateFin(originalSe.getDateFin());
-        	}else if(jours == 101){
-        		newSe.setDateExamen(new Date());
-        	}else {
-	        	 Instant instant = originalSe.getDateExamen().toInstant().plus(jours, ChronoUnit.DAYS);
-	             newSe.setDateExamen(Date.from(instant));
-	             if(originalSe.getDateFin() != null) {
-	            	 Instant instant2 = originalSe.getDateFin().toInstant().plus(jours, ChronoUnit.DAYS);
-	            	 newSe.setDateFin(Date.from(instant2));
-	             }else {
-	            	 newSe.setDateFin(null);
-	             }
-        	}
+        if(!jour.isEmpty()) {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date date = formatter.parse(jour);
+                newSe.setDateExamen(date);
+                newSe.setDateFin(null);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }else {
         	 newSe.setDateExamen(new Date());
         	 newSe.setDateFin(null);
@@ -803,6 +800,12 @@ public class SessionEpreuveService {
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
         newSe.setStatutSession(getStatutSession(newSe));
+        newSe.setIsSecondTag(originalSe.getIsSecondTag());
+        newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
+        newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
+        newSe.setIsGroupeDisplayed(originalSe.getIsGroupeDisplayed());
+        newSe.setMaxBadgeageAlert(originalSe.getMaxBadgeageAlert());
+        newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         int  x = 0 ;
         Long count = 0L;
         do {
@@ -812,8 +815,12 @@ public class SessionEpreuveService {
         	String newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
         	newSe.setNomSessionEpreuve(newNomEpreuve);
         }else {
-        	newSe.setNomSessionEpreuve(originalSe.getNomSessionEpreuve());
-        }
+			if (!newName.trim().isEmpty()) {
+				newSe.setNomSessionEpreuve(newName);
+			} else {
+				newSe.setNomSessionEpreuve(originalSe.getNomSessionEpreuve());
+			}
+		}
         newSe.setTypeSession(originalSe.getTypeSession());
         newSe.setHeureEpreuve(originalSe.getHeureEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
