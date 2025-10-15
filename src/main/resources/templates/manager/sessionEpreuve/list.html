@@ -353,7 +353,9 @@
 																<div class="col-lg-12">
 																	<select id="statut" name="statut" class="form-select" required="required">
 																		<option th:value="${sessionEpreuve.statutSession.key}" th:text="${sessionEpreuve.statutSession.libelle}"></option>
-																	    <option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
+																		<option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
+																		<option th:if="${sessionEpreuve.statutSession.key ne 'OPENED'}" value="OPENED">En cours</option>
+																		<option th:if="${sessionEpreuve.statutSession.key ne 'STANDBY'}" value="STANDBY">En attente</option>
 																	    <option th:if="${sessionEpreuve.statutSession.key ne 'CLOSED'}" value="CLOSED">Clôturé</option>
 																		<option th:if="${sessionEpreuve.statutSession.key ne 'ENDED'}" value="ENDED">Terminé</option>
 																	    <option th:if="${sessionEpreuve.statutSession.key ne 'PROCESSED'}" value="PROCESSED">Traité</option>
