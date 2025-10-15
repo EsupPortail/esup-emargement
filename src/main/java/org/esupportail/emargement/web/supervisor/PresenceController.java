@@ -661,7 +661,7 @@ public class PresenceController {
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")
-    public String checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam String check) {
+    public ResponseEntity<Void> checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam String check) {
 		if("true".equals(check)) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String eppn = auth.getName();
@@ -685,8 +685,10 @@ public class PresenceController {
 			}
 		}
 
-    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
-    			sl.getSessionEpreuve().getId(), sl.getId());
+		 return ResponseEntity
+		            .status(HttpStatus.NO_CONTENT)
+		            .header("HX-Refresh", "true") // Instruct HTMX to reload the page
+		            .build();
     }
 
 	@PostMapping("/supervisor/updateSecondTag")
