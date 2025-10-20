@@ -219,11 +219,11 @@ public class TaskService {
 			}
 			 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 			    executorService.shutdown();
-			log.info("Début de vérification des sessions ADE orphelines");
+		/*	log.info("Début de vérification des sessions ADE orphelines");
 		    for(Context ctx : contextList) {
 		    	adeService.checkEvents(ctx);
 		    }
-		    log.info("Fin de vérification des sessions ADE orphelines");
+		    log.info("Fin de vérification des sessions ADE orphelines");*/
  		}
 	}
 	
