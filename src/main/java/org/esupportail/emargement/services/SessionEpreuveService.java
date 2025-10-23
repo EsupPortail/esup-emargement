@@ -7,10 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
@@ -859,7 +857,7 @@ public class SessionEpreuveService {
 	        		newTagCheck.setSessionEpreuve(newSe);
 	        		Date endDate =  newSe.getDateFin() != null? newSe.getDateFin() : newSe.getDateExamen();
 	        		List<Absence> absences = absenceRepository.findOverlappingAbsences(t.getPerson(),
-	        				newSe.getDateExamen(), endDate);
+	        				newSe.getDateExamen(), endDate, context);
 					if(!absences.isEmpty()) {
 						newTagCheck.setAbsence(absences.get(0));
 	    			}

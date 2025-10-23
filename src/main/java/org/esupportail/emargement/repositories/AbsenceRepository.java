@@ -20,9 +20,10 @@ public interface AbsenceRepository extends JpaRepository<Absence, Long>{
 	@Query("SELECT a FROM Absence a WHERE a.dateDebut <= :endDate AND a.dateFin >= :startDate")
 	List<Absence> findAbsencesWithinDateRange(Date startDate, Date endDate);
 	
-	@Query("SELECT a FROM Absence a WHERE a.person = :person AND (a.dateFin >= :startDate AND a.dateDebut <= :endDate)")
+	@Query("SELECT a FROM Absence a WHERE a.person = :person AND (a.dateFin >= :startDate AND a.dateDebut <= :endDate AND a.context = :context)")
 	List<Absence> findOverlappingAbsences(Person person,
 	                                      Date startDate,
-	                                      Date endDate);
+	                                      Date endDate,
+	                                      Context context);
 
 }

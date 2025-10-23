@@ -220,7 +220,7 @@ public class AdeService {
     	return fatherId;
     }
 
-	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds)  throws  ParseException {
+	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds, Context ctx)  throws  ParseException {
 		String detail = "9";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom" + idParam;
@@ -251,7 +251,7 @@ public class AdeService {
 									adeClassroomBean.setNom(element2.getAttribute("name"));
 									adeClassroomBean.setSize(Integer.valueOf(element2.getAttribute("size")));
 									adeClassroomBean.setType(element2.getAttribute("type"));
-									boolean isAlreadyimport = (locationRepository.countByAdeClassRoomId(id) >0)? true : false;
+									boolean isAlreadyimport = (locationRepository.countByAdeClassRoomIdAndContext(id, ctx) >0)? true : false;
 									adeClassroomBean.setAlreadyimport(isAlreadyimport);
 									if(!element2.getAttribute("lastUpdate").isEmpty()){
 										Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element2.getAttribute("lastUpdate"));  
@@ -1035,7 +1035,7 @@ public class AdeService {
 				typeSession = typeSessionRepository.save(typeSession);
 			}
 		}else {
-			List<TypeSession> typeSessions = typeSessionRepository.findByKey(typeEvent);
+			List<TypeSession> typeSessions = typeSessionRepository.findByKeyAndContext(typeEvent, ctx);
 			if(!typeSessions.isEmpty()) {
 				typeSession = typeSessions.get(0);
 			}else {
@@ -1147,7 +1147,7 @@ public class AdeService {
                                         continue; 
                                     }
                                 }
-								List<Person> persons = personRepository.findByNumIdentifiant(numIdentifiant);
+								List<Person> persons = personRepository.findByNumIdentifiantAndContext(numIdentifiant, ctx);
 								Person person = null;
 								boolean isUnknown = false;
 								if(!persons.isEmpty()) {
@@ -1176,7 +1176,7 @@ public class AdeService {
 									//tc.setCodeEtape(codeEtape);
 									Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 									List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                    se.getDateExamen(), endDate);
+		                                    se.getDateExamen(), endDate, ctx);
 									if(!absences.isEmpty()) {
 										nbStudents++;
 					    				tc.setAbsence(absences.get(0));
@@ -1203,7 +1203,7 @@ public class AdeService {
 							// Recherche par nom du groupe dans esup-emargement
 							String expectedGroupName = entry.getValue();
 							List<Groupe> groupesDuNomGroupeADE = groupeRepository
-									.findByNomLikeIgnoreCase(expectedGroupName);
+									.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
 							if (1 == groupesDuNomGroupeADE.size()) {
 								Groupe groupe = groupesDuNomGroupeADE.get(0);
 								log.debug("Un groupe esup-emargement (unique) portant le même nom que le groupe ADE ["
@@ -1258,7 +1258,7 @@ public class AdeService {
 		Map<Long, List<AdeClassroomBean>> classroomsById = new HashMap<>();
 		for (Map<Long, String> map : listAdeClassRooms) {
 			for (Entry<Long, String> entry : map.entrySet()) {
-				List<AdeClassroomBean> beans = getListClassrooms(sessionId, entry.getKey().toString(), null);
+				List<AdeClassroomBean> beans = getListClassrooms(sessionId, entry.getKey().toString(), null, ctx);
 				if (beans != null && !beans.isEmpty()) {
 					classroomsById.put(entry.getKey(), beans);
 				}
@@ -1606,7 +1606,7 @@ public class AdeService {
 					if (existingGroupe != null) {
 						groupes.addAll(existingGroupe);
 					}
-					if (newGroupe!=null && !newGroupe.isEmpty()) {
+					if (newGroupe!=null && !newGroupe.isEmpty() && auth != null) {
 						Groupe groupe = groupeService.createNewGroupe(newGroupe, emargementContext,
 								sessionEpreuveService.getCurrentanneUniv(), auth.getName());
 						groupes.add(groupe.getId());

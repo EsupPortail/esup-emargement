@@ -333,10 +333,10 @@ public class AdeController {
 	public String importClassrooms(@PathVariable String emargementContext, 
 			@RequestParam(value="btSelectItem", required = false) List<Long> idClassrooms, String codeSalle, Campus campus) throws IOException, ParserConfigurationException, SAXException, ParseException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String sessionId = adeService.getSessionId(false, emargementContext, adeService.getCurrentProject(null, auth.getName(), emargementContext));		
-		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms);
+		String sessionId = adeService.getSessionId(false, emargementContext, adeService.getCurrentProject(null, auth.getName(), emargementContext));
+		Context ctx = contextRepository.findByContextKey(emargementContext);
+		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms, ctx);
 		if(!adeClassroomBeans.isEmpty()) {
-			Context ctx = contextRepository.findByContextKey(emargementContext);
 			for(AdeClassroomBean bean : adeClassroomBeans) {
 				Location location = null;
 				Long adeClassRoomId = bean.getIdClassRoom();

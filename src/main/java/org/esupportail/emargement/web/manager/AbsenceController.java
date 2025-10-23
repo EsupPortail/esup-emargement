@@ -5,7 +5,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +17,6 @@ import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.repositories.AbsenceRepository;
@@ -173,7 +171,7 @@ public class AbsenceController {
         	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
         	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
         	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
-        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin());
+        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin(), absence.getContext());
         	 overlapsList.remove(absence);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {

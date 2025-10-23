@@ -418,7 +418,7 @@ public class TagCheckService {
 					    			}
 					    			Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 					    			List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                      se.getDateExamen(), endDate);
+		                                      se.getDateExamen(), endDate, se.getContext());
 					    			if(!absences.isEmpty()) {
 					    				tc.setAbsence(absences.get(0));
 					    			}
