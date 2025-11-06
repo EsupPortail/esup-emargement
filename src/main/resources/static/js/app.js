@@ -964,10 +964,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			var isPreviewPdfOk = document.getElementById("isPreviewPdfOk");
 			if (subject.value.length == 0) {
 				alert("Vous devez rentrer un sujet");
-			} else if (!isPreviewPdfOk.checked) {
+			} else if (isPreviewPdfOk!=null && !isPreviewPdfOk.checked) {
 				alert("Vous devez valider le PDF de convocation");
-			} else {
+			} else if (sendConvocation !=null){
 				sendConvocation.submit();
+			}else if (document.getElementById("sendCommunication") !=null){
+				document.getElementById("sendCommunication").submit();
 			}
 		}
 		if (event.target.matches('#submitEmailConvsignes')) {
@@ -2250,12 +2252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				htmltemplatePdf.value = editor1.getContents();
 	    });
 	}
-	$('#sendCommunication').submit(function(e) {
-	    e.preventDefault(); 
-	    var bodyMsg = document.getElementById("bodyMsg");
-	    bodyMsg.value = editor2.getContents();
-	    this.submit();
-	});
+	
 	
 	//Autocomplete
 	if (document.querySelector('#suPage, #presencePage, #userAppPage, #locationPage, #sessionEpreuvePage, #recherchePage, #addMembersPage, #extractionPage, #createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #assiduitePage, #tagChecksListPage')) {

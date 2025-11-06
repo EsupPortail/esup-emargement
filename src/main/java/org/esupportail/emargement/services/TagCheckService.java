@@ -683,7 +683,8 @@ public class TagCheckService {
 		return finalString;
 	}
 	
-	public void sendEmailConvocation (String subject, String bodyMsg, boolean isSendToManager, List<Long> listeIds, String htmltemplatePdf, String emargementContext, boolean isAll, Long seId) throws Exception {
+	public void sendEmailConvocation (String subject, String bodyMsg, boolean isSendToManager, List<Long> listeIds, String htmltemplatePdf, 
+			String emargementContext, boolean isAll, Long seId, boolean includePdf) throws Exception {
 		if(!listeIds.isEmpty() || isAll) {
 			int i=0; int j=0; 
 			ArrayList<String> errors = new ArrayList<>();
@@ -716,10 +717,9 @@ public class TagCheckService {
 					}else if(tc.getGuest() != null){
 						email = tc.getGuest().getEmail();
 					}
-
 					String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 					if(appliConfigService.isSendEmails()){
-						boolean addAttachment = htmltemplatePdf.isEmpty()? false : true;
+						boolean addAttachment = htmltemplatePdf.isEmpty() || !includePdf? false : true;
 						emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null, addAttachment);
 					}
 					tc.setDateEnvoiConvocation(new Date());

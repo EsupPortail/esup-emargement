@@ -436,7 +436,7 @@ public class TagCheckController {
     		Long seId) throws Exception {
 
 		if(appliConfigService.isSendEmails()){
-			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId);
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId, true);
 		}else {
 			log.info("Envoi de mail désactivé :  ");
 		}

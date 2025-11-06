@@ -762,9 +762,11 @@ public class PresenceController {
 	@Transactional
 	@PostMapping(value = "/supervisor/communication/send", produces = "text/html")
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg,
-    		@RequestParam String htmltemplatePdf, @RequestParam Long seId, @RequestParam Long slId, final RedirectAttributes redirectAttributes) throws Exception {
+    		@RequestParam String htmltemplatePdf, @RequestParam Long seId, @RequestParam Long slId, @RequestParam(required = false) Boolean includePdf,
+    		final RedirectAttributes redirectAttributes) throws Exception {
 		if(appliConfigService.isSendEmails()){
-			tagCheckService.sendEmailConvocation(subject, bodyMsg, false, new ArrayList<>(), htmltemplatePdf, emargementContext, true, seId);
+			boolean isPDfIncluded = (includePdf != null && includePdf);
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, false, new ArrayList<>(), htmltemplatePdf, emargementContext, true, seId, isPDfIncluded);
 			redirectAttributes.addFlashAttribute("msgOk", "msgOk");
 		}else {
 			log.info("Envoi de mail désactivé :  ");
