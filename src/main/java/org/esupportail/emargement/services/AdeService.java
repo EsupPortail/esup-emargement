@@ -1275,84 +1275,82 @@ public class AdeService {
 		int minSize = Integer.MAX_VALUE;
 		Long minIdClassroom = null;
 
-		for (List<AdeClassroomBean> beans : classroomsById.values()) {
-			for (AdeClassroomBean bean : beans) {
-				totalSize += bean.getSize();
-				if (bean.getSize() < minSize) {
-					minSize = bean.getSize();
-					minIdClassroom = bean.getIdClassRoom();
-				}
+		for (Map.Entry<Long, List<AdeClassroomBean>> entry : classroomsById.entrySet()) {
+			Long id = entry.getKey();
+			List<AdeClassroomBean> beans = entry.getValue();
+			int roomMinSize = beans.stream().mapToInt(AdeClassroomBean::getSize).min().orElse(Integer.MAX_VALUE);
+			totalSize += beans.stream().mapToInt(AdeClassroomBean::getSize).sum();
+			if (roomMinSize < minSize || (roomMinSize == minSize && (minIdClassroom == null || id < minIdClassroom))) {
+				minSize = roomMinSize;
+				minIdClassroom = id;
 			}
 		}
 		log.info("Session " + sessionId + " - total capacité ADE = " + totalSize + ", min salle ID = " + minIdClassroom);
+		
+	    List<AdeClassroomBean> selectedBeans = classroomsById.get(minIdClassroom);
 
 		// --- Étape 3 : ajustement si besoin ---
 		if (isCapaciteSalleEnabled && nbStudents > totalSize && minIdClassroom != null) {
 			int adjustment = nbStudents - totalSize;
-			log.info("Ajustement des capacités : nbÉtudiants=" + nbStudents + " > total=" + totalSize + " → +"
-					+ adjustment + " sur salle " + minIdClassroom);
-
+			log.info("Ajustement de capacité : +" + adjustment + " sur salle " + minIdClassroom);
 			List<Location> locs = locationRepository.findByAdeClassRoomIdAndContext(minIdClassroom, ctx);
 
-			if (!locs.isEmpty()) {
-				Location loc = locs.get(0);
-				loc.setCapacite(loc.getCapacite() + adjustment);
-				locationRepository.save(loc);
-				log.info("Capacité mise à jour pour Location ID=" + loc.getAdeClassRoomId() + " → nouvelle capacité="
-						+ loc.getCapacite());
-			} else {
-				// Si la salle n'existe pas encore en base
-				for (AdeClassroomBean bean : classroomsById.getOrDefault(minIdClassroom, List.of())) {
-					Location newLoc = new Location();
-					newLoc.setAdeClassRoomId(bean.getIdClassRoom());
-					newLoc.setAdresse(bean.getChemin());
-					newLoc.setCampus(ade.getSessionEpreuve().getCampus());
-					newLoc.setCapacite(bean.getSize() + adjustment);
-					newLoc.setContext(ctx);
-					newLoc.setNom(bean.getNom());
-					locationRepository.save(newLoc);
-					log.info("Nouvelle Location créée avec capacité ajustée : " + newLoc.getCapacite());
-					break;
-				}
+	        Location loc;
+	        if (!locs.isEmpty()) {
+	            loc = locs.get(0);
+	            if (locs.size() > 1) {
+	                log.warn("Doublons détectés pour la salle " + minIdClassroom + ". Ignorés, première Location utilisée.");
+	            }
+	            loc.setCapacite(loc.getCapacite() + adjustment);
+	            locationRepository.save(loc);
+	        }  else {
+	            AdeClassroomBean bean = selectedBeans.get(0);
+	            loc = new Location();
+	            loc.setAdeClassRoomId(bean.getIdClassRoom());
+	            loc.setAdresse(bean.getChemin());
+	            loc.setCampus(ade.getSessionEpreuve().getCampus());
+	            loc.setCapacite(bean.getSize() + adjustment);
+	            loc.setContext(ctx);
+	            loc.setNom(bean.getNom());
+	            locationRepository.save(loc);
 			}
-
 			// Mettre à jour le totalSize après ajustement
 			totalSize += adjustment;
 		}
 
 		// --- Étape 4 : création des SessionLocation ---
-		for (List<AdeClassroomBean> beans : classroomsById.values()) {
-			for (AdeClassroomBean bean : beans) {
-				Long adeClassRoomId = bean.getIdClassRoom();
-				List<Location> locs = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx);
-
-				Location location;
-				if (locs.isEmpty()) {
-					location = new Location();
-					location.setAdeClassRoomId(adeClassRoomId);
-					location.setAdresse(bean.getChemin());
-					location.setCampus(ade.getSessionEpreuve().getCampus());
-					location.setCapacite(bean.getSize());
-					location.setContext(ctx);
-					location.setNom(bean.getNom());
-					locationRepository.save(location);
-					log.info("Nouvelle Location créée (sans ajustement) : " + adeClassRoomId);
-				} else {
-					location = locs.get(0);
-				}
-
-				SessionLocation sl = new SessionLocation();
-				sl.setCapacite(location.getCapacite());
-				sl.setContext(ctx);
-				sl.setLocation(location);
-				sl.setSessionEpreuve(se);
-				sl.setPriorite(1);
-				SessionLocation savedSl = sessionLocationRepository.save(sl);
-				sls.add(savedSl);
-			}
-		}
-
-		log.info("processLocations terminé pour session " + sessionId + ", total salles=" + sls.size());
+	    for (Map.Entry<Long, List<AdeClassroomBean>> entry : classroomsById.entrySet()) {
+	        Long adeClassRoomId = entry.getKey();
+	        List<AdeClassroomBean> beans = entry.getValue();
+	        List<Location> locs = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx);
+	        Location location;
+	        if (locs.isEmpty()) {
+	            AdeClassroomBean bean = beans.get(0);
+	            location = new Location();
+	            location.setAdeClassRoomId(adeClassRoomId);
+	            location.setAdresse(bean.getChemin());
+	            location.setCampus(ade.getSessionEpreuve().getCampus());
+	            location.setCapacite(bean.getSize());
+	            location.setContext(ctx);
+	            location.setNom(bean.getNom());
+	            locationRepository.save(location);
+	        } else {
+	            location = locs.get(0);
+	            if (locs.size() > 1) {
+	                log.warn("Doublons détectés pour adeClassRoomId=" + adeClassRoomId +
+	                        ". Ignorés, première Location utilisée.");
+	            }
+	        }
+	        // SessionLocation
+	        SessionLocation sl = new SessionLocation();
+	        sl.setCapacite(location.getCapacite());
+	        sl.setContext(ctx);
+	        sl.setLocation(location);
+	        sl.setSessionEpreuve(se);
+	        sl.setPriorite(1);
+	        sls.add(sessionLocationRepository.save(sl));
+	    }
+	    log.info("processLocations terminé pour session " + sessionId);
 	}
 	
 	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) {
