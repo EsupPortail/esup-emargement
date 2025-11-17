@@ -9,7 +9,7 @@
 			<th:block th:if="${isParticipantEnabled}">
 				<div class="alert alert-danger h5" id="norole">
 					<h4 class="alert-heading mb-4">Application d'émargement</h4>
-					<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que participant 
+					<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que <span th:text="${#strings.toLowerCase(participantTerme)}"></span> 
 						ou utilisateur de cette application.</p>
 				</div>
 				<div class="alert alert-success h5 d-none" id="newbie">
@@ -17,7 +17,7 @@
 					<span class="fw-bold text-danger mb-2" id="tagDate"></span>
 					<p>Vous venez d'émarger pour la session :
 					<span class="fw-bold" id="sessionNewbie"></span></p>
-					Vous êtes maintenant participant dans esup-emargement.<br /> Déconnectez
+					Vous êtes maintenant <span th:text="${#strings.toLowerCase(participantTerme)}"></span> dans esup-emargement.<br /> Déconnectez
 					et reconnectez-vous pour voir vos informations.
 					<hr/>
 					<a class="btn btn-outline-success greenCustom mb-2 px-3 py-2"
