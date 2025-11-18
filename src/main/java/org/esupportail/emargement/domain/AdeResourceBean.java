@@ -32,6 +32,8 @@ public class AdeResourceBean {
 	
 	public String typeEvent;
 	
+	public String vet;
+	
 	public Long getEventId() {
 		return eventId;
 	}
@@ -135,5 +137,12 @@ public class AdeResourceBean {
 	public void setLastImport(Date lastImport) {
 		this.lastImport = lastImport;
 	}
-	
+
+	public String getVet() {
+		return vet;
+	}
+
+	public void setVet(String vet) {
+		this.vet = vet;
+	}
 }

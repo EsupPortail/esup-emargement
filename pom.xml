@@ -322,7 +322,11 @@
 		    <groupId>org.json</groupId>
 		    <artifactId>json</artifactId>
 		    <version>20231013</version>
-		</dependency>		
+		</dependency>
+		<dependency>
+	    	<groupId>org.jdom</groupId>
+	      	<artifactId>jdom2</artifactId>
+	  	</dependency>
 		<dependency>
 	      <groupId>ch.rasc</groupId>
 	      <artifactId>sse-eventbus</artifactId>

@@ -192,6 +192,7 @@ public class AdeController {
 				adeService.getConnectionProject(idProject, sessionId);
 				log.info("Récupération du projet Ade " + idProject);
 			}
+			Context ctx = contextRepository.findByKey(emargementContext);
 			String fomrAde = appliConfigService.getFormationAde();
 			String formationCat = (fomrAde!=null && !fomrAde.isEmpty())? fomrAde : null;
 			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
@@ -203,6 +204,7 @@ public class AdeController {
 			uiModel.addAttribute("category6", formationCat);
 			uiModel.addAttribute("campuses", campusRepository.findAll());
 			uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
+			uiModel.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
 			uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
 		} catch (Exception e) {
 			log.error("Erreur lors de la récupération des évènements", e);
@@ -231,6 +233,7 @@ public class AdeController {
 			uiModel.addAttribute("currentComposante", codeComposante);
 			if("myEvents".equals(codeComposante) || idList.size()>0) {
 				Context ctx = contextRepository.findByKey(emargementContext);
+				uiModel.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
 				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx, false));
 			}
 			uiModel.addAttribute("strDateMin", strDateMin);
