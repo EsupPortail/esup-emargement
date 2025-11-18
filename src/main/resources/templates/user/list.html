@@ -63,24 +63,27 @@
 					</div>
 					<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
 					<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
-					<button title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
-						data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR Code</button>
-						<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
-						  <div class="offcanvas-header">
-						    <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Webcam</h5>
-						    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-						  </div>
-						  <div class="offcanvas-body">
+					<th:block th:if="${isSessionQrCodeEnabled}">
+						<button title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
+							data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR
+							Code</button>
+						<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+							id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
+							<div class="offcanvas-header">
+								<h5 class="offcanvas-title" id="offcanvasScrollingLabel">Webcam</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+							</div>
+							<div class="offcanvas-body">
 								<div class="card text-center box-shadow h-md-250">
-									<div id="qrCodeCam"  th:attr="data-qrcode=${eppn64}"
-										class="card-img-right flex-auto  mt-1">
+									<div id="qrCodeCam" th:attr="data-qrcode=${eppn64}" class="card-img-right flex-auto  mt-1">
 										<div id="loadingMessage">🎥 Impossible d'accéder à la
 											webCam</div>
 										<canvas id="canvas" class="align-self-center mr-3"></canvas>
 									</div>
 								</div>
-						  </div>
-						</div>	
+							</div>
+						</div>
+					</th:block>
 					</div>						
 					<div th:if="${not #lists.isEmpty(tagChecksPage)}">
 						<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
@@ -110,7 +113,7 @@
 	                                                and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
 	                                                and #dates.createToday().before(tc.sessionEpreuve.dateFin))
 												 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-											<button th:id="${tc.id}" th:if="${tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" 
+											<button th:id="${tc.id}" th:if="${isSessionQrCodeEnabled and tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" 
 												class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" data-bs-toggle="modal" 
 												data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
 											<i class="fas fa-qrcode"></i></button>
@@ -137,15 +140,13 @@
 									</td>
 									<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
 									<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
-									<td>
-										<span th:if="${tc.absence !=null}">
-									        <th:block th:if="${tc.absence.motifAbsence != null and tc.absence.motifAbsence.color ne null}">
-									            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
-									        </th:block>
-									        <th:block th:if="${tc.absence.motifAbsence != null}">
-									            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
-									        </th:block>
-									    </span>
+									<td th:if="${tc.absence !=null}" class ="text-center hiddenBlock">
+								        <th:block th:if="${tc.absence.motifAbsence != null and tc.absence.motifAbsence.color ne null}">
+								            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
+								        </th:block>
+								        <th:block th:if="${tc.absence.motifAbsence != null}">
+								            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+								        </th:block>
 								   </td>
 									<td th:unless="${tc.absence !=null}" class ="text-center hiddenBlock">
 										<span th:if="${tc.typeEmargement!=null}"
