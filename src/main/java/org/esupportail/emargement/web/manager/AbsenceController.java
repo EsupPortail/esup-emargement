@@ -148,10 +148,24 @@ public class AbsenceController {
     		@RequestParam String strDateFin) throws ParseException, IOException {
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
+
+        //Ajout des vérifications supplémentaires
+        if(dateFin.before(dateDebut)) {
+            bindingResult.rejectValue("dateFin", "error.dateFin",
+                    "La date de fin ne peut pas être antérieur à la date de début");
+        }
+        if(dateDebut.equals(dateFin)) {
+            if (absence.getHeureDebut().after(absence.getHeureFin()) || absence.getHeureDebut().equals(absence.getHeureFin())) {
+                bindingResult.rejectValue("heureFin", "error.heureFin",
+                        "L'heure de fin doit être postérieur à l'heure de début si les dates sont identiques");
+            }
+        }
+
     	DateFormat df = new SimpleDateFormat("HH:mm");
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (bindingResult.hasErrors()) {
           //  populateEditForm(uiModel, person);
+            uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
             return "manager/person/create";
         }
         uiModel.asMap().clear();
