@@ -231,6 +231,7 @@
 									<th scope="col"><a class="sorted" sd:pagination-sort="dateExamen">Date</a></th>
 									<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="typeSession">Type</a></th>
 									<th scope="col"><a class="sorted" sd:pagination-sort="nomSessionEpreuve">Nom</a></th>
+									<th scope="col" th:if="${isSessionGroupsDisplayed}">Groupes</th>
 									<th scope="col" class ="hiddenBlock"><a class="sorted" sd:pagination-sort="statut">Statut</a></th>
 									<th scope="col" class ="text-center hiddenBlock">Badgeage</th>
 									<th scope="col" class ="text-center hiddenBlock">Libre</th>
@@ -259,6 +260,11 @@
 									</td>
 									<td th:if="${sessionEpreuve.typeSession != null}" th:text="${sessionEpreuve.typeSession.libelle}"  class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
 									<td th:text="${sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:if="${isSessionGroupsDisplayed}">
+										<th:block th:each="groupeName : ${sessionEpreuve.groupesNames}">
+											<span th:text="${groupeName}"></span><br />
+										</th:block>
+									</td>
 									<td class ="text-center hiddenBlock">
 										<span class="badge"  th:classappend ="${'bg-' + sessionEpreuve.statutSession.color}" 
 											th:text="${sessionEpreuve.statutSession.libelle}"></span>

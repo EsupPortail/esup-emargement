@@ -123,6 +123,9 @@ public class SessionEpreuve implements ContextSupport {
     Long nbInscritsSession;
     
     private @Transient
+    List<String> groupesNames;
+
+    private @Transient
     Long nbTagCheckerSession;
     
     private @Transient
@@ -178,6 +181,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setNbInscritsSession(Long nbInscritsSession) {
 		this.nbInscritsSession = nbInscritsSession;
+	}
+
+	public List<String> getGroupesNames() {
+		return groupesNames;
+	}
+
+	public void setGroupesNames(List<String> groupesNames) {
+		this.groupesNames = groupesNames;
 	}
 
 	public Long getNbTagCheckerSession() {

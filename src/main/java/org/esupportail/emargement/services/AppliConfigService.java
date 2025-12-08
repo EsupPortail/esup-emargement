@@ -52,7 +52,7 @@ public class AppliConfigService {
 		ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS,
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
 		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION,
-		ADE_INSTRUCTOR_MANAGER
+		ADE_INSTRUCTOR_MANAGER, DISPLAY_SESSION_GROUPS
 	}
 
 	public List<String> getTypes() {
@@ -206,6 +206,11 @@ public class AppliConfigService {
 
 	public Boolean isConsignesEnabled() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.CONSIGNES_ENABLED);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
+	}
+
+	public Boolean isSessionGroupsDisplayed() {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.DISPLAY_SESSION_GROUPS);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 
