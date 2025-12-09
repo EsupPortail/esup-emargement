@@ -159,6 +159,8 @@ public class SessionEpreuve implements ContextSupport {
     
     private Long adeProjectId;
     
+    private String adeVET;
+    
 	public Groupe getBlackListGroupe() {
 		return blackListGroupe;
 	}
@@ -485,5 +487,13 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setAdeActiviteId(Long adeActiviteId) {
 		this.adeActiviteId = adeActiviteId;
+	}
+
+	public String getAdeVET() {
+		return adeVET;
+	}
+
+	public void setAdeVET(String adeVET) {
+		this.adeVET = adeVET;
 	}
 }

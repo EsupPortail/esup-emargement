@@ -83,6 +83,8 @@ import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -708,7 +710,6 @@ public class AdeService {
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));
 								}
-								adeResourceBean.setSessionEpreuve(se);
 								if(isAlreadyimport) {
 									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
 										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
@@ -750,6 +751,11 @@ public class AdeService {
 																maptrainees.put(id, name);
 																trainees.add(maptrainees);
 																adeResourceBean.setTrainees(trainees);
+																if(appliConfigService.isAdeVetDisplayed(ctx)) {
+																	String adeVet = getVersioneEtape(sessionId, element3.getAttribute("id"));
+																	adeResourceBean.setVet(adeVet);
+																	se.setAdeVET(adeVet);
+																}
 															}
 												}else if("instructor".equals(category)){
 													List<Map<Long,String>> instructors = (adeResourceBean.getInstructors() == null)? 
@@ -783,6 +789,7 @@ public class AdeService {
 										}
 									}
 								}
+								adeResourceBean.setSessionEpreuve(se);
 								adeBeans.add(adeResourceBean);
 							}else {
 								log.warn("Maj de l'évènement impossible, soit il n'existe plus, soit il a été recréé avec un Id différent, id stocké : " + eventId);
@@ -1656,5 +1663,40 @@ public class AdeService {
 	        return projet;
 	    }
 	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? "0" : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
+	}
+	
+	public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException {
+		String detail = "11";
+		String idParam = (idItem!=null)? "&id=" + idItem : "";
+		String urlVet = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" + detail + "&category=trainee"+ idParam;
+		String vet = "";
+		try {
+	    	  InputStream input = new URL(urlVet).openStream();
+	          SAXBuilder sax = new SAXBuilder();
+	          /// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
+	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+	          org.jdom2.Document doc = sax.build(input);
+	          org.jdom2.Element rootNode = doc.getRootElement();
+	          List<org.jdom2.Element> list = rootNode.getChildren("category");
+	          for (org.jdom2.Element target : list) {
+	        	  List<org.jdom2.Element> branch = target.getChildren("branch");
+	        	  for (org.jdom2.Element target1 : branch) {
+	        		  List<org.jdom2.Element> branch2 = target1.getChildren("branch");
+	        		  for (org.jdom2.Element target2 : branch2) {
+	        			  String code = target2.getAttributeValue("code");
+							if(code!=null) {
+								String splitCode [] = code.split("_");
+								if(splitCode.length>1) {
+									vet = splitCode[1];
+								}
+							}
+	        		  }
+	        	  }
+	          }
+		}catch (IOException | JDOMException e) {
+	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet);
+	    }
+		return vet;
 	}
 }

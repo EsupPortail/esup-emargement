@@ -65,6 +65,7 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isParticipantEnabled", appliConfigService.isParticipantDisplayed());
 					modelAndView.addObject("isSessionGroupsDisplayed", appliConfigService.isSessionGroupsDisplayed());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
+					modelAndView.addObject("participantTerme", appliConfigService.getParticipantTerm());
 				}
 		}
 	}
