@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+    <!-- 
+      Sauf erreur, vous pouvez adapter l'ensemble des valeurs des paramètres ci-dessous pour qu'ils correspondent
+      à votre environnement de test (LDAP, ADE, etc)
+    -->
+
+
+    <parameter name="test-server-url" value="https://esup-emargement-local.univ-lemans.fr"/>
+
+    <!-- Chaîne de caractères permettant d'identifier les tests créés automatiquement et de les supprimer automatiquement -->
+    <parameter name="test-contexts-prefix" value="Test auto du"/>
+
+    <!--
+        ==============================================
+          Paramétrage CAS
+        ==============================================
+    -->
+    <!-- Titre de la page de connexion CAS -->
+    <parameter name="cas-home-title" value="Connexion - CAS – Central Authentication Service"/>
+
+    <!-- Identifiants -->
+    <parameter name="admin1-login" value="admincaslogin"/>
+    <parameter name="admin1-password" value="******"/>
+
+    <!--
+        ==============================================
+          Paramétrage LDAP
+        ==============================================
+    -->
+    <!-- Respecter la casse LDAP sinon certains tests (selon version esup-emargement) pourraient ne pas passer -->
+    <parameter name="admin1-eppn" value="admin1@univ-ville.fr"/>
+    <parameter name="etudiant1-eppn" value="etudiant1@univ-ville.fr"/>
+    <parameter name="etudiant2-eppn" value="etudiant2@univ-ville.fr"/>
+    <parameter name="etudiant3-eppn" value="etudiant3@univ-ville.fr"/>
+
+    <!--
+        ==============================================
+          Paramétrage Context - Esup Emargement
+        ==============================================
+    -->
+    <!-- Site (i.e. Campus) par défaut -->
+    <parameter name="site1-name" value="Site A" />
+
+    <!--
+        ==============================================
+        Paramétrage ADE
+        ==============================================
+    -->
+    <!-- Identifiant du projet ADE d'où seront extraite les données de test -->
+    <parameter name="ade-project-id" value="1"/>
+
+    <!-- Nom ADE de la composante de travail du gestionnaire 1-->
+    <parameter name="gestionnaire1-ade-composante-name" value="Composante A"/>
+
+</parameters>

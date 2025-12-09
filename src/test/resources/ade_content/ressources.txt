@@ -1,0 +1,38 @@
+* Etudiants
+  * Composante A
+    * Spécialité A1
+      * L1 A1
+        - L1 A1 - Gp 1
+        - L1 A1 - Gp 2
+      * L2 A1
+        - L2 A1 - Gp 1
+        - L2 A1 - Gp 2
+    * Spécialité A2
+      * L1 A2
+        - L1 A2 - Gp 1
+        - L1 A2 - Gp 2
+      * L2 A2
+        - L2 A2 - Gp 1
+        - L2 A2 - Gp 2
+* Enseignants
+  * Composante A
+    * Permanents
+      - Permanent A1 {email}
+      - Permanent A2
+    * Vacataires
+      - Vacataire A1
+      - Vacataire A2
+  * Composante B
+    * Permanents
+      - Permanent B1
+      - Permanent B2
+    * Vacataires
+      - Vacataire B1
+      - Vacataire B2
+* Salles
+  * Batiment A
+    - Salle A1
+    - Salle A2
+  * Batiment A
+    - Salle B1
+    - Salle B2
