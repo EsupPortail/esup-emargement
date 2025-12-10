@@ -60,7 +60,7 @@ public class LogsController {
 
     @PostMapping("/admin/logs/search")
     public String search(@PathVariable String emargementContext,@Valid Log logObject, Model model,  @PageableDefault(size = 10, direction = Direction.DESC, sort = "logDate")  Pageable pageable,
-    					@RequestParam(value="stringDate") String stringDate)throws ParseException {
+    					@RequestParam String stringDate)throws ParseException {
     	Page<Log> logsPage= logsRepositoryCustom.findAll(logObject, stringDate, pageable);
     	Date date = null;
     	if(!stringDate.isEmpty()) {
@@ -82,7 +82,7 @@ public class LogsController {
     }
     
 	@GetMapping(value = "/admin/logs/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("log",  logsRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/logs/show";

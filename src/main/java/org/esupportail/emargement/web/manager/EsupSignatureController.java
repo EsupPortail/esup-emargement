@@ -80,7 +80,7 @@ public class EsupSignatureController {
 	}
 	
 	@GetMapping(value = "/manager/esupsignature/sessionEpreuve/{id}")
-	public String searchBySessionEpreuve (@PathVariable String emargementContext, @PathVariable("id")  Long id, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
+	public String searchBySessionEpreuve (@PathVariable String emargementContext, @PathVariable  Long id, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
 		model.addAttribute("urlEsupSignature", urlEsupsignature);
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
 		model.addAttribute("esupsignaturePage", esupSignatureRepository.findBySessionEpreuve(se, pageable));
@@ -91,8 +91,8 @@ public class EsupSignatureController {
 	//http://localhost:8080/Ctx-test/manager/esupsignature/status/12993
 	@GetMapping(value = "/manager/esupsignature/status/{signId}")
 	@Transactional
-	public String getStatutPdf(@PathVariable String emargementContext, @PathVariable("signId") Long signId, 
-			@RequestParam(value="from", required = false) String from, HttpServletResponse response) {
+	public String getStatutPdf(@PathVariable String emargementContext, @PathVariable Long signId, 
+			@RequestParam(required = false) String from, HttpServletResponse response) {
 		
 		RestTemplate restTemplate = new RestTemplate();
 		String urlStatus = String.format("%s/ws/signrequests/status/%s", urlEsupsignature, signId);
@@ -112,15 +112,14 @@ public class EsupSignatureController {
 		}
 		if(from!=null) {
 			return String.format("redirect:/%s/manager/individu?eppnTagCheck=%s&idGroupe=&eppnTagChecker=", emargementContext, from);
-		}else {
-			return String.format("redirect:/%s/manager/esupsignature", emargementContext);
 		}
+		return String.format("redirect:/%s/manager/esupsignature", emargementContext);
 	}
 
 	//http://localhost:8080/Ctx-test/manager/esupsignature/delete/293/12993
 	@PostMapping(value = "/manager/esupsignature/delete/{id}")
 	@Transactional
-	public String deletePDF(@PathVariable String emargementContext, @PathVariable("id") Long id) {
+	public String deletePDF(@PathVariable String emargementContext, @PathVariable Long id) {
 		EsupSignature esupsignature = esupSignatureRepository.findById(id).get();
 		if(esupsignature != null) {
 			Long storedFileId = esupsignature.getStoredFileId();

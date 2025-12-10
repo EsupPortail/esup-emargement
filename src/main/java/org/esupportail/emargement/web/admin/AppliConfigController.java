@@ -65,7 +65,7 @@ public class AppliConfigController {
 	}
 	
 	@GetMapping(value = "/admin/appliConfig")
-	public String list(Model model, @RequestParam(required = false, value = "cat") String cat) {
+	public String list(Model model, @RequestParam(required = false) String cat) {
 		List<String> configs = appliConfigRepository.findAllByOrderByCategory().stream().map(a -> a.getCategory()).distinct().collect(Collectors.toList());
 		String currentCat = cat== null? configs.get(0) : cat;
         model.addAttribute("cats", configs);
@@ -83,7 +83,7 @@ public class AppliConfigController {
 	}
 	
 	@GetMapping(value = "/admin/appliConfig/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("appliConfig",  appliConfigRepository.findById(id).get());
         return "admin/appliConfig/show";
     }
@@ -96,7 +96,7 @@ public class AppliConfigController {
     }
     
     @GetMapping(value = "/admin/appliConfig/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	AppliConfig appliConfig = appliConfigRepository.findById(id).get();
     	uiModel.addAttribute("checked", appliConfig.getType().name());
     	populateEditForm(uiModel, appliConfig);
@@ -130,7 +130,7 @@ public class AppliConfigController {
     }
     
     @PostMapping("/admin/appliConfig/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel) {
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, appliConfig);
             return "admin/appliConfig/update";
@@ -148,7 +148,7 @@ public class AppliConfigController {
     }
     
     @PostMapping(value = "/admin/appliConfig/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	AppliConfig appliConfig = appliConfigRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {

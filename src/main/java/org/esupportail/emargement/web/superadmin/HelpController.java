@@ -3,7 +3,6 @@ package org.esupportail.emargement.web.superadmin;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Help;
@@ -90,7 +89,7 @@ public class HelpController {
     }
     
     @PostMapping("/superadmin/help/create")
-    public String create(@PathVariable String emargementContext, @Valid Help help, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String create(@PathVariable String emargementContext, @Valid Help help, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, help);
             return "superadmin/help/create";
@@ -102,24 +101,23 @@ public class HelpController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la création, aide déjà existante : " + "Key : ".concat(help.getKey()));
         	return String.format("redirect:/%s/superadmin/help?form", emargementContext);
-        }else {
-        	help.setDateModification(new Date());
-            helpRepository.save(help);
-            log.info("Création aide : " + "Key : ".concat(help.getKey()));
-            logService.log(ACTION.AJOUT_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), auth.getName(), null,
-            		emargementContext, null);
-            return String.format("redirect:/%s/superadmin/help", emargementContext);
         }
+		help.setDateModification(new Date());
+		helpRepository.save(help);
+		log.info("Création aide : " + "Key : ".concat(help.getKey()));
+		logService.log(ACTION.AJOUT_HELP, RETCODE.SUCCESS, "Key : ".concat(help.getKey()).concat(" value : ").concat(help.getValue()), auth.getName(), null,
+				emargementContext, null);
+		return String.format("redirect:/%s/superadmin/help", emargementContext);
     }
     
 	@GetMapping(value = "/superadmin/help/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("help",  helpRepository.findById(id).get());
         return "superadmin/help/show";
     }
 
     @GetMapping(value = "/superadmin/help/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Help help = helpRepository.findById(id).get();
     	populateEditForm(uiModel, help);
         return "superadmin/help/update";
@@ -127,7 +125,7 @@ public class HelpController {
     
     
     @PostMapping("/superadmin/help/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Help help, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @Valid Help help, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, help);
             return "superadmin/help/update";
@@ -143,7 +141,7 @@ public class HelpController {
     }
     
     @PostMapping(value = "/superadmin/help/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	Help help = helpRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
@@ -160,7 +158,7 @@ public class HelpController {
     }
     
 	@GetMapping(value = "/superadmin/help/updateHelps")
-	public String updateHelps(@PathVariable String emargementContext, Model model, final RedirectAttributes redirectAttributes) {
+	public String updateHelps(@PathVariable String emargementContext, final RedirectAttributes redirectAttributes) {
 		redirectAttributes.addFlashAttribute("nbUpdate", helpService.updateHelp());
 		return String.format("redirect:/%s/superadmin/help", emargementContext);
 	}

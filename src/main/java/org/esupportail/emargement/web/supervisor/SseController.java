@@ -24,7 +24,7 @@ public class SseController {
 	}
 
     @GetMapping("/supervisor/register/{id}")
-    public SseEmitter register(@PathVariable("id") String id, HttpServletResponse response) {
+    public SseEmitter register(@PathVariable String id, HttpServletResponse response) {
     	response.setHeader("Cache-Control", "no-store");
         return this.eventBus.createSseEmitter(id, 30_000L, SseEvent.DEFAULT_EVENT, "tc", "total", "refresh", "sl", "customMsg", "nbImportSession", "tagChecker");
 	}

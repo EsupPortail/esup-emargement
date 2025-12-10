@@ -58,7 +58,7 @@ public class PersonController {
 	}
 	
 	@GetMapping(value = "/manager/person/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("persons",  personRepository.findById(id).get());
         return "manager/person/show";
     }
@@ -71,7 +71,7 @@ public class PersonController {
     }
     
     @GetMapping(value = "/manager/person/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Person person = personRepository.findById(id).get();
     	populateEditForm(uiModel, person);
         return "manager/person/update";
@@ -106,7 +106,7 @@ public class PersonController {
     }
     
     @DeleteMapping(value = "/manager/person/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
     	Person Person = personRepository.findById(id).get();
     	personRepository.delete(Person);
         return String.format("redirect:/%s/manager/person", emargementContext);

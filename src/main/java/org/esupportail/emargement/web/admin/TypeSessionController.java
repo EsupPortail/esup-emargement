@@ -89,7 +89,7 @@ public class TypeSessionController {
     }
     
     @GetMapping(value = "/admin/typeSession/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	TypeSession typeSession = typeSessionRepository.findById(id).get();
     	uiModel.addAttribute("typeSession", typeSession);
         return "admin/typeSession/update";
@@ -121,7 +121,7 @@ public class TypeSessionController {
     }
     
     @PostMapping("/admin/typeSession/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel) {
+    public String update(@PathVariable String emargementContext, @Valid TypeSession typeSession, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
         	uiModel.addAttribute("typeSession", typeSession);
             return "superadmin/help/update";
@@ -139,13 +139,13 @@ public class TypeSessionController {
     }
     
 	@GetMapping(value = "/admin/typeSession/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("typeSession",  typeSessionRepository.findById(id).get());
         return "admin/typeSession/show";
     }
 	
     @PostMapping(value = "/admin/typeSession/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	TypeSession typeSession = typeSessionRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {

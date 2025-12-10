@@ -248,7 +248,7 @@ public class AdeController {
 		return "manager/adeCampus/table";
 	}
 	
-	@RequestMapping(value = "/manager/adeCampus/params", produces = "text/html")
+	@GetMapping(value = "/manager/adeCampus/params", produces = "text/html")
     public String displayParams(@PathVariable String emargementContext, Model uiModel, @RequestParam(required = false) String idProjet) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
@@ -286,7 +286,7 @@ public class AdeController {
 		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
-		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList());
+		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList<AdeClassroomBean>());
 		uiModel.addAttribute("idProject", idProject);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("codeSalle", codeSalle);
@@ -367,7 +367,7 @@ public class AdeController {
 		return String.format("redirect:/%s/manager/adeCampus", emargementContext);
 	}
 	
-	@RequestMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
+	@GetMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
 	public String getJsonAde(@PathVariable String emargementContext, @RequestParam(required = false) String fatherId,
 			@RequestParam(required = false) String category, @RequestParam String idProject) {

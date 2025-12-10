@@ -90,7 +90,7 @@ public class SuperAdminController {
 
 	@GetMapping(value = "/superadmin/admins")
 	public String list(@PathVariable String emargementContext, Model model,  @PageableDefault(size = 20, direction = Direction.ASC, sort = "eppn")  Pageable pageable, 
-			@RequestParam(value="key", required = false) String key) throws InvalidNameException {
+			@RequestParam(required = false) String key) throws InvalidNameException {
 		
 		Page<UserApp> userAppPage = null;
 		List<String> contexts = contextRepository.findDistinctKey();
@@ -123,7 +123,7 @@ public class SuperAdminController {
 	}
 	
 	@GetMapping(value = "/superadmin/admins/{id}", produces = "text/html")
-    public String show(@PathVariable("id") String id, Model uiModel) {
+    public String show(@PathVariable String id, Model uiModel) {
 		
 		UserApp userApp = null;
 		List<UserApp> users = new ArrayList<>();
@@ -147,7 +147,7 @@ public class SuperAdminController {
     }
     
     @GetMapping(value = "/superadmin/admins/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	populateEditForm(uiModel, userApp, emargementContext);
         return "superadmin/admins/update";
@@ -188,7 +188,7 @@ public class SuperAdminController {
     }
     
     @PostMapping("/superadmin/admins/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid UserApp userApp, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, userApp, emargementContext);
             return "superadmin/admins/update";
@@ -220,7 +220,7 @@ public class SuperAdminController {
     }
     
     @PostMapping(value = "/superadmin/admins/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	UserApp userApp = userAppRepository.findById(id).get();
     	try {
 			userAppRepository.delete(userApp);
