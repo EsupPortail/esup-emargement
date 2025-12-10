@@ -13,8 +13,8 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -609,34 +609,97 @@ public class AdeService {
 		return adeBeans;
 	}
 	
-	@Transactional
-	public void checkEvents(Context context) {
-		Date today = Date.from(LocalDate.now()
-			    .atStartOfDay(ZoneId.systemDefault())
-			    .toInstant());
-		List<SessionEpreuve>ses = sessionEpreuveRepository.findByContextAndDateCreationLessThanAndDateExamenGreaterThanEqual(context, today, today);
-		if(!ses.isEmpty()) {
-			for (SessionEpreuve se : ses) {
-				if(se.getAdeProjectId()!=null && se.getAdeEventId()!=null) {
-					try {
-						String sessionId = getSessionId(false, context.getKey(), String.valueOf(se.getAdeProjectId()));
-						String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + se.getAdeEventId() + "&detail=8";
-						Document doc = getDocument(urlEvent);
-						doc.getDocumentElement().normalize();
-						NodeList list = doc.getElementsByTagName("event");
-						if(list.getLength() == 0) {
-							sessionEpreuveService.delete(se);
-							log.info("Aucun idEvent correspondant dans ADE. On supprime la session." + se.getNomSessionEpreuve() + 
-									" [ idEvent :" + se.getAdeEventId() + ", idActivity : "+ se.getAdeActiviteId() + "]");
+	public void checkEvents(Context context, Date startOfDay, Date endOfDay) {
+
+		List<SessionEpreuve> ses = sessionEpreuveRepository
+				.findByContextAndDateCreationLessThanAndDateExamenGreaterThanEqual(context, startOfDay, endOfDay);
+
+		if (ses.isEmpty()) {
+			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
+			return;
+		}
+
+		log.info("[" + context.getKey() + "] Vérification de " + ses.size() + " sessions");
+
+		Map<Long, List<SessionEpreuve>> sessionsByProject = ses.stream()
+				.filter(se -> se.getAdeProjectId() != null && se.getAdeEventId() != null)
+				.collect(Collectors.groupingBy(SessionEpreuve::getAdeProjectId));
+
+		int deletedCount = 0;
+		int errorCount = 0;
+
+		for (Map.Entry<Long, List<SessionEpreuve>> entry : sessionsByProject.entrySet()) {
+			Long projectId = entry.getKey();
+			List<SessionEpreuve> projectSessions = entry.getValue();
+			String sessionId;
+			try {
+				sessionId = getSessionId(false, context.getKey(), String.valueOf(projectId));
+			} catch (Exception e) {
+				log.error("[" + context.getKey() + "] Impossible d'obtenir la session ADE pour le projet " + projectId,
+						e);
+				errorCount += projectSessions.size();
+				continue;
+			}
+			for (SessionEpreuve se : projectSessions) {
+				try {
+					if (!eventExistsInAde(se, sessionId)) {
+						// Sécurité : ne pas supprimer une session trop récente
+						if (isOldEnoughToDelete(se)) {
+							deleteSessionSafe(se);
+							deletedCount++;
+							log.info("[" + context.getKey() + "] Suppression session orpheline : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
+							logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", "system", null, 
+									se.getContext().getKey(), null);
+						} else {
+							log.warn("[" + context.getKey() + "] Session absente dans ADE mais trop récente : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
 						}
-					}catch (ParserConfigurationException | SAXException | IOException e) {
-						log.error("Erreur lors de la récupération des évènements, id : " + se.getAdeEventId(), e);
 					}
+				} catch (Exception e) {
+					log.error("[" + context.getKey() + "] Erreur lors de la vérification de la session "
+							+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", e);
+					errorCount++;
 				}
 			}
-		}else {
-			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
 		}
+		log.info("[" + context.getKey() + "] Vérification terminée - supprimées=" + deletedCount + ", erreurs="
+				+ errorCount);
+	}
+	
+	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
+		String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents" + "&eventId=" + se.getAdeEventId()
+				+ "&detail=8";
+		Document doc = getDocument(urlEvent);
+		doc.getDocumentElement().normalize();
+		NodeList list = doc.getElementsByTagName("event");
+		if (list.getLength() == 0) {
+			return false;
+		}
+		// ✅ Vérification du couple (eventId + activityId)
+		for (int i = 0; i < list.getLength(); i++) {
+			Element event = (Element) list.item(i);
+			String eventId = event.getAttribute("id");
+			String activityId = event.getAttribute("activityId");
+			if (eventId == null || activityId == null) {
+				continue;
+			}
+			if (eventId.equals(String.valueOf(se.getAdeEventId()))
+					&& activityId.equals(String.valueOf(se.getAdeActiviteId()))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isOldEnoughToDelete(SessionEpreuve se) {
+	    return se.getDateCreation().toInstant()
+	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
+	}
+
+	@Transactional
+	public void deleteSessionSafe(SessionEpreuve se) {
+	    sessionEpreuveService.delete(se);
 	}
 	
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {

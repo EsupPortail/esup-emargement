@@ -51,7 +51,7 @@ public class AppliConfigService {
 		ADE_ENABLED, ADE_CREATE_GROUPE_AUTO, ADE_VET, ESUPSIGNATURE_ENABLED, ESUPSIGNATURE_EMAILS,
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
 		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION,
-		ADE_INSTRUCTOR_MANAGER, PARTICIPANT_TERM
+		ADE_INSTRUCTOR_MANAGER, PARTICIPANT_TERM, ADE_CHECK_ORPHANS
 	}
 	
 	public List<String> getTypes() {
@@ -415,6 +415,11 @@ public class AppliConfigService {
 	public String getParticipantTerm() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.PARTICIPANT_TERM);
 		return appliConfig==null ? "Participant" : appliConfig.getValue();
+	}
+	
+	public Boolean isAdeCheckOrphansEnabled(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CHECK_ORPHANS, ctx);
+		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {
