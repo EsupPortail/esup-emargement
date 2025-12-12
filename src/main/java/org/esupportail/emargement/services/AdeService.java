@@ -529,7 +529,7 @@ public class AdeService {
 	
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
 	        XPath xpath = xPathFactory.newXPath();
-	
+	        String adeSuperGroupe =  appliConfigService.getAdeSuperGroupe(ctx).trim();
 	        if ("members".equals(target)) {
 	        	log.info("Début de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member", doc, XPathConstants.NODESET);
@@ -537,7 +537,7 @@ public class AdeService {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if (appliConfigService.getCategoriesAde(ctx).equals(category)) {
+	                if (appliConfigService.getCategoriesAde(ctx).equals(category) || !adeSuperGroupe.isEmpty() && adeSuperGroupe.equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
 	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members", ctx));
@@ -556,6 +556,17 @@ public class AdeService {
 	                        code = code.split(";")[0];
 	                    }
 	                    listMembers.add(code);
+	                }
+	                if(!adeSuperGroupe.isEmpty()){
+	                	NodeList resourceNodes1 = (NodeList) xpath.evaluate(
+	    	                    "//resource[@category='" + adeSuperGroupe + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
+    	                for (int i = 0; i < resourceNodes1.getLength(); i++) {
+    	                    String code = resourceNodes1.item(i).getNodeValue();
+    	                    if ("email".equals(adeAttribute)) {
+    	                        code = code.split(";")[0];
+    	                    }
+    	                    listMembers.add(code);
+    	                }
 	                }
 	            }
 	        }
