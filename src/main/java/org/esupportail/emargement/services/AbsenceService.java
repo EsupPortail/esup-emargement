@@ -120,19 +120,25 @@ public class AbsenceService {
 		absenceRepository.delete(absence);
 	}
 	
-    public boolean absenceCouvreSession(Absence absence, SessionEpreuve session) {
-        Date dateFinSession = (session.getDateFin() != null) ? session.getDateFin() : session.getDateExamen();
-        Date debutSession = combineDateAndTime(session.getDateExamen(), session.getHeureEpreuve());
-        Date finSession = combineDateAndTime(dateFinSession, session.getFinEpreuve());
-        Date debutAbsence = combineDateAndTime(absence.getDateDebut(), absence.getHeureDebut());
-        Date finAbsence = combineDateAndTime(absence.getDateFin(), absence.getHeureFin());
+	public boolean absenceCouvreSession(Absence absence, SessionEpreuve session) {
 
-        // Si absence ou session invalide
-        if (debutSession == null || finSession == null || debutAbsence == null || finAbsence == null) {
-            return false;
-        }
-        return !debutAbsence.after(finSession) && !finAbsence.before(debutSession);
-    }
+	    // Combiner correctement date + heure pour comparaison
+	    Date debutSession = combineDateAndTime(session.getDateExamen(), session.getHeureEpreuve());
+	    Date finSession = combineDateAndTime(
+	            session.getDateFin() != null ? session.getDateFin() : session.getDateExamen(),
+	            session.getFinEpreuve()
+	    );
+
+	    Date debutAbsence = combineDateAndTime(absence.getDateDebut(), absence.getHeureDebut());
+	    Date finAbsence = combineDateAndTime(absence.getDateFin(), absence.getHeureFin());
+
+	    if (debutSession == null || finSession == null || debutAbsence == null || finAbsence == null) {
+	        return false;
+	    }
+
+	    // Condition d’overlap correcte : A < D && B > C
+	    return debutAbsence.before(finSession) && finAbsence.after(debutSession);
+	}
     
     private static Date combineDateAndTime(Date date, Date time) {
         if (date == null || time == null) {

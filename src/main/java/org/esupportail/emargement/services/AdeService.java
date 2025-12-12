@@ -1246,7 +1246,7 @@ public class AdeService {
 									//tc.setCodeEtape(codeEtape);
 									Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 									List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                    se.getDateExamen(), endDate, ctx);
+		                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
 									if(!absences.isEmpty()) {
 										nbStudents++;
 					    				tc.setAbsence(absences.get(0));

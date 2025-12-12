@@ -2361,7 +2361,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-	if (document.getElementById("motifAbsence")){
+	if (document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
 	    setTimeout(() => {
 	        if (slimSelectInstance) {
 	            slimSelectInstance.destroy();

@@ -857,7 +857,7 @@ public class SessionEpreuveService {
 	        		newTagCheck.setSessionEpreuve(newSe);
 	        		Date endDate =  newSe.getDateFin() != null? newSe.getDateFin() : newSe.getDateExamen();
 	        		List<Absence> absences = absenceRepository.findOverlappingAbsences(t.getPerson(),
-	        				newSe.getDateExamen(), endDate, context);
+	        				newSe.getDateExamen(), endDate, newSe.getHeureEpreuve(), newSe.getFinEpreuve(),context);
 					if(!absences.isEmpty()) {
 						newTagCheck.setAbsence(absences.get(0));
 	    			}
