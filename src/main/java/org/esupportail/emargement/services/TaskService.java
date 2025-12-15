@@ -5,7 +5,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,10 +21,12 @@ import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Log;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.Task;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -141,6 +142,7 @@ public class TaskService {
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
 		taskRepository.save(task);
+		
 		List<String> idList = Arrays.asList(task.getParam().split(","));
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject);
