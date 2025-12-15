@@ -36,6 +36,8 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Groupe;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
@@ -125,6 +127,9 @@ public class SessionEpreuveService {
 	StoredFileRepository storedFileRepository;
 	
 	@Resource
+	AppliConfigService appliConfigService;
+
+	@Resource
 	SessionLocationService sessionLocationService;
 	
 	@Resource
@@ -174,6 +179,39 @@ public class SessionEpreuveService {
 			session.setNbTagCheckerSession(nbTagCheckerSession);
 			Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(session.getId());
 			session.setNbInscritsSession(tagCheckRepository.countBySessionEpreuveId(session.getId())-unknown);
+			if (appliConfigService.isSessionGroupsDisplayed()) {
+				// Utiliser tagCheckRepository pour récupérer la liste des inscrits
+				List<TagCheck> tagChecks = tagCheckRepository.findTagCheckBySessionEpreuveId(session.getId());
+				HashMap<Groupe, Integer> groupesCounts = new HashMap<Groupe, Integer>();
+				if (!tagChecks.isEmpty()) {
+					List<Person> persons = tagChecks.stream() .map(l -> l.getPerson()).distinct().collect(Collectors.toList());
+					for (Person person : persons) {
+						// Pour chacun des inscrits récupérer la liste des groupes auxquels il appartient
+						Set<Groupe> groupes = person.getGroupes();
+						for (Groupe groupe : groupes) {
+							// Pour chacun des groupes compter combien, parmi les membres du groupes, sont inscrits
+							if (!groupesCounts.containsKey(groupe)) {
+								groupesCounts.put(groupe, 1);
+							} else {
+								Integer count = (Integer)groupesCounts.get(groupe);
+								groupesCounts.put(groupe, count+1);
+							}
+						}
+					}
+				}
+				// Au final déterminer si tous les membres du groupe sont inscrits ou bien seulement un sous-ensemble
+				// Il y a alors un choix à faire. Par principe on considèrera que le groupe est concerné
+				// si et seulement si TOUS ses membres sont des participants à la session
+				Set<Groupe> groupes = groupesCounts.keySet();
+				List<String> groupesNames = new ArrayList<>();
+				for (Groupe groupe : groupes) {
+					log.debug(groupe.getNom()+" ("+groupesCounts.get(groupe)+"/"+groupe.getPersons().size()+")");
+					if (groupe.getPersons().size() == groupesCounts.get(groupe)) {
+						groupesNames.add(groupe.getNom());
+					}
+				}
+				session.setGroupesNames(groupesNames);
+			}
 			session.setDureeEpreuve(toolUtil.getDureeEpreuve(session.getHeureEpreuve(), session.getFinEpreuve(), null));
 			session.setNbCheckedByCardTagCheck(tagCheckRepository.countTagCheckBySessionEpreuveIdAndIsCheckedByCardTrue(session.getId(), TypeEmargement.CARD.name(), session.getContext().getId()));
 			session.setNbStoredFiles(storedFileRepository.countBySessionEpreuve(session));
