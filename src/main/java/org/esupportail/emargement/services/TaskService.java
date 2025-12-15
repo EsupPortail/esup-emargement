@@ -27,6 +27,7 @@ import org.esupportail.emargement.domain.AdeResourceBean;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.domain.Task;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.LogsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
@@ -110,22 +111,36 @@ public class TaskService {
 		purgecontext(null, retentionLogsAll, "all") ;
 	}
 	
-	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) 
-			throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
-		
-		String idProject = task.getAdeProject();
-		String sessionId = adeService.getSessionId(false, emargementContext, idProject);
-		adeService.getConnectionProject(idProject, sessionId);
-		
-		if(adeService.getProjectLists(sessionId).isEmpty()) {
-			sessionId = adeService.getSessionId(true, emargementContext, idProject);
-			adeService.getConnectionProject(idProject, sessionId);
-			log.info("Récupération du projet Ade " + idProject);
+	@Scheduled(cron= "${emargement.ade.sync.cron}")
+	public void updateAdeSessionEpreuve() throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+		List<Context> contextList = contextRepository.findAll();
+		if(!contextList.isEmpty()) {
+			for(Context ctx : contextList) {
+				Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
+				List<SessionEpreuve> ses = null;
+				if(rangeDays != null && !rangeDays.isEmpty()) {
+					Date dt = new Date();
+					Calendar c = Calendar.getInstance(); 
+					c.setTime(dt); 
+					c.add(Calendar.DATE, Integer.valueOf(rangeDays));
+					Date endDate = DateUtils.truncate(c.getTime(),  Calendar.DATE);
+					ses = sessionEpreuveRepository.findByContextAndDateExamenGreaterThanEqualAndDateExamenLessThanEqual(ctx, today, endDate);
+				}
+				else {
+					ses = sessionEpreuveRepository.findByContextAndDateExamenGreaterThanEqual(ctx, today);
+				}
+				log.info("Début syncrhonisation ADE");
+			    adeService.updateSessionEpreuve(ses, ctx.getKey(), "cron", ctx);
+			    log.info("Fin syncrhonisation ADE");
+			}
 		}
-		
+	}
+	
+	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+		String idProject = task.getAdeProject();
+		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
 		taskRepository.save(task);
-		
 		List<String> idList = Arrays.asList(task.getParam().split(","));
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject);
