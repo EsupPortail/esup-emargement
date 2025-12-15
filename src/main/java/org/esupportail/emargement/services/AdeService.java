@@ -620,19 +620,41 @@ public class AdeService {
 		return adeBeans;
 	}
 	
-	public void checkEvents(Context context, Date startOfDay, Date endOfDay) {
-
+	public void checkEvents(Context context, Date startOfDay) {
+		
 		List<SessionEpreuve> ses = sessionEpreuveRepository
-				.findByContextAndDateCreationLessThanAndDateExamenGreaterThanEqual(context, startOfDay, endOfDay);
+		        .findByContextAndDateCreationLessThan(context, startOfDay);
 
-		if (ses.isEmpty()) {
+		// Récupération des TagCheck associés
+		List<TagCheck> tcs = tagCheckRepository
+		        .findTagCheckBySessionEpreuveIn(ses);
+
+		// Sessions à exclure car elles ont un TagCheck avec absence ou date
+		Set<Long> sessionsAvecAbsOuDate = tcs.stream()
+		        .filter(tc -> tc.getAbsence() != null || tc.getTagDate() != null)
+		        .map(tc -> tc.getSessionEpreuve().getId())
+		        .collect(Collectors.toSet());
+
+		List<SessionEpreuve> finalList = new ArrayList<>();
+
+		for (SessionEpreuve se : ses) {
+		    if (!sessionsAvecAbsOuDate.contains(se.getId())) {
+		        // Ajouter à la liste finale
+		        finalList.add(se);
+		    }else {
+		    	  // Ajouter le commentaire
+		        se.setComment("Session orpheline");
+		        sessionEpreuveRepository.save(se);
+		    }
+		}
+		if (finalList.isEmpty()) {
 			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
 			return;
 		}
 
-		log.info("[" + context.getKey() + "] Vérification de " + ses.size() + " sessions");
+		log.info("[" + context.getKey() + "] Vérification de " + finalList.size() + " sessions");
 
-		Map<Long, List<SessionEpreuve>> sessionsByProject = ses.stream()
+		Map<Long, List<SessionEpreuve>> sessionsByProject = finalList.stream()
 				.filter(se -> se.getAdeProjectId() != null && se.getAdeEventId() != null)
 				.collect(Collectors.groupingBy(SessionEpreuve::getAdeProjectId));
 
@@ -656,12 +678,10 @@ public class AdeService {
 					if (!eventExistsInAde(se, sessionId)) {
 						// Sécurité : ne pas supprimer une session trop récente
 						if (isOldEnoughToDelete(se)) {
-							deleteSessionSafe(se);
+							sessionEpreuveService.delete(se);
 							deletedCount++;
 							log.info("[" + context.getKey() + "] Suppression session orpheline : "
 									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
-							logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", "system", null, 
-									se.getContext().getKey(), null);
 						} else {
 							log.warn("[" + context.getKey() + "] Session absente dans ADE mais trop récente : "
 									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
@@ -708,11 +728,6 @@ public class AdeService {
 	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
 	}
 
-	@Transactional
-	public void deleteSessionSafe(SessionEpreuve se) {
-	    sessionEpreuveService.delete(se);
-	}
-	
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {
 		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");

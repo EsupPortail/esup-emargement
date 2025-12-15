@@ -172,10 +172,6 @@ public class TaskService {
 		        .atStartOfDay(ZoneId.systemDefault())
 		        .toInstant());
 
-		Date endOfDay = Date.from(today
-		        .atTime(LocalTime.MAX)
-		        .atZone(ZoneId.systemDefault())
-		        .toInstant());
 		List<Context> contextList = contextRepository.findAll();
 		Long dureeMax = (dureeMaxImport == null || dureeMaxImport.isEmpty()) ? null : Long.valueOf(dureeMaxImport);
 		
@@ -213,7 +209,7 @@ public class TaskService {
 			log.info("=== Début de vérification des sessions ADE orphelines ===");
 			for(Context ctx : contextList) {
 				if(appliConfigService.isAdeCheckOrphansEnabled(ctx)) {
-					adeService.checkEvents(ctx, startOfDay, endOfDay);
+					adeService.checkEvents(ctx, startOfDay);
 				}
 			}
 			log.info("=== Fin de vérification des sessions ADE orphelines ===");
