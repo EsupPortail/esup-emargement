@@ -43,7 +43,7 @@ public class StatsController {
 	}
 
 	@GetMapping(value = "/manager/stats")
-	public String list(@PathVariable String emargementContext, Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
+	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false) String anneeUniv) {
 		
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
@@ -56,10 +56,10 @@ public class StatsController {
 		return "manager/stats/index";
 	}
 	
-	@RequestMapping(value="manager/stats/json", headers = "Accept=application/json; charset=utf-8")
+	@GetMapping(value="manager/stats/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
-	public String getStats(@PathVariable String emargementContext, @RequestParam(value="type") String type, @RequestParam(value="param", required=false) String param, 
-			@RequestParam(value="anneeUniv", required=false) String anneeUniv) {
+	public String getStats(@PathVariable String emargementContext, @RequestParam String type, @RequestParam(required=false) String param, 
+			@RequestParam(required=false) String anneeUniv) {
 		String flexJsonString = "Aucune statistique à récupérer";
 		try {
 			JSONSerializer serializer = new JSONSerializer();

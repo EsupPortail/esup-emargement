@@ -13,8 +13,8 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -67,6 +67,7 @@ import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -529,7 +530,7 @@ public class AdeService {
 	
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
 	        XPath xpath = xPathFactory.newXPath();
-	
+	        String adeSuperGroupe =  appliConfigService.getAdeSuperGroupe(ctx).trim();
 	        if ("members".equals(target)) {
 	        	log.info("Début de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member", doc, XPathConstants.NODESET);
@@ -537,7 +538,7 @@ public class AdeService {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if (appliConfigService.getCategoriesAde(ctx).equals(category)) {
+	                if (appliConfigService.getCategoriesAde(ctx).equals(category) || !adeSuperGroupe.isEmpty() && adeSuperGroupe.equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
 	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members", ctx));
@@ -557,6 +558,17 @@ public class AdeService {
 	                    }
 	                    listMembers.add(code);
 	                }
+	                if(!adeSuperGroupe.isEmpty()){
+	                	NodeList resourceNodes1 = (NodeList) xpath.evaluate(
+	    	                    "//resource[@category='" + adeSuperGroupe + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
+    	                for (int i = 0; i < resourceNodes1.getLength(); i++) {
+    	                    String code = resourceNodes1.item(i).getNodeValue();
+    	                    if ("email".equals(adeAttribute)) {
+    	                        code = code.split(";")[0];
+    	                    }
+    	                    listMembers.add(code);
+    	                }
+	                }
 	            }
 	        }
 	    } catch (Exception e) {
@@ -566,6 +578,86 @@ public class AdeService {
 	    return new ArrayList<>(listMembers);
  	}
 	
+	public boolean isResourceFolder(String sessionId, String resourceId, Context ctx) throws Exception {
+		String detail = "4"; // Niveau min pour avoir attribut isGroup
+		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s",
+			urlAde, sessionId, resourceId, detail
+		);
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(url);
+			doc.getDocumentElement().normalize();
+	
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xpath = xPathFactory.newXPath();
+
+			NodeList resourceNodes = (NodeList) xpath.evaluate(
+				"/resources/resource/@isGroup", doc, XPathConstants.NODESET
+			);
+			if (0 == resourceNodes.getLength()) {
+				throw new Exception("Ressource ADE #"+resourceId+" non trouvée");
+			} else if (1 < resourceNodes.getLength()) {
+				throw new Exception("Plusieurs ressources ADE #"+resourceId+" trouvées. Improbable");
+			}
+
+			String isGroupStr = resourceNodes.item(0).getNodeValue();
+			if (null == isGroupStr) {
+				throw new Exception("Attribut isGroup non renseigné pour la ressources ADE #"+resourceId);
+			}
+
+			switch (isGroupStr) {
+				case "false":
+					return false;
+				case "true":
+					return true;
+				default:
+					throw new Exception("Valeur isGroup ["+isGroupStr+"] inattendue pour la ressources ADE #"+resourceId);
+			}
+
+		} catch (Exception e) {
+			log.error("Erreur au moment de déterminer si une ressource est de type dossier ou pas, url : " + url, e);
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId, Context ctx) throws Exception {
+		String detail = "4"; // Niveau min pour avoir attribut isGroup
+		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&leaves=true&fatherIds=%s&detail=%s",
+			urlAde, sessionId, resourceId, detail
+		);
+
+		Map<Long, String> resourceLeaves = new HashMap<Long, String>();
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(url);
+			doc.getDocumentElement().normalize();
+	
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xpath = xPathFactory.newXPath();
+
+			NodeList resourceNodes = (NodeList) xpath.evaluate(
+				"/resources/resource[@isGroup='false']", doc, XPathConstants.NODESET
+			);
+
+			for (int i = 0; i < resourceNodes.getLength(); i++) {
+				Long id = Long.valueOf(resourceNodes.item(i).getAttributes().getNamedItem("id").getTextContent());
+				String name = resourceNodes.item(i).getAttributes().getNamedItem("name").getTextContent();
+				resourceLeaves.put(id, name);
+			}
+
+			return resourceLeaves;
+		} catch (Exception e) {
+			log.error("Erreur au moment de récupérer les (id, name) des feuilles de la resource "+resourceId+", url : " + url, e);
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
     public Map<String, String> getMapComposantesFormations(String sessionId, String category) {
         String url = String.format("%s?sessionId=%s&function=getResources&tree=true&leaves=false&category=%s&detail=12",
                                     urlAde, sessionId, category);
@@ -609,36 +701,114 @@ public class AdeService {
 		return adeBeans;
 	}
 	
-	@Transactional
-	public void checkEvents(Context context) {
-		Date today = Date.from(LocalDate.now()
-			    .atStartOfDay(ZoneId.systemDefault())
-			    .toInstant());
-		List<SessionEpreuve>ses = sessionEpreuveRepository.findByContextAndDateCreationLessThanAndDateExamenGreaterThanEqual(context, today, today);
-		if(!ses.isEmpty()) {
-			for (SessionEpreuve se : ses) {
-				if(se.getAdeProjectId()!=null && se.getAdeEventId()!=null) {
-					try {
-						String sessionId = getSessionId(false, context.getKey(), String.valueOf(se.getAdeProjectId()));
-						String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + se.getAdeEventId() + "&detail=8";
-						Document doc = getDocument(urlEvent);
-						doc.getDocumentElement().normalize();
-						NodeList list = doc.getElementsByTagName("event");
-						if(list.getLength() == 0) {
+	public void checkEvents(Context context, Date startOfDay) {
+		
+		List<SessionEpreuve> ses = sessionEpreuveRepository
+		        .findByContextAndDateCreationLessThan(context, startOfDay);
+
+		// Récupération des TagCheck associés
+		List<TagCheck> tcs = tagCheckRepository
+		        .findTagCheckBySessionEpreuveIn(ses);
+
+		// Sessions à exclure car elles ont un TagCheck avec absence ou date
+		Set<Long> sessionsAvecAbsOuDate = tcs.stream()
+		        .filter(tc -> tc.getAbsence() != null || tc.getTagDate() != null)
+		        .map(tc -> tc.getSessionEpreuve().getId())
+		        .collect(Collectors.toSet());
+
+		List<SessionEpreuve> finalList = new ArrayList<>();
+
+		for (SessionEpreuve se : ses) {
+		    if (!sessionsAvecAbsOuDate.contains(se.getId())) {
+		        // Ajouter à la liste finale
+		        finalList.add(se);
+		    }else {
+		    	  // Ajouter le commentaire
+		        se.setComment("Session orpheline");
+		        sessionEpreuveRepository.save(se);
+		    }
+		}
+		if (finalList.isEmpty()) {
+			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
+			return;
+		}
+
+		log.info("[" + context.getKey() + "] Vérification de " + finalList.size() + " sessions");
+
+		Map<Long, List<SessionEpreuve>> sessionsByProject = finalList.stream()
+				.filter(se -> se.getAdeProjectId() != null && se.getAdeEventId() != null)
+				.collect(Collectors.groupingBy(SessionEpreuve::getAdeProjectId));
+
+		int deletedCount = 0;
+		int errorCount = 0;
+
+		for (Map.Entry<Long, List<SessionEpreuve>> entry : sessionsByProject.entrySet()) {
+			Long projectId = entry.getKey();
+			List<SessionEpreuve> projectSessions = entry.getValue();
+			String sessionId;
+			try {
+				sessionId = getSessionId(false, context.getKey(), String.valueOf(projectId));
+			} catch (Exception e) {
+				log.error("[" + context.getKey() + "] Impossible d'obtenir la session ADE pour le projet " + projectId,
+						e);
+				errorCount += projectSessions.size();
+				continue;
+			}
+			for (SessionEpreuve se : projectSessions) {
+				try {
+					if (!eventExistsInAde(se, sessionId)) {
+						// Sécurité : ne pas supprimer une session trop récente
+						if (isOldEnoughToDelete(se)) {
 							sessionEpreuveService.delete(se);
-							log.info("Aucun idEvent correspondant dans ADE. On supprime la session." + se.getNomSessionEpreuve() + 
-									" [ idEvent :" + se.getAdeEventId() + ", idActivity : "+ se.getAdeActiviteId() + "]");
+							deletedCount++;
+							log.info("[" + context.getKey() + "] Suppression session orpheline : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
+						} else {
+							log.warn("[" + context.getKey() + "] Session absente dans ADE mais trop récente : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
 						}
-					}catch (ParserConfigurationException | SAXException | IOException e) {
-						log.error("Erreur lors de la récupération des évènements, id : " + se.getAdeEventId(), e);
 					}
+				} catch (Exception e) {
+					log.error("[" + context.getKey() + "] Erreur lors de la vérification de la session "
+							+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", e);
+					errorCount++;
 				}
 			}
-		}else {
-			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
 		}
+		log.info("[" + context.getKey() + "] Vérification terminée - supprimées=" + deletedCount + ", erreurs="
+				+ errorCount);
 	}
 	
+	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
+		String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents" + "&eventId=" + se.getAdeEventId()
+				+ "&detail=8";
+		Document doc = getDocument(urlEvent);
+		doc.getDocumentElement().normalize();
+		NodeList list = doc.getElementsByTagName("event");
+		if (list.getLength() == 0) {
+			return false;
+		}
+		// ✅ Vérification du couple (eventId + activityId)
+		for (int i = 0; i < list.getLength(); i++) {
+			Element event = (Element) list.item(i);
+			String eventId = event.getAttribute("id");
+			String activityId = event.getAttribute("activityId");
+			if (eventId == null || activityId == null) {
+				continue;
+			}
+			if (eventId.equals(String.valueOf(se.getAdeEventId()))
+					&& activityId.equals(String.valueOf(se.getAdeActiviteId()))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isOldEnoughToDelete(SessionEpreuve se) {
+	    return se.getDateCreation().toInstant()
+	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
+	}
+
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {
 		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -857,21 +1027,94 @@ public class AdeService {
 		}
 		return fatherId;
 	}
-	
-	public Map<String, String> getProjectLists(String sessionId) throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
-	    String url = String.format("%s?sessionId=%s&function=getProjects&detail=4", urlAde, sessionId);
-	    Map<String, String> mapProjects = new HashMap<>();
 
-	    Document doc = getDocument(url);
-	    XPath xpath = XPathFactory.newInstance().newXPath();
-	    NodeList projects = (NodeList) xpath.evaluate("//projects/project", doc, XPathConstants.NODESET);
+	public String getSessionIdByProjectId(
+ 		String projectId,
+		String emargementContext
+	) throws AdeApiRequestException {
+		return getSessionIdByProjectId(projectId, emargementContext, false);
+	}
 
-	    for (int i = 0; i < projects.getLength(); i++) {
-	        Element project = (Element) projects.item(i);
-	        mapProjects.put(project.getAttribute("id"), project.getAttribute("name"));
-	    }
+	// On part du principe que l'on mémorise un identifiant de session API ADE
+ 	// par projet ADE
+	// REM: Eventuellement (ex: API TAPIR de type REST) ce pourra être le même
+	//      identifiant de session (ou bearer dans le cas TAPIR) pour tous les
+	//      projets
+	// REM: emargementContext ne sert vraiment qu'a enregistrer l'id de la 
+	//      personne connectée au moment de la récupération de la session. Pas
+	//      forcément utile et pas forcément pertinent dans l'interface de
+	//      cette méthode. Voir updatePrefs() appelé par la méthode 
+	//      getSessionId()
+	public String getSessionIdByProjectId(
+		String projectId,
+		String emargementContext,
+		boolean disconnectSessionBeforeNewSessionId
+	) throws AdeApiRequestException {
+		String sessionId = null;
+		try {
+			// S'il n'y a pas déjà eu de connexion à l'API dans le cadre d'une
+			// interrogation API pour ce projet alors on créé une nouvelle
+			//connexion. Sinon, on se contente de récupérer l'id de session
+			sessionId = getSessionId(false, emargementContext, projectId);
 
-	    return sortByValue(mapProjects);
+			// Si la connexion vient d'être créée alors le projet n'est pas
+			// encore sélectionné (cas de l'API Web d'ADE)
+			// On fait donc un appel API ADE pour sélectioner le projet
+			// REM: Dans beaucoup d'autres cas, cet appel sera inutile
+			getConnectionProject(projectId, sessionId);
+
+			// Pour vérifier que la session est bien toujours active, on fait
+			// un test API en récupérant la liste des projets
+			// REM: Il serait préférable de ne pas ajouter ce test la plupart
+			// du temps inutile et ne forcer la connexion que si c'est l'appel
+			// à l'API (qui suit cette demande d'id de session) qui échoue.
+			// Mais c'est sans doute (un peu) plus délicat à mettre en oeuvre.
+			if(getProjectLists(sessionId).isEmpty()) {
+				// Y a-t-il vraiment des cas, pour lesquels il convient de se
+				// déconnecter
+				// (voir implémentation de updateSessionEpreuve v1.1.5+)
+				if (disconnectSessionBeforeNewSessionId) {
+					disconnectSession(emargementContext);
+				}
+
+				// Si la requête a échoué c'est qu'on a récupéré en mémoire un
+				// sessionId qui n'est plus valable. On force alors une
+				// nouvelle connexion à l'API suivi d'un appel API pour
+				// sélectionner le projet (selon le principe de fonction de
+				// l'API Web ADE)
+				sessionId = getSessionId(true, emargementContext, projectId);
+				getConnectionProject(projectId, sessionId);
+				log.info("Récupération du projet Ade " + projectId);
+			}
+		} catch (IOException | ParserConfigurationException | SAXException e) {
+			log.error(""+e);
+			throw new AdeApiRequestException("ERREUR: Impossible de récupérer un id de session API pour le projet ["
+				+ projectId + "]");
+		}
+
+		return sessionId;
+	}
+
+	public Map<String, String> getProjectLists(String sessionId) throws AdeApiRequestException {
+		Map<String, String> mapProjects = new HashMap<>();
+		try {
+			String url = String.format("%s?sessionId=%s&function=getProjects&detail=4", urlAde, sessionId);
+
+			Document doc = getDocument(url);
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			NodeList projects = (NodeList) xpath.evaluate("//projects/project", doc, XPathConstants.NODESET);
+
+			for (int i = 0; i < projects.getLength(); i++) {
+				Element project = (Element) projects.item(i);
+				mapProjects.put(project.getAttribute("id"), project.getAttribute("name"));
+			}
+
+		} catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+			log.error(""+e);
+			throw new AdeApiRequestException("ERREUR: Impossible de récupérer la liste des projets ADE");
+		}
+
+		return sortByValue(mapProjects);
 	}
 	
 	public String getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
@@ -881,7 +1124,7 @@ public class AdeService {
 		return projectId;
 	}
 	
-	public String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
+	protected String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
 		String sessionId = "";
 		if(idProject != null) {
 			String prefSessionAde = ADE_STORED_SESSION + idProject;
@@ -1068,7 +1311,7 @@ public class AdeService {
         }
 
         // Reprise de la liste des participants "trainee" telle que déclarée dans ADE
-			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+		List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
         if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
             // Chaque élément de listAdeTrainees représente un groupe d'étudiants
             // Reste a récupérer la liste des étudiants qui composent le groupe
@@ -1183,7 +1426,7 @@ public class AdeService {
 									//tc.setCodeEtape(codeEtape);
 									Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 									List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                    se.getDateExamen(), endDate, ctx);
+		                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
 									if(!absences.isEmpty()) {
 										nbStudents++;
 					    				tc.setAbsence(absences.get(0));
@@ -1201,44 +1444,79 @@ public class AdeService {
 						}
                     break;
                 case "esup-emargement":
-					allMembers = new ArrayList<>();
+					// Import des étudiants depuis les groupes esup-emargement portant les
+					// même nom que les ressources (hors dossier) ADE
+					// Cas d'usage: 1 ressource "trainee" ADE (feuille) = 1 formation
+					Set<Person> persons = new HashSet<Person>();
+					// listAdeTrainees = liste avec pour chaque ressource une Map contenant une/des entrée(s)
+					// (cle "id de la ressource", valeur "name de la ressource") 
 					for (Map<Long, String> map : listAdeTrainees) {
 						for (Entry<Long, String> entry : map.entrySet()) {
-							// Import des étudiants depuis le groupe esup-emargement (unique) portant le
-							// même nom que le groupe ADE
-							//
-							// Recherche par nom du groupe dans esup-emargement
-							String expectedGroupName = entry.getValue();
-							List<Groupe> groupesDuNomGroupeADE = groupeRepository
-									.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
-							if (1 == groupesDuNomGroupeADE.size()) {
-								Groupe groupe = groupesDuNomGroupeADE.get(0);
-								log.debug("Un groupe esup-emargement (unique) portant le même nom que le groupe ADE ["
-										+ groupe.getNom() + "] a été trouvé.");
-
-								// On récupère toutes les personnes du groupes et on les associe à la session
-								Set<Person> persons = groupe.getPersons();
-								for (Person person : persons) {
-									TagCheck tc = new TagCheck();
-									// A voir
-									// tc.setCodeEtape(codeEtape);
-									tc.setContext(ctx);
-									tc.setPerson(person);
-									tc.setSessionEpreuve(se);
-									tagCheckRepository.save(tc);
-									nbStudents++;
+							Long traineeResourceId = entry.getKey();
+							Map<Long,String> resourceLeaves;
+							try {
+								if (isResourceFolder(sessionId, ""+traineeResourceId, ctx)) {
+									log.debug("La ressource "+traineeResourceId+" est un dossier... Il faut le fouiller");
+									// Si la ressource est un dossier
+									// alors récupérer toutes les feuilles sous la ressource (toutes profondeurs confondues)
+									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId, ctx);
+								} else {
+									log.debug("La ressource "+traineeResourceId+" n'est pas un dossier. On va pouvoir chercher un groupe du même nom dans esup-emargement.");
+									resourceLeaves = new HashMap<Long,String>();
+									resourceLeaves.put(traineeResourceId, entry.getValue());
 								}
-							} else if (0 == groupesDuNomGroupeADE.size()) {
-								log.debug("Aucun groupe portant le nom [" + expectedGroupName
-										+ "] n'a été trouvé dans esup-emargement.");
-							} else {
-								log.warn("Mmmm... Il semblerait qu'il y ait, dans esup-emargement, plusieurs groupes ("
-										+ groupesDuNomGroupeADE.size() + ") portant le nom [" + expectedGroupName
-										+ "]");
+
+								for (Entry<Long, String> leafTraineeResource : resourceLeaves.entrySet()) {
+									// Recherche par nom du groupe dans esup-emargement
+									String expectedGroupName = leafTraineeResource.getValue();
+									log.debug("Recherche d'un groupe esup-emargement ayant pour nom ["+expectedGroupName+"]");
+									List<Groupe> groupesDuNomGroupeADE = groupeRepository
+											.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
+									if (1 == groupesDuNomGroupeADE.size()) {
+										Groupe groupe = groupesDuNomGroupeADE.get(0);
+										log.info("Un groupe esup-emargement (unique) portant le même nom que la ressource ADE ["
+												+ groupe.getNom() + "] a été trouvé.");
+
+										// On récupère toutes les personnes du groupes et on les ajoute
+										// à la liste de ceux qui doivent être ajoutés à la session
+										// (sans mettre 2 fois le même participant qui serait dans plusieurs groupes)
+										Set<Person> groupMembers = groupe.getPersons();
+										log.debug("Le groupe ["+expectedGroupName+"] contient "+groupMembers.size()+" membres");
+										for (Person groupMember: groupMembers) {
+											if (!persons.contains(groupMember)) {
+												persons.add(groupMember);
+											}
+										}
+									} else if (0 == groupesDuNomGroupeADE.size()) {
+										log.info("Aucun groupe portant le nom [" + expectedGroupName
+												+ "] n'a été trouvé dans esup-emargement.");
+									} else {
+										log.info("Mmmm... Il semblerait qu'il y ait, dans esup-emargement, plusieurs groupes ("
+												+ groupesDuNomGroupeADE.size() + ") portant le nom [" + expectedGroupName
+												+ "]");
+									}
+								}
+							} catch (Exception e) {
+								// Pb avec les appels à ADE ?
+								e.printStackTrace();
 							}
 						}
 					}
-                    break;
+
+					log.debug("Il y a donc "+persons.size()+" participants à ajouter à la session");
+					for (Person person : persons) {
+						TagCheck tc = new TagCheck();
+						// A voir
+						// tc.setCodeEtape(codeEtape);
+						tc.setContext(ctx);
+						tc.setPerson(person);
+						tc.setSessionEpreuve(se);
+						// TODO En profiter pour noter dès maintenant les étudiants avec dispense ??
+						tagCheckRepository.save(tc);
+						nbStudents++;
+					}
+
+					break;
                 default:
                     log.error("Mode ["+appliConfigService.getAdeImportSourceParticipants(ctx)+"] non supporté");
                     // throw new Exception("Mode ["+appliConfigService.getAdeImportSourceParticipants()+"] non supporté");
@@ -1456,23 +1734,14 @@ public class AdeService {
 		return splitDate[1].concat("/").concat(splitDate[2]).concat("/").concat(splitDate[0]);
 	}
 	
-	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		
 		Map<Long, List<SessionEpreuve>> mapSE = seList.stream().filter(t -> t.getAdeProjectId() != null)
 		        .collect(Collectors.groupingBy(t -> t.getAdeProjectId()));
 		
 		for (Long key : mapSE.keySet()) {
 	        String idProject = String.valueOf(key);
-	        String sessionId = getSessionId(false, emargementContext, idProject);
-	        getConnectionProject(idProject, sessionId);
-			if(getProjectLists(sessionId).isEmpty()) {
-				disconnectSession(emargementContext);
-			}
-	        if(getProjectLists(sessionId).isEmpty()) {
-				sessionId = getSessionId(true, emargementContext, idProject);
-				getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
+			String sessionId = getSessionIdByProjectId(idProject, emargementContext, false);
 	        List<Long> idEvents  = mapSE.get(key).stream().map(o -> o.getAdeEventId()).collect(Collectors.toList());
 			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx);
 			if(!beans.isEmpty()) {
@@ -1486,7 +1755,7 @@ public class AdeService {
         String rootComposante = "";
         ObjectMapper xmlMapper = new XmlMapper();
         try {
-            String sessionId = getSessionId(false, emargementContext, idProject);
+            String sessionId = getSessionIdByProjectId(idProject, emargementContext);
             String detail = "12";
             String urlAllResources = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&leaves=false&category=" + 
             			category + "&detail=" +detail + "&fatherIds=" + fatherId;
@@ -1586,20 +1855,14 @@ public class AdeService {
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update)
-			throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(idProject == null) {
 				idProject = getCurrentProject(null, auth.getName(), emargementContext);
 			}
-			String sessionId = getSessionId(false, emargementContext, idProject);
-			getConnectionProject(idProject, sessionId);
-			if (getProjectLists(sessionId).isEmpty()) {
-				sessionId = getSessionId(true, emargementContext, idProject);
-				getConnectionProject(idProject, sessionId);
-				log.info("Récupération du projet Ade " + idProject);
-			}
+			String sessionId = getSessionIdByProjectId(idProject, emargementContext);
 			Context ctx = contextRepository.findByKey(emargementContext);
 			if(beans == null) {
 				beans = getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe,

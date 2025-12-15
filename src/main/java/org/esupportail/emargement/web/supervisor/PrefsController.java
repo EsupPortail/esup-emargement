@@ -99,7 +99,7 @@ public class PrefsController {
 	
     @GetMapping("/supervisor/prefs/updatePrefs")
     @ResponseBody
-    public void updatePrefs(@PathVariable String emargementContext, @RequestParam(value ="pref") String pref, @RequestParam(value ="value") String value) {
+    public void updatePrefs(@PathVariable String emargementContext, @RequestParam String pref, @RequestParam String value) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

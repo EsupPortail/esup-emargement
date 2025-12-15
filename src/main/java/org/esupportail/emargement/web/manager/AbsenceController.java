@@ -171,7 +171,8 @@ public class AbsenceController {
         	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
         	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
         	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
-        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin(), absence.getContext());
+        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin(), 
+        			 absence.getHeureDebut(),absence.getHeureFin(), absence.getContext());
         	 overlapsList.remove(absence);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {

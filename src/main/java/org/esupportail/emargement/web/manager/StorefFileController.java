@@ -39,14 +39,14 @@ public class StorefFileController {
     }
     
 	@Transactional
-	@RequestMapping(value = "/manager/storedFile/{id}/photo")
-	public void getPhoto(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+	@GetMapping("/manager/storedFile/{id}/photo")
+	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		storedFileService.getPhoto(id, response);
 	}
 	
     @GetMapping("/manager/storedFile/{type}/{id}")
     @ResponseBody
-    public List<StoredFile> getStoredfiles(@PathVariable("type") String type, @PathVariable("id") Long id){
+    public List<StoredFile> getStoredfiles(@PathVariable String type, @PathVariable Long id){
 		return storedFileService.getStoredfiles(type, id);
     }
 }

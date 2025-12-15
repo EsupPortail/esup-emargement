@@ -48,7 +48,7 @@ public class CalendarController {
 	}
 	
 	@GetMapping(value = "/manager/calendar")
-	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
+	public String list(Model model, @RequestParam(defaultValue = "") String eppnTagChecker){
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String selectedListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), CALENDAR_PREF)
@@ -62,10 +62,10 @@ public class CalendarController {
 		return "manager/calendar/index";
 	}
 	
-    @RequestMapping(value="/manager/calendar/events", headers = "Accept=application/json; charset=utf-8")
+    @GetMapping(value="/manager/calendar/events", headers = "Accept=application/json; charset=utf-8")
     @ResponseBody
-    public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end, 
-    		@RequestParam(value="view", required = false) String view) {
+    public String searchLdap(@PathVariable String emargementContext, @RequestParam String start, @RequestParam String end, 
+    		@RequestParam(required = false) String view) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
 			flexJsonString = calendarService.getEvents(start, end, false, view, CALENDAR_PREF, emargementContext, "manager");

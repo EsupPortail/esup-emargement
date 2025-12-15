@@ -49,10 +49,10 @@ public class CalendarSuperAdminController {
 		return "superadmin/calendar/index";
 	}
 	
-    @RequestMapping(value="/superadmin/calendar/events", headers = "Accept=application/json; charset=utf-8")
+    @GetMapping(value="/superadmin/calendar/events", headers = "Accept=application/json; charset=utf-8")
     @ResponseBody
-    public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end,
-    		@RequestParam(value="view", required = false) String view) {
+    public String searchLdap(@PathVariable String emargementContext, @RequestParam String start, @RequestParam String end,
+    		@RequestParam(required = false) String view) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
 			flexJsonString = calendarService.getEvents(start, end, true, view, null, null, "manager");

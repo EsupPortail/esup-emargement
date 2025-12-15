@@ -98,7 +98,7 @@ public class ContextController {
     }
     
     @GetMapping(value = "/superadmin/context/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Context context = contextRepository.findById(id).get();
     	populateEditForm(uiModel, context);
         return "superadmin/context/update";
@@ -143,7 +143,7 @@ public class ContextController {
     }
     
     @PostMapping("/superadmin/context/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Context context, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Context context, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, context);
             return "superadmin/appliConfig/update";
@@ -172,13 +172,13 @@ public class ContextController {
     }
     
 	@GetMapping(value = "/superadmin/context/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("context",  contextRepository.findById(id).get());
         return "superadmin/context/show";
     }
 	
     @PostMapping(value = "/superadmin/context/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, @RequestParam("deleteContext") boolean deleteContext,final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, @RequestParam boolean deleteContext,final RedirectAttributes redirectAttributes) {
     	Context context = contextRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	if(deleteContext) {

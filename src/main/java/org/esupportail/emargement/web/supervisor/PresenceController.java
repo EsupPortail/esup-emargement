@@ -409,7 +409,7 @@ public class PresenceController {
     	tagCheckService.exportTagChecks("CSV", id, response, emargementContext, null, false);
     }
     
-	@RequestMapping(value = "/supervisor/{eppn}/photo")
+	@GetMapping("/supervisor/{eppn}/photo")
 	@ResponseBody
 	public ResponseEntity<byte[]> getPhoto(@PathVariable String eppn) {
 		
@@ -588,7 +588,7 @@ public class PresenceController {
     			sessionEpreuveId, sessionLocationId);
     }
 	
-	@RequestMapping(value = "/supervisor/qrCodeSession/{id}")
+	@GetMapping("/supervisor/qrCodeSession/{id}")
     @ResponseBody
     public String getQrCode(@PathVariable String emargementContext, @PathVariable Long id, HttpServletResponse response) throws WriterException, IOException {
 		String eppn ="dummy";
@@ -604,7 +604,7 @@ public class PresenceController {
         return base64Image;
     }
 	
-	@RequestMapping(value = "/supervisor/qrCodePage/{id}")
+	@GetMapping("/supervisor/qrCodePage/{id}")
 	public String displayQrCodePage(@PathVariable("id") Long currentLocation,
 			Model uiModel) {
 		SessionLocation sessionLocation = sessionLocationRepository.findById(currentLocation).get();
@@ -661,7 +661,7 @@ public class PresenceController {
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")
-    public ResponseEntity<Void> checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam String check) {
+    public ResponseEntity<Void> checkAll(@PathVariable("id") SessionLocation sl, @RequestParam String check) {
 		if("true".equals(check)) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String eppn = auth.getName();
@@ -712,7 +712,7 @@ public class PresenceController {
     }
     
 	@Transactional
-	@RequestMapping(value = "/supervisor/storedFile/{id}/photo")
+	@GetMapping("/supervisor/storedFile/{id}/photo")
 	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		storedFileService.getPhoto(id, response);
 	}

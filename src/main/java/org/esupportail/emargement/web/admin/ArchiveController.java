@@ -49,13 +49,13 @@ public class ArchiveController {
 	}
 	
 	@PostMapping("/admin/archives/export")
-    public void exportTagChecks(@PathVariable String emargementContext, @RequestParam("anneeUniv") String anneeUniv, @RequestParam("type") String type, HttpServletResponse response){
+    public void exportTagChecks(@PathVariable String emargementContext, @RequestParam String anneeUniv, @RequestParam String type, HttpServletResponse response){
     	
     	tagCheckService.exportTagChecks(type, null, response, emargementContext, anneeUniv, false);
     }
 	
 	@PostMapping("/admin/archives/anonymize")
-	public String archiverInscrits(@PathVariable String emargementContext, @RequestParam("anneeUniv") String anneeUniv, @RequestParam("booleanAnonymize") boolean booleanAnonymize) {
+	public String archiverInscrits(@PathVariable String emargementContext, @RequestParam String anneeUniv, @RequestParam boolean booleanAnonymize) {
 		if(booleanAnonymize) {
 			tagCheckService.archiverTagChecks(anneeUniv, emargementContext);
 		}

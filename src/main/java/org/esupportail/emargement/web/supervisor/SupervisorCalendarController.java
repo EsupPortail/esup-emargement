@@ -42,15 +42,14 @@ public class SupervisorCalendarController {
 	}
 	
 	@GetMapping(value = "/supervisor/calendar")
-	public String list(Model model, @RequestParam(defaultValue = "", value="eppnTagChecker") String eppnTagChecker){
+	public String list(Model model){
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
-		
 		return "supervisor/calendar/index";
 	}
 	
-    @RequestMapping(value="/supervisor/calendar/events", headers = "Accept=application/json; charset=utf-8")
+    @GetMapping(value="/supervisor/calendar/events", headers = "Accept=application/json; charset=utf-8")
     @ResponseBody
-    public String searchLdap(@PathVariable String emargementContext, @RequestParam("start") String start, @RequestParam("end") String end) {
+    public String searchLdap(@PathVariable String emargementContext, @RequestParam String start, @RequestParam String end) {
     	String flexJsonString = "aucune donnée à récupérer";
 		try {
 			flexJsonString = calendarService.getEvents(start, end, false, "mine", null, emargementContext, "supervisor");
