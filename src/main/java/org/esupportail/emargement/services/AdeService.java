@@ -578,6 +578,86 @@ public class AdeService {
 	    return new ArrayList<>(listMembers);
  	}
 	
+	public boolean isResourceFolder(String sessionId, String resourceId, Context ctx) throws Exception {
+		String detail = "4"; // Niveau min pour avoir attribut isGroup
+		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s",
+			urlAde, sessionId, resourceId, detail
+		);
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(url);
+			doc.getDocumentElement().normalize();
+	
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xpath = xPathFactory.newXPath();
+
+			NodeList resourceNodes = (NodeList) xpath.evaluate(
+				"/resources/resource/@isGroup", doc, XPathConstants.NODESET
+			);
+			if (0 == resourceNodes.getLength()) {
+				throw new Exception("Ressource ADE #"+resourceId+" non trouvée");
+			} else if (1 < resourceNodes.getLength()) {
+				throw new Exception("Plusieurs ressources ADE #"+resourceId+" trouvées. Improbable");
+			}
+
+			String isGroupStr = resourceNodes.item(0).getNodeValue();
+			if (null == isGroupStr) {
+				throw new Exception("Attribut isGroup non renseigné pour la ressources ADE #"+resourceId);
+			}
+
+			switch (isGroupStr) {
+				case "false":
+					return false;
+				case "true":
+					return true;
+				default:
+					throw new Exception("Valeur isGroup ["+isGroupStr+"] inattendue pour la ressources ADE #"+resourceId);
+			}
+
+		} catch (Exception e) {
+			log.error("Erreur au moment de déterminer si une ressource est de type dossier ou pas, url : " + url, e);
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId, Context ctx) throws Exception {
+		String detail = "4"; // Niveau min pour avoir attribut isGroup
+		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&leaves=true&fatherIds=%s&detail=%s",
+			urlAde, sessionId, resourceId, detail
+		);
+
+		Map<Long, String> resourceLeaves = new HashMap<Long, String>();
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(url);
+			doc.getDocumentElement().normalize();
+	
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xpath = xPathFactory.newXPath();
+
+			NodeList resourceNodes = (NodeList) xpath.evaluate(
+				"/resources/resource[@isGroup='false']", doc, XPathConstants.NODESET
+			);
+
+			for (int i = 0; i < resourceNodes.getLength(); i++) {
+				Long id = Long.valueOf(resourceNodes.item(i).getAttributes().getNamedItem("id").getTextContent());
+				String name = resourceNodes.item(i).getAttributes().getNamedItem("name").getTextContent();
+				resourceLeaves.put(id, name);
+			}
+
+			return resourceLeaves;
+		} catch (Exception e) {
+			log.error("Erreur au moment de récupérer les (id, name) des feuilles de la resource "+resourceId+", url : " + url, e);
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
     public Map<String, String> getMapComposantesFormations(String sessionId, String category) {
         String url = String.format("%s?sessionId=%s&function=getResources&tree=true&leaves=false&category=%s&detail=12",
                                     urlAde, sessionId, category);
@@ -1231,7 +1311,7 @@ public class AdeService {
         }
 
         // Reprise de la liste des participants "trainee" telle que déclarée dans ADE
-			List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
+		List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
         if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
             // Chaque élément de listAdeTrainees représente un groupe d'étudiants
             // Reste a récupérer la liste des étudiants qui composent le groupe
@@ -1364,44 +1444,79 @@ public class AdeService {
 						}
                     break;
                 case "esup-emargement":
-					allMembers = new ArrayList<>();
+					// Import des étudiants depuis les groupes esup-emargement portant les
+					// même nom que les ressources (hors dossier) ADE
+					// Cas d'usage: 1 ressource "trainee" ADE (feuille) = 1 formation
+					Set<Person> persons = new HashSet<Person>();
+					// listAdeTrainees = liste avec pour chaque ressource une Map contenant une/des entrée(s)
+					// (cle "id de la ressource", valeur "name de la ressource") 
 					for (Map<Long, String> map : listAdeTrainees) {
 						for (Entry<Long, String> entry : map.entrySet()) {
-							// Import des étudiants depuis le groupe esup-emargement (unique) portant le
-							// même nom que le groupe ADE
-							//
-							// Recherche par nom du groupe dans esup-emargement
-							String expectedGroupName = entry.getValue();
-							List<Groupe> groupesDuNomGroupeADE = groupeRepository
-									.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
-							if (1 == groupesDuNomGroupeADE.size()) {
-								Groupe groupe = groupesDuNomGroupeADE.get(0);
-								log.debug("Un groupe esup-emargement (unique) portant le même nom que le groupe ADE ["
-										+ groupe.getNom() + "] a été trouvé.");
-
-								// On récupère toutes les personnes du groupes et on les associe à la session
-								Set<Person> persons = groupe.getPersons();
-								for (Person person : persons) {
-									TagCheck tc = new TagCheck();
-									// A voir
-									// tc.setCodeEtape(codeEtape);
-									tc.setContext(ctx);
-									tc.setPerson(person);
-									tc.setSessionEpreuve(se);
-									tagCheckRepository.save(tc);
-									nbStudents++;
+							Long traineeResourceId = entry.getKey();
+							Map<Long,String> resourceLeaves;
+							try {
+								if (isResourceFolder(sessionId, ""+traineeResourceId, ctx)) {
+									log.debug("La ressource "+traineeResourceId+" est un dossier... Il faut le fouiller");
+									// Si la ressource est un dossier
+									// alors récupérer toutes les feuilles sous la ressource (toutes profondeurs confondues)
+									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId, ctx);
+								} else {
+									log.debug("La ressource "+traineeResourceId+" n'est pas un dossier. On va pouvoir chercher un groupe du même nom dans esup-emargement.");
+									resourceLeaves = new HashMap<Long,String>();
+									resourceLeaves.put(traineeResourceId, entry.getValue());
 								}
-							} else if (0 == groupesDuNomGroupeADE.size()) {
-								log.debug("Aucun groupe portant le nom [" + expectedGroupName
-										+ "] n'a été trouvé dans esup-emargement.");
-							} else {
-								log.warn("Mmmm... Il semblerait qu'il y ait, dans esup-emargement, plusieurs groupes ("
-										+ groupesDuNomGroupeADE.size() + ") portant le nom [" + expectedGroupName
-										+ "]");
+
+								for (Entry<Long, String> leafTraineeResource : resourceLeaves.entrySet()) {
+									// Recherche par nom du groupe dans esup-emargement
+									String expectedGroupName = leafTraineeResource.getValue();
+									log.debug("Recherche d'un groupe esup-emargement ayant pour nom ["+expectedGroupName+"]");
+									List<Groupe> groupesDuNomGroupeADE = groupeRepository
+											.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
+									if (1 == groupesDuNomGroupeADE.size()) {
+										Groupe groupe = groupesDuNomGroupeADE.get(0);
+										log.info("Un groupe esup-emargement (unique) portant le même nom que la ressource ADE ["
+												+ groupe.getNom() + "] a été trouvé.");
+
+										// On récupère toutes les personnes du groupes et on les ajoute
+										// à la liste de ceux qui doivent être ajoutés à la session
+										// (sans mettre 2 fois le même participant qui serait dans plusieurs groupes)
+										Set<Person> groupMembers = groupe.getPersons();
+										log.debug("Le groupe ["+expectedGroupName+"] contient "+groupMembers.size()+" membres");
+										for (Person groupMember: groupMembers) {
+											if (!persons.contains(groupMember)) {
+												persons.add(groupMember);
+											}
+										}
+									} else if (0 == groupesDuNomGroupeADE.size()) {
+										log.info("Aucun groupe portant le nom [" + expectedGroupName
+												+ "] n'a été trouvé dans esup-emargement.");
+									} else {
+										log.info("Mmmm... Il semblerait qu'il y ait, dans esup-emargement, plusieurs groupes ("
+												+ groupesDuNomGroupeADE.size() + ") portant le nom [" + expectedGroupName
+												+ "]");
+									}
+								}
+							} catch (Exception e) {
+								// Pb avec les appels à ADE ?
+								e.printStackTrace();
 							}
 						}
 					}
-                    break;
+
+					log.debug("Il y a donc "+persons.size()+" participants à ajouter à la session");
+					for (Person person : persons) {
+						TagCheck tc = new TagCheck();
+						// A voir
+						// tc.setCodeEtape(codeEtape);
+						tc.setContext(ctx);
+						tc.setPerson(person);
+						tc.setSessionEpreuve(se);
+						// TODO En profiter pour noter dès maintenant les étudiants avec dispense ??
+						tagCheckRepository.save(tc);
+						nbStudents++;
+					}
+
+					break;
                 default:
                     log.error("Mode ["+appliConfigService.getAdeImportSourceParticipants(ctx)+"] non supporté");
                     // throw new Exception("Mode ["+appliConfigService.getAdeImportSourceParticipants()+"] non supporté");
