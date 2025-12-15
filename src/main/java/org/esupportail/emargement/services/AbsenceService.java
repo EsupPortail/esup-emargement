@@ -1,6 +1,7 @@
 package org.esupportail.emargement.services;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -119,4 +120,42 @@ public class AbsenceService {
 		absenceRepository.delete(absence);
 	}
 	
+	public boolean absenceCouvreSession(Absence absence, SessionEpreuve session) {
+
+	    // Combiner correctement date + heure pour comparaison
+	    Date debutSession = combineDateAndTime(session.getDateExamen(), session.getHeureEpreuve());
+	    Date finSession = combineDateAndTime(
+	            session.getDateFin() != null ? session.getDateFin() : session.getDateExamen(),
+	            session.getFinEpreuve()
+	    );
+
+	    Date debutAbsence = combineDateAndTime(absence.getDateDebut(), absence.getHeureDebut());
+	    Date finAbsence = combineDateAndTime(absence.getDateFin(), absence.getHeureFin());
+
+	    if (debutSession == null || finSession == null || debutAbsence == null || finAbsence == null) {
+	        return false;
+	    }
+
+	    // Condition d’overlap correcte : A < D && B > C
+	    return debutAbsence.before(finSession) && finAbsence.after(debutSession);
+	}
+    
+    private static Date combineDateAndTime(Date date, Date time) {
+        if (date == null || time == null) {
+            return null;
+        }
+
+        Calendar calDate = Calendar.getInstance();
+        calDate.setTime(date);
+
+        Calendar calTime = Calendar.getInstance();
+        calTime.setTime(time);
+
+        calDate.set(Calendar.HOUR_OF_DAY, calTime.get(Calendar.HOUR_OF_DAY));
+        calDate.set(Calendar.MINUTE, calTime.get(Calendar.MINUTE));
+        calDate.set(Calendar.SECOND, calTime.get(Calendar.SECOND));
+        calDate.set(Calendar.MILLISECOND, 0);
+
+        return calDate.getTime();
+    }
 }

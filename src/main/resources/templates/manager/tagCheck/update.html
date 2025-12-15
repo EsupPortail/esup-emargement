@@ -6,7 +6,11 @@
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
            	<div class="card">
-		    	<div class="card-header"><h2>Modifier une inscription</h2></div>
+		    	<div class="card-header" th:with="se =${tagCheck.sessionEpreuve}"><h2>Modifier une inscription</h2>
+			        <small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' à ' + se.campus.site}"></small>
+			        <small class="text-muted h5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
+			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>	
+		    	</div>
            		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
 					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
 						vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit

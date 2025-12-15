@@ -14,6 +14,8 @@ public interface TypeSessionRepository extends JpaRepository<TypeSession, Long> 
 	
 	List<TypeSession> findByKey(String key);
 	
+	List<TypeSession> findByKeyAndContext(String key, Context context);
+	
 	List<TypeSession> findAllByOrderByLibelle();
 	
 	List<TypeSession> findByContext(Context context);

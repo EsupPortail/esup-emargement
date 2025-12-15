@@ -18,6 +18,8 @@ public interface PersonRepository extends JpaRepository<Person, Long>{
 	
 	List<Person> findByNumIdentifiant(String num);
 	
+	List<Person> findByNumIdentifiantAndContext(String num, Context context);
+	
 	List<Person> findByEppnAndContext(String eppn, Context context);
 	
 	@Modifying

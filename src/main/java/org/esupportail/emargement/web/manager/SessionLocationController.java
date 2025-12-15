@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -111,12 +112,17 @@ public class SessionLocationController {
     }
 	
     @GetMapping(value = "/manager/sessionLocation", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = true) Long id) {
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = true) Long id,
+    		@RequestParam(required = false) String modal) {
     	SessionLocation sessionLocation = new SessionLocation();
 	    populateEditForm(uiModel, sessionLocation, id);
 	    List<Integer> priorityList = sessionLocationService.getPriorityList(sessionEpreuveRepository.findById(id).get());
 	    int priority = (priorityList.isEmpty())? 1 : Collections.max(priorityList)+1;
 	    sessionLocation.setPriorite(priority);
+	    if(modal != null){
+	    	uiModel.addAttribute("sessionEpreuve", id);
+        	return "manager/sessionLocation/create-modal :: modal-step2";
+        }
         return "manager/sessionLocation/create";
     }
     
@@ -143,12 +149,14 @@ public class SessionLocationController {
     	
     	uiModel.addAttribute("priorityList", sessionLocationService.getPriorityList(se));
     	uiModel.addAttribute("allSessionEpreuves", allSe);
+    	uiModel.addAttribute("se", allSe.get(0));
         uiModel.addAttribute("sessionLocation", sessionLocation);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/manager/sessionLocation/create")
-    public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, BindingResult bindingResult, Model uiModel){
+    public String create(@PathVariable String emargementContext, @Valid SessionLocation sessionLocation, 
+    		BindingResult bindingResult, Model uiModel, @RequestHeader(value = "HX-Request", required = false) String hxRequest){
     	if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, sessionLocation, sessionLocation.getSessionEpreuve().getId());
             return "manager/sessionLocation/create";
@@ -177,6 +185,19 @@ public class SessionLocationController {
         log.info("ajout d'un lieu de session; Site" + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " Lieu " + sessionLocation.getLocation().getNom());
     	logService.log(ACTION.AJOUT_SESSION_LOCATION, RETCODE.SUCCESS, "Site : " + sessionLocation.getSessionEpreuve().getCampus().getSite()+ " - Lieu " + sessionLocation.getLocation().getNom(), 
     					auth.getName(), null, emargementContext, null);
+	    if (hxRequest != null) {
+	    	Long id = sessionLocation.getSessionEpreuve().getId();
+	    	List<Integer> priorityList1 = sessionLocationService.getPriorityList(sessionLocation.getSessionEpreuve());
+		    int priority = (priorityList1.isEmpty())? 1 : Collections.max(priorityList1)+1;
+		    SessionLocation sessionLocation1 = new SessionLocation();
+		    sessionLocation1.setPriorite(priority);
+		    populateEditForm(uiModel, sessionLocation1, id);
+		    SessionEpreuve se = sessionLocation.getSessionEpreuve();
+		    uiModel.addAttribute("success", sessionLocation.getLocation().getNom());
+		    uiModel.addAttribute("sessionEpreuve", se);
+		    uiModel.addAttribute("count", sessionLocationRepository.countBySessionEpreuveId(se.getId()));
+	    	return "manager/sessionLocation/create-modal :: modal-step2";
+	    }
         return String.format("redirect:/%s/manager/sessionLocation/sessionEpreuve/" + sessionLocation.getSessionEpreuve().getId().toString(),emargementContext);
     }
     

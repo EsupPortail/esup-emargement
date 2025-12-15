@@ -98,7 +98,7 @@ public class AssiduiteController {
 	
 	@GetMapping(value = "/manager/assiduite")
 	public String list(Model model, @Valid AssiduiteBean2 assiduiteBean,
-			@RequestParam(value = "datesRange", required = false) String datesRange) throws ParseException {
+			@RequestParam(required = false) String datesRange) throws ParseException {
 		List<TagCheck> tcs = new ArrayList<>();
 		if(datesRange == null) {
 			 LocalDate today = LocalDate.now();
@@ -188,7 +188,7 @@ public class AssiduiteController {
 	@Transactional
 	@PostMapping("/manager/assiduite/createAbsence")
     public String updateAbsence(@PathVariable String emargementContext, @Valid Absence absence, @RequestParam("idListAbsences") List<TagCheck >tcs,
-    		@RequestParam("searchUrl") String searchUrl) throws IOException {
+    		@RequestParam String searchUrl) throws IOException {
 		for(TagCheck tc : tcs) {
 			Absence newAbsence = absenceService.createAbsence(tc, absence) ;
 			tc.setAbsence(newAbsence);
@@ -199,7 +199,7 @@ public class AssiduiteController {
 	
 	@Transactional
 	@PostMapping("/manager/assiduite/deleteAbsence")
-    public String deleteAbsence(@PathVariable String emargementContext,  @RequestParam("idListAbsences") List<TagCheck >tcs, @RequestParam("searchUrl") String searchUrl){
+    public String deleteAbsence(@PathVariable String emargementContext,  @RequestParam("idListAbsences") List<TagCheck >tcs, @RequestParam String searchUrl){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		int i= 0;
 		for(TagCheck tc : tcs) {

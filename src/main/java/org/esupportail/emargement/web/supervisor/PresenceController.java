@@ -409,7 +409,7 @@ public class PresenceController {
     	tagCheckService.exportTagChecks("CSV", id, response, emargementContext, null, false);
     }
     
-	@RequestMapping(value = "/supervisor/{eppn}/photo")
+	@GetMapping("/supervisor/{eppn}/photo")
 	@ResponseBody
 	public ResponseEntity<byte[]> getPhoto(@PathVariable String eppn) {
 		
@@ -588,7 +588,7 @@ public class PresenceController {
     			sessionEpreuveId, sessionLocationId);
     }
 	
-	@RequestMapping(value = "/supervisor/qrCodeSession/{id}")
+	@GetMapping("/supervisor/qrCodeSession/{id}")
     @ResponseBody
     public String getQrCode(@PathVariable String emargementContext, @PathVariable Long id, HttpServletResponse response) throws WriterException, IOException {
 		String eppn ="dummy";
@@ -604,7 +604,7 @@ public class PresenceController {
         return base64Image;
     }
 	
-	@RequestMapping(value = "/supervisor/qrCodePage/{id}")
+	@GetMapping("/supervisor/qrCodePage/{id}")
 	public String displayQrCodePage(@PathVariable("id") Long currentLocation,
 			Model uiModel) {
 		SessionLocation sessionLocation = sessionLocationRepository.findById(currentLocation).get();
@@ -661,7 +661,7 @@ public class PresenceController {
     }
 	
 	@PostMapping("/supervisor/checkAll/{id}")
-    public String checkAll(@PathVariable String emargementContext, @PathVariable("id") SessionLocation sl, @RequestParam String check) {
+    public ResponseEntity<Void> checkAll(@PathVariable("id") SessionLocation sl, @RequestParam String check) {
 		if("true".equals(check)) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String eppn = auth.getName();
@@ -685,8 +685,10 @@ public class PresenceController {
 			}
 		}
 
-    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
-    			sl.getSessionEpreuve().getId(), sl.getId());
+		 return ResponseEntity
+		            .status(HttpStatus.NO_CONTENT)
+		            .header("HX-Refresh", "true") // Instruct HTMX to reload the page
+		            .build();
     }
 
 	@PostMapping("/supervisor/updateSecondTag")
@@ -710,7 +712,7 @@ public class PresenceController {
     }
     
 	@Transactional
-	@RequestMapping(value = "/supervisor/storedFile/{id}/photo")
+	@GetMapping("/supervisor/storedFile/{id}/photo")
 	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		storedFileService.getPhoto(id, response);
 	}
@@ -760,9 +762,11 @@ public class PresenceController {
 	@Transactional
 	@PostMapping(value = "/supervisor/communication/send", produces = "text/html")
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg,
-    		@RequestParam String htmltemplatePdf, @RequestParam Long seId, @RequestParam Long slId, final RedirectAttributes redirectAttributes) throws Exception {
+    		@RequestParam String htmltemplatePdf, @RequestParam Long seId, @RequestParam Long slId, @RequestParam(required = false) Boolean includePdf,
+    		final RedirectAttributes redirectAttributes) throws Exception {
 		if(appliConfigService.isSendEmails()){
-			tagCheckService.sendEmailConvocation(subject, bodyMsg, false, new ArrayList<>(), htmltemplatePdf, emargementContext, true, seId);
+			boolean isPDfIncluded = (includePdf != null && includePdf);
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, false, new ArrayList<>(), htmltemplatePdf, emargementContext, true, seId, isPDfIncluded);
 			redirectAttributes.addFlashAttribute("msgOk", "msgOk");
 		}else {
 			log.info("Envoi de mail désactivé :  ");

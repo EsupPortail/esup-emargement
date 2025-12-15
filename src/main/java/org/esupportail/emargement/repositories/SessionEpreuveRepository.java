@@ -21,7 +21,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Long countByAdeEventIdAndContext(Long id, Context ctx);
 	
-	Long countByAdeActiviteIdAndDateExamenAndContext(Long id, Date date, Context ctx);
+	Long countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(Long id, Date date, Date heureDebut, Date heureFin, Context ctx);
 	
 	Long countByNomSessionEpreuveAndDateExamenAndHeureEpreuveAndFinEpreuve(String nomSessionEpreuve, Date dateExamen, Date heureDebut, Date heureFin);
 	
@@ -29,11 +29,13 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findByAdeEventIdAndContext(Long id, Context ctx);
 	
-	List<SessionEpreuve> findByAdeActiviteIdAndDateExamenAndContext(Long id, Date date, Context ctx);
+	List<SessionEpreuve> findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(Long id, Date date, Date heureDebut, Date heureFin, Context ctx);
 	
 	List<SessionEpreuve> findByIdIn(List<Long> id);
 	
 	List<SessionEpreuve> findSessionEpreuveByStatutSessionKeyInOrderByDateExamen(List<String> keys);
+	
+	List<SessionEpreuve> findByContextAndDateCreationLessThan(Context context, Date today);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	

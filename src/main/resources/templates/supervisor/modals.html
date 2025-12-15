@@ -4,14 +4,14 @@
 		<div class="modal fade" id="checkModal" tabindex="-1" aria-hidden="true" th:if="${!isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}">
 			<div class="modal-dialog">
 				<div class="modal-content">
-				<form id="command" th:action="@{/{ctx}/supervisor/checkAll/{id}(id=${sessionLocation.id},ctx=${eContext})}" method="POST">
+				<form id="command" th:hx-post="@{/{ctx}/supervisor/checkAll/{id}(id=${sessionLocation.id},ctx=${eContext})}">
 					<div class="modal-header">
 						<h5 class="modal-title">Tout émarger</h5>
 						<button type="button" class="btn-close"
 							data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body">
-		                <div class="alert alert-danger text-center">Confirmez-vous l'émargement de tous les participants de cette salle? : <br />
+		                <div class="alert alert-danger text-center">Confirmez-vous l'émargement de toutes les personnes de cette salle? : <br />
 		                	<br />
 		                	 <div class="alert alert-warning text-center mt-2">
 								<div class="form-check form-check-inline">

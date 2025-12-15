@@ -43,7 +43,7 @@ public class StatsSuperAdminController {
 	}
 
 	@GetMapping(value = "/superadmin/stats")
-	public String list(@PathVariable String emargementContext, Model model, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
+	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false) String anneeUniv) {
 		
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		if(anneeUniv==null) {
@@ -54,9 +54,9 @@ public class StatsSuperAdminController {
 		return "superadmin/stats/index";
 	}
 	
-	@RequestMapping(value="superadmin/stats/json", headers = "Accept=application/json; charset=utf-8")
+	@GetMapping(value="superadmin/stats/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
-	public String getStats(@PathVariable String emargementContext, @RequestParam(value="type") String type, @RequestParam(value="anneeUniv", required = false) String anneeUniv) {
+	public String getStats(@RequestParam String type, @RequestParam(required = false) String anneeUniv) {
 		String flexJsonString = "";
 		try {
 			JSONSerializer serializer = new JSONSerializer();

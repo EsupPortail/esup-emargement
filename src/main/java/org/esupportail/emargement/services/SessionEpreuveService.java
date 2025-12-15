@@ -4,12 +4,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
@@ -652,11 +651,18 @@ public class SessionEpreuveService {
 					String value = configs.get(0).getValue();
 					int i = 0;
 					for (SessionEpreuve se : ses) {
+						Date dateFin = se.getDateFin();
+						boolean isBeforeOrEqualToday = dateFin != null
+								&& DateUtils.truncate(dateFin, Calendar.DATE).before(today);
 						if("true".equals(value)) {
-							se.setStatutSession(statutSessionRepository.findByKeyAndContext("CLOSED", ctx));
+							if(dateFin == null || isBeforeOrEqualToday) {
+								se.setStatutSession(statutSessionRepository.findByKeyAndContext("CLOSED", ctx));
+							}
 							i++;
 						}else {
-							se.setStatutSession(statutSessionRepository.findByKeyAndContext("ENDED", ctx));
+							if(dateFin == null || isBeforeOrEqualToday) {
+								se.setStatutSession(statutSessionRepository.findByKeyAndContext("ENDED", ctx));
+							}
 							i++;
 						}
 						sessionEpreuveRepository.save(se);
@@ -754,25 +760,28 @@ public class SessionEpreuveService {
 	    return currentYear;
 	}
 	
-	public void duplicateAll(List<Long> idSessions, int jours){
+	public void duplicateAll(List<Long> idSessions, String jours, String newName){
 		for(Long id : idSessions) {
-			duplicateSessionEpreuve(id, true, jours);
+			String [] splitJours = jours.split(",");
+			for(int i=0; i<splitJours.length;i++) {
+				duplicateSessionEpreuve(id, true, splitJours[i], newName);
+			}
 		}
 	}
 	
-	 public SessionEpreuve duplicateSessionEpreuve(Long id, boolean isSameName, int jours){
+	 public SessionEpreuve duplicateSessionEpreuve(Long id, boolean isSameName, String jour, String newName){
 		SessionEpreuve originalSe = sessionEpreuveRepository.findById(id).get();
 		Context context = originalSe.getContext();
         SessionEpreuve newSe = new SessionEpreuve();
-        if(jours>0) {
-        	 Instant instant = originalSe.getDateExamen().toInstant().plus(jours, ChronoUnit.DAYS);
-             newSe.setDateExamen(Date.from(instant));
-             if(originalSe.getDateFin() != null) {
-            	 Instant instant2 = originalSe.getDateFin().toInstant().plus(jours, ChronoUnit.DAYS);
-            	 newSe.setDateFin(Date.from(instant2));
-             }else {
-            	 newSe.setDateFin(null);
-             }
+        if(!jour.isEmpty()) {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date date = formatter.parse(jour);
+                newSe.setDateExamen(date);
+                newSe.setDateFin(null);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }else {
         	 newSe.setDateExamen(new Date());
         	 newSe.setDateFin(null);
@@ -788,7 +797,13 @@ public class SessionEpreuveService {
         newSe.setIsSessionLibre(originalSe.isSessionLibre);
         newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
-        newSe.setStatutSession(getStatutSession(originalSe));
+        newSe.setStatutSession(getStatutSession(newSe));
+        newSe.setIsSecondTag(originalSe.getIsSecondTag());
+        newSe.setIsProcurationEnabled(originalSe.getIsProcurationEnabled());
+        newSe.setIsSaveInExcluded(originalSe.getIsSaveInExcluded());
+        newSe.setIsGroupeDisplayed(originalSe.getIsGroupeDisplayed());
+        newSe.setMaxBadgeageAlert(originalSe.getMaxBadgeageAlert());
+        newSe.setBlackListGroupe(originalSe.getBlackListGroupe());
         int  x = 0 ;
         Long count = 0L;
         do {
@@ -798,8 +813,12 @@ public class SessionEpreuveService {
         	String newNomEpreuve = originalSe.getNomSessionEpreuve() +  "(" + x + ")";
         	newSe.setNomSessionEpreuve(newNomEpreuve);
         }else {
-        	newSe.setNomSessionEpreuve(originalSe.getNomSessionEpreuve());
-        }
+			if (!newName.trim().isEmpty()) {
+				newSe.setNomSessionEpreuve(newName);
+			} else {
+				newSe.setNomSessionEpreuve(originalSe.getNomSessionEpreuve());
+			}
+		}
         newSe.setTypeSession(originalSe.getTypeSession());
         newSe.setHeureEpreuve(originalSe.getHeureEpreuve());
         newSe.setHeureConvocation(originalSe.getHeureConvocation());
@@ -838,7 +857,7 @@ public class SessionEpreuveService {
 	        		newTagCheck.setSessionEpreuve(newSe);
 	        		Date endDate =  newSe.getDateFin() != null? newSe.getDateFin() : newSe.getDateExamen();
 	        		List<Absence> absences = absenceRepository.findOverlappingAbsences(t.getPerson(),
-	        				newSe.getDateExamen(), endDate);
+	        				newSe.getDateExamen(), endDate, newSe.getHeureEpreuve(), newSe.getFinEpreuve(),context);
 					if(!absences.isEmpty()) {
 						newTagCheck.setAbsence(absences.get(0));
 	    			}
@@ -863,7 +882,8 @@ public class SessionEpreuveService {
 		 esupSignatureService.deleteAllBySessionEpreuve(se);
 		 storedFileService.deleteAllStoredFiles(se);
 		 sessionEpreuveRepository.delete(se);
-		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), auth.getName(), null, se.getContext().getKey(), null);
+		 String eppnCible = auth !=null ? auth.getName() : "system";
+		 logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, se.getNomSessionEpreuve(), eppnCible, null, se.getContext().getKey(), null);
 	 }
 	 
 	 @Transactional
@@ -1034,6 +1054,7 @@ public class SessionEpreuveService {
 	    LocalDate today = LocalDate.now();
 	    Date dateExamenDate = se.getDateExamen();
 	    Date dateFinDate = se.getDateFin();
+	    Context ctx = se.getContext();
 	    LocalDate dateExamen = dateExamenDate.toInstant()
 	        .atZone(ZoneId.systemDefault())
 	        .toLocalDate();
@@ -1043,16 +1064,16 @@ public class SessionEpreuveService {
 	            .toLocalDate();
 	        if ((today.isEqual(dateExamen) || today.isAfter(dateExamen)) &&
 	            (today.isEqual(dateFin) || today.isBefore(dateFin))) {
-	            return statutSessionRepository.findByKey("OPENED");
+	            return statutSessionRepository.findByKeyAndContext("OPENED", ctx);
 	        }
-			return statutSessionRepository.findByKey("STANDBY");
+			return statutSessionRepository.findByKeyAndContext("STANDBY", ctx);
 	    }
 		if (today.isEqual(dateExamen)) {
-		    return statutSessionRepository.findByKey("OPENED");
+		    return statutSessionRepository.findByKeyAndContext("OPENED", ctx);
 		} else if (today.isAfter(dateExamen)) {
-		    return statutSessionRepository.findByKey("ENDED");
+		    return statutSessionRepository.findByKeyAndContext("ENDED", ctx);
 		} else {
-		    return statutSessionRepository.findByKey("STANDBY");
+		    return statutSessionRepository.findByKeyAndContext("STANDBY", ctx);
 		}
 	}
 	

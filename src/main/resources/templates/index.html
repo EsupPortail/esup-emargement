@@ -9,7 +9,7 @@
 			<th:block th:if="${isParticipantEnabled}">
 				<div class="alert alert-danger h5" id="norole">
 					<h4 class="alert-heading mb-4">Application d'émargement</h4>
-					<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que participant 
+					<p>Cette page indique que vous n'avez aucun rôle défini dans cet espace, que ce soit en tant que <span th:text="${#strings.toLowerCase(participantTerme)}"></span> 
 						ou utilisateur de cette application.</p>
 				</div>
 				<div class="alert alert-success h5 d-none" id="newbie">
@@ -17,7 +17,7 @@
 					<span class="fw-bold text-danger mb-2" id="tagDate"></span>
 					<p>Vous venez d'émarger pour la session :
 					<span class="fw-bold" id="sessionNewbie"></span></p>
-					Vous êtes maintenant participant dans esup-emargement.<br /> Déconnectez
+					Vous êtes maintenant <span th:text="${#strings.toLowerCase(participantTerme)}"></span> dans esup-emargement.<br /> Déconnectez
 					et reconnectez-vous pour voir vos informations.
 					<hr/>
 					<a class="btn btn-outline-success greenCustom mb-2 px-3 py-2"
@@ -30,25 +30,21 @@
 							class="btn btn-outline-danger redCustom mb-2 px-3 py-2" />
 					</form>
 				</div>
-				<div class="accordion mb-2" id="accordionNewbie">
-					<div class="accordion-item">
-						<h2 class="accordion-header" id="headingOne">
-							<button class="accordion-button" type="button"
-								data-bs-toggle="collapse" data-bs-target="#collapseOne"
-								aria-expanded="true" aria-controls="collapseOne">SCAN QR Code</button>
-						</h2>
-						<div id="collapseOne" class="accordion-collapse collapse"
-							th:classappend="${scanClass}" aria-labelledby="headingOne"
-							data-bs-parent="#accordionNewbie">
-							<div class="accordion-body">
-								<div class="card text-center box-shadow h-md-250">
-									<div id="qrCodeCam" th:attr="data-qrcode=${eppn64}"
-										class="card-img-right flex-auto  mt-1">
-										<div id="loadingMessage">🎥 Impossible d'accéder à la
-											webCam</div>
-										<canvas id="canvas" class="align-self-center mr-3"></canvas>
-									</div>
-								</div>
+				<button title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
+					data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR
+					Code</button>
+				<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
+					id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
+					<div class="offcanvas-header">
+						<h5 class="offcanvas-title" id="offcanvasScrollingLabel">Webcam</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+					</div>
+					<div class="offcanvas-body">
+						<div class="card text-center box-shadow h-md-250">
+							<div id="qrCodeCam" th:attr="data-qrcode=${eppn64}" class="card-img-right flex-auto  mt-1">
+								<div id="loadingMessage">🎥 Impossible d'accéder à la
+									webCam</div>
+								<canvas id="canvas" class="align-self-center mr-3"></canvas>
 							</div>
 						</div>
 					</div>

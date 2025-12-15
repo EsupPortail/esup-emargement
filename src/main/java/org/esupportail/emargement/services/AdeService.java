@@ -13,6 +13,8 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -82,6 +84,8 @@ import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,7 +223,7 @@ public class AdeService {
     	return fatherId;
     }
 
-	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds)  throws  ParseException {
+	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds, Context ctx)  throws  ParseException {
 		String detail = "9";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom" + idParam;
@@ -250,7 +254,7 @@ public class AdeService {
 									adeClassroomBean.setNom(element2.getAttribute("name"));
 									adeClassroomBean.setSize(Integer.valueOf(element2.getAttribute("size")));
 									adeClassroomBean.setType(element2.getAttribute("type"));
-									boolean isAlreadyimport = (locationRepository.countByAdeClassRoomId(id) >0)? true : false;
+									boolean isAlreadyimport = (locationRepository.countByAdeClassRoomIdAndContext(id, ctx) >0)? true : false;
 									adeClassroomBean.setAlreadyimport(isAlreadyimport);
 									if(!element2.getAttribute("lastUpdate").isEmpty()){
 										Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element2.getAttribute("lastUpdate"));  
@@ -526,7 +530,7 @@ public class AdeService {
 	
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
 	        XPath xpath = xPathFactory.newXPath();
-	
+	        String adeSuperGroupe =  appliConfigService.getAdeSuperGroupe(ctx).trim();
 	        if ("members".equals(target)) {
 	        	log.info("Début de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member", doc, XPathConstants.NODESET);
@@ -534,7 +538,7 @@ public class AdeService {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if (appliConfigService.getCategoriesAde(ctx).equals(category)) {
+	                if (appliConfigService.getCategoriesAde(ctx).equals(category) || !adeSuperGroupe.isEmpty() && adeSuperGroupe.equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
 	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members", ctx));
@@ -553,6 +557,17 @@ public class AdeService {
 	                        code = code.split(";")[0];
 	                    }
 	                    listMembers.add(code);
+	                }
+	                if(!adeSuperGroupe.isEmpty()){
+	                	NodeList resourceNodes1 = (NodeList) xpath.evaluate(
+	    	                    "//resource[@category='" + adeSuperGroupe + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
+    	                for (int i = 0; i < resourceNodes1.getLength(); i++) {
+    	                    String code = resourceNodes1.item(i).getNodeValue();
+    	                    if ("email".equals(adeAttribute)) {
+    	                        code = code.split(";")[0];
+    	                    }
+    	                    listMembers.add(code);
+    	                }
 	                }
 	            }
 	        }
@@ -606,6 +621,114 @@ public class AdeService {
 		return adeBeans;
 	}
 	
+	public void checkEvents(Context context, Date startOfDay) {
+		
+		List<SessionEpreuve> ses = sessionEpreuveRepository
+		        .findByContextAndDateCreationLessThan(context, startOfDay);
+
+		// Récupération des TagCheck associés
+		List<TagCheck> tcs = tagCheckRepository
+		        .findTagCheckBySessionEpreuveIn(ses);
+
+		// Sessions à exclure car elles ont un TagCheck avec absence ou date
+		Set<Long> sessionsAvecAbsOuDate = tcs.stream()
+		        .filter(tc -> tc.getAbsence() != null || tc.getTagDate() != null)
+		        .map(tc -> tc.getSessionEpreuve().getId())
+		        .collect(Collectors.toSet());
+
+		List<SessionEpreuve> finalList = new ArrayList<>();
+
+		for (SessionEpreuve se : ses) {
+		    if (!sessionsAvecAbsOuDate.contains(se.getId())) {
+		        // Ajouter à la liste finale
+		        finalList.add(se);
+		    }else {
+		    	  // Ajouter le commentaire
+		        se.setComment("Session orpheline");
+		        sessionEpreuveRepository.save(se);
+		    }
+		}
+		if (finalList.isEmpty()) {
+			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
+			return;
+		}
+
+		log.info("[" + context.getKey() + "] Vérification de " + finalList.size() + " sessions");
+
+		Map<Long, List<SessionEpreuve>> sessionsByProject = finalList.stream()
+				.filter(se -> se.getAdeProjectId() != null && se.getAdeEventId() != null)
+				.collect(Collectors.groupingBy(SessionEpreuve::getAdeProjectId));
+
+		int deletedCount = 0;
+		int errorCount = 0;
+
+		for (Map.Entry<Long, List<SessionEpreuve>> entry : sessionsByProject.entrySet()) {
+			Long projectId = entry.getKey();
+			List<SessionEpreuve> projectSessions = entry.getValue();
+			String sessionId;
+			try {
+				sessionId = getSessionId(false, context.getKey(), String.valueOf(projectId));
+			} catch (Exception e) {
+				log.error("[" + context.getKey() + "] Impossible d'obtenir la session ADE pour le projet " + projectId,
+						e);
+				errorCount += projectSessions.size();
+				continue;
+			}
+			for (SessionEpreuve se : projectSessions) {
+				try {
+					if (!eventExistsInAde(se, sessionId)) {
+						// Sécurité : ne pas supprimer une session trop récente
+						if (isOldEnoughToDelete(se)) {
+							sessionEpreuveService.delete(se);
+							deletedCount++;
+							log.info("[" + context.getKey() + "] Suppression session orpheline : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
+						} else {
+							log.warn("[" + context.getKey() + "] Session absente dans ADE mais trop récente : "
+									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
+						}
+					}
+				} catch (Exception e) {
+					log.error("[" + context.getKey() + "] Erreur lors de la vérification de la session "
+							+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", e);
+					errorCount++;
+				}
+			}
+		}
+		log.info("[" + context.getKey() + "] Vérification terminée - supprimées=" + deletedCount + ", erreurs="
+				+ errorCount);
+	}
+	
+	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
+		String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents" + "&eventId=" + se.getAdeEventId()
+				+ "&detail=8";
+		Document doc = getDocument(urlEvent);
+		doc.getDocumentElement().normalize();
+		NodeList list = doc.getElementsByTagName("event");
+		if (list.getLength() == 0) {
+			return false;
+		}
+		// ✅ Vérification du couple (eventId + activityId)
+		for (int i = 0; i < list.getLength(); i++) {
+			Element event = (Element) list.item(i);
+			String eventId = event.getAttribute("id");
+			String activityId = event.getAttribute("activityId");
+			if (eventId == null || activityId == null) {
+				continue;
+			}
+			if (eventId.equals(String.valueOf(se.getAdeEventId()))
+					&& activityId.equals(String.valueOf(se.getAdeActiviteId()))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isOldEnoughToDelete(SessionEpreuve se) {
+	    return se.getDateCreation().toInstant()
+	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
+	}
+
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {
 		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -628,9 +751,12 @@ public class AdeService {
 						}
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						String activityId = element.getAttribute("activityId");
+						Long activityIdValue = Long.valueOf(activityId);
 						boolean isAlreadyimport = false;
 						Date dateExamen = formatter.parse(element.getAttribute("date"));
-						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx)>0){
+						Date heureDebut = formatter1.parse(element.getAttribute("startHour"));
+						Date heureFin = formatter1.parse(element.getAttribute("endHour"));
+						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx)>0){
 							isAlreadyimport = true;
 						}else if(sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0) {
 							isAlreadyimport = true;
@@ -639,8 +765,8 @@ public class AdeService {
 							SessionEpreuve se = null;
 							if(isAlreadyimport) {
 								List<SessionEpreuve> ses = null;
-								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx);
+								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx);
 									se = ses.get(0);
 								}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
 									ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
@@ -649,7 +775,7 @@ public class AdeService {
 							}else {
 								se = new SessionEpreuve();
 							}
-							adeResourceBean.setActivityId(Long.valueOf(activityId));
+							adeResourceBean.setActivityId(activityIdValue);
 							if(update) {
 								Map<String, AdeResourceBean>  activities2 = getActivityFromResource(sessionId, null, activityId);
 								AdeResourceBean beanActivity2 = activities2.get(activityId);
@@ -666,18 +792,17 @@ public class AdeService {
 							if(se!=null) {
 								se.setNomSessionEpreuve( element.getAttribute("name"));
 								se.setDateExamen(dateExamen);
-								se.setHeureEpreuve(formatter1.parse(element.getAttribute("startHour")));
-								se.setFinEpreuve(formatter1.parse(element.getAttribute("endHour")));
+								se.setHeureEpreuve(heureDebut);
+								se.setFinEpreuve(heureFin);
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
-								se.setAdeActiviteId(Long.valueOf(activityId));
+								se.setAdeActiviteId(activityIdValue);
 								//pour l'instant
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));
 								}
-								adeResourceBean.setSessionEpreuve(se);
 								if(isAlreadyimport) {
-									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndContext(Long.valueOf(activityId), dateExamen, ctx).get(0).getDateCreation());
+									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
 									}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
 										se.setDateCreation(sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).get(0).getDateCreation());
 									}
@@ -716,6 +841,11 @@ public class AdeService {
 																maptrainees.put(id, name);
 																trainees.add(maptrainees);
 																adeResourceBean.setTrainees(trainees);
+																if(appliConfigService.isAdeVetDisplayed(ctx)) {
+																	String adeVet = getVersioneEtape(sessionId, element3.getAttribute("id"));
+																	adeResourceBean.setVet(adeVet);
+																	se.setAdeVET(adeVet);
+																}
 															}
 												}else if("instructor".equals(category)){
 													List<Map<Long,String>> instructors = (adeResourceBean.getInstructors() == null)? 
@@ -749,6 +879,7 @@ public class AdeService {
 										}
 									}
 								}
+								adeResourceBean.setSessionEpreuve(se);
 								adeBeans.add(adeResourceBean);
 							}else {
 								log.warn("Maj de l'évènement impossible, soit il n'existe plus, soit il a été recréé avec un Id différent, id stocké : " + eventId);
@@ -1074,7 +1205,7 @@ public class AdeService {
 				typeSession = typeSessionRepository.save(typeSession);
 			}
 		}else {
-			List<TypeSession> typeSessions = typeSessionRepository.findByKey(typeEvent);
+			List<TypeSession> typeSessions = typeSessionRepository.findByKeyAndContext(typeEvent, ctx);
 			if(!typeSessions.isEmpty()) {
 				typeSession = typeSessions.get(0);
 			}else {
@@ -1177,10 +1308,16 @@ public class AdeService {
 						if(!allCodes.isEmpty()) {
 							for (String code : allCodes) {
 								String numIdentifiant = code;
-								if("mail".equals(filter)) {
-									numIdentifiant = users.get(code).getNumEtudiant();
-								}
-								List<Person> persons = personRepository.findByNumIdentifiant(numIdentifiant);
+                                if("mail".equals(filter)) {
+                                    LdapUser ldapUser = users.get(code);
+                                    if (ldapUser != null) {
+                                        numIdentifiant = ldapUser.getNumEtudiant();
+                                    } else {
+                                        log.warn("Utilisateur LDAP non trouvé pour le code : " + code);
+                                        continue; 
+                                    }
+                                }
+								List<Person> persons = personRepository.findByNumIdentifiantAndContext(numIdentifiant, ctx);
 								Person person = null;
 								boolean isUnknown = false;
 								if(!persons.isEmpty()) {
@@ -1209,7 +1346,7 @@ public class AdeService {
 									//tc.setCodeEtape(codeEtape);
 									Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 									List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                    se.getDateExamen(), endDate);
+		                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
 									if(!absences.isEmpty()) {
 										nbStudents++;
 					    				tc.setAbsence(absences.get(0));
@@ -1236,7 +1373,7 @@ public class AdeService {
 							// Recherche par nom du groupe dans esup-emargement
 							String expectedGroupName = entry.getValue();
 							List<Groupe> groupesDuNomGroupeADE = groupeRepository
-									.findByNomLikeIgnoreCase(expectedGroupName);
+									.findByNomLikeIgnoreCaseAndContext(expectedGroupName, ctx);
 							if (1 == groupesDuNomGroupeADE.size()) {
 								Groupe groupe = groupesDuNomGroupeADE.get(0);
 								log.debug("Un groupe esup-emargement (unique) portant le même nom que le groupe ADE ["
@@ -1275,70 +1412,115 @@ public class AdeService {
 		return nbStudents;
 	}
 	
-	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls, int nbStudents) throws ParseException {
+	@Transactional
+	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx,
+			List<SessionLocation> sls, int nbStudents) throws ParseException {
+
 		List<Map<Long, String>> listAdeClassRooms = ade.getClassrooms();
 		boolean isCapaciteSalleEnabled = appliConfigService.isAdeCampusUpdateCapaciteSalleEnabled(ctx);
-		if(listAdeClassRooms!= null && !listAdeClassRooms.isEmpty()) {
-			int totalSize = 0;
-			int minSize = Integer.MAX_VALUE;
-			Long minIdClassroom = null;
-			for (Map<Long, String> map : listAdeClassRooms) {
-			    for (Entry<Long, String> entry : map.entrySet()) {
-			        List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, entry.getKey().toString(), null);
-			        if(!adeClassroomBeans.isEmpty()) {
-				        for (AdeClassroomBean classroom : adeClassroomBeans) {
-				            totalSize += classroom.getSize();
-				            if (classroom.getSize() < minSize) {
-				                minSize = classroom.getSize();
-				                minIdClassroom = classroom.getIdClassRoom();
-				            }
-				        }
-			        }
-			    }
-			}
-			for(Map<Long, String> map : listAdeClassRooms) {
-				for (Entry<Long, String> entry : map.entrySet()) {
-					List<AdeClassroomBean> adeClassroomBeans = getListClassrooms(sessionId, entry.getKey().toString(), null);
-					if(!adeClassroomBeans.isEmpty()) {
-						for(AdeClassroomBean bean : adeClassroomBeans) {
-							Location location = null;
-							Long adeClassRoomId = bean.getIdClassRoom();
-							if(!locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).isEmpty()){
-								location = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx).get(0);
-								if(isCapaciteSalleEnabled && nbStudents>totalSize && location.getAdeClassRoomId().equals(minIdClassroom)) {
-									int adjustment = nbStudents - totalSize + location.getCapacite();
-									location.setCapacite(adjustment);
-									locationRepository.save(location);
-									log.info("Location id Ade : " + location.getAdeClassRoomId() + " , ajustement de la capacité : "  + adjustment );
-								}
-							}else {
-								if(isCapaciteSalleEnabled && nbStudents>totalSize && bean.getIdClassRoom().equals(minIdClassroom)) {
-									int adjustment = nbStudents - totalSize + bean.getSize();
-									bean.setSize(adjustment);
-									log.info("Location id Ade : " + adeClassRoomId + " , ajustement de la capacité : "  + adjustment );
-								}
-								location = new Location();
-								location.setAdeClassRoomId(adeClassRoomId);
-								location.setAdresse(bean.getChemin());
-								location.setCampus(ade.getSessionEpreuve().getCampus());
-								location.setCapacite(bean.getSize());
-								location.setContext(ctx);
-								location.setNom(bean.getNom());
-								locationRepository.save(location);
-							}
-							SessionLocation sl = new SessionLocation();
-							sl.setCapacite(location.getCapacite());
-							sl.setContext(ctx);
-							sl.setLocation(location);
-							sl.setSessionEpreuve(se);
-							sl.setPriorite(1);
-							SessionLocation savesl = sessionLocationRepository.save(sl);
-							sls.add(savesl);
-						}
-					}
-			    }
+
+		if (listAdeClassRooms == null || listAdeClassRooms.isEmpty()) {
+			log.warn("Aucune salle ADE trouvée pour la session " + sessionId);
+			return;
+		}
+
+		// --- Étape 1 : charger toutes les classrooms ADE une fois ---
+		Map<Long, List<AdeClassroomBean>> classroomsById = new HashMap<>();
+		for (Map<Long, String> map : listAdeClassRooms) {
+			for (Entry<Long, String> entry : map.entrySet()) {
+				List<AdeClassroomBean> beans = getListClassrooms(sessionId, entry.getKey().toString(), null, ctx);
+				if (beans != null && !beans.isEmpty()) {
+					classroomsById.put(entry.getKey(), beans);
+				}
 			}
 		}
+
+		if (classroomsById.isEmpty()) {
+			log.warn("Aucune classroom ADE valide trouvée pour la session " + sessionId);
+			return;
+		}
+
+		// --- Étape 2 : calcul du total et de la salle la plus petite ---
+		int totalSize = 0;
+		int minSize = Integer.MAX_VALUE;
+		Long minIdClassroom = null;
+
+		for (Map.Entry<Long, List<AdeClassroomBean>> entry : classroomsById.entrySet()) {
+			Long id = entry.getKey();
+			List<AdeClassroomBean> beans = entry.getValue();
+			int roomMinSize = beans.stream().mapToInt(AdeClassroomBean::getSize).min().orElse(Integer.MAX_VALUE);
+			totalSize += beans.stream().mapToInt(AdeClassroomBean::getSize).sum();
+			if (roomMinSize < minSize || (roomMinSize == minSize && (minIdClassroom == null || id < minIdClassroom))) {
+				minSize = roomMinSize;
+				minIdClassroom = id;
+			}
+		}
+		log.info("Session " + sessionId + " - total capacité ADE = " + totalSize + ", min salle ID = " + minIdClassroom);
+		
+	    List<AdeClassroomBean> selectedBeans = classroomsById.get(minIdClassroom);
+
+		// --- Étape 3 : ajustement si besoin ---
+		if (isCapaciteSalleEnabled && nbStudents > totalSize && minIdClassroom != null) {
+			int adjustment = nbStudents - totalSize;
+			log.info("Ajustement de capacité : +" + adjustment + " sur salle " + minIdClassroom);
+			List<Location> locs = locationRepository.findByAdeClassRoomIdAndContext(minIdClassroom, ctx);
+
+	        Location loc;
+	        if (!locs.isEmpty()) {
+	            loc = locs.get(0);
+	            if (locs.size() > 1) {
+	                log.warn("Doublons détectés pour la salle " + minIdClassroom + ". Ignorés, première Location utilisée.");
+	            }
+	            loc.setCapacite(loc.getCapacite() + adjustment);
+	            locationRepository.save(loc);
+	        }  else {
+	            AdeClassroomBean bean = selectedBeans.get(0);
+	            loc = new Location();
+	            loc.setAdeClassRoomId(bean.getIdClassRoom());
+	            loc.setAdresse(bean.getChemin());
+	            loc.setCampus(ade.getSessionEpreuve().getCampus());
+	            loc.setCapacite(bean.getSize() + adjustment);
+	            loc.setContext(ctx);
+	            loc.setNom(bean.getNom());
+	            locationRepository.save(loc);
+			}
+			// Mettre à jour le totalSize après ajustement
+			totalSize += adjustment;
+		}
+
+		// --- Étape 4 : création des SessionLocation ---
+	    for (Map.Entry<Long, List<AdeClassroomBean>> entry : classroomsById.entrySet()) {
+	        Long adeClassRoomId = entry.getKey();
+	        List<AdeClassroomBean> beans = entry.getValue();
+	        List<Location> locs = locationRepository.findByAdeClassRoomIdAndContext(adeClassRoomId, ctx);
+	        Location location;
+	        if (locs.isEmpty()) {
+	            AdeClassroomBean bean = beans.get(0);
+	            location = new Location();
+	            location.setAdeClassRoomId(adeClassRoomId);
+	            location.setAdresse(bean.getChemin());
+	            location.setCampus(ade.getSessionEpreuve().getCampus());
+	            location.setCapacite(bean.getSize());
+	            location.setContext(ctx);
+	            location.setNom(bean.getNom());
+	            locationRepository.save(location);
+	        } else {
+	            location = locs.get(0);
+	            if (locs.size() > 1) {
+	                log.warn("Doublons détectés pour adeClassRoomId=" + adeClassRoomId +
+	                        ". Ignorés, première Location utilisée.");
+	            }
+	        }
+	        // SessionLocation
+	        SessionLocation sl = new SessionLocation();
+	        sl.setCapacite(location.getCapacite());
+	        sl.setContext(ctx);
+	        sl.setLocation(location);
+	        sl.setSessionEpreuve(se);
+	        sl.setPriorite(1);
+	        sls.add(sessionLocationRepository.save(sl));
+	    }
+	    log.info("processLocations terminé pour session " + sessionId);
 	}
 	
 	private void processInstructors(AdeResourceBean ade, String sessionId, Context ctx, List<SessionLocation> sls) {
@@ -1577,7 +1759,7 @@ public class AdeService {
 					if (existingGroupe != null) {
 						groupes.addAll(existingGroupe);
 					}
-					if (newGroupe!=null && !newGroupe.isEmpty()) {
+					if (newGroupe!=null && !newGroupe.isEmpty() && auth != null) {
 						Groupe groupe = groupeService.createNewGroupe(newGroupe, emargementContext,
 								sessionEpreuveService.getCurrentanneUniv(), auth.getName());
 						groupes.add(groupe.getId());
@@ -1629,5 +1811,40 @@ public class AdeService {
 	        return projet;
 	    }
 	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? "0" : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
+	}
+	
+	public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException {
+		String detail = "11";
+		String idParam = (idItem!=null)? "&id=" + idItem : "";
+		String urlVet = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" + detail + "&category=trainee"+ idParam;
+		String vet = "";
+		try {
+	    	  InputStream input = new URL(urlVet).openStream();
+	          SAXBuilder sax = new SAXBuilder();
+	          /// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
+	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+	          org.jdom2.Document doc = sax.build(input);
+	          org.jdom2.Element rootNode = doc.getRootElement();
+	          List<org.jdom2.Element> list = rootNode.getChildren("category");
+	          for (org.jdom2.Element target : list) {
+	        	  List<org.jdom2.Element> branch = target.getChildren("branch");
+	        	  for (org.jdom2.Element target1 : branch) {
+	        		  List<org.jdom2.Element> branch2 = target1.getChildren("branch");
+	        		  for (org.jdom2.Element target2 : branch2) {
+	        			  String code = target2.getAttributeValue("code");
+							if(code!=null) {
+								String splitCode [] = code.split("_");
+								if(splitCode.length>1) {
+									vet = splitCode[1];
+								}
+							}
+	        		  }
+	        	  }
+	          }
+		}catch (IOException | JDOMException e) {
+	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet);
+	    }
+		return vet;
 	}
 }

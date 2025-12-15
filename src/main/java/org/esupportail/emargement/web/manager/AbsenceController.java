@@ -26,6 +26,7 @@ import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
+import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
@@ -96,6 +97,9 @@ public class AbsenceController {
 	@Resource
 	TagCheckService tagCheckService;
 	
+	@Resource
+	AbsenceService absenceService;
+
 	private final static String ITEM = "absence";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -167,12 +171,15 @@ public class AbsenceController {
         	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
         	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
         	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
-        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin());
+        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin(), 
+        			 absence.getHeureDebut(),absence.getHeureFin(), absence.getContext());
         	 overlapsList.remove(absence);
         	 if(!tcs.isEmpty()) {
         		 for(TagCheck tc : tcs) {
-        			 tc.setAbsence(absence);
-        			 tagCheckRepository.save(tc);
+        			 if(absenceService.absenceCouvreSession(absence, tc.getSessionEpreuve())) {
+            			 tc.setAbsence(absence);
+            			 tagCheckRepository.save(tc);
+        			 }
         		 }
         	 }
         	 if(!overlapsList.isEmpty()) {

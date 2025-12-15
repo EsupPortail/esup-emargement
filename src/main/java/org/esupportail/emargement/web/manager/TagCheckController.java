@@ -177,9 +177,9 @@ public class TagCheckController {
 	private String appUrl;
 	
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
-    public String listTagCheckBySessionEpreuve(@PathVariable("id") Long id, Model model, 
+    public String listTagCheckBySessionEpreuve(@PathVariable Long id, Model model, 
     		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person.eppn")  Pageable pageable, 
-    			@RequestParam(defaultValue = "",value="tempsAmenage") String tempsAmenage, @RequestParam(defaultValue = "",value="eppn") String eppn, @RequestParam(value="repartition", required = false) 
+    			@RequestParam(defaultValue = "") String tempsAmenage, @RequestParam(defaultValue = "") String eppn, @RequestParam(value="repartition", required = false) 
     			Long repartitionId) throws ParseException {
 		
 		Long count = tagCheckService.countTagchecks(tempsAmenage, eppn, id, repartitionId);
@@ -245,7 +245,7 @@ public class TagCheckController {
     }
 	
 	@GetMapping(value = "/manager/tagCheck/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
 		List<TagCheck> tagChecks = new ArrayList<>();
 		tagChecks.add( tagCheckRepository.findById(id).get());
 		tagCheckService.setNomPrenomTagChecks(tagChecks, false, false);
@@ -254,7 +254,7 @@ public class TagCheckController {
     }
 	
     @GetMapping(value = "/manager/tagCheck", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam Long sessionEpreuve, @RequestParam(value="type", required = false) String type, @RequestParam(required = false) String modal) {
+    public String createForm(Model uiModel, @RequestParam Long sessionEpreuve, @RequestParam(required = false) String type, @RequestParam(required = false) String modal) {
     	TagCheck tagCheck = new TagCheck();
     	populateEditForm(uiModel, tagCheck, sessionEpreuve);
     	if(type == null) {
@@ -331,7 +331,7 @@ public class TagCheckController {
     
     @Transactional
     @PostMapping("/manager/tagCheck/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid TagCheck tagCheck, @RequestParam(value="motifAbsence", required =false) MotifAbsence motifAbsence, 
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid TagCheck tagCheck, @RequestParam(required =false) MotifAbsence motifAbsence, 
     		BindingResult bindingResult, Model uiModel) throws IOException {
     	
     	boolean isOk = true;
@@ -372,7 +372,7 @@ public class TagCheckController {
     
     @Transactional
     @PostMapping(value = "/manager/tagCheck/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id) {
     	TagCheck tagCheck = tagCheckRepository.findById(id).get();
     	if("CLOSED".equals(tagCheck.getSessionEpreuve().getStatutSession().getKey())) {
 	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
@@ -389,15 +389,15 @@ public class TagCheckController {
     
 	@Transactional
 	@GetMapping(value = "/manager/tagCheck/deleteAllTagChecks/{id}", produces = "text/html")
-    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable("id") Long id) {
+    public String deleteRepartition(@PathVariable String emargementContext, @PathVariable Long id) {
 		tagCheckService.deleteAllTagChecksBySessionEpreuveId(id);
         return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
 	
     @PostMapping("/manager/tagCheck/convocationForm")
     @Transactional
-    public String convocationForm(@PathVariable String emargementContext, @RequestParam(value = "listeIds", required = false) List<Long> listeIds, @RequestParam(value = "sessionEpreuveId") SessionEpreuve sessionEpreuve, 
-    		@RequestParam(value = "submit") String submit, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String convocationForm(@PathVariable String emargementContext, @RequestParam(required = false) List<Long> listeIds, @RequestParam(value = "sessionEpreuveId") SessionEpreuve sessionEpreuve, 
+    		@RequestParam String submit, Model uiModel, final RedirectAttributes redirectAttributes) {
     	
     	
     	if("selected".equals(submit) && listeIds!= null && listeIds.isEmpty()) {
@@ -418,7 +418,7 @@ public class TagCheckController {
     }
     
     @PostMapping("/manager/tagCheck/pdfConvocation")
-	public void getPdfConvocation(HttpServletResponse response, @RequestParam("htmltemplate") String htmltemplate) throws Exception {
+	public void getPdfConvocation(HttpServletResponse response, @RequestParam String htmltemplate) throws Exception {
     	tagCheckService.getPdfConvocation(response,htmltemplate);
 	}
     
@@ -430,13 +430,13 @@ public class TagCheckController {
     
 	@Transactional
 	@PostMapping(value = "/manager/tagCheck/sendConvocation", produces = "text/html")
-    public String sendConvocation(@PathVariable String emargementContext, @RequestParam("subject") String subject, @RequestParam("bodyMsg") String bodyMsg, 
-    		@RequestParam(value="isSendToManager", defaultValue = "false") boolean isSendToManager,  @RequestParam(value="all", defaultValue = "false") boolean isAll,
-    		@RequestParam(value = "listeIds", defaultValue = "") List<Long> listeIds,  @RequestParam("htmltemplatePdf") String htmltemplatePdf, @RequestParam("seId") 
+    public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg, 
+    		@RequestParam(defaultValue = "false") boolean isSendToManager,  @RequestParam(value="all", defaultValue = "false") boolean isAll,
+    		@RequestParam(defaultValue = "") List<Long> listeIds,  @RequestParam String htmltemplatePdf, @RequestParam 
     		Long seId) throws Exception {
 
 		if(appliConfigService.isSendEmails()){
-			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId);
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId, true);
 		}else {
 			log.info("Envoi de mail désactivé :  ");
 		}
@@ -446,7 +446,7 @@ public class TagCheckController {
 	
     @GetMapping("/manager/tagCheck/searchUsersLdap")
     @ResponseBody
-    public List<LdapUser> searchLdap(@RequestParam("searchValue") String searchValue) {
+    public List<LdapUser> searchLdap(@RequestParam String searchValue) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
     	List<LdapUser> userAppsList = new ArrayList<>();
@@ -456,8 +456,8 @@ public class TagCheckController {
     }
     
     @PostMapping("/manager/tagCheck/sendLinkOrQrCode")
-    public String sendLinkOrQrCode(@PathVariable String emargementContext, @RequestParam("seId") Long seId,  @RequestParam(value = "population", required = false) String population, 
-    		@RequestParam("type") String type, final RedirectAttributes redirectAttributes) throws MessagingException, IOException {
+    public String sendLinkOrQrCode(@PathVariable String emargementContext, @RequestParam Long seId,  @RequestParam(required = false) String population, 
+    		@RequestParam String type, final RedirectAttributes redirectAttributes) throws MessagingException, IOException {
     	//On pourra rechercher par type ...
     	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
     	if(!tcs.isEmpty()) {
@@ -588,7 +588,7 @@ public class TagCheckController {
     }
     
 	@GetMapping(value = "/manager/tagCheck/esupsignature/{id}", produces = "text/html")
-    public String sendPdfToEsupToWorkflow(@PathVariable("id") Long id, @PathVariable String emargementContext, HttpServletResponse response) {
+    public String sendPdfToEsupToWorkflow(@PathVariable Long id, @PathVariable String emargementContext, HttpServletResponse response) {
 		esupSignatureService.sendPdfToEsupToWorkflow(emargementContext, id, response, TypeSignature.SESSION);
 		return String.format("redirect:/%s/manager/tagCheck/sessionEpreuve/%s", emargementContext, id);
 	}

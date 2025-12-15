@@ -120,8 +120,8 @@ public class CalendarService {
 	    		    String slId = sls.isEmpty() ? "" : String.valueOf(sls.get(0).getId());
 	    		    url = !isFromContext 
 	    		        ? "#" 
-	    		        : String.format("%s/%s/supervisor/presence?sessionEpreuve=%s&location=%s&from=supervisor", 
-	    		                        appUrl, se.getContext().getKey(), se.getId(), slId);
+	    		        : String.format("%s/%s/supervisor/presence?sessionEpreuve=%s&location=%s&keyStatut=%s&from=supervisor", 
+	    		                        appUrl, se.getContext().getKey(), se.getId(), slId, se.getStatutSession().getKey());
 	    		} else {
 	    		    url = !isFromContext 
 	    		        ? "#" 

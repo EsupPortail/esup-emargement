@@ -9,6 +9,23 @@ function initSlimSelects() {
     }
   });
 }
+  function updateDisplay(selectedDates) {
+    // 2️⃣ Met à jour les badges visibles avec un format lisible
+    badgesContainer.innerHTML = "";
+    selectedDates.forEach(date => {
+      const options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
+      const literal = date.toLocaleDateString('fr-FR', options);
+      const iso = date.toISOString().split('T')[0];
+
+      const badge = document.createElement('span');
+      badge.className = "badge bg-primary me-2 mb-2 badge-date";
+      badge.innerHTML = `
+        ${literal}
+        <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Supprimer" data-date="${iso}"></button>
+      `;
+      badgesContainer.appendChild(badge);
+    });
+  }
 function insertBefore(el, referenceNode) {
 	referenceNode.parentNode.insertBefore(el, referenceNode);
 }
@@ -947,10 +964,12 @@ document.addEventListener('DOMContentLoaded', function() {
 			var isPreviewPdfOk = document.getElementById("isPreviewPdfOk");
 			if (subject.value.length == 0) {
 				alert("Vous devez rentrer un sujet");
-			} else if (!isPreviewPdfOk.checked) {
+			} else if (isPreviewPdfOk!=null && !isPreviewPdfOk.checked) {
 				alert("Vous devez valider le PDF de convocation");
-			} else {
+			} else if (sendConvocation !=null){
 				sendConvocation.submit();
+			}else if (document.getElementById("sendCommunication") !=null){
+				document.getElementById("sendCommunication").submit();
 			}
 		}
 		if (event.target.matches('#submitEmailConvsignes')) {
@@ -1685,57 +1704,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	//jstree adecampus
 	$('#frmt').on('changed.jstree', function(e, data) {
-		var checkedNodes = data.selected; 
-		var nodesToRemove = [];
-		checkedNodes.forEach(function(nodeId) {
-			var node = data.instance.get_node(nodeId);
-			if (node.children.length > 0) {
-				node.children.forEach(function(childId) {
-					if (checkedNodes.includes(childId)) {
-						nodesToRemove.push(nodeId);
-					}
-				});
-			}
-		});
-		nodesToRemove.forEach(function(nodeId) {
-			var index = checkedNodes.indexOf(nodeId);
-			if (index > -1) {
-				checkedNodes.splice(index, 1);
-			}
-		});
-		var r = [];
-		var text = [];
-		var allLibelles = [];
-		checkedNodes.forEach(function(nodeId) {
-			var node = data.instance.get_node(nodeId);
-			text.push(node.text);
-			r.push(node.id);
-			let hierarchy = [];
-		    node.parents.reverse().forEach(function(parentId) {
-		        if (parentId !== "#") {
-		            var parentNode = data.instance.get_node(parentId);
-		            hierarchy.push(parentNode.text);
-		        }
-		    });
-		    hierarchy.push(node.text);
-		    var fullText = hierarchy.join(">");
-		    allLibelles.push(fullText);
-		});
-		$("#idList").val(r.join(', '));
-		$("#idListImport").val(r.join(','));
-		$("#idListTask").val(r.join(', '));
-		$("#textListTask").val(allLibelles.join(', '));
-		}).jstree({
-			"checkbox": {
-				"keep_selected_style": false,
-				"three_state": false,
-				"cascade": "up"
-			},
-			"plugins": ["checkbox", "sort", "state"],
-			'core': {
-				'data': []
-			}
-		});
+	    var checkedNodes = data.selected.slice(); // copie pour sécurité
+	    var nodesToRemove = [];
+
+	    // Supprimer les nœuds parents si leurs enfants sont sélectionnés (ton code original)
+	    checkedNodes.forEach(function(nodeId) {
+	        var node = data.instance.get_node(nodeId);
+	        if (node.children.length > 0) {
+	            node.children.forEach(function(childId) {
+	                if (checkedNodes.includes(childId)) {
+	                    nodesToRemove.push(nodeId);
+	                }
+	            });
+	        }
+	    });
+	    nodesToRemove.forEach(function(nodeId) {
+	        var index = checkedNodes.indexOf(nodeId);
+	        if (index > -1) checkedNodes.splice(index, 1);
+	    });
+
+	    var r = [];               // IDs des nœuds finaux sélectionnés (feuilles/tronc sélectionné)
+	    var text = [];            // textes (ton code)
+	    var allLibelles = [];     // libellés texte complets (ton code)
+	    var firstLevelIds = [];   // => nos premiers niveaux après la racine (résultat voulu)
+
+	    checkedNodes.forEach(function(nodeId) {
+	        var node = data.instance.get_node(nodeId);
+	        text.push(node.text);
+	        r.push(node.id);
+
+	        // --- Code original (texte du chemin) ---
+	        let hierarchy = [];
+	        node.parents.slice().reverse().forEach(function(parentId) {
+	            if (parentId !== "#") {
+	                var parentNode = data.instance.get_node(parentId);
+	                hierarchy.push(parentNode.text);
+	            }
+	        });
+	        hierarchy.push(node.text);
+	        var fullText = hierarchy.join(">");
+	        allLibelles.push(fullText);
+	        // --- fin code original ---
+
+	        // --- Nouveau : construire le chemin en IDs dans l'ordre root -> ... -> node ---
+	        // node.parents est dans l'ordre enfant -> ... -> '#' ; on inverse et on retire '#'
+	        var pathFromRoot = node.parents.slice().reverse().filter(function(p){ return p !== "#"; });
+	        // ajouter l'ID du noeud sélectionné à la fin pour avoir le chemin complet
+	        pathFromRoot.push(node.id);
+
+	        // Si le chemin contient au moins 2 éléments, l'élément d'index 1 est le premier sous la racine
+	        // (si pathFromRoot = [root, b, c, d], on prend pathFromRoot[1] => b)
+	        var firstAfterRoot = pathFromRoot.length > 1 ? pathFromRoot[1] : pathFromRoot[0];
+	        firstLevelIds.push(firstAfterRoot);
+	    });
+
+	    // dédupliquer les IDs (si plusieurs descendants de la même branche ont été cochés)
+	    var uniqueFirstLevel = Array.from(new Set(firstLevelIds));
+
+	    // Mise à jour des champs du formulaire (ton code)
+	    $("#idList").val(r.join(','));
+	    $("#idListImport").val(r.join(','));
+	    $("#idListTask").val(r.join(','));
+	    $("#textListTask").val(allLibelles.join(','));
+
+	    // Stocker le résultat voulu (IDs du premier niveau après la racine) dans un champ caché
+	    $("#firstLevelIds").val(uniqueFirstLevel.join(','));
+
+	    // debug
+	    console.log("Sélection finale (IDs) :", r);
+	    console.log("Chemins texte :", allLibelles);
+	    console.log("Tous firstAfterRoot (possiblement dupliqués) :", firstLevelIds);
+	    console.log("Unique firstLevelIds (résultat final) :", uniqueFirstLevel);
+
+	}).jstree({
+	    "checkbox": {
+	        "keep_selected_style": false,
+	        "three_state": false,
+	        "cascade": "up"
+	    },
+	    "plugins": ["checkbox", "sort", "state"],
+	    'core': {
+	        'data': []
+	    }
+	});
 
 	var table = $('.tableSalles').DataTable({
 		responsive: true,
@@ -2201,12 +2252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				htmltemplatePdf.value = editor1.getContents();
 	    });
 	}
-	$('#sendCommunication').submit(function(e) {
-	    e.preventDefault(); 
-	    var bodyMsg = document.getElementById("bodyMsg");
-	    bodyMsg.value = editor2.getContents();
-	    this.submit();
-	});
+	
 	
 	//Autocomplete
 	if (document.querySelector('#suPage, #presencePage, #userAppPage, #locationPage, #sessionEpreuvePage, #recherchePage, #addMembersPage, #extractionPage, #createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #assiduitePage, #tagChecksListPage')) {
@@ -2287,12 +2333,35 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	
+	//Duplicate sessions
+	const inputVisible = document.getElementById("datepicker");
+
+	if(inputVisible != null){
+		const fp = flatpickr(inputVisible, {
+			mode: "multiple",
+			dateFormat: "Y-m-d", // format technique (pour le hidden)
+			locale: "fr",
+			altInput: false, // désactivé car on veut gérer nous-mêmes l’affichage
+			onChange: updateDisplay
+		});
+		const badgesContainer = document.getElementById("badgesContainer");
+		// 3️⃣ Suppression d’une date via le badge
+		badgesContainer.addEventListener("click", (e) => {
+			if (e.target.classList.contains("btn-close")) {
+				const dateToRemove = e.target.getAttribute("data-date");
+				const newDates = fp.selectedDates.filter(d => d.toISOString().split('T')[0] !== dateToRemove);
+				fp.setDate(newDates);
+				updateDisplay(newDates);
+			}
+		});
+	}
 });
 
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-	if (document.getElementById("motifAbsence")){
+	if (document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
 	    setTimeout(() => {
 	        if (slimSelectInstance) {
 	            slimSelectInstance.destroy();
@@ -2319,6 +2388,30 @@ document.addEventListener('htmx:afterSwap', function(event) {
 	 if (event.target.querySelector('select.slimSelectClass')) {
 	    initSlimSelects();
 	  }
+	if (document.getElementById('extractionPage') !== null) {
+		const slimConfigs = [
+			{ elements: ['codCmp', 'sessionEpreuve', 'sessionEpreuveLdap', 'sessionEpreuveGroupe', 'sessionEpreuveCsv', 'groupe', 'sessionLocationCsv', 'sessionLocationLdap', 'sessionLocationGroupe', 'sessionLocation'] },
+			{ elements: ['codSes', 'codAnu'], options: { showSearch: false } },
+			{ elements: ['codEtp', 'codElp', 'codExtGpe'], options: { allowDeselect: true, enabled: true } }
+		];
+		slimConfigs.forEach(config => {
+			config.elements.forEach(id => {
+				const element = document.getElementById(id);
+				if (element) {
+					// Détruire l’ancienne instance si déjà créée
+					if (element.slim) {
+						element.slim.destroy();
+					}
+					const options = config.options || {};
+					const slim = new SlimSelect({ select: `#${id}`, ...options });
+					if (options.enabled) {
+						slim.enable();
+					}
+					element.slim = slim;
+				}
+			});
+		});
+	}
 });
 
 document.addEventListener('htmx:afterSettle', function(evt) {

@@ -61,7 +61,6 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StatutSessionRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.security.ContextHelper;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.utils.ParamUtil;
@@ -419,7 +418,7 @@ public class TagCheckService {
 					    			}
 					    			Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
 					    			List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                      se.getDateExamen(), endDate);
+		                                      se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), se.getContext());
 					    			if(!absences.isEmpty()) {
 					    				tc.setAbsence(absences.get(0));
 					    			}
@@ -535,8 +534,8 @@ public class TagCheckService {
 			esupSignatureRepository.deleteAll(list);
 		}
 		tagCheckRepository.deleteAll(tagChecks);
-		
-		personService.deleteUnusedPersons(contextRepository.findByContextKey(ContextHelper.getCurrentContext()));
+		SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuveId).get();
+		personService.deleteUnusedPersons(contextRepository.findByContextKey(se.getContext().getKey()));
     }
     
     public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy) {
@@ -684,7 +683,8 @@ public class TagCheckService {
 		return finalString;
 	}
 	
-	public void sendEmailConvocation (String subject, String bodyMsg, boolean isSendToManager, List<Long> listeIds, String htmltemplatePdf, String emargementContext, boolean isAll, Long seId) throws Exception {
+	public void sendEmailConvocation (String subject, String bodyMsg, boolean isSendToManager, List<Long> listeIds, String htmltemplatePdf, 
+			String emargementContext, boolean isAll, Long seId, boolean includePdf) throws Exception {
 		if(!listeIds.isEmpty() || isAll) {
 			int i=0; int j=0; 
 			ArrayList<String> errors = new ArrayList<>();
@@ -717,10 +717,9 @@ public class TagCheckService {
 					}else if(tc.getGuest() != null){
 						email = tc.getGuest().getEmail();
 					}
-
 					String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
 					if(appliConfigService.isSendEmails()){
-						boolean addAttachment = htmltemplatePdf.isEmpty()? false : true;
+						boolean addAttachment = htmltemplatePdf.isEmpty() || !includePdf? false : true;
 						emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null, addAttachment);
 					}
 					tc.setDateEnvoiConvocation(new Date());

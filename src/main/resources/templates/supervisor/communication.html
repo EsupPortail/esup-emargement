@@ -36,7 +36,7 @@
 				                    </div>
 									<div class="form-check form-check-inline mb-2">
 									   <label class="form-check-label mr-2" for="includePdf">Inclure PDF</label>
-									   <input class="form-check-input" type="checkbox" id="includePdf">
+									   <input class="form-check-input" type="checkbox" id="includePdf" name="includePdf">
 									</div>
 									<textarea id="emailArea"></textarea>
 									<input type="hidden" id="seId" name="seId" th:value="${sessionEpreuve.id}"/>
@@ -45,7 +45,7 @@
 									<input type="hidden" value="" name="htmltemplatePdf" id="htmltemplatePdf">
 			                        <div class="row">
 			                            <div class="col-md-6 mt-2">
-			                                <input th:if="${isSendEmails}" type="submit" class="btn btn-success" value="Envoyer">
+			                                <input th:if="${isSendEmails}"id="submitEmailConvocation" type="submit" class="btn btn-success" value="Envoyer">
 			                                <span th:unless="${isSendEmails}" class="text-danger">Envoi d'emails désactivé !!</span>
 			                            </div>
 			                        </div>

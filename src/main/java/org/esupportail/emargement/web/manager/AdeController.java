@@ -189,6 +189,7 @@ public class AdeController {
 			// sinon on utilise projet et on l'enregistre en tant que projet en cours
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
+			Context ctx = contextRepository.findByKey(emargementContext);
 			String fomrAde = appliConfigService.getFormationAde();
 			String formationCat = (fomrAde!=null && !fomrAde.isEmpty())? fomrAde : null;
 			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
@@ -200,6 +201,7 @@ public class AdeController {
 			uiModel.addAttribute("category6", formationCat);
 			uiModel.addAttribute("campuses", campusRepository.findAll());
 			uiModel.addAttribute("isCreateGroupeAdeEnabled", appliConfigService.isAdeCampusGroupeAutoEnabled());
+			uiModel.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
 			uiModel.addAttribute("allGroupes", groupeRepository.findByAnneeUnivOrderByNom(String.valueOf(sessionEpreuveService.getCurrentanneUniv())));
 		} catch (Exception e) {
 			log.error("Erreur lors de la récupération des évènements", e);
@@ -222,6 +224,7 @@ public class AdeController {
 			uiModel.addAttribute("currentComposante", codeComposante);
 			if("myEvents".equals(codeComposante) || idList.size()>0) {
 				Context ctx = contextRepository.findByKey(emargementContext);
+				uiModel.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
 				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx, false));
 			}
 			uiModel.addAttribute("strDateMin", strDateMin);
@@ -272,7 +275,7 @@ public class AdeController {
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
-		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList());
+		uiModel.addAttribute("listeSalles", codeSalle!=null && !codeSalle.isEmpty()? adeService.getListClassrooms2(sessionId, codeSalle, null) :  new ArrayList<AdeClassroomBean>());
 		uiModel.addAttribute("idProject", idProject);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("codeSalle", codeSalle);
@@ -324,9 +327,9 @@ public class AdeController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String projectId = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		String sessionId = adeService.getSessionIdByProjectId(projectId, emargementContext);
-		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms);
+		Context ctx = contextRepository.findByContextKey(emargementContext);
+		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms, ctx);
 		if(!adeClassroomBeans.isEmpty()) {
-			Context ctx = contextRepository.findByContextKey(emargementContext);
 			for(AdeClassroomBean bean : adeClassroomBeans) {
 				Location location = null;
 				Long adeClassRoomId = bean.getIdClassRoom();
@@ -354,7 +357,7 @@ public class AdeController {
 		return String.format("redirect:/%s/manager/adeCampus", emargementContext);
 	}
 	
-	@RequestMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
+	@GetMapping(value="/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")
 	@ResponseBody 
 	public String getJsonAde(@PathVariable String emargementContext, @RequestParam(required = false) String fatherId,
 			@RequestParam(required = false) String category, @RequestParam String idProject) {

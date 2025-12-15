@@ -93,9 +93,9 @@ public class GroupeController {
 	}
 
 	@GetMapping(value = "/manager/groupe/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
 		Groupe groupe =  groupeRepository.findById(id).get();
-		List <Groupe> grs = new ArrayList<Groupe>();
+		List <Groupe> grs = new ArrayList<>();
 		grs.add(groupe);
 		groupeService.computeCounters(grs);
         uiModel.addAttribute("groupe",  groupeRepository.findById(id).get());
@@ -111,7 +111,7 @@ public class GroupeController {
     }
 	
     @GetMapping(value = "/manager/groupe/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Groupe groupe = groupeRepository.findById(id).get();
     	populateEditForm(uiModel, groupe);
         return "manager/groupe/update";
@@ -136,20 +136,19 @@ public class GroupeController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la maj, groupe déjà existant : " + groupe.getNom());
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
-        }else {
-        	groupe.setDateCreation(new Date());
-        	String eppn = auth.getName();
-        	groupe.setModificateur(eppn);
-        	groupe.setContext(contexteService.getcurrentContext());
-            groupeRepository.save(groupe);
-            log.info("Création groupe : " + groupe.getNom());
-            logService.log(ACTION.AJOUT_GROUPE, RETCODE.SUCCESS, "Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
-            return String.format("redirect:/%s/manager/groupe", emargementContext);
-        }  
+        }
+		groupe.setDateCreation(new Date());
+		String eppn = auth.getName();
+		groupe.setModificateur(eppn);
+		groupe.setContext(contexteService.getcurrentContext());
+		groupeRepository.save(groupe);
+		log.info("Création groupe : " + groupe.getNom());
+		logService.log(ACTION.AJOUT_GROUPE, RETCODE.SUCCESS, "Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
+		return String.format("redirect:/%s/manager/groupe", emargementContext);  
     }
 	
     @PostMapping("/manager/groupe/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, 
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, groupe);
@@ -163,23 +162,22 @@ public class GroupeController {
         	redirectAttributes.addFlashAttribute("error", "constrainttError");
         	log.info("Erreur lors de la maj, groupe déjà existant : " + groupe.getNom());
         	return String.format("redirect:/%s/manager/groupe/%s?form", emargementContext, groupe.getId());
-        }else {
-        	oldGroupe.setDateModification(new Date());
-        	String eppn = auth.getName();
-        	oldGroupe.setDescription(groupe.getDescription());
-        	oldGroupe.setNom(groupe.getNom());
-        	oldGroupe.setModificateur(eppn);
-        	oldGroupe.setAnneeUniv(groupe.getAnneeUniv());
-            groupeRepository.save(oldGroupe);
-            log.info("Maj groupe : " + groupe.getNom());
-            logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
-            return String.format("redirect:/%s/manager/groupe", emargementContext);
-        }  
+        }
+		oldGroupe.setDateModification(new Date());
+		String eppn = auth.getName();
+		oldGroupe.setDescription(groupe.getDescription());
+		oldGroupe.setNom(groupe.getNom());
+		oldGroupe.setModificateur(eppn);
+		oldGroupe.setAnneeUniv(groupe.getAnneeUniv());
+		groupeRepository.save(oldGroupe);
+		log.info("Maj groupe : " + groupe.getNom());
+		logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
+		return String.format("redirect:/%s/manager/groupe", emargementContext);  
     }
     
     @Transactional
     @PostMapping(value = "/manager/groupe/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Groupe groupe  = groupeRepository.findById(id).get();
 		String nom = groupe.getNom();
@@ -195,7 +193,7 @@ public class GroupeController {
     }
     
     @GetMapping(value = {"/manager/groupe/addMembers", "/manager/groupe/addMembers/{tab}"})
-    public String addToGroupe(@PathVariable String emargementContext, Model uiModel, @PathVariable(value="tab", required = false) String tab) {
+    public String addToGroupe(@PathVariable String emargementContext, Model uiModel, @PathVariable(required = false) String tab) {
     	
     	String type = "";
     	if(tab == null) {
@@ -232,8 +230,8 @@ public class GroupeController {
     }
     
     @PostMapping(value = "/manager/groupe/addMembersFromSession")
-    public String addMemberFromSession(@PathVariable String emargementContext, @RequestParam(value="seIds", required = true)  List<Long> seIds,  
-    		@RequestParam(value="groupeIds") List<Long> groupeIds){
+    public String addMemberFromSession(@PathVariable String emargementContext, @RequestParam(required = true)  List<Long> seIds,  
+    		@RequestParam List<Long> groupeIds){
     	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
@@ -245,7 +243,7 @@ public class GroupeController {
     
     
     @GetMapping(value = "/manager/groupe/seeMembers/{id}")
-    public String seeMembers(@PathVariable String emargementContext, @PathVariable("id") Long id, Model uiModel, 
+    public String seeMembers(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel, 
     		@PageableDefault(size = 20, direction = Direction.DESC, sort = "person") Pageable pageable) {
 
     	Page<AppUser> page = new PageImpl<>(groupeService.getMembers(id));
@@ -269,7 +267,7 @@ public class GroupeController {
     }
     
     @PostMapping(value = "/manager/groupe/removeTagChecks/{id}")
-    public String deleteMemberFromGroupe(@PathVariable String emargementContext, @PathVariable("id") Long id, 
+    public String deleteMemberFromGroupe(@PathVariable String emargementContext, @PathVariable Long id, 
     		@RequestParam(value="case", required = false) List<String> keys, final RedirectAttributes redirectAttributes) {
     	if(keys != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -280,10 +278,9 @@ public class GroupeController {
 	    	groupeService.deleteMembers(keys, groupe);
 	    	logService.log(ACTION.UPDATE_GROUPE, RETCODE.SUCCESS, "Suppression membres -> Groupe : ".concat(groupe.getNom()), eppn, null, emargementContext, null);
 	    	return String.format("redirect:/%s/manager/groupe", emargementContext);
-    	}else {
-    		redirectAttributes.addFlashAttribute("error", "noSelection");
-    		return String.format("redirect:/%s/manager/groupe/seeMembers/" + id, emargementContext);
     	}
+		redirectAttributes.addFlashAttribute("error", "noSelection");
+		return String.format("redirect:/%s/manager/groupe/seeMembers/" + id, emargementContext);
     	
     }
 }

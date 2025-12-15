@@ -104,7 +104,7 @@ public class LocationController {
 	}
 	
 	@GetMapping(value = "/admin/location/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("location",  locationRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/location/show";
@@ -118,7 +118,7 @@ public class LocationController {
     }
     
     @GetMapping(value = "/admin/location/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Location location = locationRepository.findById(id).get();
     	populateEditForm(uiModel, location);
         return "admin/location/update";
@@ -153,7 +153,7 @@ public class LocationController {
     }
     
     @PostMapping("/admin/location/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes){
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes){
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, location);
             return "admin/location/update";
@@ -183,7 +183,7 @@ public class LocationController {
     }
     
     @PostMapping(value = "/admin/location/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	Location location = locationRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
