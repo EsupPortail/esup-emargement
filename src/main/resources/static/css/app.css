@@ -218,15 +218,34 @@ table thead.sticky-top {
 #awesomplete_list_1, #awesomplete_list_2{
 	z-index: 500000;
 }
-  #loadingMessage {
-      text-align: center;
-      padding: 40px;
-      background-color: #eee;
-    }
-
-    #canvas {
-      width: 100%;
-    }
+#qrCodeCam {
+  position:relative;
+}
+#loadingMessage {
+  position:absolute;
+  top: 0px;
+  left: 0px;
+  text-align: center;
+  padding: 40px;
+  background-color: #eee;
+}
+#qrCodeScanOk {
+  position:absolute;
+  top: 0px;
+  left: 0px;
+  display:none;
+  text-align:center;
+  width: 100%;
+  font-weight: bold;
+  background-color: lightgreen;
+  border: solid 2px green;
+}
+#canvas {
+  position:absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+}
 
     #output {
       margin-top: 20px;

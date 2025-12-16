@@ -74,9 +74,10 @@
 								<div class="card text-center box-shadow h-md-250">
 									<div id="qrCodeCam"  th:attr="data-qrcode=${eppn64}"
 										class="card-img-right flex-auto  mt-1">
+										<canvas id="canvas" class="align-self-center mr-3"></canvas>
 										<div id="loadingMessage">🎥 Impossible d'accéder à la
 											webCam</div>
-										<canvas id="canvas" class="align-self-center mr-3"></canvas>
+										<div id="qrCodeScanOk">Présence enregistrée</div>
 									</div>
 								</div>
 						  </div>
