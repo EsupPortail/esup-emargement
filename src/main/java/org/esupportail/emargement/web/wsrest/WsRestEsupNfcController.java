@@ -21,9 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -56,7 +57,7 @@ public class WsRestEsupNfcController {
 	 * Example :
 	 * curl -v -H "Content-Type: application/json" http://localhost:8080/wsrest/nfc/locations?eppn=joe@univ-ville.fr
 	 */
-	@RequestMapping(value="/locations",  method=RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@GetMapping(value="/locations", produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public List<String> getLocations(@RequestParam String eppn) {
 	    
@@ -70,7 +71,7 @@ public class WsRestEsupNfcController {
 	 * curl -v -X POST -H "Content-Type: application/json" -d '{"eppn":"joe@univ-ville.fr","location":"SHS - Amphi120", "eppnInit":"jack@univ-ville.fr"}' http://localhost:8080/wsrest/nfc/isTagable 
 	 * @throws ParseException 
 	 */
-	@RequestMapping(value="/isTagable",  method=RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@PostMapping(value="/isTagable", produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public ResponseEntity<String> isTagable(@RequestBody EsupNfcTagLog esupNfcTagLog) throws ParseException {
 		HttpHeaders responseHeaders = new HttpHeaders();
@@ -91,7 +92,7 @@ public class WsRestEsupNfcController {
 	 * curl -v -X POST -H "Content-Type: application/json" -d '{"eppn":"joe@univ-ville.fr","location":"SHS - Amphi120", "eppnInit":"jack@univ-ville.fr"}' http://localhost:8080/wsrest/nfc/validateTag
 	 * @throws ParseException 
 	 */
-	@RequestMapping(value="/validateTag",  method=RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	@PostMapping(value="/validateTag", produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public ResponseEntity<String> validateTag(@RequestBody EsupNfcTagLog esupNfcTagLog) throws ParseException {
 		HttpHeaders responseHeaders = new HttpHeaders();
@@ -106,7 +107,7 @@ public class WsRestEsupNfcController {
 		return new ResponseEntity<>("Erreur de validation de présence", responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
-	@RequestMapping(value="/display",  method=RequestMethod.POST)
+	@PostMapping("/display")
 	@ResponseBody
 	public String display(@RequestBody EsupNfcTagLog taglog) {
 		String photo64 = presenceService.getBase64Photo(taglog);

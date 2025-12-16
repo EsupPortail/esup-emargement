@@ -85,7 +85,7 @@ public class UserController {
 	private final static String ITEM = "user";
 	
     @ModelAttribute("qrcodeChange")
-    public Integer qrcodeChange() throws IOException {
+    public Integer qrcodeChange() {
     	String qrcodeChange = appliConfigService.getQrCodeChange();
         return Integer.valueOf(qrcodeChange)*1000;
     }
@@ -97,7 +97,7 @@ public class UserController {
 
 	@GetMapping(value = "/user")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
-			@RequestParam(value="sessionToken", required = false) String sessionToken, @RequestParam(value="scanClass", required = false, defaultValue = "") String scanClass) throws ParseException{
+			@RequestParam(required = false) String sessionToken, @RequestParam(required = false, defaultValue = "") String scanClass) throws ParseException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(sessionToken!=null) {
 			boolean isAlreadyBadged = false;
@@ -162,7 +162,7 @@ public class UserController {
 	}
 	
 	@PostMapping(value = "/user/isPresent")
-	public String isPresent(@PathVariable String emargementContext, @RequestParam(value="sessionToken", required = true)  
+	public String isPresent(@PathVariable String emargementContext, @RequestParam(required = true)  
 			 String sessionToken, final RedirectAttributes redirectAttributes) throws ParseException {
 		
 		if(sessionToken != null) {
@@ -217,16 +217,16 @@ public class UserController {
 	}
 	
 	@GetMapping(value = "/user/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("tc",  tagCheckRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         return "user/show";
     }
 
-	@RequestMapping(value = "/user/qrCode/{eppn}/{id}")
+	@GetMapping("/user/qrCode/{eppn}/{id}")
     @ResponseBody
-    public String getQrCode(@PathVariable String emargementContext, @PathVariable("eppn") String eppn, @PathVariable("id") Long id, 
+    public String getQrCode(@PathVariable String emargementContext, @PathVariable String eppn, @PathVariable Long id, 
     		HttpServletResponse response) throws WriterException, IOException {
 		Context ctx = contextRepository.findByKey(emargementContext);
 		String timestamp = Long.toString(System.currentTimeMillis() / 1000);

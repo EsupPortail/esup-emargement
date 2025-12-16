@@ -26,6 +26,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -601,7 +602,7 @@ public class SessionEpreuveController {
     
 	@Transactional
     @PostMapping("/manager/sessionEpreuve/updateAde/{id}")
-	public String  updateSessionAde(@PathVariable String emargementContext, @PathVariable("id") List<SessionEpreuve> listSe) throws IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+	public String  updateSessionAde(@PathVariable String emargementContext, @PathVariable("id") List<SessionEpreuve> listSe) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		if(listSe != null) {
 			Context ctx = contextRepository.findByKey(emargementContext);
 			adeService.updateSessionEpreuve(listSe, emargementContext, "manual", ctx);

@@ -63,7 +63,9 @@ public class WebInterceptor implements HandlerInterceptor {
 					modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());
 					modelAndView.addObject("surveillantTerme", appliConfigService.getSurveillantTerm());
 					modelAndView.addObject("isParticipantEnabled", appliConfigService.isParticipantDisplayed());
+					modelAndView.addObject("isSessionGroupsDisplayed", appliConfigService.isSessionGroupsDisplayed());
 					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
+					modelAndView.addObject("participantTerme", appliConfigService.getParticipantTerm());
 				}
 		}
 	}

@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -49,10 +48,7 @@ public class WsExportController {
 	}
 	
 	@GetMapping(value = "/session/{contextId}", produces = "application/json;charset=UTF-8")
-	public List<SessionEpreuve> getSessionsFromContext(@PathVariable Long contextId,
-			@RequestParam(value="anneeUniv", required=false) String anneeUniv, 
-			@RequestParam(value="sort", required=false)	String sort,
-			@RequestParam(value="limit", required=false) String limit){
+	public List<SessionEpreuve> getSessionsFromContext(@PathVariable Long contextId){
 		Context ctx  = contextRepository.findById(contextId).get();
 		List<SessionEpreuve> ses = sessionEpreuveRepository.findByContextOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(ctx);
 		sessionEpreuveService.computeCounters(ses);

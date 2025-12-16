@@ -47,6 +47,7 @@
 			<td th:text="${#dates.format(event.sessionEpreuve.dateExamen,'dd-MM-yy')}" ></td>
 			<td th:text="${#dates.format(event.sessionEpreuve.heureEpreuve,'HH:mm')}" ></td>
 			<td th:text="${#dates.format(event.sessionEpreuve.finEpreuve,'HH:mm')}" ></td>
+			<td th:if="${isAdeVetDisplayed}" th:text="${event.vet}"></td>
 			<td>
 				<span th:each="element : ${event.trainees}">
 			         <span th:each="entry: ${element}">

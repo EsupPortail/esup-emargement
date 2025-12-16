@@ -9,7 +9,7 @@
 				<div class="card-header">
     				<div class="row">
 		    			<div class="col">
-				    		<h2>Participant</h2>
+				    		<h2><span th:class="text-capitalize" th:text="${#strings.toLowerCase(participantTerme)}"></span></h2>
 				   		</div>
 				   		<div class="col">
 		    				<div class="row float-end">
@@ -20,20 +20,22 @@
 		    			</div>
 				   </div>
 				</div>
-	 				<div class="card-body">
+	 			<div class="card-body">
 					<dl class="row" th:classappend="${(tc.typeEmargement!=null and !tc.isUnknown? 'bg-success-subtle' : '') +
 										(tc.isUnknown ? 'bg-warning-subtle' : '')}">
 						<dt class="col-sm-2">Date 
-							<span th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
-									or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin)) 
-									or (tc.sessionEpreuve.dateFin!=null 
-                                    and #dates.createToday().after(tc.sessionEpreuve.dateExamen) 
-                                    and #dates.createToday().before(tc.sessionEpreuve.dateFin)) 
-								 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-								 <button class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" 
-							data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}" 
-							th:if="${tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}">
-							<i class="fas fa-qrcode"></i></button></span></dt>
+							<th:block th:if="${isuserQrCodeEnabled}"}>
+								<span th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
+										or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin)) 
+										or (tc.sessionEpreuve.dateFin!=null 
+	                                    and #dates.createToday().after(tc.sessionEpreuve.dateExamen) 
+	                                    and #dates.createToday().before(tc.sessionEpreuve.dateFin)) 
+									 	and tc.sessionLocationBadged == null }">
+									 <button class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" 
+								data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}" >
+								<i class="fas fa-qrcode"></i></button></span>
+							</th:block>
+						</dt>
 						<dd class="col-sm-10" >
 							<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
 							<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
@@ -60,14 +62,14 @@
 						        </th:block>
 						    </span>      
 				        </dd>
-						<dd class="col-sm-10" th:unless="${tc.absence !=null}">
+						<dd class="col-sm-10" th:if="${tc.absence eq null}">
 							<span th:if="${tc.typeEmargement!=null}"
 								th:switch="${#strings.toString(tc.typeEmargement.name())}">
 								<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
 								<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
 								<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
 								<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
-								<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" title="QrCode participant"></i>
+								<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" th:title="${'QrCode ' + participantTerme}"></i>
 								<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>							
 								<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 							</span>

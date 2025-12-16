@@ -84,7 +84,7 @@ public class CampusController {
 	}
 	
 	@GetMapping(value = "/admin/campus/{id}", produces = "text/html")
-    public String show(@PathVariable("id") Long id, Model uiModel) {
+    public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("campus",  campusRepository.findById(id).get());
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/campus/show";
@@ -98,7 +98,7 @@ public class CampusController {
     }
     
     @GetMapping(value = "/admin/campus/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable("id") Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	Campus campus = campusRepository.findById(id).get();
     	populateEditForm(uiModel, campus);
         return "admin/campus/update";
@@ -141,7 +141,7 @@ public class CampusController {
     }
     
     @PostMapping("/admin/campus/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable("id") Long id, @Valid Campus campus, BindingResult bindingResult, Model uiModel, 
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Campus campus, BindingResult bindingResult, Model uiModel, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, campus);
@@ -174,7 +174,7 @@ public class CampusController {
     }
     
     @PostMapping(value = "/admin/campus/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable("id") Long id, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id, final RedirectAttributes redirectAttributes) {
     	Campus campus = campusRepository.findById(id).get();
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
