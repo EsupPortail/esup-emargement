@@ -165,7 +165,7 @@ public class AbsenceController {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (bindingResult.hasErrors()) {
           //  populateEditForm(uiModel, person);
-            uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
+            //uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
             return "manager/absence/create";
         }
         uiModel.asMap().clear();
