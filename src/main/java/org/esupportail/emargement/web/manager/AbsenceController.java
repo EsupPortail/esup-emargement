@@ -166,7 +166,7 @@ public class AbsenceController {
         if (bindingResult.hasErrors()) {
           //  populateEditForm(uiModel, person);
             uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
-            return "manager/person/create";
+            return "manager/absence/create";
         }
         uiModel.asMap().clear();
         String eppn = absence.getPerson().getEppn();
