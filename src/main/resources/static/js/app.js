@@ -2029,9 +2029,12 @@ document.addEventListener('DOMContentLoaded', function() {
 						select.add(new Option(stripHTMLTagsUsingDOM(d)));
 					});
 				select.addEventListener('change', function() {
-					column
-						.search(select.value, { exact: true })
-						.draw();
+                    var val = $.fn.dataTable.util.escapeRegex(select.value);
+                    // On ajoute ^ au début et $ à la fin pour dire "commence et finit exactement par ce mot"
+                    var searchVal = val ? '^' + val + '$' : '';
+
+                    // Le 'true' active le regex, le 'false' désactive le "smart search"
+                    column.search(searchVal, true, false).draw();
 				});
 				colDiv.appendChild(select);
 				filterWrapper.appendChild(select);
@@ -2361,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-	if (document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
+	if (event.detail.target.id !== "searchResults" && document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
 	    setTimeout(() => {
 	        if (slimSelectInstance) {
 	            slimSelectInstance.destroy();
