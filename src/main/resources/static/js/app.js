@@ -2030,10 +2030,16 @@ document.addEventListener('DOMContentLoaded', function() {
 					});
 				select.addEventListener('change', function() {
                     var val = $.fn.dataTable.util.escapeRegex(select.value);
-                    // On ajoute ^ au début et $ à la fin pour dire "commence et finit exactement par ce mot"
-                    var searchVal = val ? '^' + val + '$' : '';
 
-                    // Le 'true' active le regex, le 'false' désactive le "smart search"
+                    // Par défaut, on cherche juste si le mot est "contenu" (pour Motif qui a des balises HTML)
+                    var searchVal = val;
+
+                    // MAIS pour le Statut (index 5), on force la recherche STRICTE
+                    // pour éviter que "JUSTIFIE" ne ressorte "INJUSTIFIE"
+                    if (index === 5) {
+                        searchVal = val ? '^' + val + '$' : '';
+                    }
+
                     column.search(searchVal, true, false).draw();
 				});
 				colDiv.appendChild(select);
