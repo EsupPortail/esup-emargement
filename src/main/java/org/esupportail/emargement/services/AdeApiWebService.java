@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 //import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 //import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -132,6 +133,9 @@ public class AdeApiWebService implements AdeApiService {
 	
 	@Value("${emargement.ade.api.url.encrypted}")
 	private String encryptedUrl;
+
+	@Value("${emargement.ade.api.auth_type}")
+	private String adeApiAuthType;
 
 	@Autowired
 	private PrefsRepository prefsRepository;
@@ -974,8 +978,18 @@ public class AdeApiWebService implements AdeApiService {
 	}
 	
 	public Document getDocument(String url) throws IOException, ParserConfigurationException, SAXException {
+		return getDocument(url, null, null);
+	}
+
+	public Document getDocument(String url, String login, String password) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
 		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
+
+		if (null != login) {
+		    String encoded = Base64.getEncoder().encodeToString((login+":"+password).getBytes(StandardCharsets.UTF_8));
+		    con.setRequestProperty("Authorization", "Basic "+encoded);
+		}
+
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -1134,12 +1148,18 @@ public class AdeApiWebService implements AdeApiService {
 			}
 			if(sessionId.isEmpty()) {
 				String urlConnexion = "";
-				if(!encryptedUrl.isEmpty()) {
+				String login = null;
+				String password = null;
+				if ("basic".equals(adeApiAuthType)) {
+					urlConnexion = urlAde + "?function=connect";
+					login = loginAde;
+					password = passwordAde;
+				} else if (!encryptedUrl.isEmpty()) {
 					urlConnexion = urlAde + "?data=" + encryptedUrl;
-				}else {
+				} else {
 					urlConnexion = urlAde + "?function=connect&login=" + loginAde  + "&password=" + passwordAde;
 				}
-				Document doc = getDocument(urlConnexion);
+				Document doc = getDocument(urlConnexion, login, password);
 				log.debug("Root Element connect :" + doc.getDocumentElement().getNodeName());
 				sessionId = doc.getDocumentElement().getAttribute("id");
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
