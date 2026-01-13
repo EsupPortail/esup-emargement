@@ -1174,7 +1174,7 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndContext(ade.eventId, ctx)==0 ? false : true;
+			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)==0 ? false : true;
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;

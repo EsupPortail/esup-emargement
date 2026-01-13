@@ -21,6 +21,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	Long countByAdeEventIdAndContext(Long id, Context ctx);
 	
+	Long countByAdeEventIdAndAdeActiviteIdAndContext(Long eventId, Long activityId , Context ctx);
+	
 	Long countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(Long id, Date date, Date heureDebut, Date heureFin, Context ctx);
 	
 	Long countByNomSessionEpreuveAndDateExamenAndHeureEpreuveAndFinEpreuve(String nomSessionEpreuve, Date dateExamen, Date heureDebut, Date heureFin);
