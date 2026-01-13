@@ -1700,11 +1700,16 @@ public class AdeService {
 				String fatherId = getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
 			}	
-		}else if(idList !=null && !idList.isEmpty()){
-			for(String id : idList) {
-		        List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
-		        adeResourceBeans.addAll(beansTrainee);
+		} else if (idEvents == null && idList != null && !idList.isEmpty()) {
+			for (String id : idList) {
+				List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents,
+						existingSe, update, ctx);
+				adeResourceBeans.addAll(beansTrainee);
 			}
+		} else {
+			List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, null, strDateMin, strDateMax, idEvents,
+					existingSe, update, ctx);
+			adeResourceBeans.addAll(beansTrainee);
 		}
         return adeResourceBeans; 
     }
