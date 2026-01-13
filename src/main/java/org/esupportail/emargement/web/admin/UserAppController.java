@@ -1,6 +1,5 @@
 package org.esupportail.emargement.web.admin;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -8,8 +7,6 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
@@ -53,7 +50,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.xml.sax.SAXException;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -147,7 +143,7 @@ public class UserAppController {
 		model.addAttribute("itsme", userAppService.getUserAppEppn());
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		model.addAttribute("selectAll", count);
-		model.addAttribute("allRoles", userAppService.getAllRoles(emargementContext, new UserApp()));
+		model.addAttribute("allRoles", userAppService.getAllRoles(emargementContext));
 		model.addAttribute("idProject", idProject);
 		return "admin/userApp/list";
 	}
@@ -244,7 +240,7 @@ public class UserAppController {
     		}
     	}
     	uiModel.addAttribute("contexts", userAppService.getUserContexts());
-    	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context, userApp));
+    	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context));
         uiModel.addAttribute("userApp", userApp);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }

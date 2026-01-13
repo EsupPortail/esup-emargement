@@ -1,7 +1,6 @@
 package org.esupportail.emargement.web.manager;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Person;
@@ -82,7 +81,7 @@ public class PersonController {
     }
     
     @PostMapping("/manager/person/create")
-    public String create(@PathVariable String emargementContext, @Valid Person person, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String create(@PathVariable String emargementContext, @Valid Person person, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, person);
             return "manager/person/create";
@@ -94,7 +93,7 @@ public class PersonController {
     }
     
     @PutMapping("/manager/person/update")
-    public String update(@PathVariable String emargementContext, @Valid Person person, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest) {
+    public String update(@PathVariable String emargementContext, @Valid Person person, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, person);
             return "manager/person/update";
@@ -106,7 +105,7 @@ public class PersonController {
     }
     
     @DeleteMapping(value = "/manager/person/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id) {
     	Person Person = personRepository.findById(id).get();
     	personRepository.delete(Person);
         return String.format("redirect:/%s/manager/person", emargementContext);

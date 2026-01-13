@@ -65,7 +65,7 @@ public class UserAppService {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	public List<Role> getAllRoles(String key,  UserApp userApp){
+	public List<Role> getAllRoles(String key){
 		if("all".equals(key)) {
 			return  Arrays.asList(Role.ADMIN);
 		}

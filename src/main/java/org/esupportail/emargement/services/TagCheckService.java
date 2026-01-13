@@ -825,7 +825,7 @@ public class TagCheckService {
 					}
 					if(isTagCheckerTagged) {
 						String presence ="true,tagchecker," + eppn + "," + sessionLocationBadgedId;
-						tagCheckerService.updatePresentsTagCkeckers(presence, null, TypeEmargement.CARD);
+						tagCheckerService.updatePresentsTagCkeckers(presence, TypeEmargement.CARD);
 						isOk = true;
 					}
 				}else {
@@ -950,7 +950,7 @@ public class TagCheckService {
 				}else {
 					if(isTagCheckerTagged) {
 						String presence ="true,tagchecker," + eppn + "," + sl.getId();
-						tagCheckerService.updatePresentsTagCkeckers(presence, null, TypeEmargement.CARD);
+						tagCheckerService.updatePresentsTagCkeckers(presence, TypeEmargement.CARD);
 						isOk = true;
 					}
 				}
@@ -1262,9 +1262,9 @@ public class TagCheckService {
 						}
 						if (tc.getTypeEmargement() != null) {
 							typeemargement = messageSource.getMessage(
-									"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";;
+									"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
 						}
-						typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";;
+						typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
 						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
 						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
 						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));

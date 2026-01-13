@@ -578,7 +578,7 @@ public class AdeService {
 	    return new ArrayList<>(listMembers);
  	}
 	
-	public boolean isResourceFolder(String sessionId, String resourceId, Context ctx) throws Exception {
+	public boolean isResourceFolder(String sessionId, String resourceId) throws Exception {
 		String detail = "4"; // Niveau min pour avoir attribut isGroup
 		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s",
 			urlAde, sessionId, resourceId, detail
@@ -623,7 +623,7 @@ public class AdeService {
 		}
 	}
 
-	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId, Context ctx) throws Exception {
+	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId) throws Exception {
 		String detail = "4"; // Niveau min pour avoir attribut isGroup
 		String url = String.format("%s?sessionId=%s&function=getResources&tree=false&leaves=true&fatherIds=%s&detail=%s",
 			urlAde, sessionId, resourceId, detail
@@ -1455,11 +1455,11 @@ public class AdeService {
 							Long traineeResourceId = entry.getKey();
 							Map<Long,String> resourceLeaves;
 							try {
-								if (isResourceFolder(sessionId, ""+traineeResourceId, ctx)) {
+								if (isResourceFolder(sessionId, ""+traineeResourceId)) {
 									log.debug("La ressource "+traineeResourceId+" est un dossier... Il faut le fouiller");
 									// Si la ressource est un dossier
 									// alors récupérer toutes les feuilles sous la ressource (toutes profondeurs confondues)
-									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId, ctx);
+									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId);
 								} else {
 									log.debug("La ressource "+traineeResourceId+" n'est pas un dossier. On va pouvoir chercher un groupe du même nom dans esup-emargement.");
 									resourceLeaves = new HashMap<Long,String>();
@@ -1860,7 +1860,7 @@ public class AdeService {
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update)
-			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException{
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -1963,7 +1963,7 @@ public class AdeService {
 	        	  }
 	          }
 		}catch (IOException | JDOMException e) {
-	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet);
+	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet, e);
 	    }
 		return vet;
 	}

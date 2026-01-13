@@ -3,7 +3,6 @@ package org.esupportail.emargement.web.manager;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.StatutSignature;
@@ -14,8 +13,6 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.services.EsupSignatureService;
 import org.esupportail.emargement.services.StoredFileService;
 import org.esupportail.emargement.services.TagCheckService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -70,17 +67,15 @@ public class EsupSignatureController {
 		return ITEM;
 	}
 	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
 	@GetMapping(value = "/manager/esupsignature")
-	public String index (@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
+	public String index (Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
 		model.addAttribute("urlEsupSignature", urlEsupsignature);
 		model.addAttribute("esupsignaturePage", esupSignatureRepository.findAll(pageable));
 		return "manager/esupSignature/index";
 	}
 	
 	@GetMapping(value = "/manager/esupsignature/sessionEpreuve/{id}")
-	public String searchBySessionEpreuve (@PathVariable String emargementContext, @PathVariable  Long id, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
+	public String searchBySessionEpreuve (@PathVariable  Long id, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable) {
 		model.addAttribute("urlEsupSignature", urlEsupsignature);
 		SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
 		model.addAttribute("esupsignaturePage", esupSignatureRepository.findBySessionEpreuve(se, pageable));
@@ -92,7 +87,7 @@ public class EsupSignatureController {
 	@GetMapping(value = "/manager/esupsignature/status/{signId}")
 	@Transactional
 	public String getStatutPdf(@PathVariable String emargementContext, @PathVariable Long signId, 
-			@RequestParam(required = false) String from, HttpServletResponse response) {
+			@RequestParam(required = false) String from) {
 		
 		RestTemplate restTemplate = new RestTemplate();
 		String urlStatus = String.format("%s/ws/signrequests/status/%s", urlEsupsignature, signId);

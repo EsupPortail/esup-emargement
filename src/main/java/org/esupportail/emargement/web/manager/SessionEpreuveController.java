@@ -357,7 +357,7 @@ public class SessionEpreuveController {
     }
 	
 	@GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
-	public String createForm(@PathVariable String emargementContext, Model uiModel, 
+	public String createForm(Model uiModel, 
 	                         @RequestParam(required = false) String anneeUniv, 
 	                         @RequestHeader(value = "HX-Request", required = false) String hxRequest) {
 	    SessionEpreuve sessionEpreuve = new SessionEpreuve();
@@ -368,7 +368,7 @@ public class SessionEpreuveController {
 	    	        .findFirst()
 	    	        .orElse(null)
 	    	);
-	    populateEditForm(uiModel, sessionEpreuve, anneeUniv, emargementContext);
+	    populateEditForm(uiModel, sessionEpreuve);
 	    uiModel.addAttribute("currentAnneeUniv", anneeUniv);
 	    if (hxRequest != null) {
 	    	return "manager/sessionEpreuve/create-modal :: modal-create";
@@ -377,9 +377,9 @@ public class SessionEpreuveController {
 	}
     
     @GetMapping(value = "/manager/sessionEpreuve/{id}", params = "form", produces = "text/html")
-    public String updateForm(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel) {
+    public String updateForm(@PathVariable Long id, Model uiModel) {
     	SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-    	populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
+    	populateEditForm(uiModel, sessionEpreuve);
     	boolean isSessionLibreDisabled = true;
     	if(sessionEpreuve.getIsSessionLibre() || tagCheckRepository.countTagCheckBySessionEpreuveId(id) == 0) {
     		isSessionLibreDisabled = false;
@@ -392,7 +392,7 @@ public class SessionEpreuveController {
         return "manager/sessionEpreuve/update";
     }
     
-    void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve, String anneeUniv, String emargementContext) {
+    void populateEditForm(Model uiModel, SessionEpreuve sessionEpreuve) {
     	uiModel.addAttribute("types", typeSessionRepository.findAllByOrderByLibelle());
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
@@ -426,7 +426,7 @@ public class SessionEpreuveController {
     	}
     	
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || compareDebutFin > 0) {
-            populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
+            populateEditForm(uiModel, sessionEpreuve);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             uiModel.addAttribute("countExisting", sessionEpreuve.getNomSessionEpreuve());
@@ -477,7 +477,7 @@ public class SessionEpreuveController {
     	}
     	
     	if (bindingResult.hasErrors() || compareEpreuve<= 0 || compareConvoc<=0 || compareDebutFin > 0) {
-            populateEditForm(uiModel, sessionEpreuve, null, emargementContext);
+            populateEditForm(uiModel, sessionEpreuve);
             uiModel.addAttribute("compareEpreuve", (compareEpreuve<= 0) ? true : false);
             uiModel.addAttribute("compareConvoc", (compareConvoc<= 0) ? true : false);
             return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());

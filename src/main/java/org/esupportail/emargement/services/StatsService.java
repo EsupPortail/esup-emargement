@@ -139,7 +139,6 @@ public class StatsService {
         return data;
     }
     
-    @SuppressWarnings("serial")
 	public  LinkedHashMap<String,Object> getStats(String typeStats, String key, String param, String year) throws ParseException {
 			
     	Context ctx = contextRepository.findByContextKey(key);
@@ -174,7 +173,6 @@ public class StatsService {
 		return results;
     }
     
-    @SuppressWarnings("serial")
 	public  LinkedHashMap<String,Object> getStatsSuperAdmin(String typeStats,  String year) throws ParseException {
 			
 		LinkedHashMap<String, Object> results = new LinkedHashMap<String, Object>() {

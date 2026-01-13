@@ -13,8 +13,6 @@ import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.services.ContextService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -44,8 +42,6 @@ public class FileController {
 	
 	private final static String ITEM = "file";
 	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-    
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
 		return ITEM;

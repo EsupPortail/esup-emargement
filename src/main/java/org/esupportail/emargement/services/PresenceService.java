@@ -623,7 +623,7 @@ public class PresenceService {
 			    	}
 					if(appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().isEmpty()) {
 						String presence2 ="true,tagchecker," + eppn + "," + sessionLocationId;
-						tagCheckerService.updatePresentsTagCkeckers(presence2, null, typeEmargement);
+						tagCheckerService.updatePresentsTagCkeckers(presence2, typeEmargement);
 					}
 			        dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sessionLocationBadged, msgError);
 	    		}

@@ -37,7 +37,7 @@ public class TagCheckerRepositoryCustom{
         return entityManager.createQuery(query).getResultList();
 	}
 	
-	public List<TagChecker> findAll(String searchString, String context){
+	public List<TagChecker> findAll(String searchString){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<TagChecker> query = criteriaBuilder.createQuery(TagChecker.class);
         Root<TagChecker> c = query.from(TagChecker.class);
