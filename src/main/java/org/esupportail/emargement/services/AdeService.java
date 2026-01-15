@@ -61,6 +61,7 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -78,6 +79,9 @@ public class AdeService {
 	
 	@Autowired
 	private AdeApiService adeApiService;
+
+	@Value("${emargement.ade.api.auth_type}")
+	private String adeApiAuthType;
 
 	@Autowired
 	private PrefsRepository prefsRepository;
@@ -155,12 +159,12 @@ public class AdeService {
 		return adeApiService.getClassroomsList(sessionId);
 	}
 
-	public boolean isResourceFolder(String sessionId, String resourceId, Context ctx) throws Exception {
-		return adeApiService.isResourceFolder(sessionId, resourceId, ctx);
+	public boolean isResourceFolder(String sessionId, String resourceId) throws Exception {
+		return adeApiService.isResourceFolder(sessionId, resourceId);
 	}
 
-	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId, Context ctx) throws Exception {
-		return adeApiService.getResourceLeavesIdNameMap(sessionId, resourceId, ctx);
+	public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId) throws Exception {
+		return adeApiService.getResourceLeavesIdNameMap(sessionId, resourceId);
 	}
 
     public Map<String, String> getMapComposantesFormations(String sessionId, String category) {
@@ -169,6 +173,27 @@ public class AdeService {
 
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx) throws IOException, ParseException {
 		return adeApiService.getEventsFromXml(sessionId, resourceId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
+	}
+	
+	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
+		return adeApiService.eventExistsInAde(se, sessionId);
+	}
+
+	private boolean isOldEnoughToDelete(SessionEpreuve se) {
+	    return se.getDateCreation().toInstant()
+	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
+	}
+
+	public Map<String, String> getProjectLists(String sessionId) throws AdeApiRequestException {
+		return adeApiService.getProjectLists(sessionId);
+	}
+	
+	public String getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
+		return adeApiService.getConnectionProject(numProject, sessionId);
+	}
+	
+	protected String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
+		return adeApiService.getSessionId(forceNewId, emargementContext, idProject);
 	}
 	
 	public void checkEvents(Context context, Date startOfDay) {
@@ -249,93 +274,72 @@ public class AdeService {
 				+ errorCount);
 	}
 	
-	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
-		return adeApiService.eventExistsInAde(se, sessionId);
-	}
-
-	private boolean isOldEnoughToDelete(SessionEpreuve se) {
-	    return se.getDateCreation().toInstant()
-	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
-	}
-
 	public String getSessionIdByProjectId(
- 		String projectId,
-		String emargementContext
-	) throws AdeApiRequestException {
-		return getSessionIdByProjectId(projectId, emargementContext, false);
-	}
-
-	// On part du principe que l'on mémorise un identifiant de session API ADE
- 	// par projet ADE
-	// REM: Eventuellement (ex: API TAPIR de type REST) ce pourra être le même
-	//      identifiant de session (ou bearer dans le cas TAPIR) pour tous les
-	//      projets
-	// REM: emargementContext ne sert vraiment qu'a enregistrer l'id de la 
-	//      personne connectée au moment de la récupération de la session. Pas
-	//      forcément utile et pas forcément pertinent dans l'interface de
-	//      cette méthode. Voir updatePrefs() appelé par la méthode 
-	//      getSessionId()
-	public String getSessionIdByProjectId(
-		String projectId,
-		String emargementContext,
-		boolean disconnectSessionBeforeNewSessionId
-	) throws AdeApiRequestException {
-		String sessionId = null;
-		try {
-			// S'il n'y a pas déjà eu de connexion à l'API dans le cadre d'une
-			// interrogation API pour ce projet alors on créé une nouvelle
-			//connexion. Sinon, on se contente de récupérer l'id de session
-			sessionId = getSessionId(false, emargementContext, projectId);
-
-			// Si la connexion vient d'être créée alors le projet n'est pas
-			// encore sélectionné (cas de l'API Web d'ADE)
-			// On fait donc un appel API ADE pour sélectioner le projet
-			// REM: Dans beaucoup d'autres cas, cet appel sera inutile
-			getConnectionProject(projectId, sessionId);
-
-			// Pour vérifier que la session est bien toujours active, on fait
-			// un test API en récupérant la liste des projets
-			// REM: Il serait préférable de ne pas ajouter ce test la plupart
-			// du temps inutile et ne forcer la connexion que si c'est l'appel
-			// à l'API (qui suit cette demande d'id de session) qui échoue.
-			// Mais c'est sans doute (un peu) plus délicat à mettre en oeuvre.
-			if(getProjectLists(sessionId).isEmpty()) {
-				// Y a-t-il vraiment des cas, pour lesquels il convient de se
-				// déconnecter
-				// (voir implémentation de updateSessionEpreuve v1.1.5+)
-				if (disconnectSessionBeforeNewSessionId) {
-					disconnectSession(emargementContext);
-				}
-
-				// Si la requête a échoué c'est qu'on a récupéré en mémoire un
-				// sessionId qui n'est plus valable. On force alors une
-				// nouvelle connexion à l'API suivi d'un appel API pour
-				// sélectionner le projet (selon le principe de fonction de
-				// l'API Web ADE)
-				sessionId = getSessionId(true, emargementContext, projectId);
-				getConnectionProject(projectId, sessionId);
-				log.info("Récupération du projet Ade " + projectId);
-			}
-		} catch (IOException | ParserConfigurationException | SAXException e) {
-			log.error(""+e);
-			throw new AdeApiRequestException("ERREUR: Impossible de récupérer un id de session API pour le projet ["
-				+ projectId + "]");
+	 		String projectId,
+			String emargementContext
+		) throws AdeApiRequestException {
+			return getSessionIdByProjectId(projectId, emargementContext, false);
 		}
 
-		return sessionId;
-	}
+		// On part du principe que l'on mémorise un identifiant de session API ADE
+	 	// par projet ADE
+		// REM: Eventuellement (ex: API TAPIR de type REST) ce pourra être le même
+		//      identifiant de session (ou bearer dans le cas TAPIR) pour tous les
+		//      projets
+		// REM: emargementContext ne sert vraiment qu'a enregistrer l'id de la 
+		//      personne connectée au moment de la récupération de la session. Pas
+		//      forcément utile et pas forcément pertinent dans l'interface de
+		//      cette méthode. Voir updatePrefs() appelé par la méthode 
+		//      getSessionId()
+		public String getSessionIdByProjectId(
+			String projectId,
+			String emargementContext,
+			boolean disconnectSessionBeforeNewSessionId
+		) throws AdeApiRequestException {
+			String sessionId = null;
+			try {
+				// S'il n'y a pas déjà eu de connexion à l'API dans le cadre d'une
+				// interrogation API pour ce projet alors on créé une nouvelle
+				//connexion. Sinon, on se contente de récupérer l'id de session
+				sessionId = getSessionId(false, emargementContext, projectId);
 
-	public Map<String, String> getProjectLists(String sessionId) throws AdeApiRequestException {
-		return adeApiService.getProjectLists(sessionId);
-	}
-	
-	public String getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
-		return adeApiService.getConnectionProject(numProject, sessionId);
-	}
-	
-	protected String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException{
-		return adeApiService.getSessionId(forceNewId, emargementContext, idProject);
-	}
+				// Si la connexion vient d'être créée alors le projet n'est pas
+				// encore sélectionné (cas de l'API Web d'ADE)
+				// On fait donc un appel API ADE pour sélectioner le projet
+				// REM: Dans beaucoup d'autres cas, cet appel sera inutile
+				getConnectionProject(projectId, sessionId);
+
+				// Pour vérifier que la session est bien toujours active, on fait
+				// un test API en récupérant la liste des projets
+				// REM: Il serait préférable de ne pas ajouter ce test la plupart
+				// du temps inutile et ne forcer la connexion que si c'est l'appel
+				// à l'API (qui suit cette demande d'id de session) qui échoue.
+				// Mais c'est sans doute (un peu) plus délicat à mettre en oeuvre.
+				if(getProjectLists(sessionId).isEmpty()) {
+					// Y a-t-il vraiment des cas, pour lesquels il convient de se
+					// déconnecter
+					// (voir implémentation de updateSessionEpreuve v1.1.5+)
+					if (disconnectSessionBeforeNewSessionId) {
+						disconnectSession(emargementContext);
+					}
+
+					// Si la requête a échoué c'est qu'on a récupéré en mémoire un
+					// sessionId qui n'est plus valable. On force alors une
+					// nouvelle connexion à l'API suivi d'un appel API pour
+					// sélectionner le projet (selon le principe de fonction de
+					// l'API Web ADE)
+					sessionId = getSessionId(true, emargementContext, projectId);
+					getConnectionProject(projectId, sessionId);
+					log.info("Récupération du projet Ade " + projectId);
+				}
+			} catch (IOException | ParserConfigurationException | SAXException e) {
+				log.error(""+e);
+				throw new AdeApiRequestException("ERREUR: Impossible de récupérer un id de session API pour le projet ["
+					+ projectId + "]");
+			}
+
+			return sessionId;
+		}
 
 	@Async
 	@Transactional
@@ -348,7 +352,7 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndContext(ade.eventId, ctx)==0 ? false : true;
+			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)==0 ? false : true;
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;
@@ -629,14 +633,14 @@ public class AdeService {
 							Long traineeResourceId = entry.getKey();
 							Map<Long,String> resourceLeaves;
 							try {
-								if (isResourceFolder(sessionId, ""+traineeResourceId, ctx)) {
+								if (isResourceFolder(sessionId, ""+traineeResourceId)) {
 									log.debug("La ressource "+traineeResourceId+" est un dossier... Il faut le fouiller");
 									// Si la ressource est un dossier
 									// alors récupérer toutes les feuilles sous la ressource (toutes profondeurs confondues)
-									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId, ctx);
+									resourceLeaves = getResourceLeavesIdNameMap(sessionId, ""+traineeResourceId);
 								} else {
 									log.debug("La ressource "+traineeResourceId+" n'est pas un dossier. On va pouvoir chercher un groupe du même nom dans esup-emargement.");
-									resourceLeaves = new HashMap<Long,String>();
+									resourceLeaves = new HashMap<>();
 									resourceLeaves.put(traineeResourceId, entry.getValue());
 								}
 
@@ -874,11 +878,16 @@ public class AdeService {
 				String fatherId = adeApiService.getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = adeApiService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
 			}	
-		}else if(idList !=null && !idList.isEmpty()){
-			for(String id : idList) {
-		        List<AdeResourceBean> beansTrainee = adeApiService.getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
-		        adeResourceBeans.addAll(beansTrainee);
+		} else if (idEvents == null && idList != null && !idList.isEmpty()) {
+			for (String id : idList) {
+				List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents,
+						existingSe, update, ctx);
+				adeResourceBeans.addAll(beansTrainee);
 			}
+		} else {
+			List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, null, strDateMin, strDateMax, idEvents,
+					existingSe, update, ctx);
+			adeResourceBeans.addAll(beansTrainee);
 		}
         return adeResourceBeans; 
     }
@@ -910,7 +919,7 @@ public class AdeService {
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update)
-			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException{
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
