@@ -450,8 +450,8 @@ public class AdeService {
 		TypeSession typeSession = null;
 		String typeEvent = ade.getTypeEvent();
 		if(typeEvent == null) {
-			if(!typeSessionRepository.findByKey("n/a").isEmpty()) {
-				typeSession = typeSessionRepository.findByKey("n/a").get(0);
+			if(!typeSessionRepository.findByKeyAndContext("n/a", ctx).isEmpty()) {
+				typeSession = typeSessionRepository.findByKeyAndContext("n/a", ctx).get(0);
 			}else {
 				typeSession = new TypeSession();
 				typeSession.setKey("n/a");
