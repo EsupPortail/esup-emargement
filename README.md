@@ -104,11 +104,14 @@ https://listes.esup-portail.org/sympa/info/esup-utilisateurs
 Copyright (C) 2020 Esup Portail http://www.esup-portail.org
 @Author (C) 2020 Jean-Pierre Tran <Jean-Pierre.Tran@univ-rouen.fr>
 @Contributor (C) 2020 Vincent Bonamy <Vincent.Bonamy@univ-rouen.fr>
-@Contributor (C) 2020 Fabrice Sebbe <Fabrice.Sebbe@univ-rouen.fr>
-@Contributor (C) 2020 Dominique Wormser <Dominique.wormser@univ-rouen.fr>
-@Contributor (C) 2020 Olivier Lefebvre <olivier.lefebvre@univ-rouen.fr>
-@Contributor (C) 2020 Hugo Sadaune
-@Contributor (C) 2020 Gauthier Girot
+@Contributor (C) 2025 Damien Heute - Le Mans Université 
+@Contributor (C) 2024 Delphine Boulanger - Université de Bretagne Occidentale
+@Contributor (C) 2022 Vincent Rivière - Université Paris 1 Panthéon-Sorbonne
+@Contributor (C) 2020 Fabrice Sebbe- Université de Rouen Normandie
+@Contributor (C) 2020 Dominique Wormser- Université de Rouen Normandie
+@Contributor (C) 2020 Olivier Lefebvre- Université de Rouen Normandie
+@Contributor (C) 2020 Hugo Sadaune- Université de Rouen Normandie
+@Contributor (C) 2020 Gauthier Girot- Université de Rouen Normandie
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
