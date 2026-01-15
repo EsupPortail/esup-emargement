@@ -12,7 +12,10 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -181,4 +184,18 @@ public class ToolUtil {
         duree += (resteSecondes>0)? String.valueOf(resteSecondes) + " seconde(s) " : "";
         return duree;
     }
+    
+	public Map<String, String> sortByValue(Map<String, String> unsortedMap) {
+	    return unsortedMap.entrySet()
+	            .stream()
+	            .sorted(Map.Entry.comparingByValue())
+	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+	                                      (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+	}
+	
+	public static String formatDate(String date) {
+		String [] splitDate = date.split("-");
+		return splitDate[1].concat("/").concat(splitDate[2]).concat("/").concat(splitDate[0]);
+	}
+
 }

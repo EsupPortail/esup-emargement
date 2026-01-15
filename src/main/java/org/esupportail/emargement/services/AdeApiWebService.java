@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,6 +52,7 @@ import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
+import org.esupportail.emargement.utils.ToolUtil;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.json.JSONObject;
@@ -114,6 +114,9 @@ public class AdeApiWebService implements AdeApiService {
 	
 	@Autowired
 	AbsenceRepository absenceRepository;
+	
+	@Autowired
+	ToolUtil toolUtil;
 	
 	@Autowired
 	private SessionEpreuveRepository sessionEpreuveRepository;
@@ -338,7 +341,7 @@ public class AdeApiWebService implements AdeApiService {
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			log.error("Erreur lors de la récupération de la liste des enseignants, url : " + urlInstructors, e);
 		}
-		return sortByValue(items);
+		return toolUtil.sortByValue(items);
 	}
 	
 	public Map<String, String> getClassroomsList(String sessionId) {
@@ -363,7 +366,7 @@ public class AdeApiWebService implements AdeApiService {
 	        log.error("Error while retrieving the classrooms map, URL: {}", urlClassroom, e);
 	    }
 
-	    return sortByValue(mapClassrooms);
+	    return toolUtil.sortByValue(mapClassrooms);
 	}
 	
 	public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId, String activityId) throws IOException {
@@ -624,7 +627,7 @@ public class AdeApiWebService implements AdeApiService {
             log.error("Erreur lors de la récupération de la map, url : " + url, e);
         }
 
-        return sortByValue(map);
+        return toolUtil.sortByValue(map);
     }
 
 	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx) throws IOException, ParseException {
@@ -637,8 +640,8 @@ public class AdeApiWebService implements AdeApiService {
 				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update, ctx);
 			}
 		}else {
-			String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ formatDate(strDateMin) + 
-					"&endDate=" + formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
+			String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ toolUtil.formatDate(strDateMin) + 
+					"&endDate=" + toolUtil.formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
 			setEvents(urlEvents, adeBeans, existingSe, sessionId, resourceId, update, ctx);
 		}
 		return adeBeans;
@@ -989,7 +992,7 @@ public class AdeApiWebService implements AdeApiService {
 			throw new AdeApiRequestException("ERREUR: Impossible de récupérer la liste des projets ADE");
 		}
 
-		return sortByValue(mapProjects);
+		return toolUtil.sortByValue(mapProjects);
 	}
 
 	public String getConnectionProject(String numProject, String sessionId) throws IOException, ParserConfigurationException, SAXException{
@@ -1035,15 +1038,6 @@ public class AdeApiWebService implements AdeApiService {
 		}
 		return sessionId;
 	}
-	
-	// TODO Déplacer car pas à proprement lié à l'API ADE
-	private Map<String, String> sortByValue(Map<String, String> unsortedMap) {
-	    return unsortedMap.entrySet()
-	            .stream()
-	            .sorted(Map.Entry.comparingByValue())
-	            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-	                                      (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-	}
 
 	public void disconnectSession(String emargementContext) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -1063,11 +1057,6 @@ public class AdeApiWebService implements AdeApiService {
 		}else {
 			log.info("Impossible de se déconnecter car aucune session Ade enregistrée pour l'utilisateur : " + auth.getName());
 		}
-	}
-	
-	public static String formatDate(String date) {
-		String [] splitDate = date.split("-");
-		return splitDate[1].concat("/").concat(splitDate[2]).concat("/").concat(splitDate[0]);
 	}
 
     public String getJsonfile(String fatherId, String emargementContext, String category, String idProject) {
