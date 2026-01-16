@@ -477,6 +477,7 @@ public class AdeApiWebService implements AdeApiService {
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
 	        XPath xpath = xPathFactory.newXPath();
 	        String adeSuperGroupe =  appliConfigService.getAdeSuperGroupe(ctx).trim();
+	        String categoryFilter = appliConfigService.getCategoriesAde(ctx);
 	        if ("members".equals(target)) {
 	        	log.info("Début de récupération des membres ... pour ressource : " + idResource + " -- Contexte : " + ctx.getKey());
 	            NodeList memberNodes = (NodeList) xpath.evaluate("//resource/allMembers/member", doc, XPathConstants.NODESET);
@@ -484,7 +485,7 @@ public class AdeApiWebService implements AdeApiService {
 	                Element memberElement = (Element) memberNodes.item(i);
 	                String category = memberElement.getAttribute("category");
 	                String memberId = memberElement.getAttribute("id");
-	                if (appliConfigService.getCategoriesAde(ctx).equals(category) || !adeSuperGroupe.isEmpty() && adeSuperGroupe.equals(category)) {
+	                if (categoryFilter.equals(category)) {
 	                    listMembers.add(memberId);
 	                } else {
 	                    listMembers.addAll(getMembersOfEvent(sessionId, memberId, "members", ctx));
@@ -494,7 +495,6 @@ public class AdeApiWebService implements AdeApiService {
 	        } else {
 	            String adeAttribute = appliConfigService.getAdeMemberAttribute(ctx);
 	            if (adeAttribute.equals(target)) {
-	                String categoryFilter = appliConfigService.getCategoriesAde(ctx);
 	                NodeList resourceNodes = (NodeList) xpath.evaluate(
 	                    "//resource[@category='" + categoryFilter + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
 	                for (int i = 0; i < resourceNodes.getLength(); i++) {
