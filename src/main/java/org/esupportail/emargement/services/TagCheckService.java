@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -1243,6 +1245,34 @@ public class TagCheckService {
 	// A noter, à partir de sessionLocationId, on peut récupérer un objet SessionLocation dont on peut visiblement récupérer
 	// SessionEpreuve (dans dans ce cas le paramètre se pourrait être homis)
 	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, SessionEpreuve se, PdfWriter writer, String emargementContext, Long sessionLocationId) {
+		// -----------------------------------------------------------
+		// Configuration "locale" (applicable à tous les contextes)
+		// -----------------------------------------------------------
+		// A noter: Bien que l'objectif visé par le paramètre "personnaliserLogoParFormation"
+		// soit bien de personnaliser le logo en fonction de la formation, en pratique
+		// il est personnalisé en fonction des groupes (seule information plus ou moins disponible)
+		// On fait donc l'hypothèse 1 groupe = 1 formation.
+		// L'affichage du logo dédié à la formation pourra se faire uniquement s'il l'un des fichiers
+ 		// suivants existe (par ordre de priorité):
+		// - /static/images/logos_formations/par_contexte/<identifiant du contexte>/<nom du groupe>.png
+		// - /static/images/logos_formations/<nom du groupe>.png
+		// sinon, c'est le logo standard qui est affiché (/static/images/logo.jpg)
+		// A noter: le logo doit avoir des dimensions largeur:hauteur dans le ratio 3:1
+		// Rem: La personnalisation du logo n'est vraiment pertinente que si l'ensemble des participants
+		// appartient à la même formation (i.e. groupe)..
+		boolean personnaliserLogoParFormation = true; 
+
+		// ...s'il s'avère qu'il y a plusieurs formations (i.e. groupes) représentés, on peut
+		// choisir d'afficher le logo de la première formation venue ou de se rabattre sur le logo
+		// par défaut
+		// A noter: L'affichage éventuel de plusieurs logos n'est pas géré.
+		boolean prendreLogoPremiereFormationSiPlusieursFormations = false;
+
+		// Si (au moins) 1 des participants n'est pas associé à un (ou plusieurs groupes)
+		// on peut faire le choix de l'ignorer (et l'assimiler aux groupes représentés)
+		// ou au contraire considérer qu'il appartient à un groupe distinct
+		boolean participantSansGroupeEquivautAutreGroupe = true;
+
 		try {
 			document.setMargins(10, 10, 10, 10);
 
@@ -1269,7 +1299,85 @@ public class TagCheckService {
 					.map(t -> (t.getUserApp().getPrenom() + "-" + t.getUserApp().getNom())).distinct()
 					.collect(Collectors.joining(","));
 
-			Image image = Image.getInstance(PresenceService.class.getResource("/static/images/logo.jpg"));
+			List<String> groupesRepresentes = new ArrayList<String>();
+			boolean foundParticipantWithNoGroup = false;
+			// (si besoin) On va dans un premier temps déterminer quels sont les groupes représentés sur cette feuille
+			if (personnaliserLogoParFormation) {
+				if (!list.isEmpty()) {
+					for(TagCheck tc : list) {
+						if (tc.getPerson() != null ) {
+							if ((tc.getPerson().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
+								List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+								groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+							} else {
+								foundParticipantWithNoGroup = true;
+							}
+						} else if(tc.getGuest() != null ) {
+							if ((tc.getGuest().getGroupes() != null)  && (tc.getPerson().getGroupes().size() > 0)) {
+								List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+								groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+							} else {
+								foundParticipantWithNoGroup = true;
+							}
+						}
+					}
+				}
+			}
+
+			// Détermination du logo à afficher (en haut à gauche)
+			//------------------------------------------------------------------------
+			Image image = null;
+			String imageDirPath = "/static/images/";
+			String defaultImagePath = imageDirPath+"logo.jpg";
+
+			URL logoResource = null;
+			if (
+				personnaliserLogoParFormation
+				&&
+				(
+					(1 == groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+					||
+					(
+						(groupesRepresentes.size() > 0)
+						&&
+						prendreLogoPremiereFormationSiPlusieursFormations
+					)
+				)
+			) {
+				String imagePath = imageDirPath+"logos_formations/par_contexte/"+emargementContext+"/"+groupesRepresentes.get(0)+".png";
+				File file = new File(imagePath);
+				if (file.getCanonicalPath().startsWith(imageDirPath)) {
+					logoResource = PresenceService.class.getResource(imagePath);
+				} else {
+					// emargementContext ou nom de formation contient vraisemblablement des /../
+					// tentative de hack ?
+					log.warn(imagePath+" n'est pas un chemin valide");
+				}
+
+				if (null == logoResource) {
+					// Logo "personnalisé" non trouvé dans l'espace contextuel
+					// on se rabat sur le logo dans l'espace par défaut
+					imagePath = imageDirPath+"logos_formations/"+groupesRepresentes.get(0)+".png";
+					file = new File(imagePath);
+					if (file.getCanonicalPath().startsWith(imageDirPath)) {
+						logoResource = PresenceService.class.getResource(imagePath);
+					} else {
+						// emargementContext ou nom de formation contient vraisemblablement des /../
+						// tentative de hack ?
+						log.warn(imagePath+" n'est pas un chemin valide");
+					}
+				}
+
+				if (null == logoResource) {
+					// Logo "personnalisé" non trouvé dans l'espace contextuel et ni dans l'espace racine
+					// on se rabat sur le logo par défaut
+					logoResource = PresenceService.class.getResource(defaultImagePath);
+				}
+			} else {
+				logoResource = PresenceService.class.getResource(defaultImagePath);
+			}
+
+			image = Image.getInstance(logoResource);
 			image.scaleAbsolute(150f, 50f);// image width,height
 
 			PdfPTable headerTable = new PdfPTable(3);
