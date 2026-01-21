@@ -1134,11 +1134,9 @@ public class TagCheckService {
 	       
 	        document.close();
 			
-		}    
-		else if ("PDF".equals(type)) {
+		} else if ("PDF".equals(type)) {
 			String filename = nomFichier.concat(".pdf");
 	        Document document = new Document();
-	        document.setMargins(10, 10, 10, 10);
 	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 	        PdfWriter writer = null;
 	        try 
@@ -1151,178 +1149,23 @@ public class TagCheckService {
 					writer = PdfWriter.getInstance(document, response.getOutputStream());
 				}
 
-				String dateFin = (se.getDateFin() != null) ? "\n" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin()))
-						: "";
-				String date = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
-				String heures = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
-						+ String.format("%1$tH:%1$tM", se.getFinEpreuve());
-				Long totalExpected = tagCheckRepository
-						.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
-				Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
-				String total = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
-				String title = se.getNomSessionEpreuve();
-				List<TagChecker> tagCheckers = tagCheckerRepository
-						.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
-				tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
-				String surveillants = tagCheckers.stream()
-						.map(t -> (t.getUserApp().getPrenom() + "-" + t.getUserApp().getNom())).distinct()
-						.collect(Collectors.joining(","));
-
-				Image image = Image.getInstance(PresenceService.class.getResource("/static/images/logo.jpg"));
-				image.scaleAbsolute(150f, 50f);// image width,height
-
-				PdfPTable headerTable = new PdfPTable(3);
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(total));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(date));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(heures));
-
-				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
-				Paragraph name = new Paragraph(title, font);
-				name.setSpacingBefore(2f);
-
-				PdfPTable tagCheckerTable = new PdfPTable(1);
-				tagCheckerTable.setWidthPercentage(100);
-				String surveillantTerme = appliConfigService.getSurveillantTerm();
-				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
-				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
-				PdfPCell summaryL = new PdfPCell(tagCheckerTable);
-				summaryL.setColspan(4);
-				summaryL.setPadding(1.0f);
-
-				PdfPTable remarques = new PdfPTable(1);
-				remarques.setWidthPercentage(100);
-				remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
-				PdfPCell summaryR = new PdfPCell(remarques);
-				summaryR.setColspan(3);
-
-				PdfPTable describer = new PdfPTable(1);
-				describer.setWidthPercentage(100);
-				describer.addCell(pdfGenaratorUtil.getDescCell(" "));
-				describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
-
-				document.open();
-				headerTable.setTotalWidth(300f);
-				headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
-						writer.getDirectContent());
-
-				PdfPTable mainTable = new PdfPTable(7);
-				mainTable.setWidthPercentage(100);
-				mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
-				mainTable.setSpacingBefore(20.0f);
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
-				document.add(image);
-				document.add(name);
-
-				if (!list.isEmpty()) {
-					int i = 0;
-					int j = 1;
-					for (TagCheck tc : list) {
-						String dateEmargement = "";
-						String nom = "";
-						String prenom = "";
-						String identifiant = "";
-						String typeemargement = "";
-						String typeIndividu = "";
-						if (tc.getPerson() != null) {
-							nom = tc.getPerson().getNom();
-							prenom = tc.getPerson().getPrenom();
-							identifiant = tc.getPerson().getNumIdentifiant();
-							if (identifiant == null) {
-								identifiant = tc.getPerson().getEppn();
-							}
-							typeIndividu = messageSource
-									.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
-									.substring(0, 1);
-						} else if (tc.getGuest() != null) {
-							nom = tc.getGuest().getNom();
-							prenom = tc.getGuest().getPrenom();
-							identifiant = tc.getGuest().getEmail();
-							typeIndividu = "Ex";
-						}
-						if(tc.getAbsence()!=null) {
-		        			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
-	        				dateEmargement = absence;
-						} else if (tc.getTagDate() != null) {
-							dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
-							if (tc.getIsUnknown()) {
-								dateEmargement = "Inconnu";
-							}
-						}
-						if (tc.getIsTiersTemps()) {
-							dateEmargement += " \nTemps aménagé";
-						}
-						if (tc.getTypeEmargement() != null) {
-							typeemargement = messageSource.getMessage(
-									"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
-						}
-						typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeIndividu));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(dateEmargement));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
-						i++;
-						if (i == 18) {
-							mainTable.addCell(summaryL);
-							mainTable.addCell(summaryR);
-							document.add(mainTable);
-							document.add(describer);
-							document.newPage();
-							document.add(image);
-							headerTable.setTotalWidth(300f);
-							headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
-									document.top(), writer.getDirectContent());
-							document.add(name);
-							mainTable = new PdfPTable(7);
-							mainTable.setWidthPercentage(100);
-							mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
-							mainTable.setSpacingBefore(20.0f);
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
-							i = 0;
-						}
-						j++;
-					}
-				}
-				mainTable.addCell(summaryL);
-				mainTable.addCell(summaryR);
-				document.add(mainTable);
-				document.add(describer);
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+				getTagCheckListAsPDF(list, document, se, writer, emargementContext);
+			} catch (DocumentException de) {
+				de.printStackTrace();
+				logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 						null, emargementContext, null);
-
-	        } catch (DocumentException de) {
-	          de.printStackTrace();
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 						null, emargementContext, null);
-	        } catch (IOException de) {
-	          de.printStackTrace();
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
-						null, emargementContext, null);
-	        }
-	        
+			}
+	 
 	        document.close();
 	        if(signature) {
 	        	pdfBytes = byteArrayOutputStream.toByteArray();
 	        }
 	       
-		}else if("CSV".equals(type)){
+		} else if("CSV".equals(type)){
 			try {
 			    String filename = nomFichier.concat(".csv");
 
@@ -1386,7 +1229,196 @@ public class TagCheckService {
 		}
 		return pdfBytes;
 	}
-	
+
+	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, SessionEpreuve se, PdfWriter writer, String emargementContext) {
+		getTagCheckListAsPDF(list, document, se, writer, emargementContext, null);
+	}
+
+	// Il y avait de tous petits delta entre l'implémentation dans TagCheckService et celle dans PresenceService
+	// Dans la version PresenceService, le lieu est ajoutée au titre (en s'appuyant sur la variable "sessionLocationId").
+	// Dans la version TagCheckService, la date de fin est précédée de "\n"
+	// Pour ne pas introduire plus de modification de nécessaire, on considèrera que:
+	// - Si on a renseigné sessionLocationId, on est dans le mode de fonctionnement de PresenceService
+	// - sinon dans le mode de fonctionnement de TagCheckService
+	// A noter, à partir de sessionLocationId, on peut récupérer un objet SessionLocation dont on peut visiblement récupérer
+	// SessionEpreuve (dans dans ce cas le paramètre se pourrait être homis)
+	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, SessionEpreuve se, PdfWriter writer, String emargementContext, Long sessionLocationId) {
+		try {
+			document.setMargins(10, 10, 10, 10);
+
+			String dateFin = (se.getDateFin() != null) ? (null == sessionLocationId?"\n":"") + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin()))
+					: "";
+			String date = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
+			String heures = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
+					+ String.format("%1$tH:%1$tM", se.getFinEpreuve());
+			Long totalExpected = tagCheckRepository
+					.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
+			Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
+			String total = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
+
+			SessionLocation sl = null;
+			if (null != sessionLocationId) {
+				sl = sessionLocationRepository.findById(sessionLocationId).get();
+			}
+
+			String title = se.getNomSessionEpreuve() + (null == sl?"": " // " + sl.getLocation().getNom());
+			List<TagChecker> tagCheckers = tagCheckerRepository
+					.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
+			tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+			String surveillants = tagCheckers.stream()
+					.map(t -> (t.getUserApp().getPrenom() + "-" + t.getUserApp().getNom())).distinct()
+					.collect(Collectors.joining(","));
+
+			Image image = Image.getInstance(PresenceService.class.getResource("/static/images/logo.jpg"));
+			image.scaleAbsolute(150f, 50f);// image width,height
+
+			PdfPTable headerTable = new PdfPTable(3);
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(total));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(date));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(heures));
+
+			Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+			Paragraph name = new Paragraph(title, font);
+			name.setSpacingBefore(2f);
+
+			PdfPTable tagCheckerTable = new PdfPTable(1);
+			tagCheckerTable.setWidthPercentage(100);
+			String surveillantTerme = appliConfigService.getSurveillantTerm();
+			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
+			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
+			PdfPCell summaryL = new PdfPCell(tagCheckerTable);
+			summaryL.setColspan(4);
+			summaryL.setPadding(1.0f);
+
+			PdfPTable remarques = new PdfPTable(1);
+			remarques.setWidthPercentage(100);
+			remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
+			PdfPCell summaryR = new PdfPCell(remarques);
+			summaryR.setColspan(3);
+
+			PdfPTable describer = new PdfPTable(1);
+			describer.setWidthPercentage(100);
+			describer.addCell(pdfGenaratorUtil.getDescCell(" "));
+			describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
+
+			document.open();
+			headerTable.setTotalWidth(300f);
+			headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
+					writer.getDirectContent());
+
+			PdfPTable mainTable = new PdfPTable(7);
+			mainTable.setWidthPercentage(100);
+			mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
+			mainTable.setSpacingBefore(20.0f);
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
+			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+			document.add(image);
+			document.add(name);
+
+			if (!list.isEmpty()) {
+				int i = 0;
+				int j = 1;
+				for (TagCheck tc : list) {
+					String dateEmargement = "";
+					String nom = "";
+					String prenom = "";
+					String identifiant = "";
+					String typeemargement = "";
+					String typeIndividu = "";
+					if (tc.getPerson() != null) {
+						nom = tc.getPerson().getNom();
+						prenom = tc.getPerson().getPrenom();
+						identifiant = tc.getPerson().getNumIdentifiant();
+						if (identifiant == null) {
+							identifiant = tc.getPerson().getEppn();
+						}
+						typeIndividu = messageSource
+								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
+								.substring(0, 1);
+					} else if (tc.getGuest() != null) {
+						nom = tc.getGuest().getNom();
+						prenom = tc.getGuest().getPrenom();
+						identifiant = tc.getGuest().getEmail();
+						typeIndividu = "Ex";
+					}
+					if(tc.getAbsence()!=null) {
+						String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
+						dateEmargement = absence;
+					} else if (tc.getTagDate() != null) {
+						dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
+						if (tc.getIsUnknown()) {
+							dateEmargement = "Inconnu";
+						}
+					}
+					if (tc.getIsTiersTemps()) {
+						dateEmargement += " \nTemps aménagé";
+					}
+					if (tc.getTypeEmargement() != null) {
+						typeemargement = messageSource.getMessage(
+								"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
+					}
+					typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeIndividu));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(dateEmargement));
+					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
+					i++;
+					if (i == 18) {
+						mainTable.addCell(summaryL);
+						mainTable.addCell(summaryR);
+						document.add(mainTable);
+						document.add(describer);
+						document.newPage();
+						document.add(image);
+						headerTable.setTotalWidth(300f);
+						headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
+								document.top(), writer.getDirectContent());
+						document.add(name);
+						mainTable = new PdfPTable(7);
+						mainTable.setWidthPercentage(100);
+						mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
+						mainTable.setSpacingBefore(20.0f);
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
+						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+						i = 0;
+					}
+					j++;
+				}
+			}
+			mainTable.addCell(summaryL);
+			mainTable.addCell(summaryR);
+			document.add(mainTable);
+			document.add(describer);
+			logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+
+		} catch (DocumentException de) {
+			de.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		}
+	}
+
 	private String formatDate(Date date) {
 	    return String.format("%1$td-%1$tm-%1$tY", date);
 	}
