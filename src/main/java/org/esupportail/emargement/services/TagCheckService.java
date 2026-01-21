@@ -1392,20 +1392,30 @@ public class TagCheckService {
 			Paragraph name = new Paragraph(title, font);
 			name.setSpacingBefore(2f);
 
+			//----------------------------------------------------------------------------
+			// Pied de tableau (zone gauche: surveillants, zone droite: remarques)
+			//----------------------------------------------------------------------------
 			PdfPTable tagCheckerTable = new PdfPTable(1);
 			tagCheckerTable.setWidthPercentage(100);
 			String surveillantTerme = appliConfigService.getSurveillantTerm();
 			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
 			tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
 			PdfPCell summaryL = new PdfPCell(tagCheckerTable);
-			summaryL.setColspan(4);
 			summaryL.setPadding(1.0f);
 
 			PdfPTable remarques = new PdfPTable(1);
 			remarques.setWidthPercentage(100);
 			remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
 			PdfPCell summaryR = new PdfPCell(remarques);
-			summaryR.setColspan(3);
+			
+			PdfPTable tableFooterTable = new PdfPTable(2);
+			tableFooterTable.setWidthPercentage(100);
+			tableFooterTable.addCell(summaryL);
+			tableFooterTable.addCell(summaryR);
+
+			PdfPCell tableFooterCell = new PdfPCell(tableFooterTable);
+			tableFooterCell.setColspan(7);
+			//----------------------------------------------------------------------------
 
 			PdfPTable describer = new PdfPTable(1);
 			describer.setWidthPercentage(100);
@@ -1483,8 +1493,7 @@ public class TagCheckService {
 					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
 					i++;
 					if (i == 18) {
-						mainTable.addCell(summaryL);
-						mainTable.addCell(summaryR);
+						mainTable.addCell(tableFooterCell);
 						document.add(mainTable);
 						document.add(describer);
 						document.newPage();
@@ -1509,8 +1518,7 @@ public class TagCheckService {
 					j++;
 				}
 			}
-			mainTable.addCell(summaryL);
-			mainTable.addCell(summaryR);
+			mainTable.addCell(tableFooterCell);
 			document.add(mainTable);
 			document.add(describer);
 			logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
