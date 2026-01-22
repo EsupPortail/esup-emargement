@@ -1287,11 +1287,23 @@ public class TagCheckService {
 		// que des étudiants
 		boolean masquerColTypeSiUniquementTypeE = false;
 	
+		// Pour un étudiant l'identifiant est le n° étudiant. Il prend bien moins de place
+		// qu'une adresse mail (identifiant utilisé pour les autres types de participant).
+		// Afin de laisser de la place pour les autres informations, lorsqu'il n'y a que
+		// des étudiants parmi les participants, il peut être intéressant de réduire la
+		// largeur de la colonne identifiant au strict minimum (8 chiffres?)
+		boolean optimiserLargeurColIdentifiantSiUniquementTypeE = false;
+
 		// Pour conserver les tailles de polices de caractères du tableau principal
 		// ainsi que les largeurs de colonnes anciennement préconfigurées
 		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
 		// positionner à true
+		// Sera ignoré si optimiserLargeurColIdentifiantSiUniquementTypeE = true
 		boolean legacyDisplayConfig = true;
+
+		if (optimiserLargeurColIdentifiantSiUniquementTypeE) {
+			legacyDisplayConfig = false;
+		}
 
 		try {
 			document.setMargins(10, 10, 10, 10);
@@ -1322,17 +1334,19 @@ public class TagCheckService {
 			List<String> groupesRepresentes = new ArrayList<String>();
 			boolean foundParticipantWithNoGroup = false;
 			boolean listWithOnlyTypeE = true;
+			boolean isGroupesRepresentesValueRequired = personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible;
+			boolean isListWithOnlyTypeEValueRequired = optimiserLargeurColIdentifiantSiUniquementTypeE || masquerColTypeSiUniquementTypeE;
 			// (si besoin) On va dans un premier temps déterminer quels sont les groupes représentés sur cette feuille
-			if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible || masquerColTypeSiUniquementTypeE) {
+			if (isGroupesRepresentesValueRequired || isListWithOnlyTypeEValueRequired) {
 				if (!list.isEmpty()) {
 					for(TagCheck tc : list) {
 						String typeIndividu = "";
 						if (tc.getPerson() != null ) {
-							if (masquerColTypeSiUniquementTypeE) {
+							if (isListWithOnlyTypeEValueRequired) {
 								typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null).substring(0,1);
 							}
 
-							if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
+							if (isGroupesRepresentesValueRequired) {
 								if ((tc.getPerson().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
 									List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 									groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
@@ -1341,11 +1355,11 @@ public class TagCheckService {
 								}
 							}
 						} else if(tc.getGuest() != null ) {
-							if (masquerColTypeSiUniquementTypeE) {
+							if (isListWithOnlyTypeEValueRequired) {
 								typeIndividu = "Ex";
 							}
 
-							if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
+							if (isGroupesRepresentesValueRequired) {
 								if ((tc.getGuest().getGroupes() != null)  && (tc.getPerson().getGroupes().size() > 0)) {
 									List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 									groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
@@ -1354,9 +1368,10 @@ public class TagCheckService {
 								}
 							}
 						}
+
 						if (
-							masquerColTypeSiUniquementTypeE
-							&&
+							isListWithOnlyTypeEValueRequired
+						  	&&
 							(!"E".equals(typeIndividu))
 						) {
 							listWithOnlyTypeE = false;
@@ -1523,12 +1538,15 @@ public class TagCheckService {
 				mainTableWidths         = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
 			} else {
 				// Avec marge/padding "par défaut"
-				// Largeur optimale pour la colonne # (2 chiffres) entre 4.6% et 4.7% de la largeur du tableau
+				// Largeur optimale pour la colonne # (3 chiffres) entre 4.6% et 4.7% de la largeur du tableau
 				// Largeur optimale pour la colonne Type (E, P, Ex) entre 5,5% et 5.7% (facteur limitant = entête de colonne)
 				// Largeur optimale pour la colonne Emargement (heure) entre 11.7% et 12% (facteur limitant = entête de colonne)
 				// Largeur optimale pour la colonne Mode (contenu possible "Manuel", "QrCode participant") entre 9.7% et 9.8%
 				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
 				colsOptimizedSize.put("#", 4.7f);
+				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
+				    colsOptimizedSize.put("Identifiant", 9.3f); // On suppose qu'il n'y a que des identifiants d'étudiant
+				}
 				colsOptimizedSize.put("Type", 5.7f);
 				colsOptimizedSize.put("Emargement", 12f);
 				colsOptimizedSize.put("Mode", 9.8f);
