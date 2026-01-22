@@ -1551,29 +1551,41 @@ public class TagCheckService {
 				colsOptimizedSize.put("Emargement", 12f);
 				colsOptimizedSize.put("Mode", 9.8f);
 
+				HashMap<String, Float> colsWidthWeight = new HashMap<String, Float>();
+				colsWidthWeight.put("Nom", 1f);
+				colsWidthWeight.put("Prénom", 1f);
+				// Il faut une largeur plus grande pour un identifiant mail incluant nom, prénom et nom de domaine
+				// plutôt que nom et prénom pris individuellement. On lui attribue donc un poids supérieur
+				// Ca vaut ce que ça vaut (ça ne tient pas compte du contenu effectif des colonnes)
+				// mais en attendant mieux ça ira
+				colsWidthWeight.put("Identifiant", 1.5f);
+
 				// On détermine l'espace occupé par les colonnes dont on connait la largeur optimale
 				// (i.e plus petite possible tout en permettant d'afficher l'ensemble du contenu)
 				// et on regarde combien il reste de colonnes qui doivent être les plus larges possibles
 				mainTableWidths = new float[displayedCols.size()];
-				float totalLargeursFixes = 0;
-				int nbColsLargeurAjustable = 0;
+				float totalLargeursFixes = 0f;
+				float poidsTotalColsLargeurAjustable = 0f;
 				for (String colName : displayedCols) {
 					if (colsOptimizedSize.containsKey(colName)) {
 						totalLargeursFixes += (float)colsOptimizedSize.get(colName);
+					} else if (colsWidthWeight.containsKey(colName)) {
+						poidsTotalColsLargeurAjustable += (float)colsWidthWeight.get(colName);
 					} else {
-						nbColsLargeurAjustable++;
+						poidsTotalColsLargeurAjustable += 1f;
 					}
 				}
 
 				// Pour les colonnes qui doivent être les plus larges possible, on va répartir
-				// (équitablement dans un premier temps) l'espace disponible restant
-				float largeurAjustee = (100f-totalLargeursFixes)/nbColsLargeurAjustable;
+				// l'espace disponible restant avec la pondération prédéfinie
 				int colIdx = 0;
 				for (String colName : displayedCols) {
 					if (colsOptimizedSize.containsKey(colName)) {
 						mainTableWidths[colIdx] = (float)colsOptimizedSize.get(colName);
+					} else if (colsWidthWeight.containsKey(colName)) {
+						mainTableWidths[colIdx] = (float)colsWidthWeight.get(colName)*(100f-totalLargeursFixes)/poidsTotalColsLargeurAjustable;
 					} else {
-						mainTableWidths[colIdx] = largeurAjustee;
+						mainTableWidths[colIdx] = (float)(100f-totalLargeursFixes)/poidsTotalColsLargeurAjustable;
 					}
 					colIdx++;
 				}
