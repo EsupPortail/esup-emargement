@@ -1273,6 +1273,10 @@ public class TagCheckService {
 		// ou au contraire considérer qu'il appartient à un groupe distinct
 		boolean participantSansGroupeEquivautAutreGroupe = true;
 
+		// Pour conserver les tailles de polices de caractères du tableau principal
+		// positionner à true
+		boolean legacyDisplayConfig = true;
+
 		try {
 			document.setMargins(10, 10, 10, 10);
 
@@ -1439,6 +1443,14 @@ public class TagCheckService {
 
 			PdfPTable mainTable = new PdfPTable(displayedCols.size());
 			mainTable.setWidthPercentage(100);
+
+			int mainTableHeaderFontSize = 10;
+			int mainTableFontSize       = 10;
+			if (legacyDisplayConfig) {
+				mainTableHeaderFontSize = 11; // default
+				mainTableFontSize       = 0; // default
+			}
+
 			float[] mainTableWidths = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
 			mainTable.setWidths(mainTableWidths);
 			mainTable.setSpacingBefore(20.0f);
@@ -1446,7 +1458,7 @@ public class TagCheckService {
 			for (String colName : displayedCols) {
 				// TODO Utiliser une table de correspondance nom col => titre col
 				// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName));
+				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
 			}
 
 			document.add(image);
@@ -1524,7 +1536,7 @@ public class TagCheckService {
 								cellContent = "???"+colName+"???";
 								break;
 						}
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent));
+						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize));
 					}
 
 					i++;
@@ -1545,7 +1557,7 @@ public class TagCheckService {
 						for (String colName : displayedCols) {
 							// TODO Utiliser une table de correspondance nom col => titre col
 							// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName));
+							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
 						}			
 						i = 0;
 					}
