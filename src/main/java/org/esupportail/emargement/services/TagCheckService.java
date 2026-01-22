@@ -1282,6 +1282,11 @@ public class TagCheckService {
 		// peut ainsi rappeler la formation concernée.
 		boolean remplacerColGroupeParTitreSiPossible = true;
 
+		// Afin de laisser de la place pour les autres informations, on peut vouloir
+		// masquer la colonne Type (de participant) lorsque la session n'implique
+		// que des étudiants
+		boolean masquerColTypeSiUniquementTypeE = false;
+	
 		// Pour conserver les tailles de polices de caractères du tableau principal
 		// ainsi que les largeurs de colonnes anciennement préconfigurées
 		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
@@ -1316,24 +1321,45 @@ public class TagCheckService {
 
 			List<String> groupesRepresentes = new ArrayList<String>();
 			boolean foundParticipantWithNoGroup = false;
+			boolean listWithOnlyTypeE = true;
 			// (si besoin) On va dans un premier temps déterminer quels sont les groupes représentés sur cette feuille
-			if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
+			if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible || masquerColTypeSiUniquementTypeE) {
 				if (!list.isEmpty()) {
 					for(TagCheck tc : list) {
+						String typeIndividu = "";
 						if (tc.getPerson() != null ) {
-							if ((tc.getPerson().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
-								List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-								groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
-							} else {
-								foundParticipantWithNoGroup = true;
+							if (masquerColTypeSiUniquementTypeE) {
+								typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null).substring(0,1);
+							}
+
+							if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
+								if ((tc.getPerson().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
+									List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+									groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+								} else {
+									foundParticipantWithNoGroup = true;
+								}
 							}
 						} else if(tc.getGuest() != null ) {
-							if ((tc.getGuest().getGroupes() != null)  && (tc.getPerson().getGroupes().size() > 0)) {
-								List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-								groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
-							} else {
-								foundParticipantWithNoGroup = true;
+							if (masquerColTypeSiUniquementTypeE) {
+								typeIndividu = "Ex";
 							}
+
+							if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
+								if ((tc.getGuest().getGroupes() != null)  && (tc.getPerson().getGroupes().size() > 0)) {
+									List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+									groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+								} else {
+									foundParticipantWithNoGroup = true;
+								}
+							}
+						}
+						if (
+							masquerColTypeSiUniquementTypeE
+							&&
+							(!"E".equals(typeIndividu))
+						) {
+							listWithOnlyTypeE = false;
 						}
 					}
 				}
@@ -1368,7 +1394,11 @@ public class TagCheckService {
 				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
 				paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);
 			}
-			displayedCols.add("Type"); // E, P ou Ex
+
+			if ((!masquerColTypeSiUniquementTypeE) || (!listWithOnlyTypeE)) {
+				displayedCols.add("Type"); // E, P ou Ex
+			}
+
 			displayedCols.add("Emargement"); // Heure
 			displayedCols.add("Mode");
 
