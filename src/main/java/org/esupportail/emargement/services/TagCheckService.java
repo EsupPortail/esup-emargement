@@ -1268,12 +1268,14 @@ public class TagCheckService {
 		// A noter: L'affichage éventuel de plusieurs logos n'est pas géré.
 		boolean prendreLogoPremiereFormationSiPlusieursFormations = false;
 
-		// Si (au moins) 1 des participants n'est pas associé à un (ou plusieurs groupes)
+		// Si (au moins) 1 des participants n'est pas associé à un (ou plusieurs) groupe(s)
 		// on peut faire le choix de l'ignorer (et l'assimiler aux groupes représentés)
 		// ou au contraire considérer qu'il appartient à un groupe distinct
 		boolean participantSansGroupeEquivautAutreGroupe = true;
 
 		// Pour conserver les tailles de polices de caractères du tableau principal
+		// ainsi que les largeurs de colonnes anciennement préconfigurées
+		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
 		// positionner à true
 		boolean legacyDisplayConfig = true;
 
@@ -1329,10 +1331,15 @@ public class TagCheckService {
 			}
 
 			ArrayList<String> displayedCols = new ArrayList<String>();
+			// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
+			// ATTENTION Cela s'applique à tous les contextes
 			displayedCols.add("#"); // Numéro de ligne
 			displayedCols.add("Nom");
 			displayedCols.add("Prénom");
 			displayedCols.add("Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			if (BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+				displayedCols.add("Groupes");
+			}
 			displayedCols.add("Type"); // E, P ou Ex
 			displayedCols.add("Emargement"); // Heure
 			displayedCols.add("Mode");
@@ -1446,12 +1453,56 @@ public class TagCheckService {
 
 			int mainTableHeaderFontSize = 10;
 			int mainTableFontSize       = 10;
-			if (legacyDisplayConfig) {
+
+			// Détermination des largeurs de colonne du tableau principal
+			//----------------------------------------------------------------
+			float[] mainTableWidths;
+
+			if ((legacyDisplayConfig) && (7 == displayedCols.size())) {
+				// Garder comme c'était avant
 				mainTableHeaderFontSize = 11; // default
 				mainTableFontSize       = 0; // default
+				mainTableWidths         = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
+			} else {
+				// Avec marge/padding "par défaut"
+				// Largeur optimale pour la colonne # (2 chiffres) entre 4.6% et 4.7% de la largeur du tableau
+				// Largeur optimale pour la colonne Type (E, P, Ex) entre 5,5% et 5.7% (facteur limitant = entête de colonne)
+				// Largeur optimale pour la colonne Emargement (heure) entre 11.7% et 12% (facteur limitant = entête de colonne)
+				// Largeur optimale pour la colonne Mode (contenu possible "Manuel", "QrCode participant") entre 9.7% et 9.8%
+				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
+				colsOptimizedSize.put("#", 4.7f);
+				colsOptimizedSize.put("Type", 5.7f);
+				colsOptimizedSize.put("Emargement", 12f);
+				colsOptimizedSize.put("Mode", 9.8f);
+
+				// On détermine l'espace occupé par les colonnes dont on connait la largeur optimale
+				// (i.e plus petite possible tout en permettant d'afficher l'ensemble du contenu)
+				// et on regarde combien il reste de colonnes qui doivent être les plus larges possibles
+				mainTableWidths = new float[displayedCols.size()];
+				float totalLargeursFixes = 0;
+				int nbColsLargeurAjustable = 0;
+				for (String colName : displayedCols) {
+					if (colsOptimizedSize.containsKey(colName)) {
+						totalLargeursFixes += (float)colsOptimizedSize.get(colName);
+					} else {
+						nbColsLargeurAjustable++;
+					}
+				}
+
+				// Pour les colonnes qui doivent être les plus larges possible, on va répartir
+				// (équitablement dans un premier temps) l'espace disponible restant
+				float largeurAjustee = (100f-totalLargeursFixes)/nbColsLargeurAjustable;
+				int colIdx = 0;
+				for (String colName : displayedCols) {
+					if (colsOptimizedSize.containsKey(colName)) {
+						mainTableWidths[colIdx] = (float)colsOptimizedSize.get(colName);
+					} else {
+						mainTableWidths[colIdx] = largeurAjustee;
+					}
+					colIdx++;
+				}
 			}
 
-			float[] mainTableWidths = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
 			mainTable.setWidths(mainTableWidths);
 			mainTable.setSpacingBefore(20.0f);
 
@@ -1474,6 +1525,7 @@ public class TagCheckService {
 					String identifiant = "";
 					String typeemargement = "";
 					String typeIndividu = "";
+					String groupe = "";
 					if (tc.getPerson() != null) {
 						nom = tc.getPerson().getNom();
 						prenom = tc.getPerson().getPrenom();
@@ -1484,11 +1536,20 @@ public class TagCheckService {
 						typeIndividu = messageSource
 								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
 								.substring(0, 1);
+						if (displayedCols.contains("Groupes") && (tc.getPerson().getGroupes() != null)) {
+							List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupe = StringUtils.join(groupes,", ");
+						}
 					} else if (tc.getGuest() != null) {
 						nom = tc.getGuest().getNom();
 						prenom = tc.getGuest().getPrenom();
 						identifiant = tc.getGuest().getEmail();
 						typeIndividu = "Ex";
+
+						if (displayedCols.contains("Groupes") && (tc.getGuest().getGroupes() != null)) {
+							List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupe = StringUtils.join(groupes,", ");
+						}
 					}
 					if(tc.getAbsence()!=null) {
 						String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
@@ -1522,6 +1583,9 @@ public class TagCheckService {
 								break;
 							case "Identifiant":
 								cellContent = identifiant;
+								break;
+							case "Groupes":
+								cellContent = groupe;
 								break;
 							case "Type":
 								cellContent = typeIndividu;
