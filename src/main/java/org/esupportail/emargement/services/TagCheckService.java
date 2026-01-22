@@ -1324,6 +1324,15 @@ public class TagCheckService {
 				}
 			}
 
+			ArrayList<String> displayedCols = new ArrayList<String>();
+			displayedCols.add("#"); // Numéro de ligne
+			displayedCols.add("Nom");
+			displayedCols.add("Prénom");
+			displayedCols.add("Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			displayedCols.add("Type"); // E, P ou Ex
+			displayedCols.add("Emargement"); // Heure
+			displayedCols.add("Mode");
+
 			// Détermination du logo à afficher (en haut à gauche)
 			//------------------------------------------------------------------------
 			Image image = null;
@@ -1414,7 +1423,7 @@ public class TagCheckService {
 			tableFooterTable.addCell(summaryR);
 
 			PdfPCell tableFooterCell = new PdfPCell(tableFooterTable);
-			tableFooterCell.setColspan(7);
+			tableFooterCell.setColspan(displayedCols.size());
 			//----------------------------------------------------------------------------
 
 			PdfPTable describer = new PdfPTable(1);
@@ -1423,21 +1432,23 @@ public class TagCheckService {
 			describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
 
 			document.open();
+			
 			headerTable.setTotalWidth(300f);
 			headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
 					writer.getDirectContent());
 
-			PdfPTable mainTable = new PdfPTable(7);
+			PdfPTable mainTable = new PdfPTable(displayedCols.size());
 			mainTable.setWidthPercentage(100);
-			mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
+			float[] mainTableWidths = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
+			mainTable.setWidths(mainTableWidths);
 			mainTable.setSpacingBefore(20.0f);
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-			mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+
+			for (String colName : displayedCols) {
+				// TODO Utiliser une table de correspondance nom col => titre col
+				// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
+				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName));
+			}
+
 			document.add(image);
 			document.add(name);
 
@@ -1484,13 +1495,38 @@ public class TagCheckService {
 								"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
 					}
 					typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeIndividu));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(dateEmargement));
-					mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
+
+					for (String colName : displayedCols) {
+						String cellContent = "???"+colName+"???";
+						switch (colName) {
+							case "#":
+								cellContent = String.valueOf(j);
+								break;
+							case "Nom":
+								cellContent = nom;
+								break;
+							case "Prénom":
+								cellContent = prenom;
+								break;
+							case "Identifiant":
+								cellContent = identifiant;
+								break;
+							case "Type":
+								cellContent = typeIndividu;
+								break;
+							case "Emargement":
+								cellContent = dateEmargement;
+								break;
+							case "Mode":
+								cellContent = typeemargement;
+								break;
+							default:
+								cellContent = "???"+colName+"???";
+								break;
+						}
+						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent));
+					}
+
 					i++;
 					if (i == 18) {
 						mainTable.addCell(tableFooterCell);
@@ -1502,22 +1538,21 @@ public class TagCheckService {
 						headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
 								document.top(), writer.getDirectContent());
 						document.add(name);
-						mainTable = new PdfPTable(7);
+						mainTable = new PdfPTable(displayedCols.size());
 						mainTable.setWidthPercentage(100);
-						mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
+						mainTable.setWidths(mainTableWidths);
 						mainTable.setSpacingBefore(20.0f);
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-						mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
+						for (String colName : displayedCols) {
+							// TODO Utiliser une table de correspondance nom col => titre col
+							// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
+							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName));
+						}			
 						i = 0;
 					}
 					j++;
 				}
 			}
+
 			mainTable.addCell(tableFooterCell);
 			document.add(mainTable);
 			document.add(describer);
