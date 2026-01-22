@@ -1273,6 +1273,15 @@ public class TagCheckService {
 		// ou au contraire considérer qu'il appartient à un groupe distinct
 		boolean participantSansGroupeEquivautAutreGroupe = true;
 
+		// Dans le cas où l'on a activé l'affichage du groupe des participants à la session
+		// (i.e. getIsGroupeDisplayed = true)
+		// Si tous les partipants appartiennent au même groupe, on peut choisir de remplacer
+		// la colonne (qui prend de la place dans le tableau) par une ligne unique en tête
+		// de tableau.
+		// Cela est notamment pensé dans le cas où groupe = formation. La feuille d'émargement
+		// peut ainsi rappeler la formation concernée.
+		boolean remplacerColGroupeParTitreSiPossible = true;
+
 		// Pour conserver les tailles de polices de caractères du tableau principal
 		// ainsi que les largeurs de colonnes anciennement préconfigurées
 		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
@@ -1308,7 +1317,7 @@ public class TagCheckService {
 			List<String> groupesRepresentes = new ArrayList<String>();
 			boolean foundParticipantWithNoGroup = false;
 			// (si besoin) On va dans un premier temps déterminer quels sont les groupes représentés sur cette feuille
-			if (personnaliserLogoParFormation) {
+			if (personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible) {
 				if (!list.isEmpty()) {
 					for(TagCheck tc : list) {
 						if (tc.getPerson() != null ) {
@@ -1330,6 +1339,8 @@ public class TagCheckService {
 				}
 			}
 
+			Paragraph paragrapheNomGroupeUnique = null;
+
 			ArrayList<String> displayedCols = new ArrayList<String>();
 			// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
 			// ATTENTION Cela s'applique à tous les contextes
@@ -1337,8 +1348,25 @@ public class TagCheckService {
 			displayedCols.add("Nom");
 			displayedCols.add("Prénom");
 			displayedCols.add("Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
-			if (BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+			if (
+				// Si on demande à afficher les groupes
+				BooleanUtils.isTrue(se.getIsGroupeDisplayed())
+				&&
+				(
+					// Et que l'on ne cherche pas à masquer la colonne si l'info est la même pour tous (i.e. 1 seul groupe)
+					(!remplacerColGroupeParTitreSiPossible)
+					||
+					// ou que de toutes façons il y a (0 ou) plusieurs groupes
+					(0 == groupesRepresentes.size())
+					||
+					(1 < groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+				)
+			) {
 				displayedCols.add("Groupes");
+			} else if (BooleanUtils.isTrue(se.getIsGroupeDisplayed() && remplacerColGroupeParTitreSiPossible)) {
+				// Sinon on affichera en tête de tableau
+				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+				paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);
 			}
 			displayedCols.add("Type"); // E, P ou Ex
 			displayedCols.add("Emargement"); // Heure
@@ -1514,7 +1542,12 @@ public class TagCheckService {
 
 			document.add(image);
 			document.add(name);
-
+			if (null != paragrapheNomGroupeUnique) {
+				// REM: Dans le cas groupe = formation, on s'attendrait sans doute plutôt
+				// à avoir formation AVANT nom du cours (+ lieu)
+				document.add(paragrapheNomGroupeUnique);
+			}
+			
 			if (!list.isEmpty()) {
 				int i = 0;
 				int j = 1;
