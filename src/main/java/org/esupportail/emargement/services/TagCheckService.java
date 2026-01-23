@@ -1404,7 +1404,7 @@ public class TagCheckService {
 				)
 			) {
 				displayedCols.add("Groupes");
-			} else if (BooleanUtils.isTrue(se.getIsGroupeDisplayed() && remplacerColGroupeParTitreSiPossible)) {
+			} else if (BooleanUtils.isTrue(se.getIsGroupeDisplayed()) && remplacerColGroupeParTitreSiPossible) {
 				// Sinon on affichera en tête de tableau
 				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
 				paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);
