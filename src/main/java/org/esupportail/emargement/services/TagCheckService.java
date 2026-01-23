@@ -180,6 +180,15 @@ public class TagCheckService {
 	
 	private static final String ANONYMOUS = "anonymous";
 
+	public static final String COL_NUM_LIGNE = "#";
+	public static final String COL_NOM_PARTICIPANT = "Nom";
+	public static final String COL_PRENOM_PARTICIPANT = "Prénom";
+	public static final String COL_IDENTIFIANT_PARTICIPANT = "Identifiant"; // n° étudiant ou email
+	public static final String COL_GROUPES_PARTICIPANT = "Groupes";
+	public static final String COL_TYPE_PARTICIPANT = "Type"; // E, P, Ext
+	public static final String COL_HEURE_EMARGEMENT = "Emargement";
+	public static final String COL_MODE_EMARGEMENT = "Mode";
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
     public void resetSessionLocationExpected(Long sessionEpreuveId){
@@ -1305,6 +1314,11 @@ public class TagCheckService {
 			legacyDisplayConfig = false;
 		}
 
+		int nbLigneMaxParPage       = 18;
+
+		int mainTableHeaderFontSize = 10;
+		int mainTableFontSize       = 10;
+
 		try {
 			document.setMargins(10, 10, 10, 10);
 
@@ -1385,37 +1399,43 @@ public class TagCheckService {
 			ArrayList<String> displayedCols = new ArrayList<String>();
 			// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
 			// ATTENTION Cela s'applique à tous les contextes
-			displayedCols.add("#"); // Numéro de ligne
-			displayedCols.add("Nom");
-			displayedCols.add("Prénom");
-			displayedCols.add("Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			displayedCols.add(COL_NUM_LIGNE); // Numéro de ligne
+			displayedCols.add(COL_NOM_PARTICIPANT);
+			displayedCols.add(COL_PRENOM_PARTICIPANT);
+			displayedCols.add(COL_IDENTIFIANT_PARTICIPANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			displayedCols.add(COL_GROUPES_PARTICIPANT);
+			displayedCols.add(COL_TYPE_PARTICIPANT); // E, P ou Ex
+			displayedCols.add(COL_HEURE_EMARGEMENT);
+			displayedCols.add(COL_MODE_EMARGEMENT);
+
 			if (
-				// Si on demande à afficher les groupes
-				BooleanUtils.isTrue(se.getIsGroupeDisplayed())
-				&&
+				(!BooleanUtils.isTrue(se.getIsGroupeDisplayed()))
+				||
 				(
-					// Et que l'on ne cherche pas à masquer la colonne si l'info est la même pour tous (i.e. 1 seul groupe)
-					(!remplacerColGroupeParTitreSiPossible)
-					||
-					// ou que de toutes façons il y a (0 ou) plusieurs groupes
-					(0 == groupesRepresentes.size())
-					||
-					(1 < groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+					(remplacerColGroupeParTitreSiPossible)
+					&&
+					(1 == groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
 				)
 			) {
-				displayedCols.add("Groupes");
-			} else if (BooleanUtils.isTrue(se.getIsGroupeDisplayed()) && remplacerColGroupeParTitreSiPossible) {
-				// Sinon on affichera en tête de tableau
-				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
-				paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);
+				// Dans ce cas là, on n'affiche pas la colonne groupes
+				int pos;
+				if (-1 != (pos = displayedCols.indexOf(COL_GROUPES_PARTICIPANT))) {
+					displayedCols.remove(pos);
+				}
+
+				if (BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+					// Si on remplace la colonne par un texte en tête de tableau
+					Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+					paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);	
+				}
 			}
 
-			if ((!masquerColTypeSiUniquementTypeE) || (!listWithOnlyTypeE)) {
-				displayedCols.add("Type"); // E, P ou Ex
+			if (masquerColTypeSiUniquementTypeE && listWithOnlyTypeE) {
+				int pos;
+				if (-1 != (pos = displayedCols.indexOf(COL_TYPE_PARTICIPANT))) {
+					displayedCols.remove(pos);
+				}
 			}
-
-			displayedCols.add("Emargement"); // Heure
-			displayedCols.add("Mode");
 
 			// Détermination du logo à afficher (en haut à gauche)
 			//------------------------------------------------------------------------
@@ -1473,6 +1493,9 @@ public class TagCheckService {
 			image = Image.getInstance(logoResource);
 			image.scaleAbsolute(150f, 50f);// image width,height
 
+			//-----------------------------------------------------
+			// Cartouche en haut à droite
+			//-----------------------------------------------------
 			PdfPTable headerTable = new PdfPTable(3);
 			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
 			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
@@ -1516,16 +1539,18 @@ public class TagCheckService {
 			describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
 
 			document.open();
-			
+
 			headerTable.setTotalWidth(300f);
-			headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
-					writer.getDirectContent());
+			headerTable.writeSelectedRows(
+				0,
+				-1,
+				document.right() - headerTable.getTotalWidth(),
+				document.top(),
+				writer.getDirectContent()
+			);
 
 			PdfPTable mainTable = new PdfPTable(displayedCols.size());
 			mainTable.setWidthPercentage(100);
-
-			int mainTableHeaderFontSize = 10;
-			int mainTableFontSize       = 10;
 
 			// Détermination des largeurs de colonne du tableau principal
 			//----------------------------------------------------------------
@@ -1543,22 +1568,22 @@ public class TagCheckService {
 				// Largeur optimale pour la colonne Emargement (heure) entre 11.7% et 12% (facteur limitant = entête de colonne)
 				// Largeur optimale pour la colonne Mode (contenu possible "Manuel", "QrCode participant") entre 9.7% et 9.8%
 				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
-				colsOptimizedSize.put("#", 4.7f);
+				colsOptimizedSize.put(COL_NUM_LIGNE, 4.7f);
 				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
-				    colsOptimizedSize.put("Identifiant", 9.3f); // On suppose qu'il n'y a que des identifiants d'étudiant
+				    colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 9.3f); // On suppose qu'il n'y a que des identifiants d'étudiant
 				}
-				colsOptimizedSize.put("Type", 5.7f);
-				colsOptimizedSize.put("Emargement", 12f);
-				colsOptimizedSize.put("Mode", 9.8f);
+				colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 5.7f);
+				colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 12f);
+				colsOptimizedSize.put(COL_MODE_EMARGEMENT, 9.8f);
 
 				HashMap<String, Float> colsWidthWeight = new HashMap<String, Float>();
-				colsWidthWeight.put("Nom", 1f);
-				colsWidthWeight.put("Prénom", 1f);
+				colsWidthWeight.put(COL_NOM_PARTICIPANT, 1f);
+				colsWidthWeight.put(COL_PRENOM_PARTICIPANT, 1f);
 				// Il faut une largeur plus grande pour un identifiant mail incluant nom, prénom et nom de domaine
 				// plutôt que nom et prénom pris individuellement. On lui attribue donc un poids supérieur
 				// Ca vaut ce que ça vaut (ça ne tient pas compte du contenu effectif des colonnes)
 				// mais en attendant mieux ça ira
-				colsWidthWeight.put("Identifiant", 1.5f);
+				colsWidthWeight.put(COL_IDENTIFIANT_PARTICIPANT, 1.5f);
 
 				// On détermine l'espace occupé par les colonnes dont on connait la largeur optimale
 				// (i.e plus petite possible tout en permettant d'afficher l'ensemble du contenu)
@@ -1609,16 +1634,18 @@ public class TagCheckService {
 			}
 			
 			if (!list.isEmpty()) {
-				int i = 0;
-				int j = 1;
+				int lineInPageCount = 0;
+				int lineCount       = 1;
 				for (TagCheck tc : list) {
 					String dateEmargement = "";
 					String nom = "";
 					String prenom = "";
 					String identifiant = "";
-					String typeemargement = "";
+					String typeEmargement = "";
 					String typeIndividu = "";
-					String groupe = "";
+					String groupes = "";
+					// nom, prénom, identifiant, typeIndividu, groupes
+					//----------------------
 					if (tc.getPerson() != null) {
 						nom = tc.getPerson().getNom();
 						prenom = tc.getPerson().getPrenom();
@@ -1629,9 +1656,9 @@ public class TagCheckService {
 						typeIndividu = messageSource
 								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
 								.substring(0, 1);
-						if (displayedCols.contains("Groupes") && (tc.getPerson().getGroupes() != null)) {
-							List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-							groupe = StringUtils.join(groupes,", ");
+						if (displayedCols.contains(COL_GROUPES_PARTICIPANT) && (tc.getPerson().getGroupes() != null)) {
+							List<String> groupeList = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupes = StringUtils.join(groupeList,", ");
 						}
 					} else if (tc.getGuest() != null) {
 						nom = tc.getGuest().getNom();
@@ -1639,12 +1666,15 @@ public class TagCheckService {
 						identifiant = tc.getGuest().getEmail();
 						typeIndividu = "Ex";
 
-						if (displayedCols.contains("Groupes") && (tc.getGuest().getGroupes() != null)) {
-							List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
-							groupe = StringUtils.join(groupes,", ");
+						if (displayedCols.contains(COL_GROUPES_PARTICIPANT) && (tc.getGuest().getGroupes() != null)) {
+							List<String> groupeList = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupes = StringUtils.join(groupeList,", ");
 						}
 					}
-					if(tc.getAbsence()!=null) {
+
+					// dateEmargement
+					//----------------------
+					if (tc.getAbsence()!=null) {
 						String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
 						dateEmargement = absence;
 					} else if (tc.getTagDate() != null) {
@@ -1656,38 +1686,41 @@ public class TagCheckService {
 					if (tc.getIsTiersTemps()) {
 						dateEmargement += " \nTemps aménagé";
 					}
+
+					// typeEmargement
+					//----------------------
 					if (tc.getTypeEmargement() != null) {
-						typeemargement = messageSource.getMessage(
+						typeEmargement = messageSource.getMessage(
 								"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
 					}
-					typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
+					typeEmargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
 
 					for (String colName : displayedCols) {
 						String cellContent = "???"+colName+"???";
 						switch (colName) {
-							case "#":
-								cellContent = String.valueOf(j);
+							case COL_NUM_LIGNE:
+								cellContent = String.valueOf(lineCount);
 								break;
-							case "Nom":
+							case COL_NOM_PARTICIPANT:
 								cellContent = nom;
 								break;
-							case "Prénom":
+							case COL_PRENOM_PARTICIPANT:
 								cellContent = prenom;
 								break;
-							case "Identifiant":
+							case COL_IDENTIFIANT_PARTICIPANT:
 								cellContent = identifiant;
 								break;
-							case "Groupes":
-								cellContent = groupe;
+							case COL_GROUPES_PARTICIPANT:
+								cellContent = groupes;
 								break;
-							case "Type":
+							case COL_TYPE_PARTICIPANT:
 								cellContent = typeIndividu;
 								break;
-							case "Emargement":
+							case COL_HEURE_EMARGEMENT:
 								cellContent = dateEmargement;
 								break;
-							case "Mode":
-								cellContent = typeemargement;
+							case COL_MODE_EMARGEMENT:
+								cellContent = typeEmargement;
 								break;
 							default:
 								cellContent = "???"+colName+"???";
@@ -1696,8 +1729,8 @@ public class TagCheckService {
 						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize));
 					}
 
-					i++;
-					if (i == 18) {
+					lineInPageCount++;
+					if (lineInPageCount == nbLigneMaxParPage) {
 						mainTable.addCell(tableFooterCell);
 						document.add(mainTable);
 						document.add(describer);
@@ -1716,9 +1749,9 @@ public class TagCheckService {
 							// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
 							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
 						}			
-						i = 0;
+						lineInPageCount = 0;
 					}
-					j++;
+					lineCount++;
 				}
 			}
 
