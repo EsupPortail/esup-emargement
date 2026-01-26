@@ -1303,21 +1303,37 @@ public class TagCheckService {
 		// largeur de la colonne identifiant au strict minimum (8 chiffres?)
 		boolean optimiserLargeurColIdentifiantSiUniquementTypeE = false;
 
+		// Option d'affichage avec une police de caractères plus petite
+		// et des marges (padding) plus petites également
+		boolean isCompactMode = false;
+
 		// Pour conserver les tailles de polices de caractères du tableau principal
 		// ainsi que les largeurs de colonnes anciennement préconfigurées
 		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
 		// positionner à true
 		// Sera ignoré si optimiserLargeurColIdentifiantSiUniquementTypeE = true
+		// ou si isCompactMode = true
 		boolean legacyDisplayConfig = true;
 
 		if (optimiserLargeurColIdentifiantSiUniquementTypeE) {
 			legacyDisplayConfig = false;
 		}
 
-		int nbLigneMaxParPage       = 18;
+		int nbLigneMaxParPage        = 18;
 
-		int mainTableHeaderFontSize = 10;
-		int mainTableFontSize       = 10;
+		int mainTableHeaderFontSize  = 10;
+		float mainTableHeaderPadding = 5f;
+		int mainTableFontSize        = 10;
+		float mainTablePadding       = 5f;
+
+		if (isCompactMode) {
+			mainTableHeaderFontSize = 8;
+			mainTableHeaderPadding  = 3f;
+			mainTableFontSize       = 8;
+			mainTablePadding        = 3f;
+
+			legacyDisplayConfig = false;
+		}
 
 		try {
 			document.setMargins(10, 10, 10, 10);
@@ -1557,19 +1573,30 @@ public class TagCheckService {
 				mainTableFontSize       = 0; // default
 				mainTableWidths         = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
 			} else {
-				// Avec marge/padding "par défaut"
-				// Largeur optimale pour la colonne # (3 chiffres) entre 4.6% et 4.7% de la largeur du tableau
-				// Largeur optimale pour la colonne Type (E, P, Ex) entre 5,5% et 5.7% (facteur limitant = entête de colonne)
-				// Largeur optimale pour la colonne Emargement (heure) entre 11.7% et 12% (facteur limitant = entête de colonne)
-				// Largeur optimale pour la colonne Mode (contenu possible "Manuel", "QrCode participant") entre 9.7% et 9.8%
+				// Largeurs optimales par colonne, en % de la largeur du tableau
 				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
-				colsOptimizedSize.put(COL_NUM_LIGNE, 4.7f);
-				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
-				    colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 9.3f); // On suppose qu'il n'y a que des identifiants d'étudiant
+				if (isCompactMode) {
+					// Avec fontSize 8 et padding 3 (mode compact)
+					colsOptimizedSize.put(COL_NUM_LIGNE, 3.9f);        // 3 chiffres
+					colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 4.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 9.5f); // Facteur limitant = entête de colonne "Emargement"
+					colsOptimizedSize.put(COL_MODE_EMARGEMENT, 8f);  // Ex: "Manuel", "QrCode participant", ...
+				} else {
+					// Avec fontSize 10 et padding 5 (mode "historique")
+					colsOptimizedSize.put(COL_NUM_LIGNE, 4.7f);        // 3 chiffres
+					colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 5.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 12f);  // Facteur limitant = entête de colonne "Emargement"
+					colsOptimizedSize.put(COL_MODE_EMARGEMENT, 9.8f);  // Ex: "Manuel", "QrCode participant", ...
 				}
-				colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 5.7f);
-				colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 12f);
-				colsOptimizedSize.put(COL_MODE_EMARGEMENT, 9.8f);
+
+				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
+					// Optimisé pour 8 chiffres
+					if (isCompactMode) {
+						colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 7.5f);
+					} else {
+						colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 9.3f);
+					}
+				}
 
 				HashMap<String, Float> colsWidthWeight = new HashMap<String, Float>();
 				colsWidthWeight.put(COL_NOM_PARTICIPANT, 1f);
@@ -1617,7 +1644,7 @@ public class TagCheckService {
 			for (String colName : displayedCols) {
 				// TODO Utiliser une table de correspondance nom col => titre col
 				// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
+				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize, mainTableHeaderPadding));
 			}
 
 			int pageCount = 0;
@@ -1725,7 +1752,8 @@ public class TagCheckService {
 								cellContent = "???"+colName+"???";
 								break;
 						}
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize));
+
+						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize, mainTablePadding));
 					}
 
 					lineInPageCount++;
@@ -1751,7 +1779,7 @@ public class TagCheckService {
 						for (String colName : displayedCols) {
 							// TODO Utiliser une table de correspondance nom col => titre col
 							// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
+							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize, mainTableHeaderPadding));
 						}			
 						lineInPageCount = 0;
 					}
