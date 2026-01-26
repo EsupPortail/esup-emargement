@@ -1730,7 +1730,7 @@ public class TagCheckService {
 					}
 
 					lineInPageCount++;
-					if (lineInPageCount == nbLigneMaxParPage) {
+					if ((lineInPageCount == nbLigneMaxParPage) && (lineCount < list.size())) {
 						mainTable.addCell(tableFooterCell);
 						document.add(mainTable);
 						document.add(describer);
