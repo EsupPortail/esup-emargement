@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.Date;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
@@ -24,6 +26,7 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.FontSelector;
 import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfWriter;
 
@@ -180,5 +183,36 @@ public class PdfGenaratorUtil {
 		cell.setHorizontalAlignment (Element.ALIGN_CENTER);
 		cell.setBorder(0);
 		return cell;
+	}
+
+	/**
+	 * Ajoute en pied de page, 
+	 * au centre: la mention "Esup-emargement" + année 
+	 * à droite: le N° de la page/nb total de pages
+	 */
+	public void addPageFooter(PdfWriter writer, com.itextpdf.text.Document document, int currentPageNb, int totalLineCount, int nbMaxLinePerPage) throws DocumentException {
+		String pageFooterTtext = "Page "+currentPageNb+"/"+((int)Math.ceil((float)totalLineCount/(float)nbMaxLinePerPage));
+		Font pageFooterFont   = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+		Paragraph pageFooterParagraph = new Paragraph(pageFooterTtext, pageFooterFont);
+		PdfPCell pageFooterCell       = new PdfPCell(pageFooterParagraph);
+
+		pageFooterCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+		pageFooterCell.setBorder(0);
+
+		PdfPCell emptyCell = new PdfPCell();
+		emptyCell.setBorder(0);
+
+		PdfPTable pageFooter = new PdfPTable(3);
+		pageFooter.setTotalWidth(document.right(document.rightMargin()) - document.left(document.leftMargin()));
+		pageFooter.setWidths(new float[] {0.15f, 0.7f, 0.15f});
+		pageFooter.addCell(emptyCell);
+		pageFooter.addCell(getDescCell("Esup-emargement - " + Year.now().getValue()));
+		pageFooter.addCell(pageFooterCell);
+		pageFooter.writeSelectedRows(0, -1,
+			document.left(document.leftMargin()),
+			pageFooter.getTotalHeight() + document.bottom(document.bottomMargin()),
+			writer.getDirectContent()
+		);
 	}
 }

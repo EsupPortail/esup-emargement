@@ -1533,11 +1533,6 @@ public class TagCheckService {
 			tableFooterCell.setColspan(displayedCols.size());
 			//----------------------------------------------------------------------------
 
-			PdfPTable describer = new PdfPTable(1);
-			describer.setWidthPercentage(100);
-			describer.addCell(pdfGenaratorUtil.getDescCell(" "));
-			describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
-
 			document.open();
 
 			headerTable.setTotalWidth(300f);
@@ -1624,6 +1619,10 @@ public class TagCheckService {
 				// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
 				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize));
 			}
+
+			int pageCount = 0;
+
+			pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
 
 			document.add(image);
 			document.add(name);
@@ -1733,8 +1732,13 @@ public class TagCheckService {
 					if ((lineInPageCount == nbLigneMaxParPage) && (lineCount < list.size())) {
 						mainTable.addCell(tableFooterCell);
 						document.add(mainTable);
-						document.add(describer);
+
+						// Préparation d'une nouvelle page
 						document.newPage();
+						pageCount++;
+
+						pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
+
 						document.add(image);
 						headerTable.setTotalWidth(300f);
 						headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
@@ -1757,7 +1761,6 @@ public class TagCheckService {
 
 			mainTable.addCell(tableFooterCell);
 			document.add(mainTable);
-			document.add(describer);
 			logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
 					null, emargementContext, null);
 
