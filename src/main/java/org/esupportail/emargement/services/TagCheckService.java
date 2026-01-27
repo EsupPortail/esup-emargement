@@ -1453,6 +1453,10 @@ public class TagCheckService {
 				}
 			}
 
+			if (7 != displayedCols.size()) {
+				legacyDisplayConfig = false;
+			}
+
 			// Détermination du logo à afficher (en haut à gauche)
 			//------------------------------------------------------------------------
 			Image image = null;
@@ -1567,7 +1571,7 @@ public class TagCheckService {
 			//----------------------------------------------------------------
 			float[] mainTableWidths;
 
-			if ((legacyDisplayConfig) && (7 == displayedCols.size())) {
+			if (legacyDisplayConfig) {
 				// Garder comme c'était avant
 				mainTableHeaderFontSize = 11; // default
 				mainTableFontSize       = 0; // default
@@ -1723,15 +1727,22 @@ public class TagCheckService {
 
 					for (String colName : displayedCols) {
 						String cellContent = "???"+colName+"???";
+						int align = Element.ALIGN_CENTER;
 						switch (colName) {
 							case COL_NUM_LIGNE:
 								cellContent = String.valueOf(lineCount);
 								break;
 							case COL_NOM_PARTICIPANT:
 								cellContent = nom;
+								if (!legacyDisplayConfig) {
+									align = Element.ALIGN_LEFT;
+								}
 								break;
 							case COL_PRENOM_PARTICIPANT:
 								cellContent = prenom;
+								if (!legacyDisplayConfig) {
+									align = Element.ALIGN_LEFT;
+								}
 								break;
 							case COL_IDENTIFIANT_PARTICIPANT:
 								cellContent = identifiant;
@@ -1753,7 +1764,7 @@ public class TagCheckService {
 								break;
 						}
 
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize, mainTablePadding));
+						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(cellContent, mainTableFontSize, mainTablePadding, align));
 					}
 
 					lineInPageCount++;
