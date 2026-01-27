@@ -1160,7 +1160,7 @@ public class TagCheckService {
 					writer = PdfWriter.getInstance(document, response.getOutputStream());
 				}
 
-				getTagCheckListAsPDF(list, document, se, writer, emargementContext);
+				getTagCheckListAsPDF(list, document, writer, se, emargementContext);
 			} catch (DocumentException de) {
 				de.printStackTrace();
 				logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
@@ -1241,19 +1241,50 @@ public class TagCheckService {
 		return pdfBytes;
 	}
 
-	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, SessionEpreuve se, PdfWriter writer, String emargementContext) {
-		getTagCheckListAsPDF(list, document, se, writer, emargementContext, null);
+	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, PdfWriter writer, SessionEpreuve se, String emargementContext) {
+		getTagCheckListAsPDF(list, document, writer, se, emargementContext, null);
 	}
 
-	// Il y avait de tous petits delta entre l'implémentation dans TagCheckService et celle dans PresenceService
-	// Dans la version PresenceService, le lieu est ajoutée au titre (en s'appuyant sur la variable "sessionLocationId").
+	public void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		String emargementContext,
+		Long sessionLocationId
+	) {
+		ArrayList<String> displayedCols = new ArrayList<String>();
+		// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
+		// ATTENTION Cela s'applique à tous les contextes
+		displayedCols.add(COL_NUM_LIGNE); // Numéro de ligne
+		displayedCols.add(COL_NOM_PARTICIPANT);
+		displayedCols.add(COL_PRENOM_PARTICIPANT);
+		displayedCols.add(COL_IDENTIFIANT_PARTICIPANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+		displayedCols.add(COL_GROUPES_PARTICIPANT);
+		displayedCols.add(COL_TYPE_PARTICIPANT); // E, P ou Ex
+		displayedCols.add(COL_HEURE_EMARGEMENT);
+		displayedCols.add(COL_MODE_EMARGEMENT);
+
+		getTagCheckListAsPDF(list, document, writer, se, displayedCols, emargementContext, null);
+	}
+
+	// Il y avait de tous petits deltas entre l'implémentation dans TagCheckService et celle dans PresenceService
+	// Dans la version PresenceService, le lieu est ajouté au titre (en s'appuyant sur la variable "sessionLocationId").
 	// Dans la version TagCheckService, la date de fin est précédée de "\n"
-	// Pour ne pas introduire plus de modification de nécessaire, on considèrera que:
+	// Pour ne pas introduire plus de modifications que nécessaire, on considèrera que:
 	// - Si on a renseigné sessionLocationId, on est dans le mode de fonctionnement de PresenceService
 	// - sinon dans le mode de fonctionnement de TagCheckService
 	// A noter, à partir de sessionLocationId, on peut récupérer un objet SessionLocation dont on peut visiblement récupérer
-	// SessionEpreuve (dans dans ce cas le paramètre se pourrait être homis)
-	public void getTagCheckListAsPDF(List<TagCheck> list, Document document, SessionEpreuve se, PdfWriter writer, String emargementContext, Long sessionLocationId) {
+	// SessionEpreuve (dans dans ce cas le paramètre pourrait être homis)
+	public void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		ArrayList<String> displayedCols,
+		String emargementContext,
+		Long sessionLocationId
+	) {
 		// -----------------------------------------------------------
 		// Configuration "locale" (applicable à tous les contextes)
 		// -----------------------------------------------------------
@@ -1411,18 +1442,6 @@ public class TagCheckService {
 			}
 
 			Paragraph paragrapheNomGroupeUnique = null;
-
-			ArrayList<String> displayedCols = new ArrayList<String>();
-			// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
-			// ATTENTION Cela s'applique à tous les contextes
-			displayedCols.add(COL_NUM_LIGNE); // Numéro de ligne
-			displayedCols.add(COL_NOM_PARTICIPANT);
-			displayedCols.add(COL_PRENOM_PARTICIPANT);
-			displayedCols.add(COL_IDENTIFIANT_PARTICIPANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
-			displayedCols.add(COL_GROUPES_PARTICIPANT);
-			displayedCols.add(COL_TYPE_PARTICIPANT); // E, P ou Ex
-			displayedCols.add(COL_HEURE_EMARGEMENT);
-			displayedCols.add(COL_MODE_EMARGEMENT);
 
 			if (
 				(!BooleanUtils.isTrue(se.getIsGroupeDisplayed()))

@@ -152,7 +152,7 @@ public class PresenceService {
 				writer = PdfWriter.getInstance(document, response.getOutputStream());
 			}
 
-			tagCheckService.getTagCheckListAsPDF(list, document, se, writer, emargementContext, sessionLocationId);
+			tagCheckService.getTagCheckListAsPDF(list, document, writer, se, emargementContext, sessionLocationId);
 		} catch (DocumentException de) {
 			de.printStackTrace();
 			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
