@@ -197,7 +197,7 @@ public class TagCheckerService {
 		tagCheckerRepository.deleteAll(tcs);
 	}
 
-	public List<TagChecker> updatePresentsTagCkeckers(String presence, SessionLocation validLocation, TypeEmargement type){
+	public List<TagChecker> updatePresentsTagCkeckers(String presence, TypeEmargement type){
 		List<TagChecker> tagCheckers = new ArrayList<>();
 		String [] splitPresence = presence.split(",");
 		if(splitPresence.length >2) {

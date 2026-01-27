@@ -55,7 +55,7 @@ public class EmargementRepositoryAspect {
 	@After(
 			value="(execution(public * org.springframework.data.jpa.repository.*.*(..)) || execution(public * org.esupportail.emargement.repositories.*.*(..)) || execution(public * org.esupportail.emargement.repositories.custom.*.*(..)))",
 			argNames="joinPoint")
-	public void disableFilter(JoinPoint joinPoint) throws Throwable {
+	public void disableFilter() throws Throwable {
 		em.unwrap(Session.class).disableFilter("contextFilter");
 	}
 }

@@ -80,7 +80,7 @@ public class SearchController {
 	LdapService ldapService;
 	
     @GetMapping("/supervisor/search/{type}")
-    public String searchUsers(@PathVariable String emargementContext, @PathVariable String type, 
+    public String searchUsers(@PathVariable String type, 
     		@RequestParam String searchString, @RequestParam(required = false) Long seId, Model model) throws InvalidNameException {
         if (searchString.length() > 3) {
         	if("userApp".equals(type)) {
@@ -88,7 +88,7 @@ public class SearchController {
         		userAppService.setNomPrenom(userApps, true);
         		model.addAttribute("userApps", userApps);
         	}else if("location".equals(type)) {
-        		List<Location> locations= locationRepositoryCustom.findAll(searchString, emargementContext);
+        		List<Location> locations= locationRepositoryCustom.findAll(searchString);
         		model.addAttribute("locations", locations);
         	}else if("sessionEpreuve".equals(type)) {
         		List<SessionEpreuve> sessionEpreuves= sessionEpreuveRepositoryCustom.findAll(searchString);
@@ -124,7 +124,7 @@ public class SearchController {
         		model.addAttribute("individus", listWithoutDuplicates);
         	}else if("individuTagChecker".equals(type)) {
         		List<SearchBean> searchBeans = new ArrayList<>();
-        		List<TagChecker>  tagCheckersList = tagCheckerRepositoryCustom.findAll(searchString, null);
+        		List<TagChecker>  tagCheckersList = tagCheckerRepositoryCustom.findAll(searchString);
     	    	if(!tagCheckersList.isEmpty()) {
     	    		tagCheckerService.setNomPrenom4TagCheckers(tagCheckersList);
     	    		for(TagChecker tc : tagCheckersList) {

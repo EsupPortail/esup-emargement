@@ -48,7 +48,7 @@ public class ArchiveService {
 				Long countSE = sessionEpreuveRepository.countByAnneeUniv(annee);
 				archive.setNbSessions(countSE);
 				Long countTc = tagCheckRepository.countTagCheckByAnneeUnivAndContextId(annee, ctx.getId());
-				archive.setNbTagChecks(countTc);;
+				archive.setNbTagChecks(countTc);
 				Date firstDate = sessionEpreuveRepository.findFirstDateExamen(annee, ctx.getId());
 				archive.setFirstDate(firstDate);
 				Date lastDate = sessionEpreuveRepository.findLastDateExamen(annee, ctx.getId());

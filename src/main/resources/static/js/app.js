@@ -307,24 +307,41 @@ function deleteParam(urlLocation, name) {
 	return url;
 }
 
-function updatePresence(url, numEtu, currentLocation) {
+function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
 	var request = new XMLHttpRequest();
 	var location = (currentLocation != null) ? "&currentLocation=" + currentLocation : "";
 	request.open('GET', url + "?presence=" + numEtu + location, true);
 	request.onload = function() {
+		if (null != qrCodeCam) {
+			qrCodeCam.setAttribute("data-qrcode-isvalid", "false");
+		}
+
 		if (request.status >= 200 && request.status < 400) {
-			if (document.getElementById("newbie") != null) {
+			if ((document.getElementById("newbie") != null) || (null !== qrCodeCam)) {
 				const data = JSON.parse(request.responseText);
 				if (data != null) {
-					var tc = data[0];
-					var tagDate = moment(tc.tagDate).format('DD-MM-YYYY HH:mm:ss');
-					var info = moment(tc.sessionEpreuve.dateExamen).format('DD-MM-YYYY') + " // " +
-						tc.sessionEpreuve.nomSessionEpreuve + " // " ;
-					$("#norole").addClass("d-none");
-					$("#newbie").removeClass("d-none");
-					$("#tagDate").text(tagDate);
-					$("#sessionNewbie").text(info);
-					$("#accordionNewbie").hide();
+					if (document.getElementById("newbie") != null) {
+						var tc = data[0];
+						var tagDate = moment(tc.tagDate).format('DD-MM-YYYY HH:mm:ss');
+						var info = moment(tc.sessionEpreuve.dateExamen).format('DD-MM-YYYY') + " // " +
+							tc.sessionEpreuve.nomSessionEpreuve + " // " ;
+						$("#norole").addClass("d-none");
+						$("#newbie").removeClass("d-none");
+						$("#tagDate").text(tagDate);
+						$("#sessionNewbie").text(info);
+						$("#accordionNewbie").hide();
+					}
+
+					if (data.length > 0) {
+						// Il y a bien eu validation de la présence
+						// On affiche un message dans le canvas de la camera
+						// TODO Voir sous quelles conditions on efface ce message (fermeture/ré-ouverture de la fenêtre)
+						document.getElementById("qrCodeScanOk").style.display = "block";
+						if (null != qrCodeCam) {
+							// On affiche le cadre du QR code en vert (tant que l'on ne change pas de QRCode)
+							qrCodeCam.setAttribute("data-qrcode-isvalid", "true");
+						}
+					}
 				}
 			}
 			deleteParam(window.location.href, "tc");
@@ -332,6 +349,9 @@ function updatePresence(url, numEtu, currentLocation) {
 				$("#displayedIdentity").addClass("d-none");
 			}, 2000);
 		} else {
+			if (null != qrCodeCam) {
+				qrCodeCam.setAttribute("data-qrcode-isvalid", "false");
+			}
 			console.log("erreur du serveur!");
 		}
 	};
@@ -1541,10 +1561,15 @@ document.addEventListener('DOMContentLoaded', function() {
 							inversionAttempts: "dontInvert",
 						});
 						if (code) {
-							drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-							drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-							drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-							drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+							if ("true" == qrCodeCam.getAttribute("data-qrcode-isvalid")) {
+								color = "#00FF00";
+							} else {
+								color = "#FF3B58";
+							}
+							drawLine(code.location.topLeftCorner, code.location.topRightCorner, color);
+							drawLine(code.location.topRightCorner, code.location.bottomRightCorner, color);
+							drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, color);
+							drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, color);
 						}
 						if (!isCodeScanned) {
 							if (code) {
@@ -1560,15 +1585,17 @@ document.addEventListener('DOMContentLoaded', function() {
 								}
 								var location = document.getElementById("location");
 								var valLocation = (location != null) ? location.value : null;
-								updatePresence(prefix + "updatePresents", value, valLocation);
+								updatePresence(prefix + "updatePresents", value, valLocation, qrCodeCam);
 								isCodeScanned = true;
 								console.log("QR Code scanned once.");
 								setTimeout(() => {
 									isCodeScanned = false;
+									qrCodeCam.setAttribute("data-qrcode-isvalid", "false");
 									console.log("Simulated scan. Code scanned only once.");
 								}, 2000); //
 							} else {
 								isCodeScanned = false; // Reset the flag if no QR code is found
+								qrCodeCam.setAttribute("data-qrcode-isvalid", "false");
 							}
 						}
 					}

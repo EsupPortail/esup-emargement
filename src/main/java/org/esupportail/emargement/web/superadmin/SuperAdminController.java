@@ -155,7 +155,7 @@ public class SuperAdminController {
     
     void populateEditForm(Model uiModel, UserApp userApp, String context) {
     	uiModel.addAttribute("contexts", contextRepository.findAll());
-    	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context, userApp));
+    	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context));
         uiModel.addAttribute("userApp", userApp);
         uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }

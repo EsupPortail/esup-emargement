@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.AppUser;
@@ -123,7 +122,7 @@ public class GroupeController {
     }
     
     @PostMapping("/manager/groupe/create")
-    public String create(@PathVariable String emargementContext, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, 
+    public String create(@PathVariable String emargementContext, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, groupe);
@@ -148,7 +147,7 @@ public class GroupeController {
     }
 	
     @PostMapping("/manager/groupe/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, HttpServletRequest httpServletRequest, 
+    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Groupe groupe, BindingResult bindingResult, Model uiModel, 
     		final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, groupe);
@@ -177,7 +176,7 @@ public class GroupeController {
     
     @Transactional
     @PostMapping(value = "/manager/groupe/{id}")
-    public String delete(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel, final RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable String emargementContext, @PathVariable Long id) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Groupe groupe  = groupeRepository.findById(id).get();
 		String nom = groupe.getNom();
@@ -193,7 +192,7 @@ public class GroupeController {
     }
     
     @GetMapping(value = {"/manager/groupe/addMembers", "/manager/groupe/addMembers/{tab}"})
-    public String addToGroupe(@PathVariable String emargementContext, Model uiModel, @PathVariable(required = false) String tab) {
+    public String addToGroupe(Model uiModel, @PathVariable(required = false) String tab) {
     	
     	String type = "";
     	if(tab == null) {
@@ -243,8 +242,7 @@ public class GroupeController {
     
     
     @GetMapping(value = "/manager/groupe/seeMembers/{id}")
-    public String seeMembers(@PathVariable String emargementContext, @PathVariable Long id, Model uiModel, 
-    		@PageableDefault(size = 20, direction = Direction.DESC, sort = "person") Pageable pageable) {
+    public String seeMembers(@PathVariable Long id, Model uiModel) {
 
     	Page<AppUser> page = new PageImpl<>(groupeService.getMembers(id));
     	uiModel.addAttribute("tagCheckPage" , page);

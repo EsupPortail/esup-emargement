@@ -33,11 +33,11 @@ public class EsupSignature {
 	
     public static enum TypeSignature {
         SESSION, INDIVIDUAL
-    };
+    }
     
     public static enum StatutSignature {
         PENDING, COMPLETED, DOWNLOADED, DELETED, ENDED, EXPORTED
-    };
+    }
 
     @Column
     @Enumerated(EnumType.STRING)

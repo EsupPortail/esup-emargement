@@ -138,9 +138,9 @@ public class IndexController {
     
     @GetMapping(value = {"updatePresentsTagChecker", "{emargementContext}/updatePresentsTagChecker"})
     @ResponseBody
-    public  List<TagChecker>  updatePresentsTagChecker(@RequestParam String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) {
+    public  List<TagChecker>  updatePresentsTagChecker(@RequestParam String presence) {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-        return tagCheckerService.updatePresentsTagCkeckers(presence, location, null) ;
+        return tagCheckerService.updatePresentsTagCkeckers(presence, null) ;
     }
 }

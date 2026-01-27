@@ -22,7 +22,7 @@ public class LocationRepositoryCustom{
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	public List<Location> findAll(String searchString, String context){
+	public List<Location> findAll(String searchString){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Location> query = criteriaBuilder.createQuery(Location.class);
         Root<Location> c = query.from(Location.class);

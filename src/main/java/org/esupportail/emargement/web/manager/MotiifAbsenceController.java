@@ -12,8 +12,6 @@ import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -49,8 +47,6 @@ public class MotiifAbsenceController {
 	
 	private final static String ITEM = "motifAbsence";
 	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-    
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
 		return ITEM;
@@ -65,7 +61,6 @@ public class MotiifAbsenceController {
 	
     @GetMapping(value = "/manager/motifAbsence", params = "form", produces = "text/html")
     public String createForm(Model uiModel) {
-    	UserAppRepository userAppRepository;
     	MotifAbsence motifAbsence = new MotifAbsence();
     	uiModel.addAttribute("motifAbsence", motifAbsence);
         return "manager/motifAbsence/create";

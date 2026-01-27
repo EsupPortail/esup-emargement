@@ -193,7 +193,7 @@ public class SessionEpreuveService {
 							if (!groupesCounts.containsKey(groupe)) {
 								groupesCounts.put(groupe, 1);
 							} else {
-								Integer count = (Integer)groupesCounts.get(groupe);
+								Integer count = groupesCounts.get(groupe);
 								groupesCounts.put(groupe, count+1);
 							}
 						}
@@ -903,7 +903,6 @@ public class SessionEpreuveService {
 	        	}
 	        }
         }
-        boolean isOver = executeRepartition(newSe.getId(), "alpha");
        	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	log.info("Copie de la session : " + originalSe.getNomSessionEpreuve());
     	logService.log(ACTION.COPY_SESSION_EPREUVE, RETCODE.SUCCESS, originalSe.getNomSessionEpreuve() + " :: " + newSe.getNomSessionEpreuve(), auth.getName(), null, context.getKey(), null);
