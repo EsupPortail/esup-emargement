@@ -180,14 +180,14 @@ public class TagCheckService {
 	
 	private static final String ANONYMOUS = "anonymous";
 
-	public static final String COL_NUM_LIGNE = "#";
-	public static final String COL_NOM_PARTICIPANT = "Nom";
-	public static final String COL_PRENOM_PARTICIPANT = "Prénom";
-	public static final String COL_IDENTIFIANT_PARTICIPANT = "Identifiant"; // n° étudiant ou email
-	public static final String COL_GROUPES_PARTICIPANT = "Groupes";
-	public static final String COL_TYPE_PARTICIPANT = "Type"; // E, P, Ext
-	public static final String COL_HEURE_EMARGEMENT = "Emargement";
-	public static final String COL_MODE_EMARGEMENT = "Mode";
+	public static final String COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS = "Emargement"; // ou raison d'absence + eventuellement info temps amenagé
+	public static final String COL_EMARGEMENT_MODE = "Mode";
+	public static final String COL_LIGNE_NUM = "#";
+	public static final String COL_PARTICIPANT_GROUPES = "Groupes";
+	public static final String COL_PARTICIPANT_IDENTIFIANT = "Identifiant"; // n° étudiant ou email
+	public static final String COL_PARTICIPANT_NOM = "Nom";
+	public static final String COL_PARTICIPANT_PRENOM = "Prénom";
+	public static final String COL_PARTICIPANT_TYPE = "Type"; // E, P, Ext
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -1256,14 +1256,14 @@ public class TagCheckService {
 		ArrayList<String> displayedCols = new ArrayList<String>();
 		// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
 		// ATTENTION Cela s'applique à tous les contextes
-		displayedCols.add(COL_NUM_LIGNE); // Numéro de ligne
-		displayedCols.add(COL_NOM_PARTICIPANT);
-		displayedCols.add(COL_PRENOM_PARTICIPANT);
-		displayedCols.add(COL_IDENTIFIANT_PARTICIPANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
-		displayedCols.add(COL_GROUPES_PARTICIPANT);
-		displayedCols.add(COL_TYPE_PARTICIPANT); // E, P ou Ex
-		displayedCols.add(COL_HEURE_EMARGEMENT);
-		displayedCols.add(COL_MODE_EMARGEMENT);
+		displayedCols.add(COL_LIGNE_NUM); // Numéro de ligne
+		displayedCols.add(COL_PARTICIPANT_NOM);
+		displayedCols.add(COL_PARTICIPANT_PRENOM);
+		displayedCols.add(COL_PARTICIPANT_IDENTIFIANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+		displayedCols.add(COL_PARTICIPANT_GROUPES);
+		displayedCols.add(COL_PARTICIPANT_TYPE); // E, P ou Ex
+		displayedCols.add(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS);
+		displayedCols.add(COL_EMARGEMENT_MODE);
 
 		getTagCheckListAsPDF(list, document, writer, se, displayedCols, emargementContext, null);
 	}
@@ -1371,20 +1371,19 @@ public class TagCheckService {
 
 			String dateFin = (se.getDateFin() != null) ? (null == sessionLocationId?"\n":"") + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin()))
 					: "";
-			String date = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
-			String heures = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
+			String datesDebutFinSession = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
+			String heuresDebutFinSession = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
 					+ String.format("%1$tH:%1$tM", se.getFinEpreuve());
 			Long totalExpected = tagCheckRepository
 					.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
 			Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
-			String total = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
+			String ratioPresents = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
 
 			SessionLocation sl = null;
 			if (null != sessionLocationId) {
 				sl = sessionLocationRepository.findById(sessionLocationId).get();
 			}
 
-			String title = se.getNomSessionEpreuve() + (null == sl?"": " // " + sl.getLocation().getNom());
 			List<TagChecker> tagCheckers = tagCheckerRepository
 					.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
 			tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
@@ -1454,7 +1453,7 @@ public class TagCheckService {
 			) {
 				// Dans ce cas là, on n'affiche pas la colonne groupes
 				int pos;
-				if (-1 != (pos = displayedCols.indexOf(COL_GROUPES_PARTICIPANT))) {
+				if (-1 != (pos = displayedCols.indexOf(COL_PARTICIPANT_GROUPES))) {
 					displayedCols.remove(pos);
 				}
 
@@ -1467,7 +1466,7 @@ public class TagCheckService {
 
 			if (masquerColTypeSiUniquementTypeE && listWithOnlyTypeE) {
 				int pos;
-				if (-1 != (pos = displayedCols.indexOf(COL_TYPE_PARTICIPANT))) {
+				if (-1 != (pos = displayedCols.indexOf(COL_PARTICIPANT_TYPE))) {
 					displayedCols.remove(pos);
 				}
 			}
@@ -1539,13 +1538,17 @@ public class TagCheckService {
 			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
 			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
 			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(total));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(date));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(heures));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(ratioPresents));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(datesDebutFinSession));
+			headerTable.addCell(pdfGenaratorUtil.getIRDCell(heuresDebutFinSession));
 
+			//------------------------------------------------------
+			// Titre de la page
+			//------------------------------------------------------
+			String title = se.getNomSessionEpreuve() + (null == sl?"": " // " + sl.getLocation().getNom());
 			Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
-			Paragraph name = new Paragraph(title, font);
-			name.setSpacingBefore(2f);
+			Paragraph titleParagraph = new Paragraph(title, font);
+			titleParagraph.setSpacingBefore(2f);
 
 			//----------------------------------------------------------------------------
 			// Pied de tableau (zone gauche: surveillants, zone droite: remarques)
@@ -1600,35 +1603,35 @@ public class TagCheckService {
 				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
 				if (isCompactMode) {
 					// Avec fontSize 8 et padding 3 (mode compact)
-					colsOptimizedSize.put(COL_NUM_LIGNE, 3.9f);        // 3 chiffres
-					colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 4.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
-					colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 9.5f); // Facteur limitant = entête de colonne "Emargement"
-					colsOptimizedSize.put(COL_MODE_EMARGEMENT, 8f);  // Ex: "Manuel", "QrCode participant", ...
+					colsOptimizedSize.put(COL_LIGNE_NUM, 3.9f);        // 3 chiffres
+					colsOptimizedSize.put(COL_PARTICIPANT_TYPE, 4.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, 9.5f); // Facteur limitant = entête de colonne "Emargement" ou raison d'absence
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE, 8f);  // Ex: "Manuel", "QrCode participant", ...
 				} else {
 					// Avec fontSize 10 et padding 5 (mode "historique")
-					colsOptimizedSize.put(COL_NUM_LIGNE, 4.7f);        // 3 chiffres
-					colsOptimizedSize.put(COL_TYPE_PARTICIPANT, 5.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
-					colsOptimizedSize.put(COL_HEURE_EMARGEMENT, 12f);  // Facteur limitant = entête de colonne "Emargement"
-					colsOptimizedSize.put(COL_MODE_EMARGEMENT, 9.8f);  // Ex: "Manuel", "QrCode participant", ...
+					colsOptimizedSize.put(COL_LIGNE_NUM, 4.7f);        // 3 chiffres
+					colsOptimizedSize.put(COL_PARTICIPANT_TYPE, 5.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, 12f);  // Facteur limitant = entête de colonne "Emargement" ou raison d'absence
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE, 9.8f);  // Ex: "Manuel", "QrCode participant", ...
 				}
 
 				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
 					// Optimisé pour 8 chiffres
 					if (isCompactMode) {
-						colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 7.5f);
+						colsOptimizedSize.put(COL_PARTICIPANT_IDENTIFIANT, 7.5f);
 					} else {
-						colsOptimizedSize.put(COL_IDENTIFIANT_PARTICIPANT, 9.3f);
+						colsOptimizedSize.put(COL_PARTICIPANT_IDENTIFIANT, 9.3f);
 					}
 				}
 
 				HashMap<String, Float> colsWidthWeight = new HashMap<String, Float>();
-				colsWidthWeight.put(COL_NOM_PARTICIPANT, 1f);
-				colsWidthWeight.put(COL_PRENOM_PARTICIPANT, 1f);
+				colsWidthWeight.put(COL_PARTICIPANT_NOM, 1f);
+				colsWidthWeight.put(COL_PARTICIPANT_PRENOM, 1f);
 				// Il faut une largeur plus grande pour un identifiant mail incluant nom, prénom et nom de domaine
 				// plutôt que nom et prénom pris individuellement. On lui attribue donc un poids supérieur
 				// Ca vaut ce que ça vaut (ça ne tient pas compte du contenu effectif des colonnes)
 				// mais en attendant mieux ça ira
-				colsWidthWeight.put(COL_IDENTIFIANT_PARTICIPANT, 1.5f);
+				colsWidthWeight.put(COL_PARTICIPANT_IDENTIFIANT, 1.5f);
 
 				// On détermine l'espace occupé par les colonnes dont on connait la largeur optimale
 				// (i.e plus petite possible tout en permettant d'afficher l'ensemble du contenu)
@@ -1648,6 +1651,7 @@ public class TagCheckService {
 
 				// Pour les colonnes qui doivent être les plus larges possible, on va répartir
 				// l'espace disponible restant avec la pondération prédéfinie
+				// TODO Attention si la somme des colonnes fixes dépasse 100 !!
 				int colIdx = 0;
 				for (String colName : displayedCols) {
 					if (colsOptimizedSize.containsKey(colName)) {
@@ -1675,7 +1679,7 @@ public class TagCheckService {
 			pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
 
 			document.add(image);
-			document.add(name);
+			document.add(titleParagraph);
 			if (null != paragrapheNomGroupeUnique) {
 				// REM: Dans le cas groupe = formation, on s'attendrait sans doute plutôt
 				// à avoir formation AVANT nom du cours (+ lieu)
@@ -1686,7 +1690,7 @@ public class TagCheckService {
 				int lineInPageCount = 0;
 				int lineCount       = 1;
 				for (TagCheck tc : list) {
-					String dateEmargement = "";
+					String heureEmargementOuAbsenceEtTiersTemps = "";
 					String nom = "";
 					String prenom = "";
 					String identifiant = "";
@@ -1705,7 +1709,7 @@ public class TagCheckService {
 						typeIndividu = messageSource
 								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
 								.substring(0, 1);
-						if (displayedCols.contains(COL_GROUPES_PARTICIPANT) && (tc.getPerson().getGroupes() != null)) {
+						if (displayedCols.contains(COL_PARTICIPANT_GROUPES) && (tc.getPerson().getGroupes() != null)) {
 							List<String> groupeList = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 							groupes = StringUtils.join(groupeList,", ");
 						}
@@ -1715,68 +1719,72 @@ public class TagCheckService {
 						identifiant = tc.getGuest().getEmail();
 						typeIndividu = "Ex";
 
-						if (displayedCols.contains(COL_GROUPES_PARTICIPANT) && (tc.getGuest().getGroupes() != null)) {
+						if (displayedCols.contains(COL_PARTICIPANT_GROUPES) && (tc.getGuest().getGroupes() != null)) {
 							List<String> groupeList = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 							groupes = StringUtils.join(groupeList,", ");
 						}
 					}
 
-					// dateEmargement
+					// heureEmargementOuAbsenceEtTiersTemps
 					//----------------------
 					if (tc.getAbsence()!=null) {
 						String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
-						dateEmargement = absence;
+						heureEmargementOuAbsenceEtTiersTemps = absence;
 					} else if (tc.getTagDate() != null) {
-						dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
+						heureEmargementOuAbsenceEtTiersTemps = String.format("%1$tH:%1$tM", tc.getTagDate());
 						if (tc.getIsUnknown()) {
-							dateEmargement = "Inconnu";
+							heureEmargementOuAbsenceEtTiersTemps = "Inconnu";
 						}
 					}
 					if (tc.getIsTiersTemps()) {
-						dateEmargement += " \nTemps aménagé";
+						heureEmargementOuAbsenceEtTiersTemps += " \nTemps aménagé";
 					}
 
 					// typeEmargement
 					//----------------------
 					if (tc.getTypeEmargement() != null) {
 						typeEmargement = messageSource.getMessage(
-								"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
+							"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()),
+							null,
+							null
+						) + "\n";
 					}
+
 					typeEmargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
 
 					for (String colName : displayedCols) {
 						String cellContent = "???"+colName+"???";
 						int align = Element.ALIGN_CENTER;
 						switch (colName) {
-							case COL_NUM_LIGNE:
+							case COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS:
+								cellContent = heureEmargementOuAbsenceEtTiersTemps;
+								break;
+							case COL_EMARGEMENT_MODE:
+								cellContent = typeEmargement;
+								break;
+							case COL_LIGNE_NUM:
 								cellContent = String.valueOf(lineCount);
 								break;
-							case COL_NOM_PARTICIPANT:
+							case COL_PARTICIPANT_GROUPES:
+								cellContent = groupes;
+								break;
+							case COL_PARTICIPANT_IDENTIFIANT:
+								cellContent = identifiant;
+								break;
+							case COL_PARTICIPANT_NOM:
 								cellContent = nom;
 								if (!legacyDisplayConfig) {
 									align = Element.ALIGN_LEFT;
 								}
 								break;
-							case COL_PRENOM_PARTICIPANT:
+							case COL_PARTICIPANT_PRENOM:
 								cellContent = prenom;
 								if (!legacyDisplayConfig) {
 									align = Element.ALIGN_LEFT;
 								}
 								break;
-							case COL_IDENTIFIANT_PARTICIPANT:
-								cellContent = identifiant;
-								break;
-							case COL_GROUPES_PARTICIPANT:
-								cellContent = groupes;
-								break;
-							case COL_TYPE_PARTICIPANT:
+							case COL_PARTICIPANT_TYPE:
 								cellContent = typeIndividu;
-								break;
-							case COL_HEURE_EMARGEMENT:
-								cellContent = dateEmargement;
-								break;
-							case COL_MODE_EMARGEMENT:
-								cellContent = typeEmargement;
 								break;
 							default:
 								cellContent = "???"+colName+"???";
@@ -1799,9 +1807,13 @@ public class TagCheckService {
 
 						document.add(image);
 						headerTable.setTotalWidth(300f);
-						headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
-								document.top(), writer.getDirectContent());
-						document.add(name);
+						headerTable.writeSelectedRows(0,
+							-1,
+							document.right() - headerTable.getTotalWidth(),
+							document.top(),
+							writer.getDirectContent()
+						);
+						document.add(titleParagraph);
 						mainTable = new PdfPTable(displayedCols.size());
 						mainTable.setWidthPercentage(100);
 						mainTable.setWidths(mainTableWidths);
