@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import org.jsoup.Jsoup;
@@ -195,6 +196,21 @@ public class PdfGenaratorUtil {
 		cell.setHorizontalAlignment (Element.ALIGN_CENTER);
 		cell.setBorder(0);
 		return cell;
+	}
+
+	public PdfPTable getHorizontalCartoucheTable(LinkedHashMap<String, String> cartoucheFields)
+	{
+		PdfPTable headerTable = new PdfPTable(cartoucheFields.size());
+
+		for (String key: cartoucheFields.keySet()) {
+			headerTable.addCell(getIRDCell(key));
+		}
+
+		for (String key: cartoucheFields.keySet()) {
+			headerTable.addCell(getIRDCell(cartoucheFields.get(key)));
+		}
+
+		return headerTable;
 	}
 
 	/**

@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -180,14 +181,17 @@ public class TagCheckService {
 	
 	private static final String ANONYMOUS = "anonymous";
 
-	public static final String COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS = "Emargement"; // ou raison d'absence + eventuellement info temps amenagé
-	public static final String COL_EMARGEMENT_MODE = "Mode";
-	public static final String COL_LIGNE_NUM = "#";
-	public static final String COL_PARTICIPANT_GROUPES = "Groupes";
-	public static final String COL_PARTICIPANT_IDENTIFIANT = "Identifiant"; // n° étudiant ou email
-	public static final String COL_PARTICIPANT_NOM = "Nom";
-	public static final String COL_PARTICIPANT_PRENOM = "Prénom";
-	public static final String COL_PARTICIPANT_TYPE = "Type"; // E, P, Ext
+	public static final String COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS = "EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS"; // ou raison d'absence + eventuellement info temps amenagé
+	public static final String COL_EMARGEMENT_MODE = "EMARGEMENT_MODE";
+	public static final String COL_LIGNE_NUM = "LIGNE_NUM";
+	public static final String COL_PARTICIPANT_GROUPES = "PARTICIPANT_GROUPES";
+	public static final String COL_PARTICIPANT_IDENTIFIANT = "PARTICIPANT_IDENTIFIANT"; // n° étudiant ou email
+	public static final String COL_PARTICIPANT_NOM = "PARTICIPANT_NOM";
+	public static final String COL_PARTICIPANT_PRENOM = "PARTICIPANT_PRENOM";
+	public static final String COL_PARTICIPANT_TYPE = "PARTICIPANT_TYPE"; // E, P, Ext
+	public static final String COL_SESSION_RATIO_PRESENTS = "SESSION_RATIO_PRESENTS";
+	public static final String COL_SESSION_DATES_DEBUT_FIN = "SESSION_DATES_DEBUT_FIN";
+	public static final String COL_SESSION_HEURES_DEBUT_FIN = "SESSION_HEURES_DEBUT_FIN";
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -1253,19 +1257,29 @@ public class TagCheckService {
 		String emargementContext,
 		Long sessionLocationId
 	) {
-		ArrayList<String> displayedCols = new ArrayList<String>();
-		// Commenter les lignes correspondant aux colonnes que vous ne souhaitez pas afficher
+		// Commenter/ajouter les lignes correspondant aux colonnes que vous souhaitez/ne souhaitez pas afficher
+		// Vous pouvez également en modifier l'ordre ou le libellé (second paramètre du put)
 		// ATTENTION Cela s'applique à tous les contextes
-		displayedCols.add(COL_LIGNE_NUM); // Numéro de ligne
-		displayedCols.add(COL_PARTICIPANT_NOM);
-		displayedCols.add(COL_PARTICIPANT_PRENOM);
-		displayedCols.add(COL_PARTICIPANT_IDENTIFIANT); // n° étudiant (Etudiant) ou adresse mail (Personnel)
-		displayedCols.add(COL_PARTICIPANT_GROUPES);
-		displayedCols.add(COL_PARTICIPANT_TYPE); // E, P ou Ex
-		displayedCols.add(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS);
-		displayedCols.add(COL_EMARGEMENT_MODE);
+		LinkedHashMap<String, String> displayedCols = new LinkedHashMap<String, String>();
+		displayedCols.put(COL_LIGNE_NUM, "#");
+		displayedCols.put(COL_PARTICIPANT_NOM, "Nom");
+		displayedCols.put(COL_PARTICIPANT_PRENOM, "Prénom");
+		displayedCols.put(COL_PARTICIPANT_IDENTIFIANT, "Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+		displayedCols.put(COL_PARTICIPANT_GROUPES, "Groupes");
+		displayedCols.put(COL_PARTICIPANT_TYPE, "Type"); // E, P ou Ex
+		displayedCols.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, "Emargement");
+		displayedCols.put(COL_EMARGEMENT_MODE, "Mode");
 
-		getTagCheckListAsPDF(list, document, writer, se, displayedCols, emargementContext, null);
+		// Commenter/Ajouter les lignes correspondant aux données que vous souhaiter/ne souhaitez pas
+		// avoir dans le cartouche (en haut à droite de la page)
+		// Vous pouvez également en modifier l'ordre ou le libellé (second paramètre du put)
+		// ATTENTION Cela s'applique à tous les contextes
+		LinkedHashMap<String, String> headerRequestedFields = new LinkedHashMap<String, String>();
+		headerRequestedFields.put(COL_SESSION_RATIO_PRESENTS, "Présents");
+		headerRequestedFields.put(COL_SESSION_DATES_DEBUT_FIN, "Date");
+		headerRequestedFields.put(COL_SESSION_HEURES_DEBUT_FIN, "Heure");
+
+		getTagCheckListAsPDF(list, document, writer, se, displayedCols, headerRequestedFields, emargementContext, null);
 	}
 
 	// Il y avait de tous petits deltas entre l'implémentation dans TagCheckService et celle dans PresenceService
@@ -1281,7 +1295,8 @@ public class TagCheckService {
 		Document document,
 		PdfWriter writer,
 		SessionEpreuve se,
-		ArrayList<String> displayedCols,
+		LinkedHashMap<String, String> displayedCols,
+		LinkedHashMap<String, String> headerRequestedFields,
 		String emargementContext,
 		Long sessionLocationId
 	) {
@@ -1458,9 +1473,8 @@ public class TagCheckService {
 				)
 			) {
 				// Dans ce cas là, on n'affiche pas la colonne groupes
-				int pos;
-				if (-1 != (pos = displayedCols.indexOf(COL_PARTICIPANT_GROUPES))) {
-					displayedCols.remove(pos);
+				if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES)) {
+					displayedCols.remove(COL_PARTICIPANT_GROUPES);
 				}
 
 				if (BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
@@ -1471,9 +1485,8 @@ public class TagCheckService {
 			}
 
 			if (masquerColTypeSiUniquementTypeE && listWithOnlyTypeE) {
-				int pos;
-				if (-1 != (pos = displayedCols.indexOf(COL_PARTICIPANT_TYPE))) {
-					displayedCols.remove(pos);
+				if (displayedCols.containsKey(COL_PARTICIPANT_TYPE)) {
+					displayedCols.remove(COL_PARTICIPANT_TYPE);
 				}
 			}
 
@@ -1542,13 +1555,25 @@ public class TagCheckService {
 			//-----------------------------------------------------
 			// Cartouche en haut à droite
 			//-----------------------------------------------------
-			PdfPTable headerTable = new PdfPTable(3);
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(ratioPresents));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(datesDebutFinSession));
-			headerTable.addCell(pdfGenaratorUtil.getIRDCell(heuresDebutFinSession));
+			LinkedHashMap<String, String> headerFields = new LinkedHashMap<String, String>();
+			for (String cartoucheField: headerRequestedFields.keySet()) {
+				String value = null;
+				switch (cartoucheField) {
+					case COL_SESSION_RATIO_PRESENTS:
+						value = ratioPresents;
+						break;
+					case COL_SESSION_DATES_DEBUT_FIN:
+						value = datesDebutFinSession;
+						break;
+					case COL_SESSION_HEURES_DEBUT_FIN:
+						value = heuresDebutFinSession;
+						break;
+					default:
+						value = "???"+cartoucheField+"???";
+				}
+				headerFields.put(headerRequestedFields.get(cartoucheField), value);
+			}
+			PdfPTable headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
 
 			//------------------------------------------------------
 			// Titre de la page
@@ -1647,7 +1672,7 @@ public class TagCheckService {
 				mainTableWidths = new float[displayedCols.size()];
 				float totalLargeursFixes = 0f;
 				float poidsTotalColsLargeurAjustable = 0f;
-				for (String colName : displayedCols) {
+				for (String colName : displayedCols.keySet()) {
 					if (colsOptimizedSize.containsKey(colName)) {
 						totalLargeursFixes += (float)colsOptimizedSize.get(colName);
 					} else if (colsWidthWeight.containsKey(colName)) {
@@ -1661,7 +1686,7 @@ public class TagCheckService {
 				// l'espace disponible restant avec la pondération prédéfinie
 				// TODO Attention si la somme des colonnes fixes dépasse 100 !!
 				int colIdx = 0;
-				for (String colName : displayedCols) {
+				for (String colName : displayedCols.keySet()) {
 					if (colsOptimizedSize.containsKey(colName)) {
 						mainTableWidths[colIdx] = (float)colsOptimizedSize.get(colName);
 					} else if (colsWidthWeight.containsKey(colName)) {
@@ -1676,10 +1701,8 @@ public class TagCheckService {
 			mainTable.setWidths(mainTableWidths);
 			mainTable.setSpacingBefore(20.0f);
 
-			for (String colName : displayedCols) {
-				// TODO Utiliser une table de correspondance nom col => titre col
-				// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize, mainTableHeaderPadding));
+			for (String colName : displayedCols.keySet()) {
+				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(displayedCols.get(colName), mainTableHeaderFontSize, mainTableHeaderPadding));
 			}
 
 			int pageCount = 0;
@@ -1717,7 +1740,7 @@ public class TagCheckService {
 						typeIndividu = messageSource
 								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
 								.substring(0, 1);
-						if (displayedCols.contains(COL_PARTICIPANT_GROUPES) && (tc.getPerson().getGroupes() != null)) {
+						if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES) && (tc.getPerson().getGroupes() != null)) {
 							List<String> groupeList = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 							groupes = StringUtils.join(groupeList,", ");
 						}
@@ -1727,7 +1750,7 @@ public class TagCheckService {
 						identifiant = tc.getGuest().getEmail();
 						typeIndividu = "Ex";
 
-						if (displayedCols.contains(COL_PARTICIPANT_GROUPES) && (tc.getGuest().getGroupes() != null)) {
+						if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES) && (tc.getGuest().getGroupes() != null)) {
 							List<String> groupeList = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
 							groupes = StringUtils.join(groupeList,", ");
 						}
@@ -1760,7 +1783,7 @@ public class TagCheckService {
 
 					typeEmargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
 
-					for (String colName : displayedCols) {
+					for (String colName : displayedCols.keySet()) {
 						String cellContent = "???"+colName+"???";
 						int align = Element.ALIGN_CENTER;
 						switch (colName) {
@@ -1826,10 +1849,8 @@ public class TagCheckService {
 						mainTable.setWidthPercentage(100);
 						mainTable.setWidths(mainTableWidths);
 						mainTable.setSpacingBefore(20.0f);
-						for (String colName : displayedCols) {
-							// TODO Utiliser une table de correspondance nom col => titre col
-							// (pour l'instant pas requis puisqu'on a correspondance exacte entre les 2)
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(colName, mainTableHeaderFontSize, mainTableHeaderPadding));
+						for (String colName : displayedCols.keySet()) {
+							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(displayedCols.get(colName), mainTableHeaderFontSize, mainTableHeaderPadding));
 						}			
 						lineInPageCount = 0;
 					}
