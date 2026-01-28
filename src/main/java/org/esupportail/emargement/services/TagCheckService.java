@@ -1446,9 +1446,15 @@ public class TagCheckService {
 				(!BooleanUtils.isTrue(se.getIsGroupeDisplayed()))
 				||
 				(
-					(remplacerColGroupeParTitreSiPossible)
+					remplacerColGroupeParTitreSiPossible
 					&&
-					(1 == groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+					(1 == groupesRepresentes.size())
+					&&
+					(
+						(!participantSansGroupeEquivautAutreGroupe)
+						||
+						(!foundParticipantWithNoGroup)
+					)
 				)
 			) {
 				// Dans ce cas là, on n'affiche pas la colonne groupes
@@ -1485,11 +1491,13 @@ public class TagCheckService {
 			if (
 				personnaliserLogoParFormation
 				&&
+				(groupesRepresentes.size() > 0)
+				&&
 				(
 					(1 == groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
 					||
 					(
-						(groupesRepresentes.size() > 0)
+						(1 < groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
 						&&
 						prendreLogoPremiereFormationSiPlusieursFormations
 					)
