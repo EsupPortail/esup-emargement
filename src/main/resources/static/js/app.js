@@ -2056,9 +2056,18 @@ document.addEventListener('DOMContentLoaded', function() {
 						select.add(new Option(stripHTMLTagsUsingDOM(d)));
 					});
 				select.addEventListener('change', function() {
-					column
-						.search(select.value, { exact: true })
-						.draw();
+                    var val = $.fn.dataTable.util.escapeRegex(select.value);
+
+                    // Par défaut, on cherche juste si le mot est "contenu" (pour Motif qui a des balises HTML)
+                    var searchVal = val;
+
+                    // MAIS pour le Statut (index 5), on force la recherche STRICTE
+                    // pour éviter que "JUSTIFIE" ne ressorte "INJUSTIFIE"
+                    if (index === 5) {
+                        searchVal = val ? '^' + val + '$' : '';
+                    }
+
+                    column.search(searchVal, true, false).draw();
 				});
 				colDiv.appendChild(select);
 				filterWrapper.appendChild(select);
@@ -2388,7 +2397,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-	if (document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
+	if (event.detail.target.id !== "searchResults" && document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
 	    setTimeout(() => {
 	        if (slimSelectInstance) {
 	            slimSelectInstance.destroy();
