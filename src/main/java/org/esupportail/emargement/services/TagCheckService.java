@@ -1723,8 +1723,8 @@ public class TagCheckService {
 					.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
 				tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
 				String surveillants = tagCheckers.stream()
-						.map(t -> (t.getUserApp().getPrenom() + "-" + t.getUserApp().getNom())).distinct()
-						.collect(Collectors.joining(","));
+						.map(t -> (t.getUserApp().getPrenom() + " " + t.getUserApp().getNom())).distinct()
+						.collect(Collectors.joining(", "));
 		
 				PdfPTable tagCheckerTable = new PdfPTable(1);
 				tagCheckerTable.setWidthPercentage(100);
@@ -1736,7 +1736,11 @@ public class TagCheckService {
 
 				PdfPTable remarques = new PdfPTable(1);
 				remarques.setWidthPercentage(100);
-				remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
+				String comment = se.getComment();
+				if (null == comment) {
+					comment = "";
+				}
+				remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + comment));
 				PdfPCell summaryR = new PdfPCell(remarques);
 				
 				PdfPTable tableFooterTable = new PdfPTable(2);
@@ -2002,7 +2006,7 @@ public class TagCheckService {
 								tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
 								cellContent = tagCheckers.stream()
 									.map(t -> (t.getUserApp().getPrenom() + " " + t.getUserApp().getNom().toUpperCase())).distinct()
-									.collect(Collectors.joining(","));
+									.collect(Collectors.joining(", "));
 								align = Element.ALIGN_LEFT;
 								break;
 							default:
