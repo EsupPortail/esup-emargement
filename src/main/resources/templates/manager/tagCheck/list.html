@@ -310,84 +310,108 @@
 		        </div>
 		    </div>
 		</div>
-		<div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">QR Code</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					</div>
-					<div class="modal-body">
-						<div class="d-flex">
-							<div class="media-body ms-2">
-								<div class="alert alert-danger text-center">
-									<strong>Envoyer un mail avec qrCode de participation pour les individus :</strong> <br />
-									<form id="command"
-										th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
-										method="POST">
-										<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
-										<input type="hidden" name="type" value="qrCode" />
-										<div class="alert alert-warning text-center mt-2">
-											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="population"
-													id="sendQrCode1" value="all"> <label
-													class="form-check-label" for="inlineRadio1">Tous</label>
-											</div>
-											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="population"
-													id="sendQrCode2" value="ext" checked="checked"> <label
-													class="form-check-label" for="inlineRadio2">
-													Externes</label>
-											</div>
-											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="population"
-													id="sendQrCode3" value="nonext"> <label
-													class="form-check-label" for="inlineRadio2">
-													Internes
-												</label>
-											</div>
-										</div>
-										<button type="submit"
-											class="btn btn-outline pull-left btn-success">Valider</button>
-									</form>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="modal" id="lienParticipationModal" tabindex="-1" role="dialog">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h5 class="modal-title">Lien de participation</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					</div>
-					<div class="modal-body">
-						<div class="media">
-							<div class="media-body ms-2">
-								<div class="alert alert-danger text-center">
-									<strong>Envoyer un mail avec lien de participation (interne)</strong><br /><br />
-									<form id="command"
-										th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
-										method="POST">
-										<input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
-										<input type="hidden" name="type" value="link" />
-										<button type="submit"
-											class="btn btn-outline pull-left btn-success">Valider</button>
-									</form>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+        <!-- Modal pour le QrCode de participation -->
+        <div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">QR Code de participation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex">
+                            <div class="media-body ms-2 w-100">
+                                <div class="alert alert-info text-center">
+                                    <strong>Envoyer le QR Code par mail :</strong> <br />
+                                    <form id="qrCodeForm"
+                                          th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+                                          method="POST" class="mt-2 text-start">
+                                        <input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+                                        <input type="hidden" name="type" value="qrCode" />
+                                        <input type="hidden" name="selectedIds" id="selectedIdsQr" />
+
+                                        <div class="offset-md-2 mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population"
+                                                       id="sendQrCode2" value="ext" checked="checked">
+                                                <label class="form-check-label" for="sendQrCode2">Externes uniquement</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population"
+                                                       id="sendQrCode3" value="nonext">
+                                                <label class="form-check-label" for="sendQrCode3">Internes uniquement</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population"
+                                                       id="sendQrCode1" value="all">
+                                                <label class="form-check-label" for="sendQrCode1">Tous (Internes + Externes)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population"
+                                                       id="sendQrCodeSelect" value="selected">
+                                                <label class="form-check-label fw-bold" for="sendQrCodeSelect">Uniquement la sélection</label>
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <button type="submit" onclick="copySelectedIds('selectedIdsQr', 'qrCodeForm')"
+                                                    class="btn btn-success">Valider</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal pour le lien de participation -->
+        <div class="modal" id="lienParticipationModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lien de participation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="media">
+                            <div class="media-body ms-2 w-100">
+                                <div class="alert alert-info text-center">
+                                    <strong>Envoyer le lien d'émargement (interne) :</strong><br />
+                                    <form id="linkForm"
+                                          th:action="@{/{ctx}/manager/tagCheck/sendLinkOrQrCode(ctx=${eContext})}"
+                                          method="POST" class="mt-2 text-start">
+                                        <input type="hidden" name="seId" th:value="${sessionEpreuve.id}" />
+                                        <input type="hidden" name="type" value="link" />
+                                        <input type="hidden" name="selectedIds" id="selectedIdsLink" />
+
+                                        <div class="offset-md-2 mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population" id="linkPopAll" value="all" checked>
+                                                <label class="form-check-label" for="linkPopAll">Tous les inscrits (éligibles)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="population" id="linkPopSelect" value="selected">
+                                                <label class="form-check-label fw-bold" for="linkPopSelect">Uniquement la sélection</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-center">
+                                            <button type="submit" onclick="copySelectedIds('selectedIdsLink', 'linkForm')"
+                                                    class="btn btn-success">Valider</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <script type="text/javascript">
-            function copySelectedIds(targetFieldId) {
-                var selected = [];                // Récupère toutes les cases cochées
+            function copySelectedIds(targetFieldId, formId) {
+                var selected = [];
 
                 document.querySelectorAll("input[name='case']:checked").forEach(function(checkbox) {
                     selected.push(checkbox.value);
@@ -396,13 +420,15 @@
                 // Remplit le champ caché du formulaire concerné
                 document.getElementById(targetFieldId).value = selected.join(",");
 
-                // Optionnel : Vérif pour éviter d'envoyer une sélection vide
-                var popValue = document.querySelector('input[name="population"]:checked').value;
-                if(popValue === 'selected' && selected.length === 0) {
-                    alert("Aucun étudiant sélectionné !");
+                // Vérif pour éviter d'envoyer une sélection vide SI on a choisi "selected"
+
+                var formElement = document.getElementById(formId);
+                var checkedRadio = formElement.querySelector('input[name="population"]:checked');
+
+                if(checkedRadio && checkedRadio.value === 'selected' && selected.length === 0) {
+                    alert("Aucun étudiant sélectionné ! Veuillez cocher des étudiants dans la liste.");
                     event.preventDefault();
                 }
             }
-        </script>
-</body>
+        </script></body>
 </html>
