@@ -54,6 +54,7 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
+import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.PresenceService;
 import org.esupportail.emargement.services.SessionEpreuveService;
@@ -98,6 +99,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.google.zxing.WriterException;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.PdfWriter;
 
 import flexjson.JSONSerializer;
 
@@ -147,6 +150,9 @@ public class PresenceController {
 	
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	PersonService personService;
 
 	@Resource
 	PreferencesService preferencesService;
@@ -772,5 +778,49 @@ public class PresenceController {
 			log.info("Envoi de mail désactivé :  ");
 		}
 		return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s", emargementContext, seId, slId);
+    }
+
+	@GetMapping("/supervisor/individu/export/pdf")
+	public void exportPDF(
+		@PathVariable String emargementContext,
+		@RequestParam(value="eppn", required = true) String eppn,
+		@RequestParam(value="anneeUniv", required = true) String anneeUniv,
+		HttpServletResponse response
+	) {
+		Document document = new Document();
+
+		Context ctx = contextRepository.findByContextKey(emargementContext);
+		List<TagCheck> list = tagCheckRepository.findByContextAndPersonEppnAndSessionEpreuveAnneeUnivOrderBySessionEpreuveDateExamen(ctx, eppn, anneeUniv);
+
+		List<Person> persons = personRepository.findByEppn(eppn);
+		// Charge les nom et prénom des persons (en l'occurrence 1 seule personne normalement)
+		personService.setNomPrenom(persons);
+		Person person = persons.get(0);
+
+		String nom = person.getNom().toUpperCase();
+		String prenom = person.getPrenom();
+		
+		String nomFichier = "Emargements_"+anneeUniv+"_"+nom+"_"+prenom;
+		nomFichier = nomFichier.replace(" ", "_").concat(".pdf");
+
+		PdfWriter writer = null;
+		response.setContentType("application/pdf");
+		response.setHeader("Content-Disposition", "attachment; filename=".concat(nomFichier));
+		try {
+			writer = PdfWriter.getInstance(document, response.getOutputStream());
+		} catch (DocumentException de) {
+			log.info("Exception "+de.toString());
+			de.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" + list.size() + " résultats" , null,
+						null, emargementContext, null);
+		} catch (IOException ioe) {
+			log.info("Exception "+ioe.toString());
+			ioe.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		}
+
+		tagCheckService.getTagCheckListAsPDF(list, document, writer, person, emargementContext);
+		document.close();
     }
 }

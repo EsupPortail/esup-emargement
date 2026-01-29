@@ -144,6 +144,7 @@ public class Individucontroller {
 			if(!pTagChecks.isEmpty()) {
 				model.addAttribute("individu", tcs.get(0));	
 			}
+			model.addAttribute("anneeExport", String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(new Date())));
 		}else if(typeSearch!=null && "tagChecker".equals(typeSearch)) {
 			Page<TagChecker> pTagCheckers = tagCheckerRepository.findTagCheckerByUserAppEppnEquals(searchString, null);
 			tagCheckerService.setNomPrenom4TagCheckers(pTagCheckers.getContent());

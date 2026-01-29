@@ -53,6 +53,7 @@
 						<div class="alert alert-info mt-2 row">
 							<div class="col"><strong>Inscrit : </strong>
 								<span th:text="${individu.person.nom + ' ' + individu.person.prenom}"></span>
+								<a th:href="@{/{ctx}/supervisor/individu/export/pdf?eppn={eppn}&anneeUniv={anneeUniv}(eppn=${individu.person.eppn},anneeUniv=${anneeExport},ctx=${eContext})}">Export année <span th:text="${anneeExport}"></span></a>
 							</div>
 						</div>
 						<table class="table table-hover table-striped table-bordered assiduite2"
