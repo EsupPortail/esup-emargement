@@ -176,7 +176,7 @@
 							</thead>
 							<tbody>
 								<tr th:each="tagCheck : ${tagCheckPage}" th:id="${tagCheck.id}" th:class="${(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre) ? 'table-warning' : ''}"> 
-									<td th:if="${!isSessionEpreuveClosed and isConvocationEnabled}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case" 
+									<td th:if="${!isSessionEpreuveClosed and isConvocationEnabled}"><input type="checkbox" th:value="${tagCheck.id}" name="case"  class="case"
 										th:attr="disabled=${tagCheck.sessionLocationExpected != null}? false : true"  /></td>
 									<td class="hiddenBlock" th:if="${tagCheck.person != null}" th:text="#{person.type  + '.' + ${tagCheck.person.type}}"></td>
 									<td class="hiddenBlock" th:if="${tagCheck.guest != null}" th:text="Externe"></td>
@@ -384,5 +384,25 @@
 				</div>
 			</div>
 		</div>
+
+        <script type="text/javascript">
+            function copySelectedIds(targetFieldId) {
+                var selected = [];                // Récupère toutes les cases cochées
+
+                document.querySelectorAll("input[name='case']:checked").forEach(function(checkbox) {
+                    selected.push(checkbox.value);
+                });
+
+                // Remplit le champ caché du formulaire concerné
+                document.getElementById(targetFieldId).value = selected.join(",");
+
+                // Optionnel : Vérif pour éviter d'envoyer une sélection vide
+                var popValue = document.querySelector('input[name="population"]:checked').value;
+                if(popValue === 'selected' && selected.length === 0) {
+                    alert("Aucun étudiant sélectionné !");
+                    event.preventDefault();
+                }
+            }
+        </script>
 </body>
 </html>
