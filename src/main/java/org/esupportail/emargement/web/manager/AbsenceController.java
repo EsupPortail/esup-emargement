@@ -148,11 +148,29 @@ public class AbsenceController {
     		@RequestParam String strDateFin) throws ParseException, IOException {
     	Date dateDebut=new SimpleDateFormat("yyyy-MM-dd").parse(strDateDebut);
     	Date dateFin=new SimpleDateFormat("yyyy-MM-dd").parse(strDateFin);
-    	DateFormat df = new SimpleDateFormat("HH:mm");
+
+        //Ajout des vérifications supplémentaires
+        if(dateFin.before(dateDebut)) {
+            bindingResult.rejectValue("dateFin", "error.dateFin",
+                    "La date de fin ne peut pas être antérieur à la date de début");
+        }
+        if(dateDebut.equals(dateFin)) {
+            if (absence.getHeureDebut().after(absence.getHeureFin()) || absence.getHeureDebut().equals(absence.getHeureFin())) {
+                bindingResult.rejectValue("heureFin", "error.heureFin",
+                        "L'heure de fin doit être postérieur à l'heure de début si les dates sont identiques");
+            }
+        }
+
+        DateFormat df = new SimpleDateFormat("HH:mm");
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (bindingResult.hasErrors()) {
-          //  populateEditForm(uiModel, person);
-            return "manager/person/create";
+            uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
+
+            // AJOUT : On renvoie les dates saisies pour que le formulaire ne soit pas vide
+            uiModel.addAttribute("strDateDebut", strDateDebut);
+            uiModel.addAttribute("strDateFin", strDateFin);
+            return "manager/absence/create";
+
         }
         uiModel.asMap().clear();
         String eppn = absence.getPerson().getEppn();
@@ -167,7 +185,7 @@ public class AbsenceController {
         	 Person p = persons.get(0);
         	 absence.setPerson(p);
         	 absenceRepository.save(absence);
-        	 log.info("Nouvelle abxence pour " + p.getEppn());
+        	 log.info("Nouvelle absence pour " + p.getEppn());
         	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
         	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
         	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
