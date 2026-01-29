@@ -147,6 +147,10 @@ public class PdfGenaratorUtil {
 	}
 
 	public PdfPCell getMainRowCell(String text, int fontSize, float padding, int alignment) {
+		return this.getMainRowCell(text, fontSize, padding, alignment, 0);
+	}
+
+	public PdfPCell getMainRowCell(String text, int fontSize, float padding, int alignment, float bottomBorderWidth) {
 		Paragraph paragraph;
 		if (0 != fontSize) {
 			Font font = FontFactory.getFont(FontFactory.HELVETICA, fontSize);
@@ -158,7 +162,7 @@ public class PdfGenaratorUtil {
 		PdfPCell cell = new PdfPCell(paragraph);
 		cell.setHorizontalAlignment(alignment);
 		cell.setPadding(padding);
-		cell.setBorderWidthBottom(0);
+		cell.setBorderWidthBottom(bottomBorderWidth);
 		cell.setBorderWidthTop(0);
 		return cell;
 	}
