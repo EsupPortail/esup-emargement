@@ -1310,6 +1310,7 @@ public class TagCheckService {
 		// ATTENTION Cela s'applique à tous les contextes
 		LinkedHashMap<String, String> headerRequestedFields = new LinkedHashMap<String, String>();
 
+		boolean isHeaderHorizLayout = true;
 		if (null != se) {
 			// Configuration adapté à une liste d'émargement pour une session donnée (avec plusieurs participants)
 			displayedCols.put(COL_LIGNE_NUM, "#");
@@ -1324,6 +1325,7 @@ public class TagCheckService {
 			headerRequestedFields.put(COL_SESSION_RATIO_PRESENTS, "Présents");
 			headerRequestedFields.put(COL_SESSION_DATES_DEBUT_FIN, "Date");
 			headerRequestedFields.put(COL_SESSION_HEURES_DEBUT_FIN, "Heure");
+			isHeaderHorizLayout = true;
 		} else {
 			// Configuration adapté à une liste d'émargement pour un participant donné (au cours de diférentes sessions)
 			displayedCols.put(TagCheckService.COL_SESSION_DATE_HEURE_DEBUT, "Date Heure");
@@ -1335,9 +1337,10 @@ public class TagCheckService {
 			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_NOM, "Nom");
 			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_PRENOM, "Prénom");
 			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_IDENTIFIANT, "Identifiant");	
+			isHeaderHorizLayout = false;
 		}
 
-		getTagCheckListAsPDF(list, document, writer, se, person, displayedCols, headerRequestedFields, emargementContext, null);
+		getTagCheckListAsPDF(list, document, writer, se, person, displayedCols, headerRequestedFields, isHeaderHorizLayout, emargementContext, null);
 	}
 
 	// Il y avait de tous petits deltas entre l'implémentation dans TagCheckService et celle dans PresenceService
@@ -1356,6 +1359,7 @@ public class TagCheckService {
 		Person person,
 		LinkedHashMap<String, String> displayedCols,
 		LinkedHashMap<String, String> headerRequestedFields,
+		boolean isHeaderHorizLayout,
 		String emargementContext,
 		Long sessionLocationId
 	) {
@@ -1677,7 +1681,12 @@ public class TagCheckService {
 				}
 				headerFields.put(headerRequestedFields.get(cartoucheField), value);
 			}
-			PdfPTable headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
+			PdfPTable headerTable = null;
+			if (isHeaderHorizLayout) {
+				headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
+			} else {
+				headerTable = pdfGenaratorUtil.getVerticalCartoucheTable(headerFields, new float[] {0.33f, 0.67f});
+			}
 
 			//------------------------------------------------------
 			// Titre de la page
