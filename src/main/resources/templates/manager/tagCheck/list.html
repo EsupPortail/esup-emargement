@@ -310,6 +310,7 @@
 		        </div>
 		    </div>
 		</div>
+
         <!-- Modal pour le QrCode de participation -->
         <div class="modal" id="qrCodeModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
@@ -421,7 +422,6 @@
                 document.getElementById(targetFieldId).value = selected.join(",");
 
                 // Vérif pour éviter d'envoyer une sélection vide SI on a choisi "selected"
-
                 var formElement = document.getElementById(formId);
                 var checkedRadio = formElement.querySelector('input[name="population"]:checked');
 
