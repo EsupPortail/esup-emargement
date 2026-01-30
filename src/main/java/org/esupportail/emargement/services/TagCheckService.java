@@ -1685,7 +1685,7 @@ public class TagCheckService {
 			if (isHeaderHorizLayout) {
 				headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
 			} else {
-				headerTable = pdfGenaratorUtil.getVerticalCartoucheTable(headerFields, new float[] {0.33f, 0.67f});
+				headerTable = pdfGenaratorUtil.getVerticalCartoucheTable(headerFields, new float[] {0.25f, 0.75f});
 			}
 
 			//------------------------------------------------------
@@ -1793,6 +1793,9 @@ public class TagCheckService {
 					colsOptimizedSize.put(COL_PARTICIPANT_TYPE, 5.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
 					colsOptimizedSize.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, 12f);  // Facteur limitant = entête de colonne "Emargement" ou raison d'absence
 					colsOptimizedSize.put(COL_EMARGEMENT_MODE, 9.8f);  // Ex: "Manuel", "QrCode participant", ..., "ABSENCE-INJUSTIFIE"
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE_OU_ABSENCE, 12f);  // Ex: "Manuel", "QrCode participant", "ABSENCE-INJUSTIFIE"
+					colsOptimizedSize.put(COL_SESSION_DATE_HEURE_DEBUT, 15.5f);
+					colsOptimizedSize.put(COL_SESSION_DUREE, 6.5f); // Facteur limitant = entête de colonne "Durée"
 				}
 
 				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {

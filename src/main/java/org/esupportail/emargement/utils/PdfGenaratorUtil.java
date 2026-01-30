@@ -111,7 +111,19 @@ public class PdfGenaratorUtil {
 	}
 
 	public PdfPCell getIRDCell(String text, int align) {
-		PdfPCell cell = new PdfPCell(new Paragraph(text));
+		return getIRDCell(text, align, 0);
+	}
+
+	public PdfPCell getIRDCell(String text, int align, int fontSize) {
+		Paragraph paragraph;
+		if (0 != fontSize) {
+			Font font = FontFactory.getFont(FontFactory.HELVETICA, fontSize);
+			paragraph = new Paragraph(text, font);
+		} else {
+			paragraph = new Paragraph(text);
+		}
+
+		PdfPCell cell = new PdfPCell(paragraph);
 		cell.setHorizontalAlignment(align);
 		cell.setPadding(5.0f);
 		cell.setBorderColor(BaseColor.LIGHT_GRAY);
@@ -227,8 +239,8 @@ public class PdfGenaratorUtil {
 
 		headerTable.setWidths(colWidths);
 		for (String key: cartoucheFields.keySet()) {
-			headerTable.addCell(getIRDCell(key, Element.ALIGN_LEFT));
-			headerTable.addCell(getIRDCell(cartoucheFields.get(key), Element.ALIGN_LEFT));
+			headerTable.addCell(getIRDCell(key, Element.ALIGN_LEFT, 9));
+			headerTable.addCell(getIRDCell(cartoucheFields.get(key), Element.ALIGN_LEFT, 9));
 		}
 
 		return headerTable;
