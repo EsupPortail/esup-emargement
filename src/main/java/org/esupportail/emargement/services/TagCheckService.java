@@ -1015,11 +1015,11 @@ public class TagCheckService {
 		}
 		if(sessionEpreuve.getIsSecondTag()!= null && sessionEpreuve.getIsSecondTag()) {
 			unknownTc.setTagDate2(new Date());
-			unknownTc.setTypeEmargement2(TypeEmargement.CARD);
+			unknownTc.setTypeEmargement2(typeEmargement);
 			unknownTc.setTagChecker2(tagChecker);
 		}else {
 			unknownTc.setTagDate(new Date());
-			unknownTc.setTypeEmargement(TypeEmargement.CARD);
+			unknownTc.setTypeEmargement(typeEmargement);
 			unknownTc.setTagChecker(tagChecker);
 		}
 		unknownTc.setNbBadgeage(getNbBadgeage(unknownTc, true));
