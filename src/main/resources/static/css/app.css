@@ -30,8 +30,33 @@ a.page-link.active{
 	position: absolute;
 }
 .slimSelectClass{
-	font-weight: bold;}
-	
+	font-weight: bold;
+}
+/* Conteneur principal SlimSelect */
+.ss-main {
+    height: calc(1.5em + .75rem + 2px) !important; /* même hauteur que .form-select */
+    min-height: calc(1.5em + .75rem + 2px) !important;
+    padding: .375rem .75rem !important;
+    border-radius: .375rem !important;
+    border: 1px solid #ced4da !important;
+    display: flex !important;
+    align-items: center !important;
+    background-color: #fff !important;
+}
+
+/* Texte sélectionné */
+.ss-single-selected {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Flèche à droite */
+.ss-arrow {
+    margin-left: auto;
+}
+
 .navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark{
 	padding-bottom: 0;;
 }

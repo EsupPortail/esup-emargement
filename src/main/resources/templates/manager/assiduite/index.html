@@ -18,8 +18,8 @@
 					</div>
 				</div>
   				<div class="card-body">
-  					<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch" th:object="${assiduiteBean}">
-						<div class="row">
+  					<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch" th:object="${assiduiteBean}" class="mb-2">
+						<div class="row flex-nowrap align-items-end g-2">
 							<div class="col-auto">
 								<div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
 								    <i class="fa fa-calendar"></i>&nbsp;
@@ -27,27 +27,33 @@
 								</div>
 							</div>
 							<input type="hidden" id="datesRange" name="datesRange" th:value="${datesRangeSelect}" class="clearable">
+							<div class="col-auto" th:if="${isTagCheckerDisplayed}">
+								<select class="form-select assiduiteControl" th:field="*{typeIndividu}">
+									<option value="etu">Etudiant</option>
+									<option value="surv">Surveillant</option>
+								</select>
+							</div>					
 							<div class="col-auto">
 								<select class="form-select assiduiteControl" th:field="*{situation}">
 									<option value="absence">Absence</option>
 									<option value="presence">Présence</option>
 								</select>
 							</div>
-							<div class="col-auto">
+							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 								<select class="form-control assiduiteControl" th:field="*{motifType}">
 									<option value="">----Type Motif----</option>
 									<option th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}"
 										th:value="${type}" th:text="${type}"></option>
 								</select>
 							</div>
-							<div class="col-auto">
+							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 								<select class="form-control assiduiteControl" th:field="*{motifStatut}">
 									<option value="">----Statut Motif----</option>
 									<option th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}"
 										th:value="${statut}" th:text="${statut}"></option>
 								</select>	
 							</div>
-							<div class="col-auto">
+							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 								<div class="input-group">
 									<span class="input-group-text clearable">Nom / Code</span> <input name="searchString" class="form-control searchBox assiduiteControl clearable" 
 									th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" 
@@ -59,7 +65,7 @@
 								<div id="searchResults"></div>
 									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 							</div>
-							<div class="col-auto">
+							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 								<select class="assiduiteControl" th:field="*{sessionEpreuve}">
 									<option value="">----Session----</option>
 									<option th:each="se : ${sessions}"
@@ -69,21 +75,19 @@
 									</option>
 								</select>	
 							</div>
-							<div class="col-auto">
-								<div class="input-group mb-3">
-									<select th:field="*{groupe}" class="assiduiteControl clearable">
-										<option value="">--Groupe--</option>
-										<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"></option>
-									</select>
-								</div>
+							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
+								<select th:field="*{groupe}" class="assiduiteControl clearable ">
+									<option value="">--Groupe--</option>
+									<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"></option>
+								</select>
 							</div>
 							<div class="col-auto">
-								<a class="btn btn-danger btn-sm mt-1 me-5"
+								<a class="btn btn-danger btn-sm me-5"
 									id="clearFilters"><i class="fas fa-undo"></i></a>
 							</div>
 						</div>
 					</form>
-					<th:block th:if="${assiduiteBean.situation eq 'absence'}">
+					<th:block th:if="${assiduiteBean.situation eq 'absence' and assiduiteBean.typeIndividu eq 'etu'}">
 						<table class="table table-hover table-striped table-bordered table-sm assiduite" style="width:100%" th:attr="data-export-title=${activite}">
 							<thead>
 								<tr>
@@ -105,7 +109,7 @@
 									<th class="text-center">Cumul (sessions)</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody h:if="${absencesPage != null and absencesPage.size() > 0 }">
 								<tr th:each="tc : ${absencesPage}" th:with="individu=${(tc.person != null) ? tc.person : tc.guest},
 									sessionEpreuve=${tc.sessionEpreuve}">
 									<td scope="col"><input type="checkbox" th:value="${tc.id}" class="checkboxes" name="checkedValues"></td>
@@ -147,7 +151,7 @@
 							</tbody>
 						</table>
 					</th:block>
-					<th:block th:if="${assiduiteBean.situation eq 'presence'}">
+					<th:block th:if="${assiduiteBean.situation eq 'presence' and assiduiteBean.typeIndividu eq 'etu'}">
 						<table class="table table-hover table-striped table-bordered assiduite2" style="width:100%">
 							<thead class="sticky-top">
 								<tr>
@@ -166,7 +170,7 @@
 									<th scope="col" class="exclude">Voir</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody th:if="${absencesPage != null and absencesPage.size() > 0 }">
 								<tr th:each="tagCheck : ${absencesPage}" th:id="${tagCheck.id}"  th:classappend="${(tagCheck.typeEmargement!=null and !tagCheck.isUnknown? 'table-success' : '') +
 										(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre? 'table-warning' : '')}"
 									th:with="individu=${(tagCheck.person != null) ? tagCheck.person : tagCheck.guest}, sessionEpreuve=${tagCheck.sessionEpreuve}">
@@ -221,6 +225,37 @@
 							</tbody>
 						</table>			
 					</th:block>	
+					<th:block th:if="${assiduiteBean.typeIndividu eq 'surv'}">
+						<table class="table table-hover table-striped table-bordered assiduite3" id="assiduite3" style="width:100%">
+						    <thead>
+						        <tr>
+									<th scope="col">Nom</th>
+									<th scope="col">Prénom</th>
+						            <th>Session</th>
+									<th>type</th>
+									<th class="dateItem">Date</th>
+									<th>Début</th>
+									<th>Fin</th>
+						        </tr>
+						    </thead>
+						    <tbody th:if="${tagCheckers	 != null and tagCheckers.size() > 0 }">
+						        <tr th:each="tag : ${tagCheckers}">
+									<td th:text="${tag.userApp != null ? tag.userApp.nom : '-'}"></td>
+									<td th:text="${tag.userApp != null ? tag.userApp.prenom : '-'}"></td>
+									<td th:text="${tag.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
+									<td th:text="${tag.sessionLocation.sessionEpreuve.typeSession.libelle}"></td>
+									<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
+									<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
+									<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
+						        </tr>
+
+						        <!-- Message si liste vide -->
+						        <tr th:if="${#lists.isEmpty(tagCheckers)}">
+						            <td colspan="7" class="text-center">Aucun tag trouvé pour cette période</td>
+						        </tr>
+						    </tbody>
+						</table>
+					</th:block>
 				</div>
   			</div>
 		</div>

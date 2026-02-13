@@ -104,11 +104,17 @@ https://listes.esup-portail.org/sympa/info/esup-utilisateurs
 Copyright (C) 2020 Esup Portail http://www.esup-portail.org
 @Author (C) 2020 Jean-Pierre Tran <Jean-Pierre.Tran@univ-rouen.fr>
 @Contributor (C) 2020 Vincent Bonamy <Vincent.Bonamy@univ-rouen.fr>
+@Contributor (C) 2026 Nathan MUFUTA  - Aix Marseille Université
 @Contributor (C) 2025 Damien Heute - Le Mans Université
 @Contributor (C) 2025 Stéphane Magnies - Université de Lille
 @Contributor (C) 2025 Lahsen El Filali - Université de Lille
 @Contributor (C) 2024 Delphine Boulanger - Université de Bretagne Occidentale
+@Contributor (C) 2023 Fatima Zeroual - Ecole centrale Marseille
+@Contributor (C) 2023 Sabine Carboni - Aix Marseille Université
+@Contributor (C) 2023 Brice Quillerie - Université de Nîmes
 @Contributor (C) 2022 Vincent Rivière - Université Paris 1 Panthéon-Sorbonne
+@Contributor (C) 2022 Damien Rieu - Université de Limoges
+@Contributor (C) 2022 Gilles Varelhias - Université de Limoges
 @Contributor (C) 2022 Nicolas Frappart - Université de Rouen Normandie
 @Contributor (C) 2020 Fabrice Sebbe - Université de Rouen Normandie
 @Contributor (C) 2020 Dominique Wormser - Université de Rouen Normandie

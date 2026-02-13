@@ -9,6 +9,55 @@ function initSlimSelects() {
     }
   });
 }
+function buildDataTableOptions(customOrder) {
+    return {
+        responsive: true,
+        ordering: true,
+        paging: true,
+        searching: true,
+        info: false,
+
+        // 👇 ordre dynamique
+        order: customOrder || [
+            [4, 'desc'],
+            [7, 'asc']
+        ],
+
+        language: {
+            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+        },
+        columnDefs: [
+            {
+                targets: 'dateItem',
+                type: 'datetime-moment',
+                render: function(data, type, row) {
+                    if (!data) return '';
+                    if (type === 'sort' || type === 'type') {
+                        return moment(data, 'DD/MM/YY').unix();
+                    }
+                    return moment(data, 'DD/MM/YY').format('DD/MM/YY');
+                }
+            }
+        ],
+        pageLength: 100,
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, 'All']
+        ],
+        dom: '<"top d-flex justify-content-between"fB>rt<"bottom"flp><"clear">',
+        buttons: [
+            {
+                extend: 'csv',
+                className: 'btn btn-success btn-sm ms-2',
+                exportOptions: {
+                    orthogonal: 'filter',
+                    columns: ':not(.exclude)'
+                },
+                title: function() { return 'assiduite'; }
+            }
+        ]
+    };
+}
   function updateDisplay(selectedDates) {
     // 2️⃣ Met à jour les badges visibles avec un format lisible
     badgesContainer.innerHTML = "";
@@ -1903,56 +1952,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	//Recherche assiduité
 	if(document.getElementById("assiduitePage") != null || document.getElementById("recherchePage") != null){
-		var title = '';
-		var dataTableOptions = {
-			responsive: true,
-			ordering: true,
-			paging: true,
-			searching: true,
-			info: false,
-			order: [
-			       [4, 'desc'], // First order by column 7 in descending order
-			       [7, 'asc']   // Then order by column 3 in ascending order
-			],
-			language: {
-				url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-			},
-			columnDefs: [
-				{
-					targets: 'dateItem',
-					type: 'datetime-moment', // Use the datetime-moment plugin
-					render: function(data, type, row) {
-						if (!data) { // Check if data is empty
-							return ''; // Return empty string if data is empty
-						}
-						if (type === 'sort' || type === 'type') {
-							return moment(data, 'DD/MM/YY').unix();
-						}
-						return moment(data, 'DD/MM/YY').format('DD/MM/YY');
-					}
-				}
-			],
-			pageLength: 100,
-			lengthMenu: [
-				[10, 25, 50, -1],
-				[10, 25, 50, 'All']
-			],
-			dom: '<"top d-flex justify-content-between"fB>rt<"bottom"flp><"clear">',
-			buttons: [
-			    {
-			        extend: 'csv',
-			        className: 'btn btn-success btn-sm ms-2', // if you want the same styling like before
-			        exportOptions: {
-			            orthogonal: 'filter',
-			            columns: ':not(.exclude)'
-			        },
-			        title: function() { return 'assiduite'; }
-			    }
-			]
+
 		}
-	}
-	$('table.assiduite').DataTable(dataTableOptions);
-	$('table.assiduite2').DataTable(dataTableOptions);
+		$('table.assiduite').DataTable(
+		    buildDataTableOptions([[4, 'desc'], [7, 'asc']])
+		);
+		$('table.assiduite2').DataTable(
+		     buildDataTableOptions([[4, 'desc'], [7, 'asc']])
+		);
+		$('table.assiduite3').DataTable(
+		    buildDataTableOptions([[0, 'asc'], [1, 'asc']])
+		);
 	$('.tableTasks').DataTable({
 		responsive: true,
 		ordering: true,

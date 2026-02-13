@@ -45,6 +45,10 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	List<TagChecker> findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(String eppn, Date startDate, Date endDate, 
 			String eppn1, Date startDate1, Date endDate1, String eppn2, Date startDate2, Date endDate2);
 	
+	List<TagChecker> findByTagDateIsNotNullAndTagDateBetween(Date startDate, Date endDate);
+	
+	List<TagChecker> findByTagDateIsNull();
+	
 	//STATS
 	@Query(value = "select user_app.eppn, count(*) from tag_checker, user_app, session_location, statut_session, session_epreuve "
 			+ "where tag_checker.user_app_id = user_app.id "

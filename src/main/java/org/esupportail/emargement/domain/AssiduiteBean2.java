@@ -33,6 +33,8 @@ public class AssiduiteBean2 {
 	String eppn;
 	
 	SessionEpreuve sessionEpreuve;
+	
+	String typeIndividu;
 
 	public Date getDateDebut() {
 		return dateDebut;
@@ -153,4 +155,13 @@ public class AssiduiteBean2 {
 	public void setSessionEpreuve(SessionEpreuve sessionEpreuve) {
 		this.sessionEpreuve = sessionEpreuve;
 	}
+
+	public String getTypeIndividu() {
+		return typeIndividu;
+	}
+
+	public void setTypeIndividu(String typeIndividu) {
+		this.typeIndividu = typeIndividu;
+	}
+	
 }
