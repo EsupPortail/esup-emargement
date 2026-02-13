@@ -9,8 +9,10 @@
 	    		<div class="card-header">
 					<div class="row">
 			    		<div class="col-lg-4">
-		    				<h2>Consignes</h2><span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' +  
-									#dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' +  sessionEpreuve.campus.site}"></span>
+		    				<h2>Consignes</h2>
+							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
+							#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, ' - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
+							<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
 		    			</div>
 		    			<div class="col-lg-8">
 			    			<div class="alert alert-info pb-0">Les champs possibles pour la personnalisation du PDF sont :

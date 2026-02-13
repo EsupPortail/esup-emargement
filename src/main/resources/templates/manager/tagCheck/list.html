@@ -28,7 +28,8 @@
 					<div class="row align-items-center">
 					    <div class="col-12 col-md">
 					        <h2>Inscrits <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span></h2>
-					        <span class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') + ' à ' + sessionEpreuve.campus.site}"></span>
+							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
+							#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
 					        <span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
 					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
 					    </div>

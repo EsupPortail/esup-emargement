@@ -7,7 +7,8 @@
 		<div class="container-fluid">
            	<div class="card">
 		    	<div class="card-header"><h2>Ajouter un lieu de session</h2>
-			        <small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') + ' à ' + se.campus.site}"></small>
+					<small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') +
+					#dates.format(se.heureEpreuve, ' HH:mm') +  #dates.format(se.finEpreuve, '  - HH:mm') + ' à ' + se.campus.site}"></small>
 			        <small class="text-muted h5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
 			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>	
 		    	</div>

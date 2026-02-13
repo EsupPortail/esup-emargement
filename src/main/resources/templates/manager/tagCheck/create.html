@@ -10,7 +10,11 @@
 					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
 						vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
 				</div>
-		    	<div class="card-header"><h2>Ajouter un inscrit</h2></div>
+		    	<div class="card-header" th:with="sessionEpreuve=${allSessionEpreuves[0]}"><h2>Ajouter un inscrit</h2>
+					<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
+					#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
+					<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
+				</div>
   				<div class="card-body">
 					<ul class="nav nav-tabs" role="tablist" >
 					    <li class="nav-item"><a th:classappend="${type == 'interne'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=interne(ctx=${eContext},id=${id})}">INTERNE</a></li>
