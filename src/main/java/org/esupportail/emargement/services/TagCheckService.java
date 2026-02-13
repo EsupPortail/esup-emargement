@@ -1559,13 +1559,45 @@ public class TagCheckService {
 				legacyDisplayConfig = false;
 			}
 
-			// Détermination du logo à afficher (en haut à gauche)
+			// Détermination des logo à afficher
+			// Logo de l'établissement ou la composante (en haut à gauche)
+			// + éventuellement logo lié à la formation (typiquement logo CFA) (en haut à droite)
 			//------------------------------------------------------------------------
-			Image image = null;
 			String imageDirPath = "/static/images/";
-			String defaultImagePath = imageDirPath+"logo.jpg";
 
-			URL logoResource = null;
+			String defaultLogoComposantePath = imageDirPath+"logo.jpg";
+
+			// Logo établissement ou composante
+			//----------------------------------------------------------------
+			URL logoComposanteResource = null;
+			String logoComposantePath = imageDirPath+"par_contexte/"+emargementContext+"/logo.png";
+			File file = new File(logoComposantePath);
+			if (file.getCanonicalPath().startsWith(imageDirPath)) {
+				logoComposanteResource = PresenceService.class.getResource(logoComposantePath);
+				if (null == logoComposanteResource) {
+					log.debug("Pas de logo composante/établissement trouvé à l'emplacement "+logoComposantePath);
+				}
+			} else {
+				// emargementContext contient vraisemblablement des /../
+				// tentative de hack ?
+				log.warn(logoComposantePath+" n'est pas un chemin valide");
+			}
+
+			if (null == logoComposanteResource) {
+				// Logo "personnalisé" non trouvé dans l'espace contextuel
+				// on se rabat sur le logo dans l'espace par défaut
+				logoComposanteResource = PresenceService.class.getResource(defaultLogoComposantePath);
+				if (null == logoComposanteResource) {
+					log.debug("Pas de logo composante/établissement trouvé à l'emplacement "+defaultLogoComposantePath);
+				}
+			}
+
+			Image logoComposanteImage = Image.getInstance(logoComposanteResource);
+
+			// Logo formation (ex pour CFA)
+			//----------------------------------------------------------------
+			URL logoFormationResource = null;
+			Image logoFormationImage = null;
 			if (
 				personnaliserLogoParFormation
 				&&
@@ -1581,41 +1613,22 @@ public class TagCheckService {
 					)
 				)
 			) {
-				String imagePath = imageDirPath+"logos_formations/par_contexte/"+emargementContext+"/"+groupesRepresentes.get(0)+".png";
-				File file = new File(imagePath);
+				String logoFormationPath = imageDirPath+"par_contexte/"+emargementContext+"/logos_formations/"+groupesRepresentes.get(0)+".png";
+				file = new File(logoFormationPath);
 				if (file.getCanonicalPath().startsWith(imageDirPath)) {
-					logoResource = PresenceService.class.getResource(imagePath);
+					logoFormationResource = PresenceService.class.getResource(logoFormationPath);
+					if (null != logoFormationResource) {
+						logoFormationImage = Image.getInstance(logoFormationResource);
+						logoFormationImage.scaleAbsolute(150f, 50f);// image width,height
+					} else {
+						log.debug("Pas de logo formation/CFA trouvé à l'emplacement "+logoFormationPath);
+					}
 				} else {
 					// emargementContext ou nom de formation contient vraisemblablement des /../
 					// tentative de hack ?
-					log.warn(imagePath+" n'est pas un chemin valide");
+					log.warn(logoFormationPath+" n'est pas un chemin valide");
 				}
-
-				if (null == logoResource) {
-					// Logo "personnalisé" non trouvé dans l'espace contextuel
-					// on se rabat sur le logo dans l'espace par défaut
-					imagePath = imageDirPath+"logos_formations/"+groupesRepresentes.get(0)+".png";
-					file = new File(imagePath);
-					if (file.getCanonicalPath().startsWith(imageDirPath)) {
-						logoResource = PresenceService.class.getResource(imagePath);
-					} else {
-						// emargementContext ou nom de formation contient vraisemblablement des /../
-						// tentative de hack ?
-						log.warn(imagePath+" n'est pas un chemin valide");
-					}
-				}
-
-				if (null == logoResource) {
-					// Logo "personnalisé" non trouvé dans l'espace contextuel et ni dans l'espace racine
-					// on se rabat sur le logo par défaut
-					logoResource = PresenceService.class.getResource(defaultImagePath);
-				}
-			} else {
-				logoResource = PresenceService.class.getResource(defaultImagePath);
 			}
-
-			image = Image.getInstance(logoResource);
-			image.scaleAbsolute(150f, 50f);// image width,height
 
 			//-----------------------------------------------------
 			// Cartouche en haut à droite
@@ -1681,11 +1694,61 @@ public class TagCheckService {
 				}
 				headerFields.put(headerRequestedFields.get(cartoucheField), value);
 			}
+
 			PdfPTable headerTable = null;
 			if (isHeaderHorizLayout) {
 				headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
 			} else {
 				headerTable = pdfGenaratorUtil.getVerticalCartoucheTable(headerFields, new float[] {0.25f, 0.75f});
+			}
+
+			// S'il y a un logo formation (CFA)
+			// le header aura 3 colonnes sinon 2 colonnes uniquement
+			PdfPTable fullHeaderTable = new PdfPTable(2 + (null==logoFormationImage?0:1));
+			fullHeaderTable.setWidthPercentage(100f);
+
+			// Dimensions A4 : 595x842 avec marges de 10 => 575x822
+			fullHeaderTable.setTotalWidth(575f);
+			float[] fullHeaderWidths;
+			if (null != logoFormationImage) {
+				fullHeaderWidths = new float[] { 130f, 315, 130f};
+				logoComposanteImage.scaleAbsolute(125f, 40f);
+				logoFormationImage.scaleAbsolute(125f, 40f);
+			} else {
+				if (legacyDisplayConfig) {
+					fullHeaderWidths = new float[] { 275f, 300f };
+				} else {
+					fullHeaderWidths = new float[] { 160f, 415f };
+				}
+				logoComposanteImage.scaleAbsolute(150f, 50f);
+			}
+			fullHeaderTable.setWidths(fullHeaderWidths);
+
+			PdfPCell logoComposanteCell = new PdfPCell(logoComposanteImage);
+			logoComposanteCell.setBorder(0);
+				logoComposanteCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+			fullHeaderTable.addCell(logoComposanteCell);
+
+			PdfPCell headerTableCell = new PdfPCell(headerTable);
+			if (null != logoFormationImage) {
+				headerTableCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			} else {
+				headerTableCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+				// Tentative vaine de laisser inchanger la taille du cartouche
+				// avec des largeurs de colonnes "génériques"
+				// pour un affichage comme avant
+				//if (legacyDisplayConfig) {
+				//	headerTable.setTotalWidth(300f);
+				//}
+			}
+			headerTableCell.setBorder(0);
+			fullHeaderTable.addCell(headerTableCell);
+
+			if (null != logoFormationImage) {
+				PdfPCell logoFormationCell = new PdfPCell(logoFormationImage);
+				logoFormationCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+				logoFormationCell.setBorder(0);
+				fullHeaderTable.addCell(logoFormationCell);
 			}
 
 			//------------------------------------------------------
@@ -1753,15 +1816,6 @@ public class TagCheckService {
 			}
 
 			document.open();
-
-			headerTable.setTotalWidth(300f);
-			headerTable.writeSelectedRows(
-				0,
-				-1,
-				document.right() - headerTable.getTotalWidth(),
-				document.top(),
-				writer.getDirectContent()
-			);
 
 			PdfPTable mainTable = new PdfPTable(displayedCols.size());
 			mainTable.setWidthPercentage(100);
@@ -1859,7 +1913,7 @@ public class TagCheckService {
 
 			pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
 
-			document.add(image);
+			document.add(fullHeaderTable);
 			document.add(titleParagraph);
 			if (null != paragrapheNomGroupeUnique) {
 				// REM: Dans le cas groupe = formation, on s'attendrait sans doute plutôt
@@ -2044,14 +2098,7 @@ public class TagCheckService {
 
 						pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
 
-						document.add(image);
-						headerTable.setTotalWidth(300f);
-						headerTable.writeSelectedRows(0,
-							-1,
-							document.right() - headerTable.getTotalWidth(),
-							document.top(),
-							writer.getDirectContent()
-						);
+						document.add(fullHeaderTable);
 						document.add(titleParagraph);
 						mainTable = new PdfPTable(displayedCols.size());
 						mainTable.setWidthPercentage(100);
