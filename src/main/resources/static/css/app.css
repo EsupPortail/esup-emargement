@@ -254,16 +254,25 @@ table thead.sticky-top {
   padding: 40px;
   background-color: #eee;
 }
-#qrCodeScanOk {
-  position:absolute;
-  top: 0px;
-  left: 0px;
-  display:none;
-  text-align:center;
+#qrCodeScanOk,
+#qrCodeScanUnknown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  text-align: center;
   width: 100%;
   font-weight: bold;
+}
+
+#qrCodeScanOk {
   background-color: lightgreen;
-  border: solid 2px green;
+  border: 2px solid green;
+}
+
+#qrCodeScanUnknown {
+  background-color: rgb(249, 240, 107);
+  border: 2px solid yellow;
 }
 #canvas {
   position:absolute;

@@ -351,9 +351,9 @@ function displayFormconfig(val, valeur) {
 }
 
 function deleteParam(urlLocation, name) {
-	const [head, tail] = urlLocation.split('?');
-	var url = head + '?' + tail.replace(new RegExp(`&${name}=[^&]*|${name}=[^&]*&`), '');
-	return url;
+	const url = new URL(urlLocation);
+	url.searchParams.delete(name);
+	return url.toString();
 }
 
 function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
@@ -386,6 +386,12 @@ function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
 						// On affiche un message dans le canvas de la camera
 						// TODO Voir sous quelles conditions on efface ce message (fermeture/ré-ouverture de la fenêtre)
 						document.getElementById("qrCodeScanOk").style.display = "block";
+						if (null != qrCodeCam) {
+							// On affiche le cadre du QR code en vert (tant que l'on ne change pas de QRCode)
+							qrCodeCam.setAttribute("data-qrcode-isvalid", "true");
+						}
+					}else{
+						document.getElementById("qrCodeScanUnknown").style.display = "block";
 						if (null != qrCodeCam) {
 							// On affiche le cadre du QR code en vert (tant que l'on ne change pas de QRCode)
 							qrCodeCam.setAttribute("data-qrcode-isvalid", "true");
@@ -1404,7 +1410,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				var urlLocation = (sessionLocationExpected != null) ? sessionLocationExpected : $_GET("location");
 				var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
 					"&location=" + urlLocation + "&update=" + tagCheck.id;
-				$("#resultsBlock" + sessionLocationExpected).load(url, function(responseText, textStatus, XMLHttpRequest) {
+				var idBlock = tagCheck.isUnknown ? tagCheck.sessionLocationBadged.id : sessionLocationExpected;
+				$("#resultsBlock" + idBlock).load(url, function(responseText, textStatus, XMLHttpRequest) {
 					backToTop();
 					if (tagCheck.tagChecker!=null && tagCheck.tagChecker.userApp.eppn==eppnAuth){
 						displayToast();
@@ -1468,20 +1475,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#collapseTable").removeClass("d-none");
 			$("#collapseTable table tbody").empty();
 			$("#" + this.value).clone().appendTo("#collapseTable table tbody");
-		});
-		$(document).on("click", "#toto", function(event) {
-			if (window.confirm('Confirmez-vous la suppression cet individu?')) {
-				var trParent = $(this)[0].parentElement.parentElement;
-				var id = trParent.id;
-				var request = new XMLHttpRequest();
-				request.open('POST', emargementContextUrl + "/supervisor/tagCheck/" + id, true);
-				request.onload = function() {
-					if (request.status >= 200 && request.status < 400) {
-						$("#" + id).hide();
-					}
-				}
-				request.send();
-			}
 		});
 	}
 
@@ -1563,6 +1556,25 @@ document.addEventListener('DOMContentLoaded', function() {
 	//Foemulaire présence
 	$("#presencePage #location").on("change", function() {
 		$("#presenceForm").submit();
+	});
+	
+	//Suppression d'un tagCheck
+	$(document).on("click", ".btn-delete", function(e) {
+	    e.preventDefault();
+	    if (!confirm("Confirmez-vous la suppression ?")) {
+	        return;
+	    }
+	    const id = $(this).closest("tr").attr("id");
+	    $.ajax({
+	        url: emargementContextUrl + "/supervisor/tagCheck/" + id,
+	        type: "POST",
+	        success: function() {
+	            $("#" + id).remove();
+	        },
+	        error: function() {
+	            alert("Erreur lors de la suppression");
+	        }
+	    });
 	});
 
 	var dialogMsg = document.querySelector('#modalUser');
@@ -1653,6 +1665,9 @@ document.addEventListener('DOMContentLoaded', function() {
 				tick();
 			}
 		})
+		myOffcanvas.addEventListener('hidden.bs.offcanvas', event => {
+			window.location.reload();
+		});
 	}
 	//Affinage reparttion
 	$(".affinage").inputSpinner();

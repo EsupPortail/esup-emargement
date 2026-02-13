@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -494,24 +495,20 @@ public class PresenceController {
     			sl.getSessionEpreuve().getId(), slId);
     }
     
-    @Transactional
-    @PostMapping(value = "/supervisor/tagCheck/{id}")
-    @ResponseBody
-    public Boolean delete(@PathVariable Long id) {
-    	TagCheck tagCheck = tagCheckRepository.findById(id).get();
-    	boolean isOk = false;
-    	if(sessionEpreuveService.isSessionEpreuveClosed(tagCheck.getSessionEpreuve())) {
-	        log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
-    	}else {
-    		Person person = tagCheck.getPerson();
-    		tagCheckRepository.delete(tagCheck);
-    		Long count = tagCheckRepository.countTagCheckByPerson(person);
-    		if(count==0) {
-    			personRepository.delete(person);
-    		}
-    		isOk = true;
-    	}
-    	return isOk;
+    @PostMapping("/supervisor/tagCheck/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        Optional<TagCheck> opt = tagCheckRepository.findById(id);
+        if(opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        TagCheck tagCheck = opt.get();
+        if(sessionEpreuveService.isSessionEpreuveClosed(tagCheck.getSessionEpreuve())) {
+            log.info("Maj de l'inscrit impossible car la session est cloturée : " + tagCheck.getPerson().getEppn());
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409
+        }
+		tagCheckRepository.delete(tagCheck);
+		return ResponseEntity.noContent().build(); // 204
     }
     
     @Transactional
