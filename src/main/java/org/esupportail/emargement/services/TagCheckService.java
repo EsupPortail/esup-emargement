@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,11 +23,13 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -177,6 +180,23 @@ public class TagCheckService {
 	private String nomDomaine;
 	
 	private static final String ANONYMOUS = "anonymous";
+
+	public static final String COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS = "EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS"; // ou raison d'absence + eventuellement info temps amenagé
+	public static final String COL_EMARGEMENT_MODE = "EMARGEMENT_MODE";
+	public static final String COL_EMARGEMENT_MODE_OU_ABSENCE = "EMARGEMENT_MODE_OU_ABSENCE";
+	public static final String COL_LIGNE_NUM = "LIGNE_NUM";
+	public static final String COL_PARTICIPANT_GROUPES = "PARTICIPANT_GROUPES";
+	public static final String COL_PARTICIPANT_IDENTIFIANT = "PARTICIPANT_IDENTIFIANT"; // n° étudiant ou email
+	public static final String COL_PARTICIPANT_NOM = "PARTICIPANT_NOM";
+	public static final String COL_PARTICIPANT_PRENOM = "PARTICIPANT_PRENOM";
+	public static final String COL_PARTICIPANT_TYPE = "PARTICIPANT_TYPE"; // E, P, Ext
+	public static final String COL_SESSION_DATE_HEURE_DEBUT = "SESSION_DATE_HEURE_DEBUT";
+	public static final String COL_SESSION_DUREE = "SESSION_DUREE";
+	public static final String COL_SESSION_NOM = "SESSION_NOM";
+	public static final String COL_SESSION_SURVEILLANTS = "SESSION_SURVEILLANTS";
+	public static final String COL_SESSION_RATIO_PRESENTS = "SESSION_RATIO_PRESENTS";
+	public static final String COL_SESSION_DATES_DEBUT_FIN = "SESSION_DATES_DEBUT_FIN";
+	public static final String COL_SESSION_HEURES_DEBUT_FIN = "SESSION_HEURES_DEBUT_FIN";
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -1134,11 +1154,9 @@ public class TagCheckService {
 	       
 	        document.close();
 			
-		}    
-		else if ("PDF".equals(type)) {
+		} else if ("PDF".equals(type)) {
 			String filename = nomFichier.concat(".pdf");
 	        Document document = new Document();
-	        document.setMargins(10, 10, 10, 10);
 	        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 	        PdfWriter writer = null;
 	        try 
@@ -1151,178 +1169,23 @@ public class TagCheckService {
 					writer = PdfWriter.getInstance(document, response.getOutputStream());
 				}
 
-				String dateFin = (se.getDateFin() != null) ? "\n" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin()))
-						: "";
-				String date = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
-				String heures = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
-						+ String.format("%1$tH:%1$tM", se.getFinEpreuve());
-				Long totalExpected = tagCheckRepository
-						.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
-				Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
-				String total = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
-				String title = se.getNomSessionEpreuve();
-				List<TagChecker> tagCheckers = tagCheckerRepository
-						.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
-				tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
-				String surveillants = tagCheckers.stream()
-						.map(t -> (t.getUserApp().getPrenom() + "-" + t.getUserApp().getNom())).distinct()
-						.collect(Collectors.joining(","));
-
-				Image image = Image.getInstance(PresenceService.class.getResource("/static/images/logo.jpg"));
-				image.scaleAbsolute(150f, 50f);// image width,height
-
-				PdfPTable headerTable = new PdfPTable(3);
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Présents"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Date"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell("Heure"));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(total));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(date));
-				headerTable.addCell(pdfGenaratorUtil.getIRDCell(heures));
-
-				Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
-				Paragraph name = new Paragraph(title, font);
-				name.setSpacingBefore(2f);
-
-				PdfPTable tagCheckerTable = new PdfPTable(1);
-				tagCheckerTable.setWidthPercentage(100);
-				String surveillantTerme = appliConfigService.getSurveillantTerm();
-				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
-				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
-				PdfPCell summaryL = new PdfPCell(tagCheckerTable);
-				summaryL.setColspan(4);
-				summaryL.setPadding(1.0f);
-
-				PdfPTable remarques = new PdfPTable(1);
-				remarques.setWidthPercentage(100);
-				remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + se.getComment()));
-				PdfPCell summaryR = new PdfPCell(remarques);
-				summaryR.setColspan(3);
-
-				PdfPTable describer = new PdfPTable(1);
-				describer.setWidthPercentage(100);
-				describer.addCell(pdfGenaratorUtil.getDescCell(" "));
-				describer.addCell(pdfGenaratorUtil.getDescCell("Esup-emargement - " + Year.now().getValue()));
-
-				document.open();
-				headerTable.setTotalWidth(300f);
-				headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(), document.top(),
-						writer.getDirectContent());
-
-				PdfPTable mainTable = new PdfPTable(7);
-				mainTable.setWidthPercentage(100);
-				mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
-				mainTable.setSpacingBefore(20.0f);
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
-				document.add(image);
-				document.add(name);
-
-				if (!list.isEmpty()) {
-					int i = 0;
-					int j = 1;
-					for (TagCheck tc : list) {
-						String dateEmargement = "";
-						String nom = "";
-						String prenom = "";
-						String identifiant = "";
-						String typeemargement = "";
-						String typeIndividu = "";
-						if (tc.getPerson() != null) {
-							nom = tc.getPerson().getNom();
-							prenom = tc.getPerson().getPrenom();
-							identifiant = tc.getPerson().getNumIdentifiant();
-							if (identifiant == null) {
-								identifiant = tc.getPerson().getEppn();
-							}
-							typeIndividu = messageSource
-									.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
-									.substring(0, 1);
-						} else if (tc.getGuest() != null) {
-							nom = tc.getGuest().getNom();
-							prenom = tc.getGuest().getPrenom();
-							identifiant = tc.getGuest().getEmail();
-							typeIndividu = "Ex";
-						}
-						if(tc.getAbsence()!=null) {
-		        			String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
-	        				dateEmargement = absence;
-						} else if (tc.getTagDate() != null) {
-							dateEmargement = String.format("%1$tH:%1$tM", tc.getTagDate());
-							if (tc.getIsUnknown()) {
-								dateEmargement = "Inconnu";
-							}
-						}
-						if (tc.getIsTiersTemps()) {
-							dateEmargement += " \nTemps aménagé";
-						}
-						if (tc.getTypeEmargement() != null) {
-							typeemargement = messageSource.getMessage(
-									"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) + "\n";
-						}
-						typeemargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(String.valueOf(j)));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(nom));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(prenom));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(identifiant));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeIndividu));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(dateEmargement));
-						mainTable.addCell(pdfGenaratorUtil.getMainRowCell(typeemargement));
-						i++;
-						if (i == 18) {
-							mainTable.addCell(summaryL);
-							mainTable.addCell(summaryR);
-							document.add(mainTable);
-							document.add(describer);
-							document.newPage();
-							document.add(image);
-							headerTable.setTotalWidth(300f);
-							headerTable.writeSelectedRows(0, -1, document.right() - headerTable.getTotalWidth(),
-									document.top(), writer.getDirectContent());
-							document.add(name);
-							mainTable = new PdfPTable(7);
-							mainTable.setWidthPercentage(100);
-							mainTable.setWidths(new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f });
-							mainTable.setSpacingBefore(20.0f);
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("#"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Nom"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Prénom"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Identifiant"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Type"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Emargement"));
-							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell("Mode"));
-							i = 0;
-						}
-						j++;
-					}
-				}
-				mainTable.addCell(summaryL);
-				mainTable.addCell(summaryR);
-				document.add(mainTable);
-				document.add(describer);
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+				getTagCheckListAsPDF(list, document, writer, se, emargementContext);
+			} catch (DocumentException de) {
+				de.printStackTrace();
+				logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 						null, emargementContext, null);
-
-	        } catch (DocumentException de) {
-	          de.printStackTrace();
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
 						null, emargementContext, null);
-	        } catch (IOException de) {
-	          de.printStackTrace();
-	          logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
-						null, emargementContext, null);
-	        }
-	        
+			}
+	 
 	        document.close();
 	        if(signature) {
 	        	pdfBytes = byteArrayOutputStream.toByteArray();
 	        }
 	       
-		}else if("CSV".equals(type)){
+		} else if("CSV".equals(type)){
 			try {
 			    String filename = nomFichier.concat(".csv");
 
@@ -1386,7 +1249,892 @@ public class TagCheckService {
 		}
 		return pdfBytes;
 	}
+
+	public void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		String emargementContext
+	) {
+		getTagCheckListAsPDF(list, document, writer, se, emargementContext, null);
+	}
+
+	public void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		String emargementContext,
+		Long sessionLocationId
+	) {
+		getTagCheckListAsPDF(list, document, writer, se, null, emargementContext, sessionLocationId);
+	}
+
+	public void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		Person person,
+		String emargementContext
+	) {
+		getTagCheckListAsPDF(list, document, writer, null, person, emargementContext, null);
+	}
+
+	protected void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		Person person,
+		String emargementContext,
+		Long sessionLocationId
+	) {
+		if (
+			((null != se) && (null != person))
+			||
+			((null == se) && (null == person))
+		) {
+			// Entre feuille d'émargement d'une session ou feuille d'émargement d'un participant il faut choisir"
+			return;
+		}
+
+		// Commenter/ajouter les lignes correspondant aux colonnes que vous souhaitez/ne souhaitez pas afficher
+		// Vous pouvez également en modifier l'ordre ou le libellé (second paramètre du put)
+		// ATTENTION Cela s'applique à tous les contextes
+		LinkedHashMap<String, String> displayedCols = new LinkedHashMap<String, String>();
+
+		// Commenter/Ajouter les lignes correspondant aux données que vous souhaiter/ne souhaitez pas
+		// avoir dans le cartouche (en haut à droite de la page)
+		// Vous pouvez également en modifier l'ordre ou le libellé (second paramètre du put)
+		// ATTENTION Cela s'applique à tous les contextes
+		LinkedHashMap<String, String> headerRequestedFields = new LinkedHashMap<String, String>();
+
+		boolean isHeaderHorizLayout = true;
+		if (null != se) {
+			// Configuration adapté à une liste d'émargement pour une session donnée (avec plusieurs participants)
+			displayedCols.put(COL_LIGNE_NUM, "#");
+			displayedCols.put(COL_PARTICIPANT_NOM, "Nom");
+			displayedCols.put(COL_PARTICIPANT_PRENOM, "Prénom");
+			displayedCols.put(COL_PARTICIPANT_IDENTIFIANT, "Identifiant"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			displayedCols.put(COL_PARTICIPANT_GROUPES, "Groupes");
+			displayedCols.put(COL_PARTICIPANT_TYPE, "Type"); // E, P ou Ex
+			displayedCols.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, "Emargement");
+			displayedCols.put(COL_EMARGEMENT_MODE, "Mode");
+
+			headerRequestedFields.put(COL_SESSION_RATIO_PRESENTS, "Présents");
+			headerRequestedFields.put(COL_SESSION_DATES_DEBUT_FIN, "Date");
+			headerRequestedFields.put(COL_SESSION_HEURES_DEBUT_FIN, "Heure");
+			isHeaderHorizLayout = true;
+		} else {
+			// Configuration adapté à une liste d'émargement pour un participant donné (au cours de diférentes sessions)
+			displayedCols.put(TagCheckService.COL_SESSION_DATE_HEURE_DEBUT, "Date Heure");
+			displayedCols.put(TagCheckService.COL_SESSION_DUREE, "Durée");
+			displayedCols.put(TagCheckService.COL_SESSION_NOM, "Cours");
+			displayedCols.put(TagCheckService.COL_SESSION_SURVEILLANTS, "Enseignant(s)"); // n° étudiant (Etudiant) ou adresse mail (Personnel)
+			displayedCols.put(TagCheckService.COL_EMARGEMENT_MODE_OU_ABSENCE, "Émargement");	
+
+			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_NOM, "Nom");
+			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_PRENOM, "Prénom");
+			headerRequestedFields.put(TagCheckService.COL_PARTICIPANT_IDENTIFIANT, "Identifiant");	
+			isHeaderHorizLayout = false;
+		}
+
+		getTagCheckListAsPDF(list, document, writer, se, person, displayedCols, headerRequestedFields, isHeaderHorizLayout, emargementContext, null);
+	}
+
+	// Il y avait de tous petits deltas entre l'implémentation dans TagCheckService et celle dans PresenceService
+	// Dans la version PresenceService, le lieu est ajouté au titre (en s'appuyant sur la variable "sessionLocationId").
+	// Dans la version TagCheckService, la date de fin est précédée de "\n"
+	// Pour ne pas introduire plus de modifications que nécessaire, on considèrera que:
+	// - Si on a renseigné sessionLocationId, on est dans le mode de fonctionnement de PresenceService
+	// - sinon dans le mode de fonctionnement de TagCheckService
+	// A noter, à partir de sessionLocationId, on peut récupérer un objet SessionLocation dont on peut visiblement récupérer
+	// SessionEpreuve (dans dans ce cas le paramètre pourrait être homis)
+	protected void getTagCheckListAsPDF(
+		List<TagCheck> list,
+		Document document,
+		PdfWriter writer,
+		SessionEpreuve se,
+		Person person,
+		LinkedHashMap<String, String> displayedCols,
+		LinkedHashMap<String, String> headerRequestedFields,
+		boolean isHeaderHorizLayout,
+		String emargementContext,
+		Long sessionLocationId
+	) {
+		if (
+			((null != se) && (null != person))
+			||
+			((null == se) && (null == person))
+		) {
+			// Entre feuille d'émargement d'une session ou feuille d'émargement d'un participant il faut choisir"
+			return;
+		}
+
+		// -----------------------------------------------------------
+		// Configuration "locale" (applicable à tous les contextes)
+		// -----------------------------------------------------------
+		// A noter: Bien que l'objectif visé par le paramètre "personnaliserLogoParFormation"
+		// soit bien de personnaliser le logo en fonction de la formation, en pratique
+		// il est personnalisé en fonction des groupes (seule information plus ou moins disponible)
+		// On fait donc l'hypothèse 1 groupe = 1 formation.
+		// L'affichage du logo dédié à la formation pourra se faire uniquement s'il l'un des fichiers
+ 		// suivants existe (par ordre de priorité):
+		// - /static/images/logos_formations/par_contexte/<identifiant du contexte>/<nom du groupe>.png
+		// - /static/images/logos_formations/<nom du groupe>.png
+		// sinon, c'est le logo standard qui est affiché (/static/images/logo.jpg)
+		// A noter: le logo doit avoir des dimensions largeur:hauteur dans le ratio 3:1
+		// Rem: La personnalisation du logo n'est vraiment pertinente que si l'ensemble des participants
+		// appartient à la même formation (i.e. groupe)..
+		boolean personnaliserLogoParFormation = true; 
+
+		// ...s'il s'avère qu'il y a plusieurs formations (i.e. groupes) représentés, on peut
+		// choisir d'afficher le logo de la première formation venue ou de se rabattre sur le logo
+		// par défaut
+		// A noter: L'affichage éventuel de plusieurs logos n'est pas géré.
+		boolean prendreLogoPremiereFormationSiPlusieursFormations = false;
+
+		// Si (au moins) 1 des participants n'est pas associé à un (ou plusieurs) groupe(s)
+		// on peut faire le choix de l'ignorer (et l'assimiler aux groupes représentés)
+		// ou au contraire considérer qu'il appartient à un groupe distinct
+		boolean participantSansGroupeEquivautAutreGroupe = true;
+
+		// Dans le cas où l'on a activé l'affichage du groupe des participants à la session
+		// (i.e. getIsGroupeDisplayed = true)
+		// Si tous les partipants appartiennent au même groupe, on peut choisir de remplacer
+		// la colonne (qui prend de la place dans le tableau) par une ligne unique en tête
+		// de tableau.
+		// Cela est notamment pensé dans le cas où groupe = formation. La feuille d'émargement
+		// peut ainsi rappeler la formation concernée.
+		boolean remplacerColGroupeParTitreSiPossible = true;
+
+		// Afin de laisser de la place pour les autres informations, on peut vouloir
+		// masquer la colonne Type (de participant) lorsque la session n'implique
+		// que des étudiants
+		boolean masquerColTypeSiUniquementTypeE = false;
 	
+		// Pour un étudiant l'identifiant est le n° étudiant. Il prend bien moins de place
+		// qu'une adresse mail (identifiant utilisé pour les autres types de participant).
+		// Afin de laisser de la place pour les autres informations, lorsqu'il n'y a que
+		// des étudiants parmi les participants, il peut être intéressant de réduire la
+		// largeur de la colonne identifiant au strict minimum (8 chiffres?)
+		boolean optimiserLargeurColIdentifiantSiUniquementTypeE = false;
+
+		// Option d'affichage avec une police de caractères plus petite
+		// et des marges (padding) plus petites également
+		boolean isCompactMode = false;
+
+		// Pour conserver les tailles de polices de caractères du tableau principal
+		// ainsi que les largeurs de colonnes anciennement préconfigurées
+		// (dans l'hypothèse où il n'y a pas de changement dans le choix des colonnes affichées)
+		// positionner à true
+		// Sera ignoré si optimiserLargeurColIdentifiantSiUniquementTypeE = true
+		// ou si isCompactMode = true
+		boolean legacyDisplayConfig = true;
+
+		if (optimiserLargeurColIdentifiantSiUniquementTypeE) {
+			legacyDisplayConfig = false;
+		}
+
+		int nbLigneMaxParPage        = 18;
+
+		int mainTableHeaderFontSize  = 10;
+		float mainTableHeaderPadding = 5f;
+		int mainTableFontSize        = 10;
+		float mainTablePadding       = 5f;
+
+		if (isCompactMode) {
+			mainTableHeaderFontSize = 8;
+			mainTableHeaderPadding  = 3f;
+			mainTableFontSize       = 8;
+			mainTablePadding        = 3f;
+
+			legacyDisplayConfig = false;
+		}
+
+		if (null == se) {
+			legacyDisplayConfig = false;
+		}
+
+		try {
+			document.setMargins(10, 10, 10, 10);
+
+			List<String> groupesRepresentes = new ArrayList<String>();
+			boolean foundParticipantWithNoGroup = false;
+			boolean listWithOnlyTypeE = true;
+			boolean isGroupesRepresentesValueRequired = personnaliserLogoParFormation || remplacerColGroupeParTitreSiPossible;
+			boolean isListWithOnlyTypeEValueRequired = optimiserLargeurColIdentifiantSiUniquementTypeE || masquerColTypeSiUniquementTypeE;
+			// (si besoin) On va dans un premier temps déterminer quels sont les groupes représentés sur cette feuille
+			if (isGroupesRepresentesValueRequired || isListWithOnlyTypeEValueRequired) {
+				if (null != person) {
+					// S'il s'agit de l'émargement d'un seul participant (sur plusieurs sessions)
+					for (Groupe groupe: person.getGroupes()) {
+						groupesRepresentes.add(groupe.getNom());
+					}
+				} else {
+					// S'il s'agit de l'émargement de plusieurs participants à une session unique
+					if (!list.isEmpty()) {
+						for(TagCheck tc : list) {
+							String typeIndividu = "";
+							if (tc.getPerson() != null ) {
+								if (isListWithOnlyTypeEValueRequired) {
+									typeIndividu = messageSource.getMessage("person.type.".concat(tc.getPerson().getType()), null, null).substring(0,1);
+								}
+
+								if (isGroupesRepresentesValueRequired) {
+									if ((tc.getPerson().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
+										List<String> groupes = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+										groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+									} else {
+										foundParticipantWithNoGroup = true;
+									}
+								}
+							} else if(tc.getGuest() != null ) {
+								if (isListWithOnlyTypeEValueRequired) {
+									typeIndividu = "Ex";
+								}
+
+								if (isGroupesRepresentesValueRequired) {
+									if ((tc.getGuest().getGroupes() != null)  && (tc.getPerson().getGroupes().size() > 0)) {
+										List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+										groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
+									} else {
+										foundParticipantWithNoGroup = true;
+									}
+								}
+							}
+
+							if (
+								isListWithOnlyTypeEValueRequired
+								&&
+								(!"E".equals(typeIndividu))
+							) {
+								listWithOnlyTypeE = false;
+							}
+						}
+					}
+				}
+			}
+
+			Paragraph paragrapheNomGroupeUnique = null;
+
+			if (null != se) {
+				// S'il s'agit de l'émargement de plusieurs participants à une session unique
+				if (
+					(!BooleanUtils.isTrue(se.getIsGroupeDisplayed()))
+					||
+					(
+						remplacerColGroupeParTitreSiPossible
+						&&
+						(1 == groupesRepresentes.size())
+						&&
+						(
+							(!participantSansGroupeEquivautAutreGroupe)
+							||
+							(!foundParticipantWithNoGroup)
+						)
+					)
+				) {
+					// Dans ce cas là, on n'affiche pas la colonne groupes
+					if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES)) {
+						displayedCols.remove(COL_PARTICIPANT_GROUPES);
+					}
+
+					if (BooleanUtils.isTrue(se.getIsGroupeDisplayed())) {
+						// Si on remplace la colonne par un texte en tête de tableau
+						Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+						paragrapheNomGroupeUnique = new Paragraph(groupesRepresentes.get(0), font);	
+					}
+				}
+			}
+
+			if (masquerColTypeSiUniquementTypeE && listWithOnlyTypeE) {
+				if (displayedCols.containsKey(COL_PARTICIPANT_TYPE)) {
+					displayedCols.remove(COL_PARTICIPANT_TYPE);
+				}
+			}
+
+			if (7 != displayedCols.size()) {
+				legacyDisplayConfig = false;
+			}
+
+			// Détermination des logo à afficher
+			// Logo de l'établissement ou la composante (en haut à gauche)
+			// + éventuellement logo lié à la formation (typiquement logo CFA) (en haut à droite)
+			//------------------------------------------------------------------------
+			String imageDirPath = "/static/images/";
+
+			String defaultLogoComposantePath = imageDirPath+"logo.jpg";
+
+			// Logo établissement ou composante
+			//----------------------------------------------------------------
+			URL logoComposanteResource = null;
+			String logoComposantePath = imageDirPath+"par_contexte/"+emargementContext+"/logo.png";
+			File file = new File(logoComposantePath);
+			if (file.getCanonicalPath().startsWith(imageDirPath)) {
+				logoComposanteResource = PresenceService.class.getResource(logoComposantePath);
+				if (null == logoComposanteResource) {
+					log.debug("Pas de logo composante/établissement trouvé à l'emplacement "+logoComposantePath);
+				}
+			} else {
+				// emargementContext contient vraisemblablement des /../
+				// tentative de hack ?
+				log.warn(logoComposantePath+" n'est pas un chemin valide");
+			}
+
+			if (null == logoComposanteResource) {
+				// Logo "personnalisé" non trouvé dans l'espace contextuel
+				// on se rabat sur le logo dans l'espace par défaut
+				logoComposanteResource = PresenceService.class.getResource(defaultLogoComposantePath);
+				if (null == logoComposanteResource) {
+					log.debug("Pas de logo composante/établissement trouvé à l'emplacement "+defaultLogoComposantePath);
+				}
+			}
+
+			Image logoComposanteImage = Image.getInstance(logoComposanteResource);
+
+			// Logo formation (ex pour CFA)
+			//----------------------------------------------------------------
+			URL logoFormationResource = null;
+			Image logoFormationImage = null;
+			if (
+				personnaliserLogoParFormation
+				&&
+				(groupesRepresentes.size() > 0)
+				&&
+				(
+					(1 == groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+					||
+					(
+						(1 < groupesRepresentes.size() + ((participantSansGroupeEquivautAutreGroupe && foundParticipantWithNoGroup)?1:0))
+						&&
+						prendreLogoPremiereFormationSiPlusieursFormations
+					)
+				)
+			) {
+				String logoFormationPath = imageDirPath+"par_contexte/"+emargementContext+"/logos_formations/"+groupesRepresentes.get(0)+".png";
+				file = new File(logoFormationPath);
+				if (file.getCanonicalPath().startsWith(imageDirPath)) {
+					logoFormationResource = PresenceService.class.getResource(logoFormationPath);
+					if (null != logoFormationResource) {
+						logoFormationImage = Image.getInstance(logoFormationResource);
+						logoFormationImage.scaleAbsolute(150f, 50f);// image width,height
+					} else {
+						log.debug("Pas de logo formation/CFA trouvé à l'emplacement "+logoFormationPath);
+					}
+				} else {
+					// emargementContext ou nom de formation contient vraisemblablement des /../
+					// tentative de hack ?
+					log.warn(logoFormationPath+" n'est pas un chemin valide");
+				}
+			}
+
+			//-----------------------------------------------------
+			// Cartouche en haut à droite
+			//-----------------------------------------------------
+			LinkedHashMap<String, String> headerFields = new LinkedHashMap<String, String>();
+			for (String cartoucheField: headerRequestedFields.keySet()) {
+				String value = "???"+cartoucheField+"???";
+				switch (cartoucheField) {
+					case COL_PARTICIPANT_IDENTIFIANT:
+						// Uniquement applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						// Non applicable à une liste de participants à une session unique
+						if (null != person) {
+							value = person.getNumIdentifiant();
+							if (null == value) {
+								value = person.getEppn();
+							}
+						}
+						break;
+					case COL_PARTICIPANT_NOM:
+						// Uniquement applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						// Non applicable à une liste de participants à une session unique
+						if (null != person) {
+							value = person.getNom().toUpperCase();
+						}
+						break;
+					case COL_PARTICIPANT_PRENOM:
+						// Uniquement applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						// Non applicable à une liste de participants à une session unique
+						if (null != person) {
+							value = person.getPrenom();
+						}
+						break;
+					case COL_SESSION_DATES_DEBUT_FIN:
+						// Uniquement applicable à une liste de participants à une session unique
+						// Non applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						if (null != se) {
+							String dateFin = (se.getDateFin() != null)
+								? (null == sessionLocationId?"\n":"") + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin()))
+								: "";
+							value = String.format("%1$td-%1$tm-%1$tY", (se.getDateExamen())).concat("\n"  + dateFin);
+						}
+						break;
+					case COL_SESSION_HEURES_DEBUT_FIN:
+						// Uniquement applicable à une liste de participants à une session unique
+						// Non applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						if (null != se) {
+							value = String.format("%1$tH:%1$tM", se.getHeureEpreuve()) + " - "
+									+ String.format("%1$tH:%1$tM", se.getFinEpreuve());
+						}
+						break;
+					case COL_SESSION_RATIO_PRESENTS:
+						// Uniquement applicable à une liste de participants à une session unique
+						// Non applicable à une liste d'émargements pour un participant unique (à plusieurs sessions)
+						if (null != se) {
+							Long totalExpected = tagCheckRepository
+								.countBySessionEpreuveIdAndSessionLocationExpectedIsNotNull(se.getId());
+							Long totalPresent = tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNull(se.getId());
+							value = String.valueOf(totalPresent) + " / " + String.valueOf(totalExpected);
+						}
+						break;
+					default:
+						value = "???"+cartoucheField+"???";
+				}
+				headerFields.put(headerRequestedFields.get(cartoucheField), value);
+			}
+
+			PdfPTable headerTable = null;
+			if (isHeaderHorizLayout) {
+				headerTable = pdfGenaratorUtil.getHorizontalCartoucheTable(headerFields);
+			} else {
+				headerTable = pdfGenaratorUtil.getVerticalCartoucheTable(headerFields, new float[] {0.25f, 0.75f});
+			}
+
+			// S'il y a un logo formation (CFA)
+			// le header aura 3 colonnes sinon 2 colonnes uniquement
+			PdfPTable fullHeaderTable = new PdfPTable(2 + (null==logoFormationImage?0:1));
+			fullHeaderTable.setWidthPercentage(100f);
+
+			// Dimensions A4 : 595x842 avec marges de 10 => 575x822
+			fullHeaderTable.setTotalWidth(575f);
+			float[] fullHeaderWidths;
+			if (null != logoFormationImage) {
+				fullHeaderWidths = new float[] { 130f, 315, 130f};
+				logoComposanteImage.scaleAbsolute(125f, 40f);
+				logoFormationImage.scaleAbsolute(125f, 40f);
+			} else {
+				if (legacyDisplayConfig) {
+					fullHeaderWidths = new float[] { 275f, 300f };
+				} else {
+					fullHeaderWidths = new float[] { 160f, 415f };
+				}
+				logoComposanteImage.scaleAbsolute(150f, 50f);
+			}
+			fullHeaderTable.setWidths(fullHeaderWidths);
+
+			PdfPCell logoComposanteCell = new PdfPCell(logoComposanteImage);
+			logoComposanteCell.setBorder(0);
+				logoComposanteCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+			fullHeaderTable.addCell(logoComposanteCell);
+
+			PdfPCell headerTableCell = new PdfPCell(headerTable);
+			if (null != logoFormationImage) {
+				headerTableCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			} else {
+				headerTableCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+				// Tentative vaine de laisser inchanger la taille du cartouche
+				// avec des largeurs de colonnes "génériques"
+				// pour un affichage comme avant
+				//if (legacyDisplayConfig) {
+				//	headerTable.setTotalWidth(300f);
+				//}
+			}
+			headerTableCell.setBorder(0);
+			fullHeaderTable.addCell(headerTableCell);
+
+			if (null != logoFormationImage) {
+				PdfPCell logoFormationCell = new PdfPCell(logoFormationImage);
+				logoFormationCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+				logoFormationCell.setBorder(0);
+				fullHeaderTable.addCell(logoFormationCell);
+			}
+
+			//------------------------------------------------------
+			// Titre de la page
+			//------------------------------------------------------
+			String title = null;
+			
+			if (null != se) {
+				SessionLocation sl = null;
+				if (null != sessionLocationId) {
+					sl = sessionLocationRepository.findById(sessionLocationId).get();
+				}
+
+				// titre = nom de la session et éventuellement localisation
+				title = se.getNomSessionEpreuve() + (null == sl?"": " // " + sl.getLocation().getNom());
+			} else {
+				// titre = nom de la formation
+				// A défaut d'être en mesure de récupérer l'information "formation" pour un participant
+				// on affiche le(s) groupe(s) auxquels il est associé et ça fera le job
+				// pour les cas où le participant n'appartient qu'à un seul groupe esup-emargement
+				// et que le nom du groupe est le nom de la formation
+				title = StringUtils.join(groupesRepresentes,", ");
+			}
+			Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 14, Font.BOLD);
+			Paragraph titleParagraph = new Paragraph(title, font);
+			titleParagraph.setSpacingBefore(2f);
+
+			//----------------------------------------------------------------------------
+			// Pied de tableau (zone gauche: surveillants, zone droite: remarques)
+			//----------------------------------------------------------------------------
+			PdfPCell tableFooterCell = null;
+			if (null != se) {
+				// S'il s'agit de l'émargement de plusieurs participants à une session unique
+				List<TagChecker> tagCheckers = tagCheckerRepository
+					.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
+				tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+				String surveillants = tagCheckers.stream()
+						.map(t -> (t.getUserApp().getPrenom() + " " + t.getUserApp().getNom())).distinct()
+						.collect(Collectors.joining(", "));
+		
+				PdfPTable tagCheckerTable = new PdfPTable(1);
+				tagCheckerTable.setWidthPercentage(100);
+				String surveillantTerme = appliConfigService.getSurveillantTerm();
+				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillantTerme + "s :"));
+				tagCheckerTable.addCell(pdfGenaratorUtil.getTagCheckerCell(surveillants));
+				PdfPCell summaryL = new PdfPCell(tagCheckerTable);
+				summaryL.setPadding(1.0f);
+
+				PdfPTable remarques = new PdfPTable(1);
+				remarques.setWidthPercentage(100);
+				String comment = se.getComment();
+				if (null == comment) {
+					comment = "";
+				}
+				remarques.addCell(pdfGenaratorUtil.getRemarquesCell("Remarques: " + comment));
+				PdfPCell summaryR = new PdfPCell(remarques);
+				
+				PdfPTable tableFooterTable = new PdfPTable(2);
+				tableFooterTable.setWidthPercentage(100);
+				tableFooterTable.addCell(summaryL);
+				tableFooterTable.addCell(summaryR);
+
+				tableFooterCell = new PdfPCell(tableFooterTable);
+				tableFooterCell.setColspan(displayedCols.size());
+			}
+
+			document.open();
+
+			PdfPTable mainTable = new PdfPTable(displayedCols.size());
+			mainTable.setWidthPercentage(100);
+
+			// Détermination des largeurs de colonne du tableau principal
+			//----------------------------------------------------------------
+			float[] mainTableWidths;
+
+			if (legacyDisplayConfig) {
+				// Garder comme c'était avant
+				mainTableHeaderFontSize = 11; // default
+				mainTableFontSize       = 0; // default
+				mainTableWidths         = new float[] { 0.7f, 1.5f, 1.5f, 2, 0.8f, 1.5f, 1.4f };
+			} else {
+				// Largeurs optimales par colonne, en % de la largeur du tableau
+				HashMap<String, Float> colsOptimizedSize = new HashMap<String, Float>();
+				if (isCompactMode) {
+					// Avec fontSize 8 et padding 3 (mode compact)
+					colsOptimizedSize.put(COL_LIGNE_NUM, 3.9f);        // 3 chiffres
+					colsOptimizedSize.put(COL_PARTICIPANT_TYPE, 4.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, 9.5f); // Facteur limitant = entête de colonne "Emargement" ou raison d'absence
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE, 8f);  // Ex: "Manuel", "QrCode participant"
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE_OU_ABSENCE, 8.5f);  // Ex: "Manuel", "QrCode participant", "ABSENCE-INJUSTIFIE"
+					colsOptimizedSize.put(COL_SESSION_DATE_HEURE_DEBUT, 11.9f);
+					colsOptimizedSize.put(COL_SESSION_DUREE, 4.9f); // Facteur limitant = entête de colonne "Durée"
+				} else {
+					// Avec fontSize 10 et padding 5 (mode "historique")
+					colsOptimizedSize.put(COL_LIGNE_NUM, 4.7f);        // 3 chiffres
+					colsOptimizedSize.put(COL_PARTICIPANT_TYPE, 5.7f); // "E", "P", "Ex". Facteur limitant = entête de colonne "Type"
+					colsOptimizedSize.put(COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS, 12f);  // Facteur limitant = entête de colonne "Emargement" ou raison d'absence
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE, 9.8f);  // Ex: "Manuel", "QrCode participant", ..., "ABSENCE-INJUSTIFIE"
+					colsOptimizedSize.put(COL_EMARGEMENT_MODE_OU_ABSENCE, 12f);  // Ex: "Manuel", "QrCode participant", "ABSENCE-INJUSTIFIE"
+					colsOptimizedSize.put(COL_SESSION_DATE_HEURE_DEBUT, 15.5f);
+					colsOptimizedSize.put(COL_SESSION_DUREE, 6.5f); // Facteur limitant = entête de colonne "Durée"
+				}
+
+				if (optimiserLargeurColIdentifiantSiUniquementTypeE && listWithOnlyTypeE) {
+					// Optimisé pour 8 chiffres
+					if (isCompactMode) {
+						colsOptimizedSize.put(COL_PARTICIPANT_IDENTIFIANT, 7.5f);
+					} else {
+						colsOptimizedSize.put(COL_PARTICIPANT_IDENTIFIANT, 9.3f);
+					}
+				}
+
+				HashMap<String, Float> colsWidthWeight = new HashMap<String, Float>();
+				colsWidthWeight.put(COL_PARTICIPANT_NOM, 1f);
+				colsWidthWeight.put(COL_PARTICIPANT_PRENOM, 1f);
+				// Il faut une largeur plus grande pour un identifiant mail incluant nom, prénom et nom de domaine
+				// plutôt que nom et prénom pris individuellement. On lui attribue donc un poids supérieur
+				// Ca vaut ce que ça vaut (ça ne tient pas compte du contenu effectif des colonnes)
+				// mais en attendant mieux ça ira
+				colsWidthWeight.put(COL_PARTICIPANT_IDENTIFIANT, 1.5f);
+
+				// On détermine l'espace occupé par les colonnes dont on connait la largeur optimale
+				// (i.e plus petite possible tout en permettant d'afficher l'ensemble du contenu)
+				// et on regarde combien il reste de colonnes qui doivent être les plus larges possibles
+				mainTableWidths = new float[displayedCols.size()];
+				float totalLargeursFixes = 0f;
+				float poidsTotalColsLargeurAjustable = 0f;
+				for (String colName : displayedCols.keySet()) {
+					if (colsOptimizedSize.containsKey(colName)) {
+						totalLargeursFixes += (float)colsOptimizedSize.get(colName);
+					} else if (colsWidthWeight.containsKey(colName)) {
+						poidsTotalColsLargeurAjustable += (float)colsWidthWeight.get(colName);
+					} else {
+						poidsTotalColsLargeurAjustable += 1f;
+					}
+				}
+
+				// Pour les colonnes qui doivent être les plus larges possible, on va répartir
+				// l'espace disponible restant avec la pondération prédéfinie
+				// TODO Attention si la somme des colonnes fixes dépasse 100 !!
+				int colIdx = 0;
+				for (String colName : displayedCols.keySet()) {
+					if (colsOptimizedSize.containsKey(colName)) {
+						mainTableWidths[colIdx] = (float)colsOptimizedSize.get(colName);
+					} else if (colsWidthWeight.containsKey(colName)) {
+						mainTableWidths[colIdx] = (float)colsWidthWeight.get(colName)*(100f-totalLargeursFixes)/poidsTotalColsLargeurAjustable;
+					} else {
+						mainTableWidths[colIdx] = (float)(100f-totalLargeursFixes)/poidsTotalColsLargeurAjustable;
+					}
+					colIdx++;
+				}
+			}
+
+			mainTable.setWidths(mainTableWidths);
+			mainTable.setSpacingBefore(20.0f);
+
+			for (String colName : displayedCols.keySet()) {
+				mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(displayedCols.get(colName), mainTableHeaderFontSize, mainTableHeaderPadding));
+			}
+
+			int pageCount = 0;
+
+			pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
+
+			document.add(fullHeaderTable);
+			document.add(titleParagraph);
+			if (null != paragrapheNomGroupeUnique) {
+				// REM: Dans le cas groupe = formation, on s'attendrait sans doute plutôt
+				// à avoir formation AVANT nom du cours (+ lieu)
+				document.add(paragrapheNomGroupeUnique);
+			}
+			
+			if (!list.isEmpty()) {
+				// Calculer la durée de chaque session (i.e. delta dateheure fin/dateheure debut)
+				setNbHoursSession(list);
+				int lineInPageCount = 0;
+				int lineCount       = 1;
+				for (TagCheck tc : list) {
+					String heureEmargementOuAbsenceEtTiersTemps = "";
+					String nom = "";
+					String prenom = "";
+					String identifiant = "";
+					String typeEmargement = "";
+					String typeEmargementOuAbsence = "";
+					String typeIndividu = "";
+					String groupes = "";
+					// nom, prénom, identifiant, typeIndividu, groupes
+					//----------------------
+					if (tc.getPerson() != null) {
+						nom = tc.getPerson().getNom();
+						prenom = tc.getPerson().getPrenom();
+						identifiant = tc.getPerson().getNumIdentifiant();
+						if (identifiant == null) {
+							identifiant = tc.getPerson().getEppn();
+						}
+						typeIndividu = messageSource
+								.getMessage("person.type.".concat(tc.getPerson().getType()), null, null)
+								.substring(0, 1);
+						if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES) && (tc.getPerson().getGroupes() != null)) {
+							List<String> groupeList = tc.getPerson().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupes = StringUtils.join(groupeList,", ");
+						}
+					} else if (tc.getGuest() != null) {
+						nom = tc.getGuest().getNom();
+						prenom = tc.getGuest().getPrenom();
+						identifiant = tc.getGuest().getEmail();
+						typeIndividu = "Ex";
+
+						if (displayedCols.containsKey(COL_PARTICIPANT_GROUPES) && (tc.getGuest().getGroupes() != null)) {
+							List<String> groupeList = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
+							groupes = StringUtils.join(groupeList,", ");
+						}
+					}
+
+					// heureEmargementOuAbsenceEtTiersTemps
+					// typeEmargementOuAbsence
+					//----------------------
+					if (tc.getAbsence()!=null) {
+						String absence = tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name();
+						heureEmargementOuAbsenceEtTiersTemps = absence;
+						typeEmargementOuAbsence = absence;
+					} else if (tc.getTagDate() != null) {
+						heureEmargementOuAbsenceEtTiersTemps = String.format("%1$tH:%1$tM", tc.getTagDate());
+						if (tc.getIsUnknown()) {
+							heureEmargementOuAbsenceEtTiersTemps = "Inconnu";
+						}
+					}
+					if (tc.getIsTiersTemps()) {
+						heureEmargementOuAbsenceEtTiersTemps += " \nTemps aménagé";
+					}
+
+					// typeEmargement
+					// typeEmargementOuAbsence
+					//----------------------
+					if (tc.getTypeEmargement() != null) {
+						typeEmargement = messageSource.getMessage(
+							"typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()),
+							null,
+							null
+						) + "\n";
+						typeEmargementOuAbsence = typeEmargement;
+					}
+
+					typeEmargement += (tc.getProxyPerson()!=null)? "Proc : " + tc.getProxyPerson().getPrenom() + ' ' + tc.getProxyPerson().getNom(): "";
+
+					for (String colName : displayedCols.keySet()) {
+						String cellContent = "???"+colName+"???";
+						int align = Element.ALIGN_CENTER;
+						SessionEpreuve lineSessionEpreuve;
+						if (null != person) {
+							lineSessionEpreuve = tc.getSessionEpreuve();
+						} else {
+							lineSessionEpreuve = se;
+						}		
+						switch (colName) {
+							case COL_EMARGEMENT_HEURE_OU_ABSENCE_ET_TIERS_TEMPS:
+								cellContent = heureEmargementOuAbsenceEtTiersTemps;
+								break;
+							case COL_EMARGEMENT_MODE:
+								cellContent = typeEmargement;
+								break;
+							case COL_EMARGEMENT_MODE_OU_ABSENCE:
+								cellContent = typeEmargementOuAbsence;
+								break;
+							case COL_LIGNE_NUM:
+								cellContent = String.valueOf(lineCount);
+								break;
+							case COL_PARTICIPANT_GROUPES:
+								cellContent = groupes;
+								break;
+							case COL_PARTICIPANT_IDENTIFIANT:
+								cellContent = identifiant;
+								break;
+							case COL_PARTICIPANT_NOM:
+								cellContent = nom;
+								if (!legacyDisplayConfig) {
+									align = Element.ALIGN_LEFT;
+								}
+								break;
+							case COL_PARTICIPANT_PRENOM:
+								cellContent = prenom;
+								if (!legacyDisplayConfig) {
+									align = Element.ALIGN_LEFT;
+								}
+								break;
+							case COL_PARTICIPANT_TYPE:
+								cellContent = typeIndividu;
+								break;
+							case COL_SESSION_NOM:
+								// Peu d'intérêt dans le cas d'une liste de participants à une session unique
+								// mais adapté au cas liste d'émargements d'un participant à plusieurs sessions
+								cellContent = lineSessionEpreuve.getNomSessionEpreuve();
+								align = Element.ALIGN_LEFT;
+								break;
+							case COL_SESSION_DATE_HEURE_DEBUT:
+								// Peu d'intérêt dans le cas d'une liste de participants à une session unique
+								// mais adapté au cas liste d'émargements d'un participant à plusieurs sessions
+								String dateDebutSession  = String.format("%1$td-%1$tm-%1$tY", lineSessionEpreuve.getDateExamen());
+								String heureDebutSession = String.format("%1$tH:%1$tM", lineSessionEpreuve.getHeureEpreuve());
+								cellContent = dateDebutSession+" "+heureDebutSession;
+								break;
+							case COL_SESSION_DUREE:
+								// Peu d'intérêt dans le cas d'une liste de participants à une session unique
+								// mais adapté au cas liste d'émargements d'un participant à plusieurs sessions
+								cellContent = lineSessionEpreuve.getNbHours();
+								break;
+							case COL_SESSION_SURVEILLANTS:
+								// Peu d'intérêt dans le cas d'une liste de participants à une session unique
+								// mais adapté au cas liste d'émargements d'un participant à plusieurs sessions
+								List<TagChecker> tagCheckers = tagCheckerRepository
+									.findTagCheckerBySessionLocationSessionEpreuveId(lineSessionEpreuve.getId());
+								tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+								cellContent = tagCheckers.stream()
+									.map(t -> (t.getUserApp().getPrenom() + " " + t.getUserApp().getNom().toUpperCase())).distinct()
+									.collect(Collectors.joining(", "));
+								align = Element.ALIGN_LEFT;
+								break;
+							default:
+								cellContent = "???"+colName+"???";
+								break;
+						}
+
+						mainTable.addCell(
+							pdfGenaratorUtil.getMainRowCell(
+								cellContent,
+								mainTableFontSize,
+								mainTablePadding,
+								align,
+								// S'il n'y a pas de pied de tableau et que c'est la dernière ligne
+								// du tableau (dans l'absolu ou dernière de la page)
+								// alors il faut tracer le bord inférieur
+								((null == tableFooterCell) && ((lineCount == list.size() || (lineInPageCount-1 == nbLigneMaxParPage))))?1:0
+							)
+						);
+					}
+
+					lineInPageCount++;
+					if ((lineInPageCount == nbLigneMaxParPage) && (lineCount < list.size())) {
+						if (null != tableFooterCell) {
+							mainTable.addCell(tableFooterCell);
+						}
+						document.add(mainTable);
+
+						// Préparation d'une nouvelle page
+						document.newPage();
+						pageCount++;
+
+						pdfGenaratorUtil.addPageFooter(writer, document, pageCount+1, list.size(), nbLigneMaxParPage);
+
+						document.add(fullHeaderTable);
+						document.add(titleParagraph);
+						mainTable = new PdfPTable(displayedCols.size());
+						mainTable.setWidthPercentage(100);
+						mainTable.setWidths(mainTableWidths);
+						mainTable.setSpacingBefore(20.0f);
+						for (String colName : displayedCols.keySet()) {
+							mainTable.addCell(pdfGenaratorUtil.getMainHeaderCell(displayedCols.get(colName), mainTableHeaderFontSize, mainTableHeaderPadding));
+						}			
+						lineInPageCount = 0;
+					}
+					lineCount++;
+				}
+			}
+
+			if (null != tableFooterCell) {
+				mainTable.addCell(tableFooterCell);
+			}
+			document.add(mainTable);
+			logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+
+		} catch (DocumentException de) {
+			de.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" +  list.size() + " résultats" , null,
+					null, emargementContext, null);
+		}
+	}
+
 	private String formatDate(Date date) {
 	    return String.format("%1$td-%1$tm-%1$tY", date);
 	}
