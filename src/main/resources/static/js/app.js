@@ -1,4 +1,4 @@
-//insert before
+//insert before00
 function initSlimSelects() {
   document.querySelectorAll('select.slimSelectClass').forEach(function (el) {
     if (!el.slimSelect) { // prevent double init
