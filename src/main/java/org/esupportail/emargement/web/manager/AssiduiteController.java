@@ -182,6 +182,14 @@ public class AssiduiteController {
 				tcs.removeAll(tcs);
 				tcs .addAll(temp);
 			}
+            if(assiduiteBean.getMotifAbsenceId() != null) {
+                List<TagCheck> temp = tcs.stream()
+                        .filter(tagCheck -> tagCheck.getAbsence() != null && tagCheck.getAbsence().getMotifAbsence() != null
+                                && tagCheck.getAbsence().getMotifAbsence().getId().equals(assiduiteBean.getMotifAbsenceId()))
+                        .collect(Collectors.toList());
+                tcs.removeAll(tcs);
+                tcs.addAll(temp);
+            }
 			if(assiduiteBean.getSearchValue()!=null && !assiduiteBean.getSearchValue().isEmpty()) {
 				List<TagCheck> temp = tcs.stream()
 					    .filter(tagCheck -> tagCheck.getPerson() != null && tagCheck.getPerson().getEppn().equals(assiduiteBean.getSearchValue()))

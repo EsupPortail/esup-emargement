@@ -53,6 +53,13 @@
 										th:value="${statut}" th:text="${statut}"></option>
 								</select>	
 							</div>
+                            <div class="col-auto">
+                                <select class="form-select assiduiteControl" th:field="*{motifAbsenceId}">
+                                    <option value="">----Libellé Motif----</option>
+                                    <option th:each="motif : ${motifAbsences}"
+                                            th:value="${motif.id}" th:text="${motif.libelle}"></option>
+                                </select>
+                            </div>
 							<div class="col-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 								<div class="input-group">
 									<span class="input-group-text clearable">Nom / Code</span> <input name="searchString" class="form-control searchBox assiduiteControl clearable" 
