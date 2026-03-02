@@ -111,6 +111,7 @@
 									<th>Groupe</th>
 									<th class="text-center">Absence/Retard</th>
 									<th class="text-center">Statut</th>
+                                    <th class="text-center">Malus</th>
 									<th class="text-center">Cumul (heures)</th>
 									<th class="text-center">Cumul (jours)</th>
 									<th class="text-center">Cumul (sessions)</th>
@@ -147,6 +148,10 @@
 									        </th:block>
 									    </span>
 									</td>
+                                    <td class="text-center">
+                                        <span th:if="${tc.absence?.motifAbsence?.isMalus}" class="badge bg-danger">OUI</span>
+                                        <span th:unless="${tc.absence?.motifAbsence?.isMalus}" class="badge bg-secondary">NON</span>
+                                    </td>
 									<td class="text-center">
 										<th:block th:if="${tc.absence != null and tc.absence.motifAbsence!=null}" 
 											th:text="${tc.absence.motifAbsence.statutAbsence}"></th:block>
