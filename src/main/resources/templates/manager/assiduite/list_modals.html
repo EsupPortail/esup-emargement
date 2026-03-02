@@ -1,0 +1,78 @@
+<div th:fragment="modals">
+	<!-- Modal -->
+	<div class="modal fade" id="absenceAssiduiteModal" tabindex="-1" aria-labelledby="absenceAssiduite" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<form action="#" th:action="@{/{ctx}/manager/assiduite/createAbsence(ctx=${eContext})}" th:object="${absence}"
+					method="post" enctype="multipart/form-data">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5">Ajouter des absences</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="alert alert-warning fw-bold"> Les absences seront ajoutées aux lignes sélectionnées.</div>
+							<label for="motifAbsence" class="col-lg-2 form-label mt-2">Libellé</label>
+							<div id="motifAbsenceWrapper">
+								<div id="motifAbsenceSelectContainer">
+								    <select id="motifAbsence" name="motifAbsence" class="mb-2" required="required"
+								        hx-target="#motifAbsence">
+										<option th:if="${motifAbsences.size()>1}" value="">----Choisir----</option>
+								        <option th:each="motif : ${motifAbsences}" th:value="${motif.id}"
+											th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
+								    </select>
+								</div>
+							</div>
+							<div th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}" class="form-check form-check-inline">
+							    <input class="form-check-input" type="radio" th:id="${'type' + type}" name="type" th:value="${type}"
+							        hx-trigger="change" hx-get="absence/motifs" hx-target="#motifAbsenceSelectContainer"
+							        hx-swap="innerHTML" hx-include=".form-check input[name='statut']">
+							    <label class="form-check-label size08" th:for="${'type' + type}" th:text="${type}"></label>
+							</div>
+					    	<div class="float-end">
+								<div th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}" class="form-check form-check-inline">
+								    <input class="form-check-input" type="radio" th:id="${'statut' + statut}" name="statut" th:value="${statut}"
+								        hx-trigger="change" hx-get="absence/motifs" hx-target="#motifAbsenceSelectContainer"
+								        hx-swap="innerHTML" hx-include=".form-check input[name='type']">
+								    <label class="form-check-label size08" th:for="${'statut' + statut}" th:text="${statut}"></label>
+								</div>
+					    	</div>
+							<br />
+							<label for="comment" class="form-label mt-2">Commentaire</label>
+							<textarea th:field="*{commentaire}" class="form-control"></textarea>
+		                    <label for="file" class="form-label mt-2">Pièces jointes</label>
+		                    <div class="file-loading">
+			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+			 				</div>
+							<input type="hidden" name="idListAbsences" id="checkedValues" />
+							<input type="hidden" name="searchUrl" id="searchUrl" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						<button type="submit" class="btn btn-success">Valider</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="absenceAssiduiteModal2" tabindex="-1" aria-labelledby="absenceAssiduite" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<form action="#" th:action="@{/{ctx}/manager/assiduite/deleteAbsence(ctx=${eContext})}" method="post">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5">Supprimer des absences</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="alert alert-danger fw-bold h5 text-center"> Les absences des lignes sélectionnées seront supprimées.</div>
+							<input type="hidden" name="idListAbsences" id="checkedValues2" />
+							<input type="hidden" name="searchUrl" id="searchUrl2" />
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						<button type="submit" class="btn btn-success">Valider</button>
+					</div>
+				</form>
+			</div>
+	    </div>
+	</div>
+</div>

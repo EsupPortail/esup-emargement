@@ -1,0 +1,44 @@
+<div th:fragment="actions">
+	<div class="dropdown">
+		<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+			<i class="fa-solid fa-ellipsis-vertical"></i>
+		</button>
+		<ul class="dropdown-menu dropdown-menu-end">
+			<li><a class="dropdown-item"
+					th:href="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">Voir</a></li>
+			<li th:if="${sessionEpreuve.statutSession.key ne 'CLOSED' and sessionEpreuve.dateArchivage == null}"><a
+					class="dropdown-item"
+					th:href="@{/{ctx}/manager/sessionEpreuve/{id}?form(id=${sessionEpreuve.id},ctx=${eContext})}">Modifier</a>
+			</li>
+			<li><a class="dropdown-item" data-bs-toggle="modal"
+					th:attr="data-bs-target='#modal-statut'+${sessionEpreuve.id}" href="#">Statut</a></li>
+			<li><a onclick="return confirm('Confirmez-vous la copie de cette session?');"
+					th:if="${sessionEpreuve.dateArchivage == null}" class="dropdown-item"
+					th:href="@{/{ctx}/manager/sessionEpreuve/duplicate/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">Dupliquer</a>
+			</li>
+			<li th:if="${sessionEpreuve.statutSession.key ne 'CLOSED'
+						                and isAdeCampusEnabled
+						                and sessionEpreuve.adeEventId != null
+						                and (
+						                    #dates.createToday().equals(sessionEpreuve.dateExamen)
+						                    or (sessionEpreuve.dateFin!=null and #dates.createToday().equals(sessionEpreuve.dateFin))
+						                    or (#dates.createToday().before(sessionEpreuve.dateExamen))
+						                    or (sessionEpreuve.dateFin!=null
+						                        and #dates.createToday().after(sessionEpreuve.dateExamen)
+						                        and #dates.createToday().before(sessionEpreuve.dateFin))
+						                )}">
+				<form method="post"
+					th:action="@{/{ctx}/manager/sessionEpreuve/updateAde/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
+					<button type="submit" class="dropdown-item">
+						Resynchroniser ADE
+					</button>
+				</form>
+			</li>
+			<li>
+				<hr class="dropdown-divider">
+			</li>
+			<li><a class="dropdown-item text-danger" data-bs-toggle="modal"
+					th:attr="data-bs-target='#modal-warning'+${sessionEpreuve.id }" href="#">Supprimer</a></li>
+		</ul>
+	</div>
+</div>

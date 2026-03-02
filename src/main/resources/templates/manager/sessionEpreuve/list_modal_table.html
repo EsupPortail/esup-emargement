@@ -1,0 +1,70 @@
+<div th:fragment="modalDelete(sessionEpreuve, eContext)">
+	<div class="modal fade" th:id="modal-warning+${sessionEpreuve.id}" >
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+		        	<input type="hidden" name="_method" value="delete" />
+		            <div class="modal-header">
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		            </div>
+		            <div class="modal-body">
+		                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette session: <br />
+		                	 <span th:text="${sessionEpreuve.nomSessionEpreuve}" class="font-weight-bold"></span> ?</div>
+		            </div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Fermer</button>
+		                <button type="submit" class="btn btn-outline btn-danger">Valider</button>
+		            </div>
+	            </form>
+	        </div>
+	    </div>
+	</div>
+</div>
+<div th:fragment="modalStatut(sessionEpreuve, eContext)">
+	<div class="modal fade in" th:id="modal-statut+${sessionEpreuve.id}" >
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	        	<form id="command" th:action="@{/{ctx}/manager/sessionEpreuve/changeStatut/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" method="POST">
+		            <div class="modal-header">
+						<h5 class="modal-title" th:text="${sessionEpreuve.nomSessionEpreuve}"></h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		            </div>
+		            <div class="modal-body">
+						<div class="row mb-3">
+						    <div class="alert alert-info">
+								Statuts d'une session :
+								<ul class="list-inline">
+									<li><strong>En attente : </strong>lors de la création.</li>
+									<li><strong>En cours : </strong>Le jour J, automatique.</li>
+									<li><strong>Annulé : </strong>Manuel, lorsque le cours est annulé.</li>
+									<li><strong>Terminé : </strong>Lorsque le cours est terminé et non clos.(J+1)</li>
+									<li><strong>Clôturé : </strong>Manuel ou auto à J+1.</li>
+									<li><strong>Traité : </strong>Manuel, traité par les gestionnaires.</li>
+									<li><strong>Transféré : </strong>Auto via cron.</li>
+								</ul>
+							</div>
+							<label class="col-lg-12 form-check-label mb-2" th:for="${statut}">
+						        Changer le statut
+						    </label>
+							<div class="col-lg-12">
+								<select id="statut" name="statut" class="form-select" required="required">
+									<option th:value="${sessionEpreuve.statutSession.key}" th:text="${sessionEpreuve.statutSession.libelle}"></option>
+								    <option th:if="${sessionEpreuve.statutSession.key ne 'CANCELLED'}" value="CANCELLED">Annulé</option>
+									<option th:if="${sessionEpreuve.statutSession.key ne 'OPENED'}" value="OPENED">En cours</option>
+									<option th:if="${sessionEpreuve.statutSession.key ne 'STANDBY'}" value="STANDBY">En attente</option>
+									<option th:if="${sessionEpreuve.statutSession.key ne 'CLOSED'}" value="CLOSED">Clôturé</option>
+									<option th:if="${sessionEpreuve.statutSession.key ne 'ENDED'}" value="ENDED">Terminé</option>
+								    <option th:if="${sessionEpreuve.statutSession.key ne 'PROCESSED'}" value="PROCESSED">Traité</option>
+								</select>
+							</div>
+						</div>
+		            </div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-outline pull-left btn-primary" data-bs-dismiss="modal">Fermer</button>
+		                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+		            </div>
+	            </form>
+	        </div>
+	    </div>
+	</div>
+</div>

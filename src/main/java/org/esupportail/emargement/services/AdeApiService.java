@@ -28,7 +28,7 @@ public interface AdeApiService {
     public boolean isResourceFolder(String sessionId, String resourceId) throws Exception;
     public Map<Long, String> getResourceLeavesIdNameMap(String sessionId, String resourceId) throws Exception;
     public Map<String, String> getMapComposantesFormations(String sessionId, String category);
-    public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx) throws IOException, ParseException;
+    public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx, String libelle) throws IOException, ParseException;
     public boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception;
     public String getIdComposante(String sessionId, String code, String category, boolean isEvent) throws IOException, ParserConfigurationException, SAXException;
 	public Map<String, String> getProjectLists(String sessionId) throws AdeApiRequestException;

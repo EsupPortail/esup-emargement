@@ -34,6 +34,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.esupportail.emargement.domain.Absence;
+import org.esupportail.emargement.domain.AdeBranch;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -50,6 +51,7 @@ import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AbsenceRepository;
+import org.esupportail.emargement.repositories.AdeBranchRepository;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
@@ -125,6 +127,9 @@ public class SessionEpreuveService {
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
+	
+	@Autowired
+	AdeBranchRepository adeBranchRepository;
 	
 	@Resource
 	AppliConfigService appliConfigService;
@@ -944,7 +949,6 @@ public class SessionEpreuveService {
 	 }
 	 
 	 public HashMap<String,String> getTypesSession(Long ctxId){
-		 
 		 HashMap<String,String> map = new HashMap<>();
 		 List<Object[]> list = sessionEpreuveRepository.findDistinctTypeSession(ctxId);
 		 for(Object obj[] : list) {
@@ -953,6 +957,14 @@ public class SessionEpreuveService {
 		 return map;
 	 }
 	 
+	 public List<AdeBranch> getAdeBranches() {
+		 return adeBranchRepository.findByOrderByFullPathAsc();
+	 }
+	 
+	public AdeBranch getAdeBranchById(Long id) {
+		return adeBranchRepository.findById(id).orElse(null);
+	}
+
 	 public Date setDateSessionEpreuve(String typeDate, String choice) {
 		 Date date =null;
 		 LocalDate now = LocalDate.now();

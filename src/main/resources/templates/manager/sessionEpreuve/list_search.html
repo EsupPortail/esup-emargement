@@ -1,0 +1,62 @@
+<div class="col" id="sessionSearch" th:fragment="search">
+	<!-- 🔹 Bouton visible uniquement sur mobile -->
+	<div class="d-lg-none mb-2">
+		<button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+			data-bs-target="#searchCollapse" aria-expanded="false">
+			<i class="fa-solid fa-filter me-1"></i>
+			Filtres
+		</button>
+	</div>
+	<div id="searchCollapse" class="collapse d-lg-block">
+		<div class="d-flex align-items-center gap-2 flex-wrap border-bottom pb-2 mb-2">
+			<form id="formSearch" th:object="${sessionSearch}" class="row gx-2 gy-2 align-items-center justify-content-end" th:action="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">
+				<input type="hidden" name="multiSearch" value="true" />
+				<div class="w-auto">
+					<input name="searchString" class="form-control searchBox" pattern="[0-9.]+"
+						th:hx-get="@{|/${eContext}/supervisor/search/sessionEpreuve|}" hx-trigger="keyup changed"
+						hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off"
+						placeholder="Recherche sur  nom, site">
+					<div id="searchResults"></div>
+					<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+				</div>
+				<select name="dateSessions" class="slimSelectClass w-auto">
+					<option value="day" th:selected="${dateSessions eq 'day'}">Aujourd’hui</option>
+					<option value="week" th:selected="${dateSessions eq 'week'}">Cette semaine</option>
+					<option value="month" th:selected="${dateSessions eq 'month'}">Ce mois</option>
+					<option value="all" th:selected="${dateSessions eq 'all'}">Toutes périodes</option>
+				</select>
+				<select class="slimSelectClass w-auto" id="view" name="view" title="Choisir évènements">
+					<option value="all" th:selected="${view eq 'all'}">Tout</option>
+					<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
+					<th:block th:if="${userApp!= null and userApp.speciality ne null and userApp.speciality ne ''}">
+						<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
+					</th:block>
+				</select>
+				<select class="slimSelectClass w-auto" title="Tous les sites" th:field="*{campus}">
+					<option value="">-- SITES --</option>
+					<option th:each="campus : ${sites}" th:value="${campus.id}" th:text="${campus.site}"></option>
+				</select>
+				<select class="slimSelectClass w-auto" title="Tous les types" th:field="*{typeSession}">
+					<option value="">-- TYPES --</option>
+					<option th:each="type : ${typesSession}" th:value="${type.key}" th:text="${type.value}"></option>
+				</select>
+				<select class="slimSelectClass w-auto" title="Tous les statuts" th:field="*{statutSession}">
+					<option value="">-- STATUTS --</option>
+					<option th:each="statut1 : ${statuts}" th:value="${statut1.id}" th:text="${statut1.libelle}"></option>
+				</select>
+				<select class="slimSelectClass w-auto" title="Tous les statuts" th:field="*{adeBranch}"  th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">
+					<option value="">-- ADE --</option>
+					<option th:each="ade : ${adeBranches}" th:value="${ade.id}" th:text="${ade.fullPath}"></option>
+				</select>
+				<select th:field="*{anneeUniv}" class="slimSelectClass w-auto">
+					<option th:each="year, iStat : ${years}" th:value="${#strings.substringBefore(year,'/')}" th:text="${year}">
+					</option>
+				</select>
+				<div th:replace="manager/sessionEpreuve/show-modal :: show-modal"></div>
+				<div class="col-12 col-md-auto">
+					<a title="Annuler recherche" id="resetSearch" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

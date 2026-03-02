@@ -1469,8 +1469,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		}
 
-		initSlimSelects();
-		
 		$("#searchTagCheck").change(function() {
 			$("#collapseTable").removeClass("d-none");
 			$("#collapseTable table tbody").empty();
@@ -1478,6 +1476,8 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
+	initSlimSelects();
+	
 	//select context
 	var selectContext = document.getElementById('selectContext');
 	if (selectContext != null) {
@@ -1737,7 +1737,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	if (document.getElementById("sessionSearch") != null) {
-		$("#formSearch .form-select").on("change", function(event) {
+		$("#formSearch select").on("change", function(event) {
 			$("#searchBox").val(null);
 			document.getElementById("formSearch").submit();
 		});
@@ -1747,6 +1747,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#typeSession").val("");
 			$("#campus").val("");
 			$("#view").val("");
+			$("#adeBranch").val("");
 			var maxValue = -Infinity; 
 			$('#anneeUniv option').each(function() {
 			    var optionValue = parseFloat($(this).val()); // Convert to number

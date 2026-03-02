@@ -1,0 +1,144 @@
+<div th:fragment="modals">
+	<div class="modal fade" id="importCsvModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<form action="#" th:action="@{/{ctx}/manager/sessionEpreuve/importCsv(ctx=${eContext})}"
+					enctype="multipart/form-data" method="post">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5" id="exampleModalLabel">Import sessions</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p>Lla preimére ligne du CSV doit-être :</p>
+						<strong
+							class="bg-secondarys">nom,type,site,date_debut,date_fin,heure_debut,heure_fin,commentaire,statut,session_libre</strong><br />
+						<ul>
+							<li>Le type de session doit être un des codes du menu 'admin'</li>
+							<li>les dates de début et de fin doivent-être au format dd/MM/yyyy</li>
+							<li>les heures de début et de fin doivent-être au format HH:mm</li>
+							<li>Le commentaire, le statut et la session_libre ne sont pas obligatoires</li>
+							<li>Si le statut est vide, il sera valué à "En attente", si valué à "O" à "Ouvert"</li>
+							<li>Session libre si valué à "O"</li>
+						</ul>
+						<div class="row mb-3">
+							<label for="files" class="col-lg-2 form-label">Fichier</label>
+							<div class="col-lg-10">
+								<input type="file" id="files" name="files" class="file" multiple="multiple">
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						<button type="submit" class="btn btn-success">Envoyer</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="actionsModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog">
+			<form th:action="@{/{ctx}/manager/sessionEpreuve/actions(ctx=${eContext})}" method="post"
+				onsubmit="return confirmSubmission()">
+				<input type="hidden" id="checkedValues" name="checkedValues" value="">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5">ACTIONS</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="action" id="action1" value="delete" checked>
+							<label class="form-check-label" for="action1">
+								Supprimer les sessions
+							</label>
+						</div>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="action" value="close" id="action2">
+							<label class="form-check-label" for="action2">
+								Clôturer les sessions
+							</label>
+						</div>
+						<th:block th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">
+						    <fieldset class="form-group shadow-sm p-3 mb-3 bg-body rounded">
+						        
+						        <div class="form-check">
+						            <input class="form-check-input" type="radio" 
+						                   name="action" value="ade" id="action3">
+						            <label class="form-check-label" for="action3">
+						                Associer une branche ADE
+						            </label>
+						        </div>
+						        <div class="col-12 col-md-auto mt-2">
+						            <select class="form-select" name="adeBranchId">
+						                <option th:each="ade : ${adeBranches}"
+						                        th:value="${ade.id}" 
+						                        th:text="${ade.fullPath}">
+						                </option>
+						            </select>
+						        </div>
+
+						    </fieldset>
+						</th:block>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						<button type="submit" class="btn btn-success">Valider</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="modal fade" id="clonesModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<form th:action="@{/{ctx}/manager/sessionEpreuve/duplicateAll(ctx=${eContext})}" method="post"
+				onsubmit="return confirmSubmission()">
+				<input type="hidden" id="checkedValues2" name="idSessions" value="">src/main/java/org/esupportail/emargement/services/SessionEpreuveService.java
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5">Duplication</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p class="fw-bold text-primary h5">Pour les sessions sélectionnées : </p>
+						<p class="mb-3">🗓️ Sélectionnez plusieurs dates distinctes</p>
+						<input type="text" id="datepicker" name="jours" class="form-control mb-3" placeholder="Cliquez pour choisir des dates" required>
+						<input type="text" name="newName" class="form-control mb-3" 
+						placeholder="Vous pouvez ici affecter un nouveau nom aux sessions sélectionnées" />
+						<div>
+							<strong>Dates sélectionnées :</strong>
+							<div id="badgesContainer" class="mt-3"></div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+						<button type="submit" class="btn btn-success">Valider</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="modal fade in" th:id="modal-chart"  >
+	    <div class="modal-dialog modal-lg">
+	        <div class="modal-content">
+				<div class="modal-header">
+				 <h5 class="modal-title"></h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+					<div class="box box-primary">
+						<div class="box-header with-border">
+							<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countTagChecksByTimeBadgeage}__')}"></h3>
+						</div>
+						<div class="box-body collapse show">
+							<div class="chart" id="chartListSession">
+								<canvas id="countTagChecksByTimeBadgeage" style="height: 394px; width: 789px;" height="394" width="789"></canvas>
+								<div class="no-data">Aucune donnée disponible</div>
+							</div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</div>

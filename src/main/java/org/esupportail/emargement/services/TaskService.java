@@ -156,7 +156,7 @@ public class TaskService {
 			Context ctx = contextRepository.findByKey(emargementContext);
 			
 			List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
-					dateDebut, dateFin, null, null, null, idList, ctx, true);
+					dateDebut, dateFin, null, null, null, idList, ctx, true, task.getLibelle());
 			List<Long> idEvents = adebeans.stream()
 					.map(tc -> tc.getEventId())
 					.collect(Collectors.toList());
@@ -167,7 +167,7 @@ public class TaskService {
 			log.info("import # :" + numImport);
 			
 			int nbImports = adeService.importEvents(idEvents, emargementContext, dateDebut, dateFin, "", 
-					null, "false", null, task.getCampus(), idList, adebeans, idProject, dureeMax, true);
+					null, "false", null, task.getCampus(), idList, adebeans, idProject, dureeMax, true, task.getLibelle());
 			
 			int total = nbImports + task.getNbModifs();
 			task.setNbModifs(total);
