@@ -167,6 +167,8 @@ public class SessionEpreuveController {
 	private final static String SESSIONS_SORTBYPERIOD = "sessionsSortByPeriod";
 	private final static String SESSIONS_SORTBYCAMPUS = "sessionsSortByCampus";
 	private final static String SESSIONS_SORTBYLISTE = "sessionsSortByListe";
+	private final static String SESSIONS_SORTBYADE = "sessionsSortByAde";
+	
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -183,6 +185,7 @@ public class SessionEpreuveController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
 		Context ctx = contextRepository.findByKey(emargementContext);
+		boolean isAdeEnabled = appliConfigService.isAdeCampusEnabled();
 		ExampleMatcher matcher = ExampleMatcher.matching()
 		.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded", "isGroupeDisplayed", "isSecondTag")
 		.withIgnoreNullValues()
@@ -190,12 +193,18 @@ public class SessionEpreuveController {
 		.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
 		.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact());
-
+		if (isAdeEnabled) {
+			matcher.withMatcher("adeBranch", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+		}
 		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
 		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
 		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYPERIOD);
 		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYCAMPUS);
 		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYLISTE);
+		List<Prefs> prefsAde = new ArrayList<>();
+		if (isAdeEnabled) {
+			prefsAde = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYADE);
+		}
 		if(searchString != null) {
 			sessionSearch.setId(searchString);
 		}
@@ -210,9 +219,13 @@ public class SessionEpreuveController {
 			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
 			String selectedCampus= (prefsCampus.isEmpty())? "" : prefsCampus.get(0).getValue();
 			sessionSearch.setCampus((selectedCampus.isEmpty())? null : campusRepository.findById(Long.valueOf(selectedCampus)).get());
-			
 			String selectedListe= (prefsListe.isEmpty())? "" : prefsListe.get(0).getValue();
 			view = selectedListe.isEmpty()? "all" : selectedListe;
+			if (isAdeEnabled) {
+				String selectedAdeBranch = (prefsAde.isEmpty()) ? "" : prefsAde.get(0).getValue();
+				sessionSearch.setAdeBranch((selectedAdeBranch.isEmpty() || "all".equals(selectedAdeBranch)) ? null
+						: sessionEpreuveService.getAdeBranchById(Long.valueOf(selectedAdeBranch)));
+			}
 		}else{
 			if(sessionSearch.getId()==null) {
 				String prefStatutValue = (sessionSearch.getStatutSession() == null)? "" : sessionSearch.getStatutSession().getKey();
@@ -225,6 +238,10 @@ public class SessionEpreuveController {
 				preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS, prefCampusValue, auth.getName(), emargementContext, "dummy") ;
 				String prefsListeValue = (view == null)? "" : view;
 				preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, prefsListeValue, auth.getName(), emargementContext, "dummy") ;
+				if (isAdeEnabled) {
+					String prefsAdeValue = (sessionSearch.getAdeBranch() == null)? "" : sessionSearch.getAdeBranch().getId().toString();
+					preferencesService.updatePrefs(SESSIONS_SORTBYADE, prefsAdeValue, auth.getName(), emargementContext, "dummy") ;
+				}
 			}
 		}
 		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);
@@ -261,6 +278,7 @@ public class SessionEpreuveController {
         model.addAttribute("statuts", statutSessionRepository.findAll());
         model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
         model.addAttribute("sites", campusRepository.findByOrderBySite());
+        model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
         model.addAttribute("dateSessions", dateSessions);
         model.addAttribute("view", view);
         model.addAttribute("userApp", userApp);
@@ -433,12 +451,6 @@ public class SessionEpreuveController {
             return "manager/sessionEpreuve/create";
         }
         uiModel.asMap().clear();
-        if(sessionEpreuveRepository.countByNomSessionEpreuve(sessionEpreuve.getNomSessionEpreuve())>0) {
-        	redirectAttributes.addFlashAttribute("nom", sessionEpreuve.getNomSessionEpreuve());
-        	redirectAttributes.addFlashAttribute("error", "constrainttError");
-        	log.info("Erreur lors de la création, session  déjà existante : " + sessionEpreuve.getNomSessionEpreuve());
-        	return String.format("redirect:/%s/manager/sessionEpreuve?form", emargementContext);
-        }
 		sessionEpreuve.setContext(contexteService.getcurrentContext());
 		sessionEpreuve.setStatutSession(sessionEpreuveService.getStatutSession(sessionEpreuve));
 		sessionEpreuve.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(sessionEpreuve.getDateExamen())));
@@ -524,7 +536,7 @@ public class SessionEpreuveController {
     @Transactional
     @PostMapping(value = "/manager/sessionEpreuve/actions")
     public String actions(@PathVariable String emargementContext, @RequestParam(value = "checkedValues") List<Long> ids, 
-    		@RequestParam String action, final RedirectAttributes redirectAttributes) {
+    		@RequestParam String action, @RequestParam(required = false) Long adeBranchId, final RedirectAttributes redirectAttributes) {
     	List<SessionEpreuve> ses = sessionEpreuveRepository.findAllById(ids);
     	if(!ses.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -544,6 +556,9 @@ public class SessionEpreuveController {
     				se.setStatutSession(statutSessionRepository.findByKey("CLOSED"));
     	        	sessionEpreuveRepository.save(se);
     			   	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "changement statut CLOSED.", auth.getName(), null, emargementContext, null);
+        		}else if(("ade").equals(action)){
+        			logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + se.getNomSessionEpreuve() + " : " + "Ajout branche ADE", auth.getName(), null, emargementContext, null);
+        			sessionEpreuveRepository.save(se);
         		}
     	    }	
     	}

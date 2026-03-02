@@ -40,6 +40,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.esupportail.emargement.domain.AdeBranch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
 import org.esupportail.emargement.domain.AdeInstructorBean;
 import org.esupportail.emargement.domain.AdeResourceBean;
@@ -48,6 +49,7 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AbsenceRepository;
+import org.esupportail.emargement.repositories.AdeBranchRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -111,6 +113,9 @@ public class AdeApiWebService implements AdeApiService {
 	
 	@Autowired
 	private CampusRepository campusRepository;
+	
+	@Autowired
+	private AdeBranchRepository adeBranchRepository;
 	
 	@Autowired
 	AbsenceRepository absenceRepository;
@@ -630,19 +635,19 @@ public class AdeApiWebService implements AdeApiService {
         return toolUtil.sortByValue(map);
     }
 
-	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx) throws IOException, ParseException {
+	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx, String libelle) throws IOException, ParseException {
 		String detail = "8";
 		List<AdeResourceBean> adeBeans = new ArrayList<>();
 		if(idEvents != null) {
 			for (Long id : idEvents) {
 				String urlEvent = urlAde + "?sessionId=" + sessionId + "&function=getEvents&eventId=" + id
 						+ "&detail=" + detail;
-				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update, ctx);
+				setEvents(urlEvent, adeBeans, existingSe, sessionId, resourceId, update, ctx, libelle);
 			}
 		}else {
 			String urlEvents = urlAde + "?sessionId=" + sessionId + "&function=getEvents&startDate="+ toolUtil.formatDate(strDateMin) + 
 					"&endDate=" + toolUtil.formatDate(strDateMax) + "&resources=" + resourceId + "&detail=" +detail;
-			setEvents(urlEvents, adeBeans, existingSe, sessionId, resourceId, update, ctx);
+			setEvents(urlEvents, adeBeans, existingSe, sessionId, resourceId, update, ctx, libelle);
 		}
 		return adeBeans;
 	}
@@ -677,7 +682,7 @@ public class AdeApiWebService implements AdeApiService {
 	            .isBefore(Instant.now().minus(24, ChronoUnit.HOURS));
 	}
 
-	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx) throws ParseException, IOException {
+	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx, String libelle) throws ParseException, IOException {
 		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 		try {
@@ -744,6 +749,7 @@ public class AdeApiWebService implements AdeApiService {
 								se.setFinEpreuve(heureFin);
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
 								se.setAdeActiviteId(activityIdValue);
+								se.setLibelleAdeBranch(libelle);
 								//pour l'instant
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));

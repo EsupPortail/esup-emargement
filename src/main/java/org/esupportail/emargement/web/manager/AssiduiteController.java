@@ -35,6 +35,7 @@ import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LogService;
+import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.TagCheckService;
@@ -92,6 +93,9 @@ public class AssiduiteController {
 	
 	@Resource
 	AbsenceService absenceService;
+	
+	@Resource
+    SessionEpreuveService sessionEpreuveService;
 	
 	@Resource
 	ContextService contextService;
@@ -211,6 +215,13 @@ public class AssiduiteController {
 				tcs.removeAll(tcs);
 				tcs .addAll(temp);
 			}
+			if(assiduiteBean.getIdAdeBranch()!=null) {
+				List<TagCheck> temp = tcs.stream()
+					    .filter(tagCheck -> tagCheck.getPerson() != null && tagCheck.getSessionEpreuve().getAdeBranch()!=null && tagCheck.getSessionEpreuve().getAdeBranch().getId().equals(assiduiteBean.getIdAdeBranch()))
+					    .collect(Collectors.toList());
+				tcs.removeAll(tcs);
+				tcs .addAll(temp);
+			}
 			tagCheckService.setNomPrenomTagChecks(tcs, true, true);	
 		}
 
@@ -229,6 +240,7 @@ public class AssiduiteController {
 		model.addAttribute("sessions", sessionEpreuveRepository.getAllSessionEpreuveForAssiduiteByContext(dateDebut, dateFin, contextService.getcurrentContext().getId()));
 		model.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
 		model.addAttribute("absence", new Absence());
+		model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
 		return "manager/assiduite/index";
 	}
 	

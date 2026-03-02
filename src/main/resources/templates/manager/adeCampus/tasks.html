@@ -4,62 +4,51 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-	        <div class="card">
-		    	<div class="card-header">
-	    			<div class="row">
-			    		<div class="col-4">
-					    	<h2>Ade Campus<small class="h5"> - planification</small></h2>
-					    </div>
-					    <div class="col-8">
-							<div class="row float-end">
-								<div class="col-auto">
-									<th:block th:if="${isAdeConfigOk}" >
-										 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
-										 <input type="hidden" name="idProject" th:value="${idProject}" />
-									</th:block>
-									<th:block th:unless="${isAdeConfigOk}">
-										<select class="form-select mb-2" name="idProject" id="projetTasks" required>
-											<option th:each="proj : ${projects}"
-												th:value="${proj.key}" th:text="${proj.value}"
-												th:selected="${idProject eq proj.key}"></option>
-										</select>
-									</th:block>
-								</div>
-								<div class="col-auto">
-									<div class="btn-group ms-1">
-										<button type="button" class="btn btn-danger dropdown-toggle mb-1" data-bs-toggle="dropdown" aria-expanded="false">
-											<i class="fas fa-tasks"></i>
-										</button>
-										<ul class="dropdown-menu zindexDropdown">
-											<li>
-												<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-												>Evènements</a>
-											</li>
-											<li>
-												<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
-												>Paramètres</a>
-											</li>
-											<li><a class="dropdown-item" title="Importation des salles ADE"
-												th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}">Salles</a>
-											</li>
-											<li>
-												<hr class="dropdown-divider">
-											</li>
-											<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
-												th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
-											</li>
-											<li>
-												<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
-											</li>							
-										</ul>
-									</div>									
-								</div>									
-						    </div>
-					    </div> 
-	    			</div>
-		    	</div>
-	 			<div class="card-body" id="adeTasks">
+		<div class="container-fluid px-3 px-md-4 my-3" >
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+			    <h3>Ade Campus<small class="h5"> - planification</small></h3>
+				<div class="d-flex align-items-center gap-2">
+					<th:block th:if="${isAdeConfigOk}" >
+						 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
+						 <input type="hidden" name="idProject" th:value="${idProject}" />
+					</th:block>
+					<th:block th:unless="${isAdeConfigOk}">
+						<select class="form-select" name="idProject" id="projetTasks" required>
+							<option th:each="proj : ${projects}"
+								th:value="${proj.key}" th:text="${proj.value}"
+								th:selected="${idProject eq proj.key}"></option>
+						</select>
+					</th:block>
+					<div class="btn-group ms-1">
+						<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="fas fa-tasks"></i>
+						</button>
+						<ul class="dropdown-menu zindexDropdown">
+							<li>
+								<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+								>Evènements</a>
+							</li>
+							<li>
+								<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+								>Paramètres</a>
+							</li>
+							<li><a class="dropdown-item" title="Importation des salles ADE"
+								th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}">Salles</a>
+							</li>
+							<li>
+								<hr class="dropdown-divider">
+							</li>
+							<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
+								th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+							</li>
+							<li>
+								<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
+							</li>							
+						</ul>
+					</div>			
+			    </div> 
+			</div>
+	 		<div id="adeTasks">
 	 			<div class="alert alert-info">
 					<span class="fw-bold">Projet : </span> <span class="me-5"  th:text="${projects.get(idProject)}"></span>
 					<span class="fw-bold">Planification : </span> <span class="me-5" th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span>
@@ -140,7 +129,6 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
 			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

@@ -116,6 +116,12 @@ public class SessionEpreuve implements ContextSupport {
     @Column(columnDefinition = "TEXT")
     private String comment;
     
+    @ManyToOne
+    private AdeBranch adeBranch;
+
+    private @Transient
+    String libelleAdeBranch;
+
     private @Transient
     Long nbLieuxSession;
     
@@ -496,4 +502,21 @@ public class SessionEpreuve implements ContextSupport {
 	public void setAdeVET(String adeVET) {
 		this.adeVET = adeVET;
 	}
+
+	public AdeBranch getAdeBranch() {
+		return adeBranch;
+	}
+
+	public void setAdeBranch(AdeBranch adeBranch) {
+		this.adeBranch = adeBranch;
+	}
+
+	public String getLibelleAdeBranch() {
+		return libelleAdeBranch;
+	}
+
+	public void setLibelleAdeBranch(String libelleAdeBranch) {
+		this.libelleAdeBranch = libelleAdeBranch;
+	}
+	
 }

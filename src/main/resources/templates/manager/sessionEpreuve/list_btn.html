@@ -1,0 +1,33 @@
+<div  th:fragment="btns">
+	<div class="d-flex align-items-center gap-2">
+		<a th:href="@{/{ctx}/manager/sessionEpreuve?form&anneeUniv={anneeUniv}(anneeUniv=${sessionSearch.anneeUniv},ctx=${eContext})}" 
+			class="btn btn-primary ms-1" title="Ajouter une session"><i class="fa fa-plus fa-lg"></i></a>
+		<div class="btn-group ms-1">
+			<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+				<i class="fas fa-tasks"></i>
+			</button>
+			<ul class="dropdown-menu zindexDropdown">
+				<li>
+					<a class="dropdown-item" href="#" title="Clôturer/supprimer sessions" 
+					data-bs-toggle="modal" data-bs-target="#actionsModal">Clôturer/Supprimer
+					<span th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">/Tagguer sessions</span></a>
+				</li>
+				<li>
+					<a class="dropdown-item" href="#" title="Actions" data-bs-toggle="modal" data-bs-target="#clonesModal">Dupliquer sessions</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" th:href="@{/{ctx}/manager/sessionEpreuve/old(ctx=${eContext})}" title="Nettoyage sessions">Nettoyage de sessions</a>
+				</li>
+				<li>
+					<hr class="dropdown-divider">
+				</li>
+				<li>
+					<a href="#"  class="dropdown-item" title="Import CSV" data-bs-toggle="modal" data-bs-target="#importCsvModal">Import CSV</a>
+				</li>
+				<li>
+					<a href="#" target="_blank" class="dropdown-item" th:href="@{/wsrest/export/session/{ctxId}(ctxId=${ctxId})}" title="JSON">Export WS</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>

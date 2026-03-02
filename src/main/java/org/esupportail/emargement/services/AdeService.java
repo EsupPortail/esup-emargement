@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.esupportail.emargement.domain.Absence;
+import org.esupportail.emargement.domain.AdeBranch;
 import org.esupportail.emargement.domain.AdeClassroomBean;
 import org.esupportail.emargement.domain.AdeInstructorBean;
 import org.esupportail.emargement.domain.AdeResourceBean;
@@ -44,6 +45,7 @@ import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.domain.UserApp.Role;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AbsenceRepository;
+import org.esupportail.emargement.repositories.AdeBranchRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LdapUserRepository;
@@ -93,7 +95,10 @@ public class AdeService {
 	private SessionLocationRepository sessionLocationRepository;
 
 	@Autowired
-	AbsenceRepository absenceRepository;
+	private AbsenceRepository absenceRepository;
+	
+	@Autowired
+	private AdeBranchRepository adeBranchRepository;
 	
 	@Autowired
 	private TypeSessionRepository typeSessionRepository;
@@ -171,8 +176,8 @@ public class AdeService {
 		return adeApiService.getMapComposantesFormations(sessionId, category);
     }
 
-	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx) throws IOException, ParseException {
-		return adeApiService.getEventsFromXml(sessionId, resourceId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
+	public List<AdeResourceBean> getEventsFromXml(String sessionId, String resourceId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, boolean update, Context ctx, String libelle) throws IOException, ParseException {
+		return adeApiService.getEventsFromXml(sessionId, resourceId, strDateMin, strDateMax, idEvents, existingSe, update, ctx, libelle);
 	}
 	
 	private boolean eventExistsInAde(SessionEpreuve se, String sessionId) throws Exception {
@@ -428,6 +433,21 @@ public class AdeService {
 	}
 	
 	private void processSessionEpreuve(SessionEpreuve se, Campus campus, Context ctx) {
+		String libelleAdeBranch = se.getLibelleAdeBranch();
+		if(libelleAdeBranch != null) {
+			AdeBranch adeBranch = null;
+			if(!adeBranchRepository.findByFullPath(libelleAdeBranch).isEmpty()) {
+				adeBranch = adeBranchRepository.findByFullPath(libelleAdeBranch).get(0);
+			}else {
+				adeBranch = new AdeBranch();
+				adeBranch.setContext(ctx);
+				adeBranch.setFullPath(libelleAdeBranch);
+				String splitLibelle[] = libelleAdeBranch.split(">");
+				adeBranch.setComposante(splitLibelle[0]);
+			}
+			adeBranchRepository.save(adeBranch);
+			se.setAdeBranch(adeBranch);
+		}
 		se.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentAnneeUnivFromDate(se.getDateExamen())));
 		Calendar c = Calendar.getInstance();
 	    c.setTime(se.getHeureEpreuve());
@@ -867,7 +887,7 @@ public class AdeService {
 	}
 	
 	public List<AdeResourceBean> getAdeBeans(String sessionId, String strDateMin, String strDateMax, List<Long> idEvents, String existingSe, 
-			String codeComposante, List<String> idList, Context ctx, boolean update) throws IOException, ParserConfigurationException, SAXException, ParseException{
+			String codeComposante, List<String> idList, Context ctx, boolean update, String libelle) throws IOException, ParserConfigurationException, SAXException, ParseException{
         List<AdeResourceBean> adeResourceBeans = new ArrayList<>();
 
 		if("myEvents".equals(codeComposante)) {
@@ -876,17 +896,17 @@ public class AdeService {
 			if(!ldapUsers.isEmpty()) {
 				String supannEmpId = ldapUsers.get(0).getNumPersonnel();
 				String fatherId = adeApiService.getIdComposante(sessionId, supannEmpId, "instructor", true);
-				adeResourceBeans = adeApiService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx);
+				adeResourceBeans = adeApiService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx, libelle);
 			}	
 		} else if (idEvents == null && idList != null && !idList.isEmpty()) {
 			for (String id : idList) {
 				List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents,
-						existingSe, update, ctx);
+						existingSe, update, ctx, libelle);
 				adeResourceBeans.addAll(beansTrainee);
 			}
 		} else {
 			List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, null, strDateMin, strDateMax, idEvents,
-					existingSe, update, ctx);
+					existingSe, update, ctx, libelle);
 			adeResourceBeans.addAll(beansTrainee);
 		}
         return adeResourceBeans; 
@@ -905,7 +925,7 @@ public class AdeService {
 	        String idProject = String.valueOf(key);
 			String sessionId = getSessionIdByProjectId(idProject, emargementContext, false);
 	        List<Long> idEvents  = mapSE.get(key).stream().map(o -> o.getAdeEventId()).collect(Collectors.toList());
-			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx);
+			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx, null);
 			if(!beans.isEmpty()) {
 				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
 			}
@@ -918,7 +938,7 @@ public class AdeService {
 
 	public int importEvents(List<Long> idEvents, String emargementContext, String strDateMin, String strDateMax,
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
-			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update)
+			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update, String libelle)
 			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException{
 		int nbImports = 0;
 		if (idEvents != null) {
@@ -930,7 +950,7 @@ public class AdeService {
 			Context ctx = contextRepository.findByKey(emargementContext);
 			if(beans == null) {
 				beans = getAdeBeans(sessionId, strDateMin, strDateMax, idEvents, existingSe,
-						codeComposante, idList, ctx, update);
+						codeComposante, idList, ctx, update, libelle);
 			}
 			if (!beans.isEmpty()) {
 				List<Long> groupes = new ArrayList<>();
@@ -944,6 +964,7 @@ public class AdeService {
 						groupes.add(groupe.getId());
 					}
 				}
+				dataEmitterService.sendDataImport("0/".concat(String.valueOf(beans.size())));
 				nbImports = saveEvents(beans, sessionId, emargementContext, campus, idProject, update, null, groupes, dureeMax);
 			} else {
 				log.info("Aucun évènement à importer");

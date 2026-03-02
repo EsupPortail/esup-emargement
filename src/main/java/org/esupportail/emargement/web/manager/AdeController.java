@@ -215,7 +215,8 @@ public class AdeController {
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String codeComposante, 
 			@RequestParam(required = false) String strDateMin,
-			@RequestParam(required = false) String strDateMax){
+			@RequestParam(required = false) String strDateMax,
+			@RequestParam(required = false) String libelle){
 	
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
@@ -225,7 +226,7 @@ public class AdeController {
 			if("myEvents".equals(codeComposante) || idList.size()>0) {
 				Context ctx = contextRepository.findByKey(emargementContext);
 				uiModel.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
-				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx, false));
+				uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, codeComposante, idList, ctx, false, libelle));
 			}
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
@@ -288,6 +289,7 @@ public class AdeController {
 	public String importEvent(@PathVariable String emargementContext, @RequestParam(value="btSelectItem", required = false) List<Long> idEvents, 
 			@RequestParam(required = false) Campus campus,
 			@RequestParam String codeComposante,
+			@RequestParam String libelles,
 			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String existingSe,
 			@RequestParam(required = false) List<String> idList,
@@ -296,7 +298,7 @@ public class AdeController {
 			@RequestParam(required = false) String newGroupe,
 			@RequestParam(required = false) String idProject) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					codeComposante,	campus,  idList, null, idProject, null, false);
+					codeComposante,	campus,  idList, null, idProject, null, false, libelles);
 		
 		return String.format("redirect:/%s/manager/adeCampus/Events?strDateMin=%s&strDateMax=%s&existingSe=true&codeComposante=%s&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, codeComposante,StringUtils.join(idList, ","));

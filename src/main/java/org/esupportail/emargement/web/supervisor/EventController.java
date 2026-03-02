@@ -82,7 +82,8 @@ public class EventController {
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMin,
 			@RequestParam(required = false) String strDateMax,
-			@RequestParam(required = false) String projet){
+			@RequestParam(required = false) String projet,
+			@RequestParam(required = false) String libelle){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		try {
 			// Si projet est null alors on récupère l'id du projet en cours
@@ -90,7 +91,7 @@ public class EventController {
 			String idProject = adeService.getCurrentProject(projet, auth.getName(), emargementContext) ;
 			String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 			Context ctx = contextRepository.findByKey(emargementContext);
-			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx, false));
+			uiModel.addAttribute("listEvents", adeService.getAdeBeans(sessionId, strDateMin, strDateMax, null, existingSe, "myEvents", idList, ctx, false, libelle));
 			uiModel.addAttribute("strDateMin", strDateMin);
 			uiModel.addAttribute("strDateMax", strDateMax);
 			uiModel.addAttribute("existingSe", (existingSe!=null)? true : false);
@@ -111,9 +112,10 @@ public class EventController {
 			@RequestParam(required = false) List<String> idList,
 			@RequestParam(required = false) String strDateMax,
 			@RequestParam(required = false) List<Long> existingGroupe,
-			@RequestParam(required = false) String newGroupe) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+			@RequestParam(required = false) String newGroupe,
+			@RequestParam(required = false) String libelle) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 			adeService.importEvents(idEvents, emargementContext, strDateMin, strDateMax,newGroupe, existingGroupe, existingSe, 
-					"myEvents",	campus, idList, null, null, null, false);
+					"myEvents",	campus, idList, null, null, null, false, libelle);
 		
 		return String.format("strDateMin=%s&strDateMax=%s&existingSe=true&idList=%s", 
 			    			emargementContext, strDateMin, strDateMax, StringUtils.join(idList, ","));

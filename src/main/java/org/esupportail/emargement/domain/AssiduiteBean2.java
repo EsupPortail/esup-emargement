@@ -35,6 +35,8 @@ public class AssiduiteBean2 {
 	SessionEpreuve sessionEpreuve;
 	
 	String typeIndividu;
+	
+	Long idAdeBranch;
 
     private Long motifAbsenceId;
 
@@ -172,6 +174,14 @@ public class AssiduiteBean2 {
 
 	public void setTypeIndividu(String typeIndividu) {
 		this.typeIndividu = typeIndividu;
+	}
+
+	public Long getIdAdeBranch() {
+		return idAdeBranch;
+	}
+
+	public void setIdAdeBranch(Long idAdeBranch) {
+		this.idAdeBranch = idAdeBranch;
 	}
 	
 }
