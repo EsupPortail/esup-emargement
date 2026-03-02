@@ -4,129 +4,117 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-	        <div class="card">
-		    	<div class="card-header">
-	    			<div class="row">
-			    		<div class="col-4">
-					    	<h2>Ade Campus<small class="h5"> - salles</small></h2>
-					    </div>
-					    <div class="col-8">
-						    <div class="row float-end">
-								<div class="col-auto">
-									<th:block th:if="${isAdeConfigOk}" >
-										 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
-										 <input type="hidden" name="idProject" th:value="${idProject}" />
-									</th:block>
-									<th:block th:unless="${isAdeConfigOk}">
-										<select class="form-select mb-2" name="idProject" id="projetSalles" required>
-											<option th:each="proj : ${projects}"
-												th:value="${proj.key}" th:text="${proj.value}"
-												th:selected="${idProject eq proj.key}"></option>
-										</select>
-									</th:block>
-								</div>								
-								<div class="col-auto">
-									<div class="btn-group ms-1">
-										<button type="button" class="btn btn-danger dropdown-toggle mb-1" data-bs-toggle="dropdown" aria-expanded="false">
-											<i class="fas fa-tasks"></i>
-										</button>
-										<ul class="dropdown-menu zindexDropdown">
-											<li>
-												<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-												>Evènements</a>
-											</li>
-											<li>
-												<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
-												>Paramètres</a>
-											</li>
-											<li><a class="dropdown-item" title="Planification de l'impport ADE" 
-												th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}">Planification</a>
-											</li>
-											<li>
-												<hr class="dropdown-divider">
-											</li>
-											<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
-												th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
-											</li>
-											<li>
-												<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
-											</li>							
-										</ul>
-									</div>									
-								</div>									
-						    </div>
-					    </div> 
-	    			</div>
-		    	</div>
-	 			<div class="card-body" id="gridSalles">
-					<th:block th:if="${idProject eq null}">
-						Vous n'avez pas choisi de projet dans la page principale.
+		<div class="container-fluid px-3 px-md-4 my-3" >
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+				<h3>Ade Campus<small class="h5"> - salles</small></h3>
+				<div class="d-flex align-items-center gap-2">
+					<th:block th:if="${isAdeConfigOk}" >
+						 <p class="fw-bold" th:text="${projects.get(idProject)}"/></p>
+						 <input type="hidden" name="idProject" th:value="${idProject}" />
 					</th:block>
-	 				<th:block th:unless="${idProject eq null}">
-		 				<div th:if="${#lists.isEmpty(valuesSalles)}" class="alert alert-warning" >
-							Veuillez choisir les salles de la liste dans l'onglet "Paramètres"</div>
-						<div th:unless="${#lists.isEmpty(valuesSalles)}">
-							<form th:action="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext},type=${type})}" id="displaySalles" class="float-start ">
+					<th:block th:unless="${isAdeConfigOk}">
+						<select class="form-select" name="idProject" id="projetSalles" required>
+							<option th:each="proj : ${projects}"
+								th:value="${proj.key}" th:text="${proj.value}"
+								th:selected="${idProject eq proj.key}"></option>
+						</select>
+					</th:block>
+					<div class="btn-group ms-1">
+						<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="fas fa-tasks"></i>
+						</button>
+						<ul class="dropdown-menu zindexDropdown">
+							<li>
+								<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+								>Evènements</a>
+							</li>
+							<li>
+								<a class="dropdown-item"  title="Paramètres" th:href="@{/{ctx}/manager/adeCampus/params(ctx=${eContext})}"
+								>Paramètres</a>
+							</li>
+							<li><a class="dropdown-item" title="Planification de l'impport ADE" 
+								th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}">Planification</a>
+							</li>
+							<li>
+								<hr class="dropdown-divider">
+							</li>
+							<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
+								th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+							</li>
+							<li>
+								<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
+							</li>							
+						</ul>
+					</div>							
+				</div>									
+		    </div>
+	 		<div id="gridSalles">
+				<th:block th:if="${idProject eq null}">
+					Vous n'avez pas choisi de projet dans la page principale.
+				</th:block>
+ 				<th:block th:unless="${idProject eq null}">
+	 				<div th:if="${#lists.isEmpty(valuesSalles)}" class="alert alert-warning" >
+						Veuillez choisir les salles de la liste dans l'onglet "Paramètres"</div>
+					<div th:unless="${#lists.isEmpty(valuesSalles)}">
+						<form th:action="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext},type=${type})}" id="displaySalles" class="float-start ">
+							<div class="row">
+								<div class="col-auto">
+									<select class="form-select form-select-sm" id="codeSalleSelect" name="codeSalle">
+										<option value="">----Choisir----</option>
+										<option th:each="value : ${valuesSalles}"
+												th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
+												th:selected="${#strings.substringAfter(value,'@@') eq codeSalle}"></option>											
+									</select>
+								</div>
+							</div>
+						</form>
+						<form th:action="@{/{ctx}/manager/adeCampus/importClassrooms(ctx=${eContext})}" method="post">
+							<input type="hidden" name="codeSalle" th:value="${codeSalle}" />
+							<div id="toolbar float-start mb-2">
 								<div class="row">
 									<div class="col-auto">
-										<select class="form-select form-select-sm" id="codeSalleSelect" name="codeSalle">
-											<option value="">----Choisir----</option>
-											<option th:each="value : ${valuesSalles}"
-													th:value="${#strings.substringAfter(value,'@@')}" th:text="${#strings.substringBefore(value,'@@')}" 
-													th:selected="${#strings.substringAfter(value,'@@') eq codeSalle}"></option>											
+										<label class="col-form-label col-form-label-sm ms-2">Site d'import:</label>
+									</div>
+									<div class="col-auto">
+										<select class="form-select form-select-sm" id="campus"
+											name="campus" required>
+											<option th:each="campus : ${campuses}" th:value="${campus.id}"
+												th:text="${campus.site}"></option>
 										</select>
 									</div>
-								</div>
-							</form>
-							<form th:action="@{/{ctx}/manager/adeCampus/importClassrooms(ctx=${eContext})}" method="post">
-								<input type="hidden" name="codeSalle" th:value="${codeSalle}" />
-								<div id="toolbar float-start mb-2">
-									<div class="row">
-										<div class="col-auto">
-											<label class="col-form-label col-form-label-sm ms-2">Site d'import:</label>
-										</div>
-										<div class="col-auto">
-											<select class="form-select form-select-sm" id="campus"
-												name="campus" required>
-												<option th:each="campus : ${campuses}" th:value="${campus.id}"
-													th:text="${campus.site}"></option>
-											</select>
-										</div>
-										<div class="col-auto">
-											<input type="submit" class="btn btn-success btn-sm"
-												value="import" />
-										</div>
+									<div class="col-auto">
+										<input type="submit" class="btn btn-success btn-sm"
+											value="import" />
 									</div>
 								</div>
-								<table class="table table-bordered table-striped tableSalles" id="grid" style="width:100%">
-									<thead>
-										<tr>
-											<th><input type="checkbox" id="checkAll"></th>
-											<th>Id</th>
-											<th>Maj</th>
-											<th>Nom</th>
-											<th>Type</th>
-											<th>Capacité</th>
-											<th>Chemin</th>
-										</tr>
-									</thead>
-									<tbody>
-									    <tr th:each="element : ${listeSalles}" th:class="${element.isAlreadyimport}? table-success : table-light">
-									        <td></td>
-									        <td th:text="${element.idClassRoom}"></td>
-									        <td th:text="${#dates.format(element.lastUpdate,'dd-MM-yyyy HH:mm')}" ></td>
-											<td th:text="${element.nom}"></td>
-											<td th:text="${element.type}"></td>
-											<td th:text="${element.size}"></td>
-											<td th:text="${element.chemin}"></td>
-									    </tr>
-								    </tbody>
-								</table>
-							</form>
-						</div>
-		 			</th:block>
-	 			</div>
+							</div>
+							<table class="table table-bordered table-striped tableSalles" id="grid" style="width:100%">
+								<thead>
+									<tr>
+										<th><input type="checkbox" id="checkAll"></th>
+										<th>Id</th>
+										<th>Maj</th>
+										<th>Nom</th>
+										<th>Type</th>
+										<th>Capacité</th>
+										<th>Chemin</th>
+									</tr>
+								</thead>
+								<tbody>
+								    <tr th:each="element : ${listeSalles}" th:class="${element.isAlreadyimport}? table-success : table-light">
+								        <td></td>
+								        <td th:text="${element.idClassRoom}"></td>
+								        <td th:text="${#dates.format(element.lastUpdate,'dd-MM-yyyy HH:mm')}" ></td>
+										<td th:text="${element.nom}"></td>
+										<td th:text="${element.type}"></td>
+										<td th:text="${element.size}"></td>
+										<td th:text="${element.chemin}"></td>
+								    </tr>
+							    </tbody>
+							</table>
+						</form>
+					</div>
+		 		</th:block>
 			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

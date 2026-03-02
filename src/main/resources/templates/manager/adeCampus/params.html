@@ -4,150 +4,137 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-	        <div class="card">
-				<form th:action="@{/{ctx}/manager/adeCampus/saveParams(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
-			    	<div class="card-header">
-		    			<div class="row">
-				    		<div class="col-4">
-						    	<h2>Ade Campus<small class="h5"> - paramètres</small></h2>
-								<span class="fw-bold text-danger" th:text="${projects.get(idProject)}"/><br/>
-								<th:block th:if="${prefComp != null}">
-									<small th:text="${'Modification :  ' + prefComp.userApp.eppn}"></small>
-									<small th:if="${prefComp.dateModification != null}" th:text="${' le ' + prefComp.dateModification}"></small>
-								</th:block>
-								</span>
-						    </div>
-						    <div class="col-8">
-							    <div class="row float-end">
-									<div class="col-auto">
-										<th:block th:if="${isAdeConfigOk}" >
-											 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
-											 <input type="hidden" name="idProject" th:value="${idProject}" />
-										</th:block>
-										<th:block th:unless="${isAdeConfigOk}">
-											<select class="form-select mb-2" name="idProject" id="projetParam" required>
-												<option value="">----Projets----</option>
-												<option th:each="proj : ${projects}"
-													th:value="${proj.key}" th:text="${proj.value}"
-													th:selected="${idProject eq proj.key}"></option>
-											</select>
-										</th:block>
-									</div>
-									<div class="col-auto">
-										<button class="btn btn-success btn-sm mt-1" type="submit">Enregister</button>
-										<button th:formaction="@{/{ctx}/manager/adeCampus/removePrefs(ctx=${eContext})}" title="Supprimer tous les paramètres?"
-											class="btn btn-warning btn-sm btn-outline mt-1" type="submit">Réinitialiser</button>
-									</div>
-									<div class="col">
-										<div class="btn-group ms-1">
-											<button type="button" class="btn btn-danger dropdown-toggle mb-1" data-bs-toggle="dropdown" aria-expanded="false">
-												<i class="fas fa-tasks"></i>
-											</button>
-											<ul class="dropdown-menu zindexDropdown">
-												<li>
-													<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
-													>Evènements</a>
-												</li>
-												<li><a class="dropdown-item" title="Planification de l'impport ADE" 
-													th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}">Planification</a>
-												</li>
-												<li><a class="dropdown-item" title="Importation des salles ADE"
-													th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}">Salles</a>
-												</li>
-												<li>
-													<hr class="dropdown-divider">
-												</li>
-												<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
-													th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
-												</li>
-												<li>
-													<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
-												</li>							
-											</ul>
-										</div>				
-									</div>
-							    </div>
-						    </div> 
-		    			</div>
-			    	</div>
-		 			<div class="card-body">
-		 				<div class="row">
-							<th:block th:if="${idProject eq null or #strings.isEmpty(idProject)}">
-								<div class="alert alert-info">
-									Vous n'avez pas sélectionné de projet.
-								</div>
-							</th:block>
-							<th:block th:unless="${idProject eq null or #strings.isEmpty(idProject)}">
-					 			<div class="col">
-									<table class="table table-bordered table-striped caption-top" id="composantesTable">
-										<caption class="fw-bold h4">Composantes</caption>
-										<thead>
-										<tr>
-											<th></th>
-											<th>Libellé</th>
-										</tr>
-										</thead>
-									    <tr th:each="element : ${mapComposantes}" class="selected">
-											<td><input name="composantes" type="checkbox" th:value="${element.value + '@@' + element.key}"
-												th:checked="${valuesComposantes != null and valuesComposantes.contains(element.value + '@@' + element.key)}" />
-											</td>
-									        <td class="d-none"></td>
-											<td th:text="${element.value}"></td>
-									    </tr>
-									</table>
-								</div>
-					 			<div class="col" th:if="${mapFormations ne null}">
-									<table class="table table-bordered table-striped caption-top" id="formationsTable">
-										<caption class="fw-bold h4">Formations</caption>
-										<thead>
-										<tr>
-											<th></th>
-											<th>Libellé</th>
-										</tr>
-										</thead>
-									    <tr th:each="element : ${mapFormations}" class="selected">
-											<td><input name="formations" type="checkbox" th:value="${element.value + '@@' + element.key}"
-													th:checked="${valuesFormations != null and valuesFormations.contains(element.value + '@@' + element.key)}" />
-											</td>
-									        <td class="d-none"></td>
-											<td th:text="${element.value}"></td>
-									    </tr>
-									</table>
-								</div>
-					 			<div class="col">
-									<table class="table table-bordered table-striped caption-top" id="composantesTable">
-										<caption class="fw-bold h4">Salles</caption>
-										<thead>
-										<tr>
-											<th></th>
-											<th>Libellé</th>
-										</tr>
-										</thead>
-									    <tr th:each="element : ${mapSalles}">
-											<td><input name="salles" type="checkbox" th:value="${element.value + '@@' + element.key}"
-													th:checked="${valuesSalles != null and valuesSalles.contains(element.value + '@@' + element.key)}" /></td>
-									    	<td th:text="${element.value}"></td>
-									    </tr>
-									</table>
-								</div>
-								<div class="col">
-									<h4 class="fw-bold h4">Planification</h4>
-									<div class="alert alert-info fw-bold"> Vous pouvez choisir sur combien de temps vous planifiez les évènements à importer.
-										Chaque jour une tâche planifiée s'assurera que les évènements à J+n soient importés.
-										<span class="text-danger">Actuellement : <span th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span></span>
-										<select name="planification" class="form-select mt-1">
-											<option value="">--Aucun--</option>
-										    <option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i}" 
-												th:selected="${!valuePlanification.empty and i.toString() eq valuePlanification[0]}"></option>
-										</select>
-									</div>
-								</div>
-							</th:block>
-		 				</div>
-	 				</div>
-				</form>
-			</div>
+		<div class="container-fluid px-3 px-md-4 my-3" >
+			<form th:action="@{/{ctx}/manager/adeCampus/saveParams(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
+				<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+			    	<h3>Ade Campus<small class="h5"> - paramètres</small><br />
+					<!-- Nouveau bloc juste sous le h3 -->
+			       <small class="fw-bold text-danger h6" th:text="${projects.get(idProject)}">
+			           <br />
+			           <th:block th:if="${prefComp != null}">
+			               <small th:text="${'Modification :  ' + prefComp.userApp.eppn}"></small>
+			               <small th:if="${prefComp.dateModification != null}" th:text="${' le ' + prefComp.dateModification}"></small>
+			           </th:block>
+			       </small>
+				   </h3>
+			       <th:block th:if="${isAdeConfigOk}" >
+			           <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"></p>
+			           <input type="hidden" name="idProject" th:value="${idProject}" />
+			       </th:block>
+					<div class="d-flex align-items-center gap-2">
+						<th:block th:unless="${isAdeConfigOk}">
+							<select class="form-select" name="idProject" id="projetParam" required>
+								<option value="">----Projets----</option>
+								<option th:each="proj : ${projects}"
+									th:value="${proj.key}" th:text="${proj.value}"
+									th:selected="${idProject eq proj.key}"></option>
+							</select>
+						</th:block>
+						<button class="btn btn-success btn-sm" type="submit">Enregister</button>
+						<button th:formaction="@{/{ctx}/manager/adeCampus/removePrefs(ctx=${eContext})}" title="Supprimer tous les paramètres?"
+							class="btn btn-warning btn-sm btn-outline" type="submit">Réinitialiser</button>
+						<div class="btn-group ms-1">
+							<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+								<i class="fas fa-tasks"></i>
+							</button>
+							<ul class="dropdown-menu zindexDropdown">
+								<li>
+									<a class="dropdown-item" title="Evènements" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}"
+									>Evènements</a>
+								</li>
+								<li><a class="dropdown-item" title="Planification de l'impport ADE" 
+									th:href="@{/{ctx}/manager/adeCampus/tasks(ctx=${eContext})}">Planification</a>
+								</li>
+								<li><a class="dropdown-item" title="Importation des salles ADE"
+									th:href="@{/{ctx}/manager/adeCampus/salles(ctx=${eContext})}">Salles</a>
+								</li>
+								<li>
+									<hr class="dropdown-divider">
+								</li>
+								<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
+									th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+								</li>
+								<li>
+									<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
+								</li>							
+							</ul>
+						</div>				
+					</div>
+		   		 </div>
+ 				<div class="row">
+					<th:block th:if="${idProject eq null or #strings.isEmpty(idProject)}">
+						<div class="alert alert-info">
+							Vous n'avez pas sélectionné de projet.
+						</div>
+					</th:block>
+					<th:block th:unless="${idProject eq null or #strings.isEmpty(idProject)}">
+			 			<div class="col">
+							<table class="table table-bordered table-striped caption-top" id="composantesTable">
+								<caption class="fw-bold h4">Composantes</caption>
+								<thead>
+								<tr>
+									<th></th>
+									<th>Libellé</th>
+								</tr>
+								</thead>
+							    <tr th:each="element : ${mapComposantes}" class="selected">
+									<td><input name="composantes" type="checkbox" th:value="${element.value + '@@' + element.key}"
+										th:checked="${valuesComposantes != null and valuesComposantes.contains(element.value + '@@' + element.key)}" />
+									</td>
+							        <td class="d-none"></td>
+									<td th:text="${element.value}"></td>
+							    </tr>
+							</table>
+						</div>
+			 			<div class="col" th:if="${mapFormations ne null}">
+							<table class="table table-bordered table-striped caption-top" id="formationsTable">
+								<caption class="fw-bold h4">Formations</caption>
+								<thead>
+								<tr>
+									<th></th>
+									<th>Libellé</th>
+								</tr>
+								</thead>
+							    <tr th:each="element : ${mapFormations}" class="selected">
+									<td><input name="formations" type="checkbox" th:value="${element.value + '@@' + element.key}"
+											th:checked="${valuesFormations != null and valuesFormations.contains(element.value + '@@' + element.key)}" />
+									</td>
+							        <td class="d-none"></td>
+									<td th:text="${element.value}"></td>
+							    </tr>
+							</table>
+						</div>
+			 			<div class="col">
+							<table class="table table-bordered table-striped caption-top" id="composantesTable">
+								<caption class="fw-bold h4">Salles</caption>
+								<thead>
+								<tr>
+									<th></th>
+									<th>Libellé</th>
+								</tr>
+								</thead>
+							    <tr th:each="element : ${mapSalles}">
+									<td><input name="salles" type="checkbox" th:value="${element.value + '@@' + element.key}"
+											th:checked="${valuesSalles != null and valuesSalles.contains(element.value + '@@' + element.key)}" /></td>
+							    	<td th:text="${element.value}"></td>
+							    </tr>
+							</table>
+						</div>
+						<div class="col">
+							<h4 class="fw-bold h4">Planification</h4>
+							<div class="alert alert-info fw-bold"> Vous pouvez choisir sur combien de temps vous planifiez les évènements à importer.
+								Chaque jour une tâche planifiée s'assurera que les évènements à J+n soient importés.
+								<span class="text-danger">Actuellement : <span th:text="${valuePlanification.empty? 'Aucune' : 'J + ' + valuePlanification[0] }"></span></span>
+								<select name="planification" class="form-select mt-1">
+									<option value="">--Aucun--</option>
+								    <option th:each="i : ${#numbers.sequence(1, 10)}" th:value="${i}" th:text="${i}" 
+										th:selected="${!valuePlanification.empty and i.toString() eq valuePlanification[0]}"></option>
+								</select>
+							</div>
+						</div>
+					</th:block>
+ 				</div>
+			</form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
