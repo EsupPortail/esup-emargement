@@ -61,6 +61,17 @@ public class MotifAbsence {
     @DateTimeFormat(pattern = "dd/MM/yyyy")
     private Date dateModification;
 
+    @Column(name = "is_malus", columnDefinition = "boolean default false")
+    private Boolean isMalus = false;
+
+    public Boolean getIsMalus() {
+        return isMalus;
+    }
+
+    public void setIsMalus(Boolean isMalus) {
+        this.isMalus = isMalus;
+    }
+
 	public Long getId() {
 		return id;
 	}
