@@ -330,6 +330,10 @@ public class AdeController {
 		String projectId = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		String sessionId = adeService.getSessionIdByProjectId(projectId, emargementContext);
 		Context ctx = contextRepository.findByContextKey(emargementContext);
+        if (idClassrooms == null || idClassrooms.isEmpty()) {
+            log.warn("Aucune salle sélectionnée pour l'import.");
+            return String.format("redirect:/%s/manager/adeCampus/salles?codeSalle=%s&error=noselection", emargementContext, codeSalle);
+        }
 		List<AdeClassroomBean> adeClassroomBeans = adeService.getListClassrooms(sessionId, null, idClassrooms, ctx);
 		if(!adeClassroomBeans.isEmpty()) {
 			for(AdeClassroomBean bean : adeClassroomBeans) {
