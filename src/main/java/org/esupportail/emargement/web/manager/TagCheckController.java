@@ -457,9 +457,16 @@ public class TagCheckController {
     
     @PostMapping("/manager/tagCheck/sendLinkOrQrCode")
     public String sendLinkOrQrCode(@PathVariable String emargementContext, @RequestParam Long seId,  @RequestParam(required = false) String population, 
-    		@RequestParam String type, final RedirectAttributes redirectAttributes) throws MessagingException, IOException {
+    		@RequestParam String type, final RedirectAttributes redirectAttributes,  @RequestParam(required = false) List<Long> selectedIds) throws MessagingException, IOException {
     	//On pourra rechercher par type ...
-    	List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
+
+        //Vérif si on envoi à une selection ou a tout le monde
+        List<TagCheck> tcs;
+        if(selectedIds != null && !selectedIds.isEmpty()) {
+            tcs = tagCheckRepository.findAllById(selectedIds);
+            population = "all";
+        } else tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(seId);
+
     	if(!tcs.isEmpty()) {
     		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         	String eppnAuth = (auth!=null) ?  auth.getName() : null;

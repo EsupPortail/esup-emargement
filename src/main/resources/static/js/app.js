@@ -1,4 +1,4 @@
-//insert before
+//insert before00
 function initSlimSelects() {
   document.querySelectorAll('select.slimSelectClass').forEach(function (el) {
     if (!el.slimSelect) { // prevent double init
@@ -1931,15 +1931,27 @@ document.addEventListener('DOMContentLoaded', function() {
 		table.clear().draw();
 	});
 
-	$('#checkAll').on('click', function() {
-		var checked = this.checked;
-		$('.data-checkbox').prop('checked', checked);
-	});
-	$('.data-checkbox').on('click', function() {
-		var allChecked = $('.data-checkbox:checked').length === $('.data-checkbox').length;
-		$('#checkAll').prop('checked', allChecked);
-	});
-	var urlEvents = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus" : "/manager/adeCampus/Events";
+    // Clic sur le "Tout sélectionner"
+    $('#checkAll').on('click', function() {
+        var checked = this.checked;
+        $('.tableSalles').find('.data-checkbox').prop('checked', checked);
+    });
+
+// Clic sur une case individuelle (Délégation d'événement via tbody)
+    $('.tableSalles tbody').on('click', '.data-checkbox', function() {
+        var totalCheckboxes = $('.tableSalles').find('.data-checkbox').length;
+        var checkedCheckboxes = $('.tableSalles').find('.data-checkbox:checked').length;
+        $('#checkAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+    //Prevention de la soumission vide
+    $("form[action*='/manager/adeCampus/importClassrooms']").on("submit", function(event) {
+        if ($('.tableSalles').find('.data-checkbox:checked').length === 0) {
+            event.preventDefault(); // Bloque l'envoi
+            alert("Veuillez sélectionner au moins une salle à importer.");
+        }
+    });
+
+    var urlEvents = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus" : "/manager/adeCampus/Events";
 	displayEvents(emargementContextUrl + urlEvents, table);
 	var urlEventsimport = (document.getElementById("userEvents") != null)? "/supervisor/events/adeCampus/importEvents" : "/manager/adeCampus/importEvents";
 	importEvents(emargementContextUrl + urlEventsimport);
