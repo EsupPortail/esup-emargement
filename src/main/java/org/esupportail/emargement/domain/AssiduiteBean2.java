@@ -38,6 +38,16 @@ public class AssiduiteBean2 {
 	
 	Long idAdeBranch;
 
+    private Long motifAbsenceId;
+
+    public Long getMotifAbsenceId() {
+        return motifAbsenceId;
+    }
+
+    public void setMotifAbsenceId(Long motifAbsenceId) {
+        this.motifAbsenceId = motifAbsenceId;
+    }
+
 	public Date getDateDebut() {
 		return dateDebut;
 	}
