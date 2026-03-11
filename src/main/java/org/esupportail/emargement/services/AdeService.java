@@ -379,8 +379,8 @@ public class AdeService {
 				if(update) {
 					isMembersChanged = adeApiService.haveAnyMemberGroupsBeenUpdated(ade,sessionId, ctx);
 				}
-				if(update && isMembersChanged && !isUpdateOk) {
-					List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(se.getAdeEventId());
+				if(update && isMembersChanged && isUpdateOk) {
+					List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(se.getId());
 					tagCheckRepository.deleteAll(tcs);
 				}
 				if(!isSessionExisted || !update || update && isUpdateOk){
@@ -916,20 +916,23 @@ public class AdeService {
 		adeApiService.disconnectSession(emargementContext);
 	}
 
-	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
-		
-		Map<Long, List<SessionEpreuve>> mapSE = seList.stream().filter(t -> t.getAdeProjectId() != null)
-		        .collect(Collectors.groupingBy(t -> t.getAdeProjectId()));
-		
-		for (Long key : mapSE.keySet()) {
-	        String idProject = String.valueOf(key);
-			String sessionId = getSessionIdByProjectId(idProject, emargementContext, false);
-	        List<Long> idEvents  = mapSE.get(key).stream().map(o -> o.getAdeEventId()).collect(Collectors.toList());
-			List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx, null);
-			if(!beans.isEmpty()) {
-				saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
+	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {
+		for (SessionEpreuve se : seList) {
+			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx)==0 ? false : true;
+			if(!isSessionExisted) {
+	          se.setAdeOrphan(true);
+	          sessionEpreuveRepository.save(se);
+	          log.info("La session epreuve id="+se.getId()+" est orpheline car son évènement ADE n'existe plus dans l'API");
+			}else {
+				 String idProject = String.valueOf(se.getAdeProjectId());
+				 String sessionId = getSessionIdByProjectId(idProject, emargementContext, false);
+				 List<Long> idEvents  = Arrays.asList(se.getAdeEventId());
+				 List<AdeResourceBean> beans = getEventsFromXml(sessionId , null, null, null, idEvents, "", true, ctx, null);
+					if(!beans.isEmpty()) {
+						saveEvents(beans, sessionId, emargementContext, null, idProject, true, typeSync, null, null);
+					}
 			}
-	    }
+		}
 	}
 	
     public String getJsonfile(String fatherId, String emargementContext, String category, String idProject) {

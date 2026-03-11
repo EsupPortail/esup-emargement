@@ -165,6 +165,8 @@ public class SessionEpreuve implements ContextSupport {
     
     private Long adeProjectId;
     
+    private Boolean isAdeOrphan;
+    
     private String adeVET;
     
 	public Groupe getBlackListGroupe() {
@@ -518,5 +520,12 @@ public class SessionEpreuve implements ContextSupport {
 	public void setLibelleAdeBranch(String libelleAdeBranch) {
 		this.libelleAdeBranch = libelleAdeBranch;
 	}
-	
+
+	public Boolean isAdeOrphan() {
+		return isAdeOrphan;
+	}
+
+	public void setAdeOrphan(Boolean isAdeOrphan) {
+		this.isAdeOrphan = isAdeOrphan;
+	}
 }
