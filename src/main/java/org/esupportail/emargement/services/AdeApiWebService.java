@@ -147,6 +147,8 @@ public class AdeApiWebService implements AdeApiService {
     @Resource 
     private GroupeService groupeService;
     
+    private AdeService adeService;
+    
     public String getFatherIdResource(String sessionId, String idItem, String category, String tree){
 		String fatherId = "0";
 		String detail = "2";
@@ -1047,7 +1049,7 @@ public class AdeApiWebService implements AdeApiService {
 
 	public void disconnectSession(String emargementContext) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String idProject = getCurrentProject(null, auth.getName(), emargementContext);
+		String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		List<Prefs> prefsAdeSession = prefsRepository.findByNomAllContexts(ADE_STORED_SESSION + idProject);
 		if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty()){
 			try {
@@ -1165,35 +1167,6 @@ public class AdeApiWebService implements AdeApiService {
 	        	removeAttributes((Element) childNode);
 	        }
 	    }
-	}
-
-	public List<String> getValuesPref(String eppn, String pref) {
-	    List<String> values = new ArrayList<>(); 
-	    List<Prefs> prefsAdeStored = prefsRepository.findByUserAppEppnAndNom(eppn, pref);
-	    if (!prefsAdeStored.isEmpty()) {
-	        List<String> temp = prefsAdeStored.stream()
-	                .map(Prefs::getValue)
-	                .collect(Collectors.toList());
-	        if (!temp.isEmpty() && temp.get(0) != null) { // Check if temp has elements and is non-null
-	            String[] splitAll = temp.get(0).split(";;");
-	            values = Arrays.asList(splitAll);
-	            Collections.sort(values);
-	        } else if (!temp.isEmpty()) {
-	            prefsRepository.delete(prefsAdeStored.get(0));
-	        }
-	    }
-	    return values;
-	}
-
-	public String getCurrentProject(String projet, String eppn, String emargementContext) {
-	    if (!appliConfigService.getProjetAde().isEmpty()) {
-	        return appliConfigService.getProjetAde();
-	    }
-	    if (projet != null && !projet.isEmpty()) {
-	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext, "dummy");
-	        return projet;
-	    }
-	    return getValuesPref(eppn, ADE_STORED_PROJET).isEmpty() ? "0" : getValuesPref(eppn, ADE_STORED_PROJET).get(0);
 	}
 
 	public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException {
