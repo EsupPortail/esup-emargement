@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -363,7 +362,8 @@ public class AdeService {
 				boolean isUpdateOk = false;
 				Date today = DateUtils.truncate(new Date(),  Calendar.DATE);
 				if(isSessionExisted && update && se.getDateExamen().compareTo(today)>=0) {
-					if(ade.getLastImport() != null && ade.getLastUpdate().compareTo(ade.getLastImport())>=0) {
+					boolean isManualSync = "manual".equals(typeSync);
+					if(isManualSync || (ade.getLastImport() != null && ade.getLastUpdate().compareTo(ade.getLastImport())>=0)) {
 						clearSessionRelatedData(se);
 						isUpdateOk = true;
 					}else{
