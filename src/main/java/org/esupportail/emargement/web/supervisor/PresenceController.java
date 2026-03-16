@@ -504,7 +504,7 @@ public class PresenceController {
     @PostMapping("/supervisor/tagCheck/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         Optional<TagCheck> opt = tagCheckRepository.findById(id);
-        if(opt.isEmpty()) {
+        if(!opt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -821,3 +821,4 @@ public class PresenceController {
 		document.close();
     }
 }
+
