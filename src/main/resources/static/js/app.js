@@ -9,6 +9,25 @@ function initSlimSelects() {
     }
   });
 }
+function copySelectedIds(targetFieldId, formId) {
+    var selected = [];
+
+    document.querySelectorAll("input[name='case']:checked").forEach(function(checkbox) {
+        selected.push(checkbox.value);
+    });
+
+    // Remplit le champ caché du formulaire concerné
+    document.getElementById(targetFieldId).value = selected.join(",");
+
+    // Vérif pour éviter d'envoyer une sélection vide SI on a choisi "selected"
+    var formElement = document.getElementById(formId);
+    var checkedRadio = formElement.querySelector('input[name="population"]:checked');
+
+    if(checkedRadio && checkedRadio.value === 'selected' && selected.length === 0) {
+        alert("Aucun étudiant sélectionné ! Veuillez cocher des étudiants dans la liste.");
+        event.preventDefault();
+    }
+}
 function buildDataTableOptions(customOrder) {
     return {
         responsive: true,
