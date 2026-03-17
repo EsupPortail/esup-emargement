@@ -46,11 +46,14 @@
 				<td class ="text-center hiddenBlock"><i th:class="${sessionEpreuve.isSessionLibre} ? 'fa-solid fa-check text-success' :''"></i></td>
 				<td th:if="${isAdeCampusEnabled}" class ="text-center hiddenBlock">
 					<i th:class="
-					${sessionEpreuve.adeEventId != null 
-					   and (sessionEpreuve.isAdeOrphan == null or !sessionEpreuve.isAdeOrphan)} 
-					? 'fa-solid fa-check text-success' 
-					: 'fa-solid fa-check text-warning'">
-					</i>				
+					    ${sessionEpreuve.adeEventId != null} 
+					    ? (
+					        ${(sessionEpreuve.isAdeOrphan == null or !sessionEpreuve.isAdeOrphan)} 
+					        ? 'fa-solid fa-check text-success' 
+					        : 'fa-solid fa-check text-warning'
+					      )
+					    : 'fa fa-times text-danger'
+					"></i>			
 				</td>
 				<td class="d-none d-lg-table-cell"><a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbLieuxSession}"></a></td>
 				<td class="d-none d-lg-table-cell"><a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nbTagCheckerSession}"></a></td>
