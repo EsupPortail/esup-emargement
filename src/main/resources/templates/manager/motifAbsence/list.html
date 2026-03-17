@@ -29,6 +29,7 @@
 								<th class ="text-center" scope="col" th:text="${surveillantTerme}"></th>
 								<th class ="text-center" scope="col">Actif</th>
 								<th scope="col">Couleur</th>
+                                <th class="d-none d-lg-table-cell d-xl-table-cell" scope="col">Malus</th>
 								<th scope="col">Modificateur</th>
 								<th scope="col">Modification</th>
 								<th scope="col" class="no-sort">Actions</th>
@@ -49,6 +50,10 @@
 										<input type="color" class="form-control" id="head" name="head" th:value="${motif.color}" th:title="${motif.color}" disabled />
 									</th:block>
 								</td>
+                                <td class="d-none d-lg-table-cell d-xl-table-cell text-center">
+                                    <i th:if="${motif.isMalus}" class="fa fa-check text-danger" title="Compte comme malus"></i>
+                                    <i th:unless="${motif.isMalus}" class="fa fa-times text-secondary"></i>
+                                </td>
 								<td th:text="${motif.userApp ne null ? motif.userApp.eppn : ''}"></td>
 								<td th:text="${#dates.format(motif.dateModification, 'dd/MM/yy HH:mm')}"></td>
 								<td>
