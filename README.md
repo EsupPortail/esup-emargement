@@ -111,6 +111,7 @@ Copyright (C) 2020 Esup Portail http://www.esup-portail.org
 @Contributor (C) 2024 Delphine Boulanger - Université de Bretagne Occidentale
 @Contributor (C) 2023 Fatima Zeroual - Ecole centrale Marseille
 @Contributor (C) 2023 Sabine Carboni - Aix Marseille Université
+@Contributor (C) 2023 Sébastien Nguyen-Tu - Aix Marseille Université
 @Contributor (C) 2023 Brice Quillerie - Université de Nîmes
 @Contributor (C) 2022 Vincent Rivière - Université Paris 1 Panthéon-Sorbonne
 @Contributor (C) 2022 Damien Rieu - Université de Limoges

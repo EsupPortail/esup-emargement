@@ -1764,6 +1764,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#searchBox").val(null);
 			$("#statut").val("");
 			$("#typeSession").val("");
+			$("#statutSession").val("");
 			$("#campus").val("");
 			$("#view").val("");
 			$("#adeBranch").val("");

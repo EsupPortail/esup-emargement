@@ -52,7 +52,6 @@
 				        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
 				          <li><a class="dropdown-item" th:classappend="${active == 'sessionEpreuve'} ? 'active' : ''" th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}">Sessions</a></li>
 				          <li th:if="${isAdeCampusEnabled}"><a class="dropdown-item" th:classappend="${active == 'adeCampus'} ? 'active' : ''" th:href="@{/{ctx}/manager/adeCampus(ctx=${eContext})}">Ade Campus</a></li>
-				          <li ><a class="dropdown-item" th:classappend="${active == 'fcaManager'} ? 'active' : ''" th:href="@{/{ctx}/manager/fcaManager(ctx=${eContext})}">Fca Manager</a></li>
 				          <li th:if="${isImportExportEnabled}"><a class="dropdown-item" th:classappend="${active == 'extraction'} ? 'active' : ''" th:href="@{/{ctx}/manager/extraction(ctx=${eContext})}">Import/Export</a></li>
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'assiduite'} ? 'active' : ''" th:href="@{/{ctx}/manager/assiduite(ctx=${eContext})}">Assiduité</a></li>
