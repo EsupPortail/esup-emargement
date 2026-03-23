@@ -86,7 +86,7 @@ public class AdeService {
 
 	@Autowired
 	private PrefsRepository prefsRepository;
-	
+
 	@Autowired
 	private LocationRepository locationRepository;
 	
@@ -201,81 +201,60 @@ public class AdeService {
 	}
 	
 	public void checkEvents(Context context, Date startOfDay) {
-		
-		List<SessionEpreuve> ses = sessionEpreuveRepository
-		        .findByContextAndDateCreationLessThan(context, startOfDay);
-
-		// Récupération des TagCheck associés
-		List<TagCheck> tcs = tagCheckRepository
-		        .findTagCheckBySessionEpreuveIn(ses);
-
-		// Sessions à exclure car elles ont un TagCheck avec absence ou date
-		Set<Long> sessionsAvecAbsOuDate = tcs.stream()
-		        .filter(tc -> tc.getAbsence() != null || tc.getTagDate() != null)
-		        .map(tc -> tc.getSessionEpreuve().getId())
-		        .collect(Collectors.toSet());
-
-		List<SessionEpreuve> finalList = new ArrayList<>();
-
-		for (SessionEpreuve se : ses) {
-		    if (!sessionsAvecAbsOuDate.contains(se.getId())) {
-		        // Ajouter à la liste finale
-		        finalList.add(se);
-		    }else {
-		    	  // Ajouter le commentaire
-		        se.setComment("Session orpheline");
-		        sessionEpreuveRepository.save(se);
-		    }
-		}
-		if (finalList.isEmpty()) {
-			log.info("Aucune session à vérifier pour le contexte : " + context.getKey());
+		List<SessionEpreuve> ses =
+				sessionEpreuveRepository
+						.findByContextAndAdeEventIdIsNotNullAndIsAdeOrphanIsNullAndAnneeUnivAndDateCreationLessThan(
+								context,
+								sessionEpreuveService.getLastAnneeUniv(context.getKey()),
+								startOfDay
+						);
+		if (ses.isEmpty()) {
+			log.info("[" + context.getKey() + "] Aucune session à vérifier");
 			return;
 		}
-
-		log.info("[" + context.getKey() + "] Vérification de " + finalList.size() + " sessions");
-
-		Map<Long, List<SessionEpreuve>> sessionsByProject = finalList.stream()
-				.filter(se -> se.getAdeProjectId() != null && se.getAdeEventId() != null)
-				.collect(Collectors.groupingBy(SessionEpreuve::getAdeProjectId));
-
-		int deletedCount = 0;
-		int errorCount = 0;
-
-		for (Map.Entry<Long, List<SessionEpreuve>> entry : sessionsByProject.entrySet()) {
-			Long projectId = entry.getKey();
-			List<SessionEpreuve> projectSessions = entry.getValue();
-			String sessionId;
-			try {
-				sessionId = getSessionId(false, context.getKey(), String.valueOf(projectId));
-			} catch (Exception e) {
-				log.error("[" + context.getKey() + "] Impossible d'obtenir la session ADE pour le projet " + projectId,
-						e);
-				errorCount += projectSessions.size();
-				continue;
-			}
-			for (SessionEpreuve se : projectSessions) {
-				try {
-					if (!eventExistsInAde(se, sessionId)) {
-						// Sécurité : ne pas supprimer une session trop récente
-						if (isOldEnoughToDelete(se)) {
-							sessionEpreuveService.delete(se);
-							deletedCount++;
-							log.info("[" + context.getKey() + "] Suppression session orpheline : "
-									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
-						} else {
-							log.warn("[" + context.getKey() + "] Session absente dans ADE mais trop récente : "
-									+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]");
-						}
-					}
-				} catch (Exception e) {
-					log.error("[" + context.getKey() + "] Erreur lors de la vérification de la session "
-							+ se.getNomSessionEpreuve() + " [eventId=" + se.getAdeEventId() + "]", e);
-					errorCount++;
-				}
+		List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveIn(ses);
+		Set<Long> sessionsAvecAbsOuDate = tcs.stream()
+				.filter(tc -> tc.getAbsence() != null || tc.getTagDate() != null)
+				.map(tc -> tc.getSessionEpreuve().getId())
+				.collect(Collectors.toSet());
+		for (SessionEpreuve se : ses) {
+			if (sessionsAvecAbsOuDate.contains(se.getId())) {
+				se.setAdeOrphan(false);
 			}
 		}
-		log.info("[" + context.getKey() + "] Vérification terminée - supprimées=" + deletedCount + ", erreurs="
-				+ errorCount);
+		List<SessionEpreuve> finalList = ses.stream()
+				.filter(se -> !sessionsAvecAbsOuDate.contains(se.getId()))
+				.collect(Collectors.toList());
+		log.info("[" + context.getKey() + "] Vérification de " + finalList.size() + " sessions");
+		if (finalList.isEmpty()) {
+			return;
+		}
+		for (SessionEpreuve se : finalList) {
+			log.info("Session à vérifier : " + se.getNomSessionEpreuve()
+					+ " [eventId=" + se.getAdeEventId() + "]");
+			try {
+				if (eventExistsInAde(se, getSessionIdByProjectId(se.getAdeProjectId().toString(), context.getKey()))) {
+					log.info("L'évènement ADE de la session epreuve id=" + se.getId()
+							+ " existe toujours dans ADE");
+				} else {
+					log.info("L'évènement ADE de la session epreuve id=" + se.getId()
+							+ " n'existe plus dans ADE");
+					if (se.getStatutSession() != null &&
+							"ENDED".equals(se.getStatutSession().getKey())) {
+						sessionEpreuveService.delete(se);
+						logService.log(ACTION.DELETE_SESSION_EPREUVE, RETCODE.SUCCESS, "Suppression session epreuve id=" + se.getId() + " car son évènement ADE n'existe plus", null, null, context.getKey(), null);
+					} else {
+						se.setAdeOrphan(true);
+						sessionEpreuveRepository.save(se);
+						logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Session epreuve id=" + se.getId() + " est orpheline car son évènement ADE n'existe plus", null, null, context.getKey(), null);
+					}
+					log.info("Session epreuve id=" + se.getId()
+							+ " est orpheline car son évènement ADE n'existe plus");
+				}
+			} catch (Exception e) {
+				log.error("Erreur lors de la vérification de l'existence de l'évènement ADE de la session epreuve id=" + se.getId(), e);
+			}
+		}
 	}
 	
 	public String getSessionIdByProjectId(

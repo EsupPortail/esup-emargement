@@ -3,6 +3,7 @@ package org.esupportail.emargement.repositories;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -37,7 +38,9 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findSessionEpreuveByStatutSessionKeyInOrderByDateExamen(List<String> keys);
 	
-	List<SessionEpreuve> findByContextAndDateCreationLessThan(Context context, Date today);
+	List<SessionEpreuve> findByContextAndAdeEventIdIsNotNullAndIsAdeOrphanIsNullAndAnneeUnivAndDateCreationLessThan(Context context, String anneUniv, Date today);
+	
+	List<SessionEpreuve> findByContextAndAdeEventIdIn(Context context, Set<Long> set);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
