@@ -763,7 +763,16 @@ public class AdeApiWebService implements AdeApiService {
 								}
 								adeResourceBean.setAlreadyimport(isAlreadyimport);
 								adeResourceBean.setEventId(eventId);
-								Date lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element.getAttribute("lastUpdate"));  
+								Date lastUpdate = null;
+								if (!element.getAttribute("lastUpdate").isEmpty()) {
+									lastUpdate = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(element.getAttribute("lastUpdate"));
+								} else {
+									// Il apparait que parfois, ni le champ lastUpdate, ni le champ creation
+									// ne sont remplis (ADE 2025.1 202504)
+									// Laisser null pourrait poser pb au moment de la comparaison avec le dernier import
+									// alors on va mettre la date et heure courante
+									lastUpdate = new Date();
+								}
 								adeResourceBean.setLastUpdate(lastUpdate);
 								NodeList branches = element.getElementsByTagName("resources");
 								for (int temp2 = 0; temp2 < branches.getLength(); temp2++) {
