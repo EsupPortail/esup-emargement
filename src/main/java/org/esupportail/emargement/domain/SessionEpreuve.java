@@ -163,6 +163,8 @@ public class SessionEpreuve implements ContextSupport {
     
     private Long adeActiviteId;
     
+    private Integer adeRepetition;
+    
     private Long adeProjectId;
     
     private Boolean isAdeOrphan;
@@ -495,6 +497,14 @@ public class SessionEpreuve implements ContextSupport {
 
 	public void setAdeActiviteId(Long adeActiviteId) {
 		this.adeActiviteId = adeActiviteId;
+	}
+
+	public Integer getAdeRepetition() {
+		return adeRepetition;
+	}
+
+	public void setAdeRepetition(Integer adeRepetition) {
+		this.adeRepetition = adeRepetition;
 	}
 
 	public String getAdeVET() {

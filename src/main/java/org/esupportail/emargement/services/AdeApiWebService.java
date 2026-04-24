@@ -705,25 +705,43 @@ public class AdeApiWebService implements AdeApiService {
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						String activityId = element.getAttribute("activityId");
 						Long activityIdValue = Long.valueOf(activityId);
+						String adeRepetitionStr = element.getAttribute("repetition");
+						Integer adeRepetitionValue = null;
+						if (adeRepetitionStr != null && !adeRepetitionStr.isEmpty()) {
+							adeRepetitionValue = Integer.valueOf(adeRepetitionStr);
+						}
 						boolean isAlreadyimport = false;
 						Date dateExamen = formatter.parse(element.getAttribute("date"));
 						Date heureDebut = formatter1.parse(element.getAttribute("startHour"));
 						Date heureFin = formatter1.parse(element.getAttribute("endHour"));
-						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx)>0){
-							isAlreadyimport = true;
-						}else if(sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0) {
-							isAlreadyimport = true;
+						if (adeRepetitionValue != null) {
+							if(sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(activityIdValue, adeRepetitionValue, ctx)>0){
+								isAlreadyimport = true;
+							}
+						} else {
+							if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx)>0){
+								isAlreadyimport = true;
+							}else if(sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0) {
+								isAlreadyimport = true;
+							}
 						}
 						if(existingSe == null && !isAlreadyimport && !update|| "true".equals(existingSe)|| update){
 							SessionEpreuve se = null;
 							if(isAlreadyimport) {
 								List<SessionEpreuve> ses = null;
-								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx);
-									se = ses.get(0);
-								}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
-									se = ses.get(0);
+								if (adeRepetitionValue != null) {
+									if(!sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndContext(activityIdValue, adeRepetitionValue, ctx).isEmpty()) {
+										ses = sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndContext(activityIdValue, adeRepetitionValue, ctx);
+										se = ses.get(0);
+									}
+								} else {
+									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+										ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx);
+										se = ses.get(0);
+									}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
+										ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
+										se = ses.get(0);
+									}
 								}
 							}else {
 								se = new SessionEpreuve();
@@ -749,16 +767,25 @@ public class AdeApiWebService implements AdeApiService {
 								se.setFinEpreuve(heureFin);
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
 								se.setAdeActiviteId(activityIdValue);
+								if (adeRepetitionValue != null) {
+									se.setAdeRepetition(adeRepetitionValue);
+								}
 								se.setLibelleAdeBranch(libelle);
 								//pour l'instant
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));
 								}
 								if(isAlreadyimport) {
-									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
-									}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).get(0).getDateCreation());
+									if (adeRepetitionValue != null) {
+										if(!sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndContext(activityIdValue, adeRepetitionValue, ctx).isEmpty()) {
+											se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndContext(activityIdValue, adeRepetitionValue, ctx).get(0).getDateCreation());
+										}
+									} else {
+										if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
+											se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
+										}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
+											se.setDateCreation(sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).get(0).getDateCreation());
+										}
 									}
 								}
 								adeResourceBean.setAlreadyimport(isAlreadyimport);
