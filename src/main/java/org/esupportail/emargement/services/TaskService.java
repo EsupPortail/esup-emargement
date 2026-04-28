@@ -146,17 +146,20 @@ public class TaskService {
 		List<String> idList = Arrays.asList(task.getParam().split(","));
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject);
-		
-		if(!planifications.isEmpty()) {
-			int nbJours = Integer.valueOf(planifications.get(0));
-			Date datesDebutFin[] = getStartEndDates(nbJours);
-			String dateDebut = dateFormat.format(datesDebutFin[0]);
-			String dateFin = dateFormat.format(datesDebutFin[1]);
-			task.setDateExecution(new Date());
-			Context ctx = contextRepository.findByKey(emargementContext);
-			
-			List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
-					dateDebut, dateFin, null, null, null, idList, ctx, true, task.getLibelle());
+
+        if(!planifications.isEmpty()) {
+            int nbJours = Integer.valueOf(planifications.get(0));
+            Date datesDebutFin[] = getStartEndDates(nbJours);
+            String dateDebut = dateFormat.format(datesDebutFin[0]);
+            String dateFin = dateFormat.format(datesDebutFin[1]);
+            task.setDateExecution(new Date());
+            Context ctx = contextRepository.findByKey(emargementContext);
+
+            log.info("[ADE-DEBUG] ctx={} task='{}' idProject={} sessionId={} nbJours={} dateDebut={} dateFin={} idList={} param='{}'",
+                    emargementContext, task.getLibelle(), idProject, sessionId, nbJours, dateDebut, dateFin, idList, task.getParam());
+
+            List<AdeResourceBean> adebeans = adeService.getAdeBeans(sessionId,
+                    dateDebut, dateFin, null, null, null, idList, ctx, true, task.getLibelle());
 			List<Long> idEvents = adebeans.stream()
 					.map(tc -> tc.getEventId())
 					.collect(Collectors.toList());

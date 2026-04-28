@@ -685,13 +685,26 @@ public class AdeApiWebService implements AdeApiService {
 	public void setEvents(String url, List<AdeResourceBean> adeBeans, String existingSe, String sessionId, String resourceId, boolean update, Context ctx, String libelle) throws ParseException, IOException {
 		Map<String, AdeResourceBean>  activities = getActivityFromResource(sessionId, resourceId, null);
 		SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-		try {
-			Document doc = getDocument(url);
-			doc.getDocumentElement().normalize();
-			NodeList list = doc.getElementsByTagName("event");
-			if(list.getLength() == 0) {
-				log.info("Aucun évènement récupéré.");
-			}else {
+        try {
+            log.info("[ADE-DEBUG] setEvents URL appelée : {}", url);
+            Document doc = getDocument(url);
+            doc.getDocumentElement().normalize();
+            NodeList list = doc.getElementsByTagName("event");
+            if(list.getLength() == 0) {
+                // Dump la racine du XML pour voir ce qu'ADE a vraiment renvoyé
+                java.io.StringWriter sw = new java.io.StringWriter();
+                try {
+                    javax.xml.transform.Transformer t = javax.xml.transform.TransformerFactory.newInstance().newTransformer();
+                    t.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
+                    t.transform(new javax.xml.transform.dom.DOMSource(doc), new javax.xml.transform.stream.StreamResult(sw));
+                } catch (Exception ex) {
+                    sw.write("(impossible de sérialiser le XML : " + ex.getMessage() + ")");
+                }
+                String xml = sw.toString();
+                if (xml.length() > 1500) xml = xml.substring(0, 1500) + "... [tronqué]";
+                log.info("[ADE-DEBUG] Aucun évènement récupéré. XML reçu : {}", xml);
+            }else {
+                log.info("[ADE-DEBUG] {} évènement(s) récupéré(s).", list.getLength());
 				SimpleDateFormat formatter1 = new SimpleDateFormat("HH:mm");
 				String adeSuperGroupe = appliConfigService.getAdeSuperGroupe(ctx);
 				for (int temp = 0; temp < list.getLength(); temp++) {
