@@ -21,6 +21,7 @@ import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
 
 @Component
 @ConfigurationProperties(prefix="cas")
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Component;
 public class CasConfig {
 
 	String url;
+
+	String ticketValidatorUrl;
 
 	String service;
 
@@ -47,6 +50,10 @@ public class CasConfig {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public void setTicketValidatorUrl(String ticketValidatorUrl) {
+		this.ticketValidatorUrl = ticketValidatorUrl;
 	}
 
 	public void setService(String service) {
@@ -75,7 +82,7 @@ public class CasConfig {
 
 	@Bean
 	public TicketValidator ticketValidator() {
-		return new Cas30ServiceTicketValidator(url);
+		return new Cas30ServiceTicketValidator(StringUtils.isEmpty(ticketValidatorUrl) ? url : ticketValidatorUrl);
 	}
 
 	@Bean
