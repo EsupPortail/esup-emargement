@@ -12,6 +12,25 @@ const JACK = 'jack@example.org';
 const WILLIAM = 'william@example.org';
 const SESSION_DATE = '2030-01-01';
 
+async function waitForApplication(page) {
+  const attempts = 60;
+
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await page.request.get('/login', { failOnStatusCode: false });
+      if (response.ok()) {
+        return;
+      }
+    } catch (error) {
+      // L'application n'est pas encore prête ; on réessaie.
+    }
+
+    await page.waitForTimeout(1000);
+  }
+
+  throw new Error('L’application n’est pas disponible sur http://localhost:8080');
+}
+
 async function loginWithCas(page, username) {
   await page.goto('/login');
   await expect(page.locator('#username')).toBeVisible();
@@ -136,6 +155,7 @@ async function addTagCheckers(page, sessionId, userIds) {
 test.describe.configure({ mode: 'serial' });
 
 test('Créer un contexte Playwright complet', async ({ page }) => {
+  await waitForApplication(page);
   await loginWithCas(page, ADMIN_USERNAME);
 
   await createContext(page);

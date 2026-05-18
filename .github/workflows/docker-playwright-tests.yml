@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Playwright tests
-        run: docker compose -f src/etc/docker-compose.yml --profile playwright up playwright
+        run: docker compose -f src/etc/docker-compose.yml --profile playwright up --abort-on-container-exit --exit-code-from playwright playwright
