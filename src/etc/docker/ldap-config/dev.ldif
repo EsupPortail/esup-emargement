@@ -39,6 +39,31 @@ userPassword: pass
 mail: jack@example.org
 eduPersonPrincipalName: jack@example.org
 
+dn: uid=william,ou=people,dc=example,dc=org
+changetype: add
+uid: william
+sn: william
+cn: william
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: william@example.org
+eduPersonPrincipalName: william@example.org
+
+dn: uid=averell,ou=people,dc=example,dc=org
+changetype: add
+uid: averell
+sn: averell
+cn: averell
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: averell@example.org
+eduPersonPrincipalName: averell@example.org
+
+
 dn: ou=groups,dc=example,dc=org
 changetype: add
 ou: groups

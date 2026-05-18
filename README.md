@@ -99,6 +99,8 @@ Les utilisateurs et mots de passe par défaut sont les suivants :
 * admin/pass
 * joe/pass
 * jack/pass
+* william/pass
+* averell/pass
 
 ### Tests Playwright
 
