@@ -54,7 +54,7 @@ services:
           - /app
         depends_on:
           postgresql:
-            condition: service_healthy
+            condition: service_started
           cas:
             condition: service_healthy
 
