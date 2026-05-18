@@ -14,6 +14,7 @@ objectClass: supannPerson
 userPassword: pass
 mail: admin@example.org
 eduPersonPrincipalName: admin@example.org
+displayName: Super Admin
 
 dn: uid=joe,ou=people,dc=example,dc=org
 changetype: add
@@ -26,6 +27,7 @@ objectClass: supannPerson
 userPassword: pass
 mail: joe@example.org
 eduPersonPrincipalName: joe@example.org
+displayName: Joe Dalton
 
 dn: uid=jack,ou=people,dc=example,dc=org
 changetype: add
@@ -38,6 +40,7 @@ objectClass: supannPerson
 userPassword: pass
 mail: jack@example.org
 eduPersonPrincipalName: jack@example.org
+displayName: Jack Dalton
 
 dn: uid=william,ou=people,dc=example,dc=org
 changetype: add
@@ -50,6 +53,7 @@ objectClass: supannPerson
 userPassword: pass
 mail: william@example.org
 eduPersonPrincipalName: william@example.org
+displayName: William Dalton
 
 dn: uid=averell,ou=people,dc=example,dc=org
 changetype: add
@@ -62,7 +66,7 @@ objectClass: supannPerson
 userPassword: pass
 mail: averell@example.org
 eduPersonPrincipalName: averell@example.org
-
+displayName: Averell Dalton
 
 dn: ou=groups,dc=example,dc=org
 changetype: add
