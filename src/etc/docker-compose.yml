@@ -47,9 +47,13 @@ services:
             cp /src/src/etc/docker/esup-emargement/properties/emargement.properties ./src/main/resources/ &&
             sed -i '/<dependency>/{:a;N;/<\/dependency>/!ba;/com\.oracle/d}' pom.xml &&
             mvn clean spring-boot:run
+        healthcheck:
+          test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/login >/dev/null 2>&1 || curl -fs http://localhost:8080/login >/dev/null" ]
+          interval: 5s
+          timeout: 10s
+          retries: 30
         ports:
           - "8080:8080"
-        network_mode: "host"
         volumes:
           - ../..:/src
           - /app
@@ -75,4 +79,4 @@ services:
           cas:
             condition: service_healthy
           esup-emargement:
-            condition: service_started
+            condition: service_healthy
