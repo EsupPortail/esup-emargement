@@ -68,6 +68,20 @@ mail: averell@example.org
 eduPersonPrincipalName: averell@example.org
 displayName: Averell Dalton
 
+
+dn: uid=ma,ou=people,dc=example,dc=org
+changetype: add
+uid: ma
+sn: ma
+cn: ma
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: ma@example.org
+eduPersonPrincipalName: ma@example.org
+displayName: Ma Dalton
+
 dn: ou=groups,dc=example,dc=org
 changetype: add
 ou: groups
