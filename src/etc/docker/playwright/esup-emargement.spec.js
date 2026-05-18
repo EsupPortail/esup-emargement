@@ -94,6 +94,16 @@ async function createSession(page) {
   await expect(page.locator('#tableSessionEpreuve tbody tr', { hasText: SESSION_NAME }).first().locator('td').nth(2)).toHaveText(SESSION_NAME);
 }
 
+async function addTagCheck(page, sessionId, eppn) {
+  await page.goto(`/${CONTEXT_KEY}/manager/tagCheck?form&sessionEpreuve=${sessionId}`);
+  await page.locator('select[name="sessionEpreuve"]').selectOption(sessionId);
+  await page.locator('#searchString').fill(eppn);
+  await page.locator('#eppn').evaluate((el, value) => {
+    el.value = value;
+  }, eppn);
+  await page.locator('input[type="submit"][value="Valider"]').click();
+}
+
 async function getRowIdByText(page, tableSelector, rowText) {
   const row = page.locator(`${tableSelector} tbody tr`, { hasText: rowText }).first();
   await expect(row).toBeVisible();
@@ -155,9 +165,11 @@ test('Créer un contexte Playwright complet', async ({ page }) => {
   const sessionId = await getRowIdByText(page, '#tableSessionEpreuve', SESSION_NAME);
 
   await addSessionLocation(page, sessionId);
+  await addTagCheck(page, sessionId, 'averell@example.org');
+  await addTagCheck(page, sessionId, 'ma@example.org');
   await page.goto(`/${CONTEXT_KEY}/manager/sessionEpreuve`);
   const sessionRow = page.locator(`#tableSessionEpreuve tbody tr[id="${sessionId}"]`);
-  await expect(sessionRow.locator('td.d-none.d-lg-table-cell a').first()).toHaveText('1');
+  await expect(sessionRow.locator('a[href*="/manager/tagCheck/sessionEpreuve/"]')).toHaveText('2');
 
   await page.goto(`/${CONTEXT_KEY}/admin/userApp`);
   const jackId = await getRowIdByText(page, '#userAppPage table', JACK);
@@ -165,7 +177,6 @@ test('Créer un contexte Playwright complet', async ({ page }) => {
   await addTagCheckers(page, sessionId, [jackId, williamId]);
 
   await page.goto(`/${CONTEXT_KEY}/manager/sessionEpreuve`);
-  await expect(sessionRow.locator('td.d-none.d-lg-table-cell a').first()).toHaveText('1');
-  await expect(sessionRow.locator('td.d-none.d-lg-table-cell a').nth(1)).toHaveText('2');
+  await expect(sessionRow.locator('a[href*="/manager/tagChecker/sessionEpreuve/"]')).toHaveText('2');
 });
 
