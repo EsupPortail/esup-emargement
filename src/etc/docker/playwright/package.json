@@ -1,0 +1,13 @@
+{
+  "name": "esup-emargement-playwright-e2e",
+  "private": true,
+  "version": "1.0.0",
+    "description": "Playwright E2E tests for ESUP-EMARGEMENT",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1"
+  }
+}
+

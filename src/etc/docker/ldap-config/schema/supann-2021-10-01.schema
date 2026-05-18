@@ -1,0 +1,515 @@
+##############            schema Supann 	        ##############
+#                            Renater                                 #
+
+# Schema des objets specifiques des recommandations supann
+# Supann 2021
+# Version: 2021-10-01
+
+# Placé sous l'arc 1.3.6.1.4.1.7135.1.2 qui est sous la responsabilité de Renater
+# sous-arc 1 : attributs
+# sous-arc 2 : classes
+# Modifications :
+#
+# 01 oct.  21 (POT) : ajout attribut supannMailContact, classes supannApplication et supannRessource
+# 01 oct.  21 (POT) : changement de syntaxe pour les attributs supannCodeINSEEVilleDeNaissance et supannCodeINSEEPaysDeNaissance : numerique a chaine de caracteres 
+#                     ATTENTION : rupture de compatibilite avec l'existant !!!
+# 22 nov.  19 (POT) : ajout attributs supannTelephonePrive et supannMailPrive
+# 08 nov.  19 (POT) : ajout attributs supannConsentement et supannAdressePostalePrivee
+# 08 nov.  19 (POT) : supannCodeProfil devient supannCodePopulation
+# 07 juin  19 (POT) : ajout attributs supannEmpProfil supannExtProfil supannCodeProfil supannEmpDateFin supannEtuDateFin supannExtDateFin
+# 08 fév.  19 (POT) : supannFcSub devient supannFCSub, supannFcPerson devient supannFCPerson, Insee devient INSEE
+# 05 fév.  19 (POT) : supannCms devient supannCMS (comme l'ensemble des sigles qui passent en majuscules)
+# 02 oct.  18 (POT) : ajout attributs manquants supannRessourceEtat et supannRessourceEtatDate dans la class supannPerson
+# 24 sep.  18 (BBR) : passage des supannCmsApp* en casse exacte pour support de encodages sensibles à la casse (base64)
+# 14 sep.  18 (BBR) : suppression limites de longueur sur attributs supannCms*
+# 05 juil. 18 (BBR) : corrections/ajouts:
+#			supprimé SINGLE-VALUE supannRefId
+#			ajusté longueur supannNomDeNaissance et supannPrenomsEtatCivil (256)
+#			SINGLE-VALUE pour supannPrenomsEtatCivil (ils sont concaténés)
+#			ORDERING caseExactOrderingMatch pour supannOIDCDateDeNaissance
+#			format "Printable String" pour supannOIDCDateDeNaissance et supannOIDCGenre
+#			limite 32 caractères pour supannOIDCGenre
+#			supannCodeInseeVilleDeNaissance et supannCodeInseePaysDeNaissance: format "Numeric String" + numericStringOrderingMatch + limite à 5
+#			supannFcSub: supprimé substringMatch, passé en IA5string (ASCII)
+#			ajout labeledURI à la classe supannEntite
+#			passé supannCodeInseeVilleDeNaissance en facultatif dans supannFcPerson (né à l'étranger)
+#			supprimé substringMatch pour supannCmsId et supannCmsAppId
+#			renuméroté attributs à partir de supannCmsDateFin (doublon)
+# 08 sep.  17 (AB) : adaptation pour supann 2018, ajout d'attributs et d'une classe 
+# 23 nov.  09 (CC) : passage de supannEmpCorps en directoryString
+# 13 nov.  09 (CC) : ajout EQUALITY caseIgnoreMatch à mailForwardingAddress
+# 12 nov.  09 (CC) : retrait supannTypeEntite de supannPerson, ajout de supannTypeEntiteAffectation et supannRefId
+# 20 oct.  09 (CC) : ajout supannEmpCorps
+# 13 mai   09 (CC) : ajout mailForwardingAddress
+# 16 fevr. 09 (CC) : ajout supannAutreMail
+# 23 oct.  08 (CC) : ajout SINGLE-VALUE à supannEntiteAffectationPrincipale
+# 24 juin  08 (CC) : plus de clause MUST à supannPerson, ajout supannRoleGenerique
+# 18 juin  08 (CC) : intégration de supann 2008.rc1
+# 25 juil. 03 (CC) : supannGroup* -> supannGroupe*
+# 10 juil. 03 (CC) : supannGroupeLecteur -> supannGroupeLecteurDN, supannGroupeAdministrateur -> supannGroupeAdminDN
+# 09 juil. 03 (CC) : ajout supannGroupeLecteur
+# 08 juil. 03 (CC) : exactmatch pour supannEtuId, supannEmpId, supannAliasLogin
+# 07 juil. 03 (CC) : mise en conformite avec V033
+# 05 juin  03 (CC) : ajout supannDateFin, supannParrain et classe freduPerson
+# 27 mai   03 (CC) : supannEmpActivite plus obligatoire
+# 23 mai   03 (CC) : supannOrganisme et supannCivilite monovalues, ajout supannRole
+# 16 mai   03 (CC) : supannCodeINE->supannEtuCodeINE, supannEtablissement->supannOrganisme, supannAliasLogin
+# 17 avril 03 (CC) : adaptations pour V 015
+# 10 avril 03 (CC) : support version 14 des recommandations
+# 20 fevr. 03 (CC) : mise a jour
+# 28 nov.  02 (CC) : version initiale
+
+# Attributs :
+#
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.1 NAME 'supannListeRouge'
+	DESC 'indique que l entree correspondante n est pas publique'
+	EQUALITY booleanMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.2 NAME 'supannActivite'
+	DESC 'activite ou metier de la personne'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.3 NAME 'supannOrganisme'
+	DESC 'code organisme d appartenance'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.4 NAME 'supannCivilite'
+	DESC 'civilite : M., Mme, Mlle'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{32} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.5 NAME 'supannAffectation'
+	DESC 'affectation'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.6 NAME 'supannCodeEntite'
+	DESC 'identifiant d entite'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.7 NAME 'supannCodeEntiteParent'
+	DESC 'identifiant d entite parente'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.8 NAME 'supannEntiteAffectation'
+	DESC 'identifiant d entite d affectation'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.9 NAME 'supannCodeINE'
+	DESC 'code INE'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.10 NAME 'supannEtuId'
+	DESC 'identifiant scolarite'
+	EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.11 NAME 'supannEmpId'
+	DESC 'identifiant personnel'
+	EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.12  NAME 'supannAutreTelephone' 
+	SUP telephoneNumber
+	DESC 'numeros de telephone secondaires' )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.13 NAME 'supannEntiteAffectationPrincipale'
+	DESC 'identifiant d entite principale d affectation'
+	EQUALITY caseIgnoreIA5Match
+	SUBSTR caseIgnoreIA5SubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.14 NAME 'supannEtablissement'
+	DESC 'code d etablissement'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.15 NAME 'supannMailPerso'
+	DESC 'Mailbox RFC822 privee'
+    	EQUALITY caseIgnoreIA5Match
+    	SUBSTR caseIgnoreIA5SubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.16 NAME 'supannTypeEntite'
+	DESC 'type de structure ou entite'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.17  NAME 'supannParrainDN' 
+	SUP distinguishedName
+	DESC 'dn du responsable de cette entree' )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.18 NAME 'supannGroupeDateFin'
+	DESC 'indique la date de fin de validite de l entree correspondante'
+	EQUALITY generalizedTimeMatch
+	ORDERING generalizedTimeOrderingMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.19  NAME 'supannGroupeAdminDN' 
+	SUP distinguishedName
+	DESC 'dn des administrateurs du groupe concerne' )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.20 NAME 'supannAliasLogin'
+	DESC 'login personalise'
+	EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.21 NAME 'supannRole'
+	DESC 'role'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.22  NAME 'supannGroupeLecteurDN' 
+	SUP distinguishedName
+	DESC 'dn des entites habilite a lire le contenu d un groupe' )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.23 NAME 'supannRoleGenerique'
+	DESC 'role generique d une personne'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.24 NAME 'supannRoleEntite'
+	DESC 'role contextuel'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{512} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.25 NAME 'supannEtuAnneeInscription'
+	DESC 'annee inscription'
+	EQUALITY numericStringMatch
+	ORDERING numericStringOrderingMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.36{4} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.26 NAME 'supannEtuCursusAnnee'
+	DESC 'cursus et annee dans le diplome'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.27 NAME 'supannEtuDiplome'
+	DESC 'diplome'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.28 NAME 'supannEtuElementPedagogique'
+	DESC 'element pedagogique'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.29 NAME 'supannEtuEtape'
+	DESC 'etape'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.30 NAME 'supannEtuInscription'
+	DESC 'description d inscriptions'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.31 NAME 'supannEtuRegimeInscription'
+	DESC 'regime d inscription'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.32 NAME 'supannEtuSecteurDisciplinaire'
+	DESC 'secteur disciplinaire'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.33 NAME 'supannEtuTypeDiplome'
+	DESC 'type de diplome'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.34 NAME 'supannAutreMail' SUP mail
+	DESC 'adresses mail non institutionnelles' )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.35 NAME 'supannEmpCorps'
+	DESC 'corps d appartenance d un agent'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.36 NAME 'supannTypeEntiteAffectation'
+	DESC 'type de structure ou entite d affectation'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.37 NAME 'supannRefId'
+	DESC 'identifiant partage avec autre brique du SI'
+	EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.38 NAME 'supannNomDeNaissance'
+	DESC 'nom de famille de naissance'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.39 NAME 'supannPrenomsEtatCivil'
+	DESC 'prenoms d etat civil'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.40 NAME 'supannOIDCDateDeNaissance'
+	DESC 'date de naissance au format AAAA-MM-JJ'
+	EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	ORDERING caseExactOrderingMatch
+	SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{10} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.41 NAME 'supannOIDCGenre'
+        DESC 'genre : "female", "male" ou "other"'
+        EQUALITY caseIgnoreMatch
+        SINGLE-VALUE
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.44{32} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.42 NAME 'supannCodeINSEEVilleDeNaissance'
+	DESC 'code INSEE de la commune de naissance'
+	EQUALITY caseIgnoreIA5Match
+        SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.43 NAME 'supannCodeINSEEPaysDeNaissance'
+	DESC 'code INSEE du pays de naissance'
+	EQUALITY caseIgnoreIA5Match
+        SINGLE-VALUE
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.44 NAME 'supannFCSub'
+	DESC 'identifiant cible de personne FranceConnect'
+	EQUALITY caseExactIA5Match
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.45 NAME 'supannCMSAffectation'
+	DESC 'affectation de profils de CMS a un utilisateur'
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.46 NAME 'supannCMSAppAffectation'
+	DESC 'affectation de profils de donnees applicatives CMS a un utilisateur'
+        EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.47 NAME 'supannCMSAppId'
+	DESC 'code specifique a une application injecte dans la carte multi-services'
+        EQUALITY caseExactMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.48 NAME 'supannCMSAppIdDomaine'
+	DESC 'code specifique a une application injecte dans la carte multi-services'
+        EQUALITY caseExactMatch
+	SUBSTR caseExactSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.49 NAME 'supannCMSDateFin'
+	DESC 'date de fin de validite de la carte d acces'
+        EQUALITY generalizedTimeMatch
+	ORDERING generalizedTimeOrderingMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.50 NAME 'supannCMSId'
+	DESC 'code technique de la carte'
+        EQUALITY caseIgnoreMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.51 NAME 'supannCMSIdEtiquette'
+	DESC 'code technique de la carte avec etiquette'
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.52 NAME 'supannCMSType'
+	DESC 'type de carte parmi un ensemble de valeurs possibles'
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.53 NAME 'supannCMSSource'
+	DESC 'permet d identifier un système de gestion des cartes, avec son etablissement'
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.54 NAME 'supannRessourceEtatDate'
+	DESC 'etat d une ressource avec possibilité de date de debut et de fin' 
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.55 NAME 'supannRessourceEtat'
+	DESC 'etat d une ressource'
+        EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.56 NAME 'supannEmpProfil'
+	DESC 'attribut composite decrivant les profils detailles d une personne ressource'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.57 NAME 'supannExtProfil'
+	DESC 'attribut composite decrivant les profils detailles d une personne externe'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.58 NAME 'supannCodePopulation'
+	DESC 'code identifiant une categorie de population'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.59 NAME 'supannEmpDateFin'
+	DESC 'date de fin de validite d un profil de personne ressource'
+        EQUALITY generalizedTimeMatch
+	ORDERING generalizedTimeOrderingMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.60 NAME 'supannEtuDateFin'
+	DESC 'date de fin de validite d un profil etudiant'
+        EQUALITY generalizedTimeMatch
+	ORDERING generalizedTimeOrderingMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.61 NAME 'supannExtDateFin'
+	DESC 'date de fin de validite d un profil de personne externe'
+        EQUALITY generalizedTimeMatch
+	ORDERING generalizedTimeOrderingMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.62 NAME 'supannConsentement'
+	DESC 'consentement de l utilisateur sur l usage de ses donnees personnelles'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.63 NAME 'supannAdressePostalePrivee'
+	DESC 'adresse(s) postale(s) privee(s) de l utilisateur'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.64 NAME 'supannTelephonePrive'
+	DESC 'numero(s) de telephone prive(s) de l utilisateur avec etiquette'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.65 NAME 'supannMailPrive'
+	DESC 'adresse(s) mail(s) prive(s) de l utilisateur avec etiquette'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+attributetype ( 1.3.6.1.4.1.7135.1.2.1.66 NAME 'supannMailContact'
+	DESC 'adresses mail de contact des responsables de l objet'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{4096} )
+
+# repris du schema Netscape (enlever si conflit) :
+#attributeType ( 2.16.840.1.113730.3.1.17 NAME ( 'mailForwardingAddress' ) 
+#	DESC 'Netscape Messaging Server 4.x defined attribute' 
+#	EQUALITY caseIgnoreMatch 
+#	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15  
+#	X-ORIGIN 'Netscape Messaging Server 4.x' )
+
+
+######################## Classes d'objets :
+
+# classe complementaire specifique de supann :
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.1 NAME 'supannPerson' SUP top AUXILIARY
+	DESC 'classe d infos complementaires sur personnes supann'
+	MAY ( supannOrganisme $ supannCivilite $ supannAutreTelephone $ supannAffectation $ 
+	supannEmpId $ supannCodeINE $ supannEtuId $ supannAliasLogin $ supannParrainDN $
+	supannActivite $ supannEntiteAffectation $ supannEntiteAffectationPrincipale $ 
+	supannMailPerso $ supannRole $ supannRoleEntite $ supannRoleGenerique $ 
+	supannEtuAnneeInscription $ supannEtuCursusAnnee $ supannEtuDiplome $ supannEtuElementPedagogique $
+	supannEtuEtape $ supannEtuInscription $ supannEtuRegimeInscription $ supannEtuSecteurDisciplinaire $
+	supannEtuTypeDiplome $ supannEtablissement $ supannListeRouge $ 
+	supannAutreMail $ supannEmpCorps $ supannTypeEntiteAffectation $ supannRefId $
+	supannNomDeNaissance $ supannPrenomsEtatCivil $ supannOIDCDateDeNaissance $ supannOIDCGenre $ 
+	supannCodeINSEEPaysDeNaissance $ supannCodeINSEEVilleDeNaissance $ supannFCSub $ supannRessourceEtat $ supannRessourceEtatDate $
+	supannEmpProfil $ supannExtProfil $ supannCodePopulation $ supannEmpDateFin $ supannEtuDateFin $ supannExtDateFin $ 
+	supannConsentement $ supannAdressePostalePrivee $ supannTelephonePrive $ supannMailPrive) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.2 NAME 'supannOrg' SUP top AUXILIARY
+	DESC 'classe d infos complementaires pour etablissement'
+	MAY ( supannEtablissement ) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.3 NAME 'supannEntite' SUP top AUXILIARY
+	DESC 'classe d infos complementaires pour entite'
+	MUST ( supannCodeEntite )
+	MAY ( supannTypeEntite  $ supannCodeEntiteParent $ supannRefId $ labeledURI ) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.4 NAME 'supannFCPerson' SUP top AUXILIARY
+	DESC 'Identité de personne FranceConnect'
+	MUST ( supannNomDeNaissance $ supannPrenomsEtatCivil $ supannOIDCDateDeNaissance $
+	supannOIDCGenre $ supannCodeINSEEPaysDeNaissance $ supannFCSub )
+	MAY ( supannCodeINSEEVilleDeNaissance  ) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.5 NAME 'supannCMS' SUP top AUXILIARY
+	DESC 'Carte Multi Services'
+	MAY ( supannCMSId $ supannCMSIdEtiquette $ supannCMSAppId  $ supannCMSAppIdDomaine $
+	supannCMSAffectation $ supannCMSAppAffectation $ supannCMSType $ supannCMSSource $ supannCMSDateFin ) )
+
+# attributs specifiques des groupes :
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.6 NAME 'supannGroupe' SUP top AUXILIARY
+	DESC 'attributs specifiques des groupes'
+	MAY ( supannGroupeDateFin  $ supannGroupeAdminDN $ supannGroupeLecteurDN $ supannRefId ) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.7 NAME 'supannApplication' SUP applicationProcess STRUCTURAL
+	DESC 'application'
+	MAY ( displayName $ labeledURI $ mail  $ manager $
+	owner $ supannMailContact $ supannRefId $ userPassword ) )
+
+objectclass ( 1.3.6.1.4.1.7135.1.2.2.8 NAME 'supannRessource' SUP top AUXILIARY
+	DESC 'ressource avec gestion etat et cycle de vie'
+	MAY ( supannRessourceEtat $ supannRessourceEtatDate ) )

@@ -1,0 +1,12 @@
+name: Docker Playwright Tests for esup-otp-cas
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Playwright tests
+        run: docker compose -f src/etc/docker-compose.yml --profile playwright up playwright
