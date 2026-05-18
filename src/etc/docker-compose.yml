@@ -1,0 +1,73 @@
+services:
+
+   openldap:
+     image: osixia/openldap:latest
+     environment:
+       LDAP_DOMAIN: "example.org"
+     command: --copy-service
+     volumes:
+       - ./docker/ldap-config:/container/service/slapd/assets/config/bootstrap/ldif/custom
+       - ./docker/ldap-config/schema:/container/service/slapd/assets/config/bootstrap/schema/custom
+
+   cas:
+     build:
+        context: .
+        dockerfile_inline: |
+          FROM ghcr.io/esupportail/apereo-cas-ldap:7.3.6
+          RUN apt-get update && apt-get -y install curl
+     volumes:
+       - ./docker/cas-config:/etc/cas
+       - ./docker/cas-config/tmp-cas:/tmp/cas
+     ports:
+         - "8081:8080"
+     healthcheck:
+       test: [ "CMD-SHELL", "test -f /tmp/cas.healthcheck-passed || (curl -fs http://cas:8080/cas/login | grep -q username && touch /tmp/cas.healthcheck-passed)" ]
+       interval: 5s
+       timeout: 10s
+       retries: 20
+     depends_on:
+       openldap:
+         condition: service_started
+
+   postgresql:
+        image: postgres:15
+        environment:
+          POSTGRES_USER: emargement
+          POSTGRES_PASSWORD: emargement
+          POSTGRES_DB: emargement
+
+   esup-emargement:
+        image: maven:3.9.0-eclipse-temurin-17
+        command:
+          - "sh"
+          - "-c"
+          - |
+            cd /app &&
+            cp -rf /src/* /app/ &&
+            cp /src/src/etc/docker/esup-emargement/properties/emargement.properties ./src/main/resources/ &&
+            sed -i '/<dependency>/{:a;N;/<\/dependency>/!ba;/com\.oracle/d}' pom.xml &&
+            mvn clean spring-boot:run
+        ports:
+          - "8080:8080"
+        volumes:
+          - ../..:/src
+          - /app
+        depends_on:
+          - postgresql
+
+
+   playwright:
+        build:
+            context: ./docker/playwright
+        profiles:
+          - playwright
+        command: ["sh", "-lc", "xvfb-run -a npx playwright test --headed esup-emargement.spec.js"]
+        shm_size: 1gb
+        volumes:
+          - ./docker/playwright/playwright-report:/work/playwright-report
+        network_mode: "host"
+        depends_on:
+          cas:
+            condition: service_healthy
+          esup-emargement:
+            condition: service_started

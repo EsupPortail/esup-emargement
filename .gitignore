@@ -6,3 +6,4 @@
 !README.md
 !NOTICE
 !pom.xml
+src/etc/docker/playwright/playwright-report/**
