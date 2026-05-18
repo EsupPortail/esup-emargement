@@ -4,8 +4,7 @@ const USERNAME = 'joe';
 const PASSWORD = 'pass';
 
 async function loginWithCas(page) {
-  await page.goto('/');
-  await page.locator('#login').click();
+  await page.goto('/login');
   await expect(page.locator('#username')).toBeVisible();
   await page.locator('#username').fill(USERNAME);
   await page.locator('#password').fill(PASSWORD);
