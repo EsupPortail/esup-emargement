@@ -53,7 +53,11 @@ services:
           - ../..:/src
           - /app
         depends_on:
-          - postgresql
+          postgresql:
+            condition: service_healthy
+          cas:
+            condition: service_healthy
+
 
 
    playwright:
