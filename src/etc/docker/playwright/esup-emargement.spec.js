@@ -136,12 +136,25 @@ async function addSessionLocation(page, sessionId) {
   await page.locator('input[name="capacite"]').fill('10');
   await page.locator('input[name="priorite"]').fill('1');
   await page.locator('input[type="submit"][value="Valider"]').click();
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/sessionLocation/sessionEpreuve/${sessionId}`);
+  await expect(page.locator('table tbody tr', { hasText: LOCATION_NAME }).first()).toBeVisible();
 }
 
 async function addTagCheckers(page, sessionId, userIds) {
   await page.goto(`/${CONTEXT_KEY}/manager/tagChecker?form&sessionEpreuve=${sessionId}`);
   await page.locator('select[name="sessionEpreuve"]').selectOption(sessionId);
-  await page.locator('select[name="sessionLocation"]').selectOption({ index: 0 });
+  const sessionLocationSelect = page.locator('select[name="sessionLocation"]');
+  await expect(sessionLocationSelect).toBeVisible();
+  await page.waitForFunction(() => {
+    const select = document.querySelector('select[name="sessionLocation"]');
+    return !!select && select.options.length > 0;
+  });
+  const firstSessionLocationValue = await sessionLocationSelect.locator('option').evaluateAll((options) => {
+    const option = options.find((opt) => opt.value);
+    return option ? option.value : '';
+  });
+  expect(firstSessionLocationValue).toBeTruthy();
+  await sessionLocationSelect.selectOption(firstSessionLocationValue);
   for (const userId of userIds) {
     const checkbox = page.locator(`input.sol-checkbox[value="${userId}"]`);
     await checkbox.evaluate((el) => {
