@@ -10,7 +10,17 @@ const LOCATION_NAME = 'lieuPlaywright';
 const SESSION_NAME = 'sessionPalywrigjht';
 const JACK = 'jack@example.org';
 const WILLIAM = 'william@example.org';
-const SESSION_DATE = '2030-01-01';
+const AVERELL = 'averell@example.org';
+const MA = 'ma@example.org';
+
+// La date de session est calée sur aujourd'hui pour que le badgeage NFC fonctionne
+// (checkIsTagable compare date_examen avec la date du jour)
+const _today = new Date();
+const SESSION_DATE = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, '0')}-${String(_today.getDate()).padStart(2, '0')}`;
+
+// Variables partagées entre les tests (mode serial)
+let sessionId;
+let sessionLocationId;
 
 async function waitForApplication(page) {
   const attempts = 60;
@@ -136,7 +146,6 @@ async function addSessionLocation(page, sessionId) {
   await page.locator('input[name="capacite"]').fill('10');
   await page.locator('input[name="priorite"]').fill('1');
   await page.locator('input[type="submit"][value="Valider"]').click();
-  await page.waitForURL(`**/${CONTEXT_KEY}/manager/sessionLocation/sessionEpreuve/${sessionId}`);
   await expect(page.locator('table tbody tr', { hasText: LOCATION_NAME }).first()).toBeVisible();
 }
 
@@ -163,6 +172,20 @@ async function addTagCheckers(page, sessionId, userIds) {
     });
   }
   await page.locator('input[type="submit"][value="Valider"]').click();
+}
+
+async function getSessionLocationId(page, sessionId) {
+  await page.goto(`/${CONTEXT_KEY}/manager/sessionLocation/sessionEpreuve/${sessionId}`);
+  const row = page.locator('table tbody tr', { hasText: LOCATION_NAME }).first();
+  await expect(row).toBeVisible();
+  const href = await row.locator('a').first().getAttribute('href');
+  // href = /{ctx}/manager/sessionLocation/{id}
+  return href.split('/').pop();
+}
+
+async function executeRepartition(page, sessionId) {
+  await page.goto(`/${CONTEXT_KEY}/manager/sessionEpreuve/executeRepartition/${sessionId}`);
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/sessionEpreuve/repartition/${sessionId}`);
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -195,14 +218,19 @@ test('Créer un contexte Playwright complet', async ({ page }) => {
   await createSupervisorUser(page, WILLIAM);
 
   await createSession(page);
-  const sessionId = await getRowIdByText(page, '#tableSessionEpreuve', SESSION_NAME);
+  sessionId = await getRowIdByText(page, '#tableSessionEpreuve', SESSION_NAME);
 
   await addSessionLocation(page, sessionId);
-  await addTagCheck(page, sessionId, 'averell@example.org');
-  await addTagCheck(page, sessionId, 'ma@example.org');
+  sessionLocationId = await getSessionLocationId(page, sessionId);
+
+  await addTagCheck(page, sessionId, AVERELL);
+  await addTagCheck(page, sessionId, MA);
   await page.goto(`/${CONTEXT_KEY}/manager/sessionEpreuve`);
   const sessionRow = page.locator(`#tableSessionEpreuve tbody tr[id="${sessionId}"]`);
   await expect(sessionRow.locator('a[href*="/manager/tagCheck/sessionEpreuve/"]')).toHaveText('2');
+
+  // Répartition des participants dans les salles (nécessaire pour l'émargement NFC et par clic)
+  await executeRepartition(page, sessionId);
 
   await page.goto(`/${CONTEXT_KEY}/admin/userApp`);
   const jackId = await getRowIdByText(page, '#userAppPage table', JACK);
@@ -213,3 +241,30 @@ test('Créer un contexte Playwright complet', async ({ page }) => {
   await expect(sessionRow.locator('a[href*="/manager/tagChecker/sessionEpreuve/"]')).toHaveText('2');
 });
 
+test('Émargement par clic du surveillant WILLIAM pour Ma Dalton', async ({ page }) => {
+  await loginWithCas(page, 'william');
+  await page.goto(`/${CONTEXT_KEY}/supervisor/presence?sessionEpreuve=${sessionId}&location=${sessionLocationId}`);
+
+  // Cocher la case de présence pour Ma Dalton
+  const maCheckbox = page.locator(`input.presenceCheck[value="${MA},${sessionLocationId}"]`);
+  await expect(maCheckbox).toBeVisible();
+  await expect(maCheckbox).not.toBeChecked();
+
+  // Clic sur la case et attente de la réponse AJAX updatePresents
+  const [response] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/updatePresents')),
+    maCheckbox.click(),
+  ]);
+  expect(response.status()).toBe(200);
+
+  // Rechargement de la page pour vérification persistante
+  await page.reload();
+
+  // Après émargement, la case est cochée et désactivée
+  const maCheckedInput = page.locator(`input.presenceCheck[value="${MA},${sessionLocationId}"]`);
+  await expect(maCheckedInput).toBeChecked();
+
+  // La ligne de Ma Dalton doit être verte (table-success = présent)
+  const maDaltonRow = page.locator('table#tablePresence tbody tr.table-success', { hasText: 'ma' }).first();
+  await expect(maDaltonRow).toBeVisible();
+});
