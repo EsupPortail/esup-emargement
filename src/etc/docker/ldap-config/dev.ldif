@@ -15,6 +15,8 @@ userPassword: pass
 mail: admin@example.org
 eduPersonPrincipalName: admin@example.org
 displayName: Super Admin
+sn: Super
+givenName: Admin
 
 dn: uid=joe,ou=people,dc=example,dc=org
 changetype: add
@@ -28,6 +30,8 @@ userPassword: pass
 mail: joe@example.org
 eduPersonPrincipalName: joe@example.org
 displayName: Joe Dalton
+sn: Dalton
+givenName: joe
 
 dn: uid=jack,ou=people,dc=example,dc=org
 changetype: add
@@ -41,6 +45,8 @@ userPassword: pass
 mail: jack@example.org
 eduPersonPrincipalName: jack@example.org
 displayName: Jack Dalton
+sn: Dalton
+givenName: Jack
 
 dn: uid=william,ou=people,dc=example,dc=org
 changetype: add
@@ -54,6 +60,8 @@ userPassword: pass
 mail: william@example.org
 eduPersonPrincipalName: william@example.org
 displayName: William Dalton
+sn: Dalton
+givenName: William
 
 dn: uid=averell,ou=people,dc=example,dc=org
 changetype: add
@@ -67,7 +75,8 @@ userPassword: pass
 mail: averell@example.org
 eduPersonPrincipalName: averell@example.org
 displayName: Averell Dalton
-
+sn: Dalton
+givenName: Averell
 
 dn: uid=ma,ou=people,dc=example,dc=org
 changetype: add
@@ -81,6 +90,8 @@ userPassword: pass
 mail: ma@example.org
 eduPersonPrincipalName: ma@example.org
 displayName: Ma Dalton
+sn: Dalton
+givenName: Ma
 
 dn: ou=groups,dc=example,dc=org
 changetype: add
