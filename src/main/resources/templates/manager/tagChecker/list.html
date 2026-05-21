@@ -5,83 +5,127 @@
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
-         	<div class="card">
-	    		<div class="card-header">
-					<div class="row align-items-center">
-					    <div class="col-12 col-md">
-					        <h2 th:text="${surveillantTerme + 's'}"></h2>
-							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
-							#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
-					        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
-					        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
-					    </div>
-					    <div class="col-12 col-md-auto">
-					        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
-					            <div class="btn-group me-2">
-					                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
-					                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
-					                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
-					            </div>    
-					            <a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary" th:if="${!isSessionEpreuveClosed}" th:title="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}">
-					                <i class="fa fa-plus fa-lg"></i>
-					            </a>
-					            <a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-info ms-2" th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" title="Consignes">
-					                <i class="fa fa-envelope"></i>
-					            </a>
-					        </div>
-					    </div>
-					</div>
-				</div>         	
-  				<div class="card-body">
-		    		<div class="alert alert-danger" th:if="${error}">Ce(t) <span th:text="${#strings.toLowerCase(surveillantTerme)}"></span><span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
-   						veuillez supprimer les dépendances avant de supprimer celui-ci.</div>
-					<table class="table table-hover table-striped table-bordered">
-						<thead class="sticky-top">
-							<tr>
-								<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
-								<th scope="col"><a class="sorted" sd:pagination-sort="userApp">Eppn</a></th>
-								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userApp">Nom</a></th>
-								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userApp">Prénom</a></th>
-								<th class ="center" scope="col">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="tagChecker : ${tagCheckerPage}">
-								<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
-								<td th:text="${tagChecker.userApp.eppn}"></td>
-								<td th:text="${tagChecker.userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-								<td th:text="${tagChecker.userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-								<td class ="center"><a th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-									<a th:if="${!isSessionEpreuveClosed}" data-bs-toggle="modal" data-bs-target="#modal-warning" 
-										th:attr="data-bs-target='#modal-warning'+${tagChecker.id }" class="ms-2"><i class="fa fa-trash text-danger"></i></a>
-									<div class="modal modal-warning fade in" th:id="modal-warning+${tagChecker.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form id="command" th:action="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-										            <div class="modal-body">
-										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de : <br />
-										                	 <span th:text="${tagChecker.userApp.nom + ' ' + tagChecker.userApp.prenom}" class="font-weight-bold"></span> ?</div>
-										            </div>
-										            <div class="modal-footer">
-										                <button type="button" class="btn btn-outline float-start" data-bs-dismiss="modal">Fermer</button>
-										                <button type="submit" class="btn btn-outline float-start btn-danger">Valider</button>
-										            </div>
-									            </form>
-									        </div>
-									    </div>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<nav th:replace="fragments/pagination :: pagination"></nav>
+			<div class="row align-items-start">
+				<button class="btn btn-outline-primary d-md-none"
+				        data-bs-toggle="offcanvas"
+				        data-bs-target="#mobileSidebar">
+				  ☰ Sessions
+				</button>
+				<div class="offcanvas offcanvas-start d-md-none"
+				     tabindex="-1"
+				     id="mobileSidebar"
+				     style="width: 300px;">
+					 <div class="offcanvas-header">
+					     <h5>Sessions</h5>
+					     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+					   </div>
+					   <div class="offcanvas-body p-3">
+						<div th:replace="manager/sessionEpreuve/session-list :: initialList(
+						    'tagChecker',
+						    'session-list-mobile',
+						    'searchInputMobile'
+						)"></div>
+					   </div>
+				</div>
+				<div class="col-2 sidebar p-2 d-none d-md-flex flex-column"
+				     style="position: sticky; top: 0; height: 100vh;">
+					 <div th:replace="manager/sessionEpreuve/session-list :: initialList(
+					     'tagChecker',
+					     'session-list-desktop',
+					     'searchInputDesktop'
+					 )"></div>
+				</div>
+				<div class="col-12 col-md-10 main-content p-4">
+					<div id="content-area" th:fragment="content">
+			         	<div class="card">
+				    		<div class="card-header">
+								<div class="row align-items-center">
+								    <div class="col-12 col-md">
+								        <h2 th:text="${surveillantTerme + 's'}"></h2>
+										<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
+										#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
+								        <small class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' - Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></small>
+								        <span class="font-weight-bold text-danger" th:text="${sessionEpreuve.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>
+								    </div>
+								    <div class="col-12 col-md-auto">
+								        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+								            <div class="btn-group">
+								                <a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-primary" title="Retour sessions">Sessions</a>
+								                <a th:href="@{/{ctx}/manager/sessionLocation/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-success" title="Ajouter des lieux">Ajout lieux</a>
+								                <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-warning" title="Ajouter des inscrits">Ajout inscrits</a>
+								            </div>    
+								            <a th:href="@{/{ctx}/manager/tagChecker?form=&sessionEpreuve={paramUrl}(paramUrl=${paramUrl},ctx=${eContext})}" class="btn btn-primary" th:if="${!isSessionEpreuveClosed}" th:title="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}">
+								                <i class="fa fa-plus fa-lg"></i>
+								            </a>
+								            <a th:href="@{/{ctx}/manager/tagChecker/consignes?seid={seid}(seid=${sessionEpreuve.id},ctx=${eContext})}" class="btn btn-info" th:if="${!isSessionEpreuveClosed and not #lists.isEmpty(tagCheckerPage.content) and isConsignesEnabled}" title="Consignes">
+								                <i class="fa fa-envelope"></i>
+								            </a>
+								        </div>
+								    </div>
+								</div>
+							</div>         	
+			  				<div class="card-body">
+					    		<div class="alert alert-danger" th:if="${error}">Ce(t) <span th:text="${#strings.toLowerCase(surveillantTerme)}"></span><span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session, 
+			   						veuillez supprimer les dépendances avant de supprimer celui-ci.</div>
+								<table class="table table-hover table-striped table-bordered">
+									<thead class="sticky-top">
+										<tr>
+											<th scope="col"><a class="sorted" sd:pagination-sort="sessionLocation.location">Lieu de session</a></th>
+											<th scope="col"><a class="sorted" sd:pagination-sort="userApp">Personne</a></th>
+											<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="userApp">Eppn</a></th>
+											<th class ="center" scope="col">Actions</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="tagChecker : ${tagCheckerPage}">
+											<td th:text="${tagChecker.sessionLocation.location.nom + '  (' + tagChecker.sessionLocation.location.capacite + ' places)'}"></td>
+											<td th:text="${tagChecker.userApp.nom + ' ' + tagChecker.userApp.prenom}"></td>
+											<td th:text="${tagChecker.userApp.eppn}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+											<td class ="center">
+												<div class="dropdown">
+													<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+														<i class="fa-solid fa-ellipsis-vertical"></i>
+													</button>
+													<ul class="dropdown-menu">
+														<li><a class="dropdown-item"
+																th:href="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}">Voir</a></li>
+														<li th:if="${tagChecker.sessionEpreuve.statutSession.key ne 'CLOSED'}">
+															<a class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#modal-warning"
+																th:attr="data-bs-target='#modal-warning'+ ${tagChecker.id }">Supprimer</a>
+														</li>
+													</ul>
+												</div>
+												<div class="modal modal-warning fade in" th:id="modal-warning+${tagChecker.id}" >
+												    <div class="modal-dialog">
+												        <div class="modal-content">
+												        	<form id="command" th:action="@{/{ctx}/manager/tagChecker/{id}(id=${tagChecker.id},ctx=${eContext})}" method="POST">
+													        	<input type="hidden" name="_method" value="delete" />
+													            <div class="modal-header">
+													                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+													            </div>
+													            <div class="modal-body">
+													                <div class="alert alert-danger text-center">Confirmez-vous la suppression de : <br />
+													                	 <span th:text="${tagChecker.userApp.nom + ' ' + tagChecker.userApp.prenom}" class="font-weight-bold"></span> ?</div>
+													            </div>
+													            <div class="modal-footer">
+													                <button type="button" class="btn btn-outline float-start" data-bs-dismiss="modal">Fermer</button>
+													                <button type="submit" class="btn btn-outline float-start btn-danger">Valider</button>
+													            </div>
+												            </form>
+												        </div>
+												    </div>
+												</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<nav th:replace="fragments/pagination :: pagination"></nav>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
+		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
 </html>

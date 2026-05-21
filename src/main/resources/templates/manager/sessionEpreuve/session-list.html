@@ -1,0 +1,48 @@
+<div th:fragment="list(type, listId, inputId)">
+  <div class="list-group">
+    <a th:each="s : ${sessions}"
+       href="#"
+       class="session-item list-group-item list-group-item-action"
+       th:classappend="${s.id == activeSessionId} ? ' active'"
+       th:hx-get="@{|/${eContext}/manager/${type}/sessionEpreuve/${s.id}?activeSessionId=${s.id}|}"
+       hx-target="#content-area"
+       hx-swap="innerHTML"
+       hx-push-url="true"
+	   th:attr="data-session-epreuve-id=${s.id}, data-session-type=${type}">
+      <strong th:text="${s.nomSessionEpreuve}"></strong><br>
+      <small>
+        <span th:text="${#dates.format(s.dateExamen, 'dd-MM-yyyy')}"></span>
+		<span th:text="${#dates.format(s.heureEpreuve, 'HH:mm') + ' - ' + #dates.format(s.finEpreuve, 'HH:mm')}"></span>
+      </small>
+    </a>
+  </div>
+  <!-- Infinite scroll -->
+  <div th:if="${hasNext}"
+       th:hx-get="@{|/${eContext}/manager/sessionEpreuve/sessions/${type}?page=${page + 1}|}"
+       th:hx-trigger="'intersect once root:#' + ${listId}"
+	   hx-trigger="revealed"
+	   hx-swap="afterend"
+       th:hx-include="'#' + ${inputId}">
+  </div>
+</div>
+<div th:fragment="initialList(type, listId, inputId)">
+  <input type="text"
+         name="search"
+         th:id="${inputId}"
+         class="form-control mb-3"
+         placeholder="Rechercher une session..."
+         th:hx-get="@{|/${eContext}/manager/sessionEpreuve/sessions/${type}|}"
+         hx-trigger="keyup changed delay:400ms"
+         th:hx-target="'#' + ${listId}"
+         hx-swap="innerHTML"
+         th:hx-include="'#' + ${inputId}">
+  <div th:id="${listId}"
+       class="list-group list-group-flush border-bottom"
+       style="overflow-y: auto; height: 80vh;">
+    <div th:hx-get="@{|/${eContext}/manager/sessionEpreuve/sessions/${type}?page=0|}"
+         hx-trigger="load"
+         th:hx-target="'#' + ${listId}"
+         hx-swap="innerHTML">
+    </div>
+  </div>
+</div>

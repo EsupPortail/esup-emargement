@@ -1886,12 +1886,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	    // Stocker le résultat voulu (IDs du premier niveau après la racine) dans un champ caché
 	    $("#firstLevelIds").val(uniqueFirstLevel.join(','));
 
-	    // debug
-	    console.log("Sélection finale (IDs) :", r);
-	    console.log("Chemins texte :", allLibelles);
-	    console.log("Tous firstAfterRoot (possiblement dupliqués) :", firstLevelIds);
-	    console.log("Unique firstLevelIds (résultat final) :", uniqueFirstLevel);
-
 	}).jstree({
 	    "checkbox": {
 	        "keep_selected_style": false,
@@ -2461,19 +2455,30 @@ document.addEventListener('DOMContentLoaded', function() {
 	$('#includeLogo').on('change', function() {
 		updateHidden();
 	});
-
+	
+	//liste de sessions -->active
+	document.addEventListener('click', function(e) {
+	    const item = e.target.closest('.session-item');
+	    if (!item) return;
+	    document.querySelectorAll('.session-item')
+	            .forEach(el => el.classList.remove('active'));
+	    item.classList.add('active');
+	});
 });
 
 //absences dans assiduité
 let slimSelectInstance = null;
 document.addEventListener('htmx:afterSwap', function(event) {
-	if (event.detail.target.id !== "searchResults" && document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
-	    setTimeout(() => {
-	        if (slimSelectInstance) {
-	            slimSelectInstance.destroy();
-	        }
-	        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
-	    }, 100);
+	
+	if (document.getElementById("motifAbsence")!=null){
+		if (event.detail.target.id !== "searchResults" && document.getElementById("motifAbsence") && document.getElementById("createAbsence")==null){
+		    setTimeout(() => {
+		        if (slimSelectInstance) {
+		            slimSelectInstance.destroy();
+		        }
+		        slimSelectInstance = new SlimSelect({ select: '#motifAbsence' });
+		    }, 100);
+		}
 	}
 	if (document.getElementById("blackListGroupe")!=null){
 		if (event.target.id === "modal-content") {
@@ -2518,6 +2523,21 @@ document.addEventListener('htmx:afterSwap', function(event) {
 			});
 		});
 	}
+	
+	//liste sessions
+	const match = window.location.pathname.match(/\/([^/]+)\/sessionEpreuve\/(\d+)/);
+	if (!match) return;
+
+	const sessionType = match[1]; // ex: sessionLocation
+	const id = match[2];
+	document.querySelectorAll('.session-item')
+		.forEach(el => {
+			const isMatch =
+				el.dataset.sessionEpreuveId === id &&
+				el.dataset.sessionType === sessionType;
+
+			el.classList.toggle('active', isMatch);
+		});
 });
 
 document.addEventListener('htmx:afterSettle', function(evt) {

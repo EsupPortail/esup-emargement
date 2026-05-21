@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.Location;
@@ -88,21 +89,28 @@ public class SessionLocationController {
 		return ITEM;
 	}
 	
-	/**
-	 * @param emargementContext  
-	 */
 	@GetMapping(value = "/manager/sessionLocation/sessionEpreuve/{id}", produces = "text/html")
-    public String listSesionLocationBySessionEpreuve(@PathVariable String emargementContext, @PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
-    		@PageableDefault(size = 20, direction = Direction.ASC, sort = {"isTiersTempsOnly", "priorite"})  Pageable pageable) {
+	public String listSesionLocationBySessionEpreuve(@PathVariable("id") SessionEpreuve sessionEpreuve, Model model,
+			@PageableDefault(size = 20, direction = Direction.ASC, sort = { "isTiersTempsOnly",
+					"priorite" }) Pageable pageable, HttpServletRequest request) {
 
-        Page<SessionLocation> sessionLocationPage = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve, pageable);
-        model.addAttribute("isSessionEpreuveClosed", sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get()));
-        model.addAttribute("sessionLocationPage", sessionLocationPage);
-        model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
-		model.addAttribute("paramUrl", sessionEpreuve.getId());
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
-        return "manager/sessionLocation/list";
-    }
+	    Page<SessionLocation> sessionLocationPage =
+	        sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve, pageable);
+
+	    model.addAttribute("isSessionEpreuveClosed",
+	        sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get()));
+
+	    model.addAttribute("sessionLocationPage", sessionLocationPage);
+	    model.addAttribute("sessionEpreuve", sessionEpreuve);
+	    model.addAttribute("paramUrl", sessionEpreuve.getId());
+	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
+
+	    if ("true".equals(request.getHeader("HX-Request"))) {
+	        return "manager/sessionLocation/list :: content";
+	    }
+
+	    return "manager/sessionLocation/list";
+	}
 	
 	@GetMapping(value = "/manager/sessionLocation/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {

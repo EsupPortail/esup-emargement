@@ -33,12 +33,14 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.esupportail.emargement.beans.SessionEpreuveResult;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AdeBranch;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.Statut;
@@ -63,6 +65,7 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
+import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService.AppliConfigKey;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -72,7 +75,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -131,6 +140,9 @@ public class SessionEpreuveService {
 	@Autowired
 	AdeBranchRepository adeBranchRepository;
 	
+	@Autowired
+	SessionEpreuveRepositoryCustom sessionEpreuveRepositoryCustom;
+	
 	@Resource
 	AppliConfigService appliConfigService;
 
@@ -145,6 +157,9 @@ public class SessionEpreuveService {
 	
 	@Resource
 	TagCheckerService tagCheckerService;
+	
+    @Resource 
+    PreferencesService preferencesService;
 	
 	@Resource
 	StoredFileService storedFileService;
@@ -168,6 +183,13 @@ public class SessionEpreuveService {
     private MessageSource messageSource;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	private final static String SESSIONS_SORTBYSTATUT = "sessionsSortByStatut";
+	private final static String SESSIONS_SORTBYTYPE = "sessionsSortByType";
+	private final static String SESSIONS_SORTBYPERIOD = "sessionsSortByPeriod";
+	private final static String SESSIONS_SORTBYCAMPUS = "sessionsSortByCampus";
+	private final static String SESSIONS_SORTBYLISTE = "sessionsSortByListe";
+	private final static String SESSIONS_SORTBYADE = "sessionsSortByAde";
 	
 	public void computeCounters(List<SessionEpreuve> sessionEpreuveList) {
 		for(SessionEpreuve session : sessionEpreuveList) {
@@ -1148,6 +1170,173 @@ public class SessionEpreuveService {
 			}	
 		}else {
 			log.info("RAS");
+		}
+	}
+
+	public SessionEpreuveResult getSessionsWithPreferences(String eppn, String context, SessionEpreuve sessionSearch,
+			String multiSearch, Long searchString, String dateSessions, String view, Pageable pageable, UserApp userApp,
+			boolean isFromSideBar) {
+
+		boolean isAdeEnabled = appliConfigService.isAdeCampusEnabled();
+
+		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYSTATUT);
+
+		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYTYPE);
+
+		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYPERIOD);
+
+		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYCAMPUS);
+
+		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYLISTE);
+
+		List<Prefs> prefsAde = isAdeEnabled ? prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYADE)
+				: new ArrayList<>();
+
+		if (searchString != null) {
+			sessionSearch.setId(searchString);
+		}
+
+		if (dateSessions == null) {
+			dateSessions = prefsPeriod.isEmpty() ? "all" : prefsPeriod.get(0).getValue();
+		}
+
+		if (multiSearch == null || isFromSideBar) {
+
+			sessionSearch.setAnneeUniv(String.valueOf(getLastAnneeUniv(context)));
+
+			String statut = prefsStatut.isEmpty() ? "" : prefsStatut.get(0).getValue();
+
+			sessionSearch.setStatutSession(statut.isEmpty() ? null : statutSessionRepository.findByKey(statut));
+
+			String type = prefsType.isEmpty() ? "" : prefsType.get(0).getValue();
+
+			sessionSearch.setTypeSession(
+					type.isEmpty() ? null : typeSessionRepository.findById(Long.valueOf(type)).orElse(null));
+
+			String campus = prefsCampus.isEmpty() ? "" : prefsCampus.get(0).getValue();
+
+			sessionSearch
+					.setCampus(campus.isEmpty() ? null : campusRepository.findById(Long.valueOf(campus)).orElse(null));
+
+			view = prefsListe.isEmpty() ? "all" : prefsListe.get(0).getValue();
+
+			if (isAdeEnabled) {
+
+				String ade = prefsAde.isEmpty() ? "" : prefsAde.get(0).getValue();
+
+				sessionSearch
+						.setAdeBranch(ade.isEmpty() || "all".equals(ade) ? null : getAdeBranchById(Long.valueOf(ade)));
+			}
+
+		} else {
+
+			updateUserPreferences(eppn, context, sessionSearch, dateSessions, view, isAdeEnabled);
+		}
+
+		String monSession = sessionSearch.getNomSessionEpreuve();
+
+		if (monSession != null && !monSession.isBlank()) {
+			sessionSearch.setNomSessionEpreuve(monSession.trim());
+		} else {
+			sessionSearch.setNomSessionEpreuve(null);
+		}
+
+		Page<SessionEpreuve> result;
+
+		if (sessionSearch.getId() != null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent()) {
+
+			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
+
+			result = new PageImpl<>(List.of(se));
+
+			// comportement identique à l’ancienne méthode
+			sessionSearch.setStatutSession(se.getStatutSession());
+			sessionSearch.setTypeSession(se.getTypeSession());
+			sessionSearch.setAnneeUniv(se.getAnneeUniv());
+
+			// IMPORTANT
+			sessionSearch.setId(null);
+
+		} else {
+
+			ExampleMatcher matcher = ExampleMatcher.matching()
+
+					.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded",
+							"isGroupeDisplayed", "isSecondTag")
+
+					.withIgnoreNullValues()
+
+					.withMatcher("statutSession", ExampleMatcher.GenericPropertyMatchers.exact())
+
+					.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
+
+					.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
+
+					.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact())
+
+					.withMatcher("nomSessionEpreuve", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+
+			if (isAdeEnabled) {
+
+				matcher = matcher.withMatcher("adeBranch",
+						ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+			}
+
+			Example<SessionEpreuve> example = Example.of(sessionSearch, matcher);
+
+			Sort sort = pageable.getSort().isUnsorted()
+					? Sort.by(Sort.Order.desc("dateExamen"), Sort.Order.asc("heureEpreuve"),
+							Sort.Order.asc("finEpreuve"))
+					: pageable.getSort();
+
+			PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+			Date dateDebut = setDateSessionEpreuve("dateDebut", dateSessions);
+
+			Date dateFin = setDateSessionEpreuve("dateFin", dateSessions);
+
+			result = sessionEpreuveRepository.findAll(sessionEpreuveRepositoryCustom
+					.getSpecFromDatesAndExample(dateDebut, dateFin, example, view, userApp), pageRequest);
+		}
+
+		computeCounters(result.getContent());
+
+		SessionEpreuveResult sessionEpreuveResult = new SessionEpreuveResult();
+
+		sessionEpreuveResult.setPage(result);
+		sessionEpreuveResult.setView(view);
+		sessionEpreuveResult.setDateSessions(dateSessions);
+
+		return sessionEpreuveResult;
+	}
+	
+	private void updateUserPreferences(String eppn, String context, SessionEpreuve sessionSearch, String dateSessions,
+			String view, boolean isAdeEnabled) {
+
+		if (sessionSearch.getId() != null)
+			return;
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT,
+				sessionSearch.getStatutSession() == null ? "" : sessionSearch.getStatutSession().getKey(), eppn,
+				context, "dummy");
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYTYPE,
+				sessionSearch.getTypeSession() == null ? "" : sessionSearch.getTypeSession().getId().toString(), eppn,
+				context, "dummy");
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, dateSessions == null ? "all" : dateSessions, eppn,
+				context, "dummy");
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS,
+				sessionSearch.getCampus() == null ? "" : sessionSearch.getCampus().getId().toString(), eppn, context,
+				"dummy");
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, view == null ? "" : view, eppn, context, "dummy");
+
+		if (isAdeEnabled) {
+			preferencesService.updatePrefs(SESSIONS_SORTBYADE,
+					sessionSearch.getAdeBranch() == null ? "" : sessionSearch.getAdeBranch().getId().toString(), eppn,
+					context, "dummy");
 		}
 	}
 }
