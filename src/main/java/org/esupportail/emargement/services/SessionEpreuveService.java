@@ -829,7 +829,8 @@ public class SessionEpreuveService {
         	 newSe.setDateExamen(new Date());
         	 newSe.setDateFin(null);
         }
-        newSe.setAnneeUniv(originalSe.getAnneeUniv());
+        int newAnneeUniv = getCurrentAnneeUnivFromDate(newSe.getDateExamen());
+        newSe.setAnneeUniv(String.valueOf(newAnneeUniv));
         newSe.setCampus(originalSe.getCampus());
         newSe.setContext(context);
         newSe.setFinEpreuve(originalSe.getFinEpreuve());
