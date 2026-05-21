@@ -35,20 +35,23 @@ import com.itextpdf.text.pdf.PdfWriter;
 @Component
 public class PdfGenaratorUtil {
 	
-	public String createPdf(String htmltemplate) throws Exception {
+	public String createPdf(String htmltemplate, boolean includeLogo) throws Exception {
 		String filePath = "";
 
 		String htmlStart = "<!DOCTYPE HTML>\n" + "<html>\n" + "<head>\n" + "</head>\n" + "<body>\n";
 		String htmlEnd = "</body>\n" + "</html>\n";
-		String htmlString = htmlStart + htmltemplate + htmlEnd;
+		String logoPath = this.getClass().getResource("/static/images/logo.jpg").toString();
+		String htmlLogo = "";
+		if (includeLogo) {
+			htmlLogo = "<div style=\"width:200px;;margin-bottom: 50px;\"><img src=\"" + logoPath + "\" alt=\"Logo\" style=\"width: 200px;\"></div>";
+		}
+		String htmlString = htmlStart + htmlLogo + htmltemplate + htmlEnd;
 		String finalHtml = "";
 
-		boolean valid = Jsoup.isValid(htmlString, Safelist.basic());
-
-		if (!valid) {
-			Document dirtyDoc = Jsoup.parse(htmlString);
-			dirtyDoc.outputSettings().syntax(Document.OutputSettings.Syntax.xml);
-			finalHtml = dirtyDoc.html();
+		if (!Jsoup.isValid(htmlString, Safelist.basic())) {
+		    Document dirtyDoc = Jsoup.parse(htmlString);
+		    dirtyDoc.outputSettings().syntax(Document.OutputSettings.Syntax.xml);
+		    finalHtml = dirtyDoc.html();
 		}
 		OutputStream os = null;
 		String fileName = UUID.randomUUID().toString();

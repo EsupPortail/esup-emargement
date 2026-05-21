@@ -27,19 +27,25 @@
 		 			<div class="row">
 						<div class="col-lg-6">
 							<h3>Convocation PDF
-							<a href="#" title="Prévisualiser PDF" class="btn btn-danger ms-2" id="pdfPreview"><i class="fa fa-eye"></i></a>
+							<button title="Prévisualiser PDF" class="btn btn-danger ms-2" id="pdfPreview"><i class="fa fa-eye"></i></button>
 							</h3>
 							<form id="formPdfConvoc" th:action="@{/{ctx}/manager/tagCheck/pdfConvocation(ctx=${eContext})}" method="post">
-								<input type="hidden" value="" name="htmltemplate" id="htmltemplate"></form>
-							<div class="alert alert-danger">
-								<textarea id="pdfArea" th:text=${convocationHtml}></textarea>
-							</div>
+								<input type="hidden" value="" name="htmltemplate" id="htmltemplate">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" name="includeLogo" id="includeLogo" checked>
+									<label class="form-check-label" for="flexSwitchCheckChecked">Ajouter le logo d'en-tête</label>
+								</div>
+							</form>
+								<div class="alert alert-danger">
+									<textarea id="pdfArea" th:text=${convocationHtml}></textarea>
+								</div>
 						</div>
 						<div class="col-lg-6">
 							<h3>Message </h3>
 							<div class="alert alert-info">
 								<p class="mb-0"><strong>Pour :</strong> <span th:text="${tagChecks}"></span><span th:text="${all}? 'Tous' : ''"></span></p>
 								<form th:action="@{/{ctx}/manager/tagCheck/sendConvocation(ctx=${eContext})}" method="post" id="sendConvocation">
+									<input type="hidden" value="" name="includeLogo" id="hiddenIncludeLogo">
 				                    <div class="form-group row mb-0">
 				                        <label for="subject" class="form-label col-lg-2">Sujet : </label>
 				                        <div class="col-lg-10">

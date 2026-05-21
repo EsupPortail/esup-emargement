@@ -9,6 +9,10 @@ function initSlimSelects() {
     }
   });
 }
+function updateHidden() {
+    let isChecked = $('#includeLogo').is(':checked');
+    $('#hiddenIncludeLogo').val(isChecked ? 'true' : 'false');
+}
 function copySelectedIds(targetFieldId, formId) {
     var selected = [];
 
@@ -2450,6 +2454,14 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	// Initialisation au chargement
+	updateHidden();
+
+	// Mise à jour quand on change le switch
+	$('#includeLogo').on('change', function() {
+		updateHidden();
+	});
+
 });
 
 //absences dans assiduité

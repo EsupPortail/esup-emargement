@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -179,8 +180,8 @@ public class TagCheckController {
 	@GetMapping(value = "/manager/tagCheck/sessionEpreuve/{id}", produces = "text/html")
     public String listTagCheckBySessionEpreuve(@PathVariable Long id, Model model, 
     		@PageableDefault(size = 50, direction = Direction.ASC, sort = "person.eppn")  Pageable pageable, 
-    			@RequestParam(defaultValue = "") String tempsAmenage, @RequestParam(defaultValue = "") String eppn, @RequestParam(value="repartition", required = false) 
-    			Long repartitionId) throws ParseException {
+    			@RequestParam(defaultValue = "") String tempsAmenage, @RequestParam(defaultValue = "") String eppn, 
+    			@RequestParam(value="repartition", required = false) Long repartitionId, HttpServletRequest request) throws ParseException {
 		
 		Long count = tagCheckService.countTagchecks(tempsAmenage, eppn, id, repartitionId);
 		Long unknown = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNotNull(id);
@@ -241,6 +242,11 @@ public class TagCheckController {
 		model.addAttribute("notInLdap", notInLdap);
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
 		model.addAttribute("countsignedPdf", esupSignatureRepository.countBySessionEpreuve(se));
+		
+	    if ("true".equals(request.getHeader("HX-Request"))) {
+	        return "manager/tagCheck/list :: content";
+	    }
+		
         return "manager/tagCheck/list";
     }
 	
@@ -418,8 +424,8 @@ public class TagCheckController {
     }
     
     @PostMapping("/manager/tagCheck/pdfConvocation")
-	public void getPdfConvocation(HttpServletResponse response, @RequestParam String htmltemplate) throws Exception {
-    	tagCheckService.getPdfConvocation(response,htmltemplate);
+	public void getPdfConvocation(HttpServletResponse response, @RequestParam String htmltemplate, @RequestParam(defaultValue = "false") boolean includeLogo) throws Exception {
+    	tagCheckService.getPdfConvocation(response,htmltemplate, includeLogo);
 	}
     
     @GetMapping("/manager/tagCheck/export")
@@ -433,10 +439,10 @@ public class TagCheckController {
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg, 
     		@RequestParam(defaultValue = "false") boolean isSendToManager,  @RequestParam(value="all", defaultValue = "false") boolean isAll,
     		@RequestParam(defaultValue = "") List<Long> listeIds,  @RequestParam String htmltemplatePdf, @RequestParam 
-    		Long seId) throws Exception {
+    		Long seId, @RequestParam(defaultValue = "false") boolean includeLogo) throws Exception {
 
 		if(appliConfigService.isSendEmails()){
-			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId, true);
+			tagCheckService.sendEmailConvocation(subject, bodyMsg, isSendToManager, listeIds, htmltemplatePdf, emargementContext, isAll, seId, true, includeLogo);
 		}else {
 			log.info("Envoi de mail désactivé :  ");
 		}

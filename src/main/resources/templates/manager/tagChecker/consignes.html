@@ -26,9 +26,15 @@
 	 			<div class="card-body">
 		 			<div class="row">
 						<div class="col-lg-6">
-							<h3>Consignes PDF <a href="#" title="Prévisualiser PDF" class="btn btn-danger ml-2" id="pdfPreview"><i class="fa fa-eye"></i></a></h3>
+							<h3>Consignes PDF 
+								<button title="Prévisualiser PDF" class="btn btn-danger ms-2" id="pdfPreview"><i class="fa fa-eye"></i></button>
+							</h3>
 							<form id="formPdfConvoc" th:action="@{/{ctx}/manager/tagCheck/pdfConvocation(ctx=${eContext})}" method="post">
 								<input type="hidden" value="" name="htmltemplate" id="htmltemplate">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" name="includeLogo" id="includeLogo" checked>
+									<label class="form-check-label" for="flexSwitchCheckChecked">Ajouter le logo d'en-tête</label>
+								</div>
 							</form>
 							<div class="alert alert-danger">
 								<textarea id="pdfArea" th:text=${consignesHtml}></textarea>
@@ -39,6 +45,7 @@
 							<div class="alert alert-info">
 								<p class="mb-0"><strong>Pour :</strong> <span th:text="${tagCheckers}"></span></p>
 								<form th:action="@{/{ctx}/manager/tagChecker/sendConsignes(ctx=${eContext})}" method="post" id="sendConsignes">
+									<input type="hidden" value="" name="includeLogo" id="hiddenIncludeLogo">
 				                    <div class="form-group row">
 				                       <label for="subject" class="form-label col-lg-2">Sujet : </label>
 				                       <div class="col-lg-10">

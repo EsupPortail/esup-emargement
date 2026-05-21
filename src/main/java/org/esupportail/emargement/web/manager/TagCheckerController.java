@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -107,7 +108,7 @@ public class TagCheckerController {
 	
 	@GetMapping(value = "/manager/tagChecker/sessionEpreuve/{id}", produces = "text/html")
     public String listTagCheckerBySessionEpreuve(@PathVariable("id") SessionEpreuve sessionEpreuve, Model model, 
-    		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable) {
+    		@PageableDefault(size = 20, direction = Direction.ASC, sort = "userApp")  Pageable pageable, HttpServletRequest request) {
 
 		Page<TagChecker> tagCheckerPage = tagCheckerService.getListTagCheckerBySessionEpreuve(sessionEpreuve, pageable);
 		model.addAttribute("isSessionEpreuveClosed", sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuveRepository.findById(sessionEpreuve.getId()).get()));
@@ -116,6 +117,11 @@ public class TagCheckerController {
 		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("isConsignesEnabled", appliConfigService.isConsignesEnabled());
+		
+	    if ("true".equals(request.getHeader("HX-Request"))) {
+	        return "manager/tagChecker/list :: content";
+	    }
+
         return "manager/tagChecker/list";
     }
 	
@@ -302,10 +308,10 @@ public class TagCheckerController {
 	@Transactional
 	@PostMapping(value = "/manager/tagChecker/sendConsignes", produces = "text/html")
     public String sendConvocation(@PathVariable String emargementContext, @RequestParam String subject, @RequestParam String bodyMsg, 
-    		@RequestParam Long sessionEpreuveId,  @RequestParam String htmltemplatePdf) throws Exception {
+    		@RequestParam Long sessionEpreuveId,  @RequestParam String htmltemplatePdf, @RequestParam(defaultValue = "false") boolean includeLogo) throws Exception {
 		
 		if(appliConfigService.isSendEmails()){
-			tagCheckerService.sendEmailConsignes(subject, bodyMsg, sessionEpreuveId, htmltemplatePdf);
+			tagCheckerService.sendEmailConsignes(subject, bodyMsg, sessionEpreuveId, htmltemplatePdf, includeLogo);
 		}else {
 			log.info("Envoi de mail désactivé :  ");
 		}
