@@ -131,9 +131,9 @@ public class AssiduiteController {
 		if(typeIndividu.equalsIgnoreCase("surv")) {
 			List<TagChecker> tcers = new ArrayList<>();
 			if ("absence".equalsIgnoreCase(assiduiteBean.getSituation())) {
-				tcers = tagCheckerRepository.findByTagDateIsNull();
+				tcers = tagCheckerRepository.findByTagDateIsNullAndSessionLocationSessionEpreuveDateExamenBetween(dateDebut, dateFin);
 			} else {
-				tcers = tagCheckerRepository.findByTagDateIsNotNullAndTagDateBetween(dateDebut, dateFin);
+				tcers = tagCheckerRepository.findByTagDateIsNotNullAndSessionLocationSessionEpreuveDateExamenBetween(dateDebut, dateFin);
 			}
 
 			Map<Long, TagChecker> uniqueBySession = new LinkedHashMap<>();
