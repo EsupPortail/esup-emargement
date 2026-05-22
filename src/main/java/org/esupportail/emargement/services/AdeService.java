@@ -598,21 +598,24 @@ public class AdeService {
 									}
 								}
 								if(!isUnknown) {
-									TagCheck tc = new TagCheck();
-									//A voir 
-									//tc.setCodeEtape(codeEtape);
-									Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
-									List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
-		                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
-									if(!absences.isEmpty()) {
+									TagCheck existing = tagCheckRepository.findByPersonAndSessionEpreuveAndContext(person, se, ctx);
+									if (existing == null) {
+										TagCheck tc = new TagCheck();
+										//A voir 
+										//tc.setCodeEtape(codeEtape);
+										Date endDate =  se.getDateFin() != null? se.getDateFin() : se.getDateExamen();
+										List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
+			                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
+										if(!absences.isEmpty()) {
+											nbStudents++;
+						    				tc.setAbsence(absences.get(0));
+						    			}
+										tc.setContext(ctx);
+										tc.setPerson(person);
+										tc.setSessionEpreuve(se);
+										tagCheckRepository.save(tc);
 										nbStudents++;
-					    				tc.setAbsence(absences.get(0));
-					    			}
-									tc.setContext(ctx);
-									tc.setPerson(person);
-									tc.setSessionEpreuve(se);
-									tagCheckRepository.save(tc);
-									nbStudents++;
+									}
 									if(groupes!=null && !groupes.isEmpty()) {
 										groupeService.addPerson(person, groupes);
 									}
@@ -682,15 +685,18 @@ public class AdeService {
 
 					log.debug("Il y a donc "+persons.size()+" participants à ajouter à la session");
 					for (Person person : persons) {
-						TagCheck tc = new TagCheck();
-						// A voir
-						// tc.setCodeEtape(codeEtape);
-						tc.setContext(ctx);
-						tc.setPerson(person);
-						tc.setSessionEpreuve(se);
-						// TODO En profiter pour noter dès maintenant les étudiants avec dispense ??
-						tagCheckRepository.save(tc);
-						nbStudents++;
+						TagCheck existing = tagCheckRepository.findByPersonAndSessionEpreuveAndContext(person, se, ctx);
+						if (existing == null) {
+							TagCheck tc = new TagCheck();
+							// A voir
+							// tc.setCodeEtape(codeEtape);
+							tc.setContext(ctx);
+							tc.setPerson(person);
+							tc.setSessionEpreuve(se);
+							// TODO En profiter pour noter dès maintenant les étudiants avec dispense ??
+							tagCheckRepository.save(tc);
+							nbStudents++;
+						}
 					}
 
 					break;
@@ -705,8 +711,8 @@ public class AdeService {
 	}
 	
 	@Transactional
-	private void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx,
-			List<SessionLocation> sls, int nbStudents) throws ParseException {
+    public void processLocations(SessionEpreuve se, AdeResourceBean ade, String sessionId, Context ctx,
+                                 List<SessionLocation> sls, int nbStudents) throws ParseException {
 
 		List<Map<Long, String>> listAdeClassRooms = ade.getClassrooms();
 		boolean isCapaciteSalleEnabled = appliConfigService.isAdeCampusUpdateCapaciteSalleEnabled(ctx);
@@ -803,14 +809,21 @@ public class AdeService {
 	                        ". Ignorés, première Location utilisée.");
 	            }
 	        }
-	        // SessionLocation
-	        SessionLocation sl = new SessionLocation();
-	        sl.setCapacite(location.getCapacite());
-	        sl.setContext(ctx);
-	        sl.setLocation(location);
-	        sl.setSessionEpreuve(se);
-	        sl.setPriorite(1);
-	        sls.add(sessionLocationRepository.save(sl));
+	        
+	        SessionLocation existingSl = sessionLocationRepository.findBySessionEpreuveAndLocationAndContext(se, location, ctx);
+
+			if (existingSl == null) {
+				SessionLocation sl = new SessionLocation();
+				sl.setCapacite(location.getCapacite());
+				sl.setContext(ctx);
+				sl.setLocation(location);
+				sl.setSessionEpreuve(se);
+				sl.setPriorite(1);
+				sls.add(sessionLocationRepository.save(sl));
+			} else {
+				existingSl.setCapacite(location.getCapacite());
+				sls.add(sessionLocationRepository.save(existingSl));
+			}
 	    }
 	    log.info("processLocations terminé pour session " + sessionId);
 	}
@@ -848,11 +861,14 @@ public class AdeService {
 						if(!sls.isEmpty()) {
 							for(SessionLocation sl : sls) {
 								if(userApp != null) {
-									TagChecker tc =  new TagChecker();
-									tc.setContext(ctx);
-									tc.setUserApp(userApp);
-									tc.setSessionLocation(sl);
-									tagCheckerRepository.save(tc);
+									TagChecker existing = tagCheckerRepository.findByUserAppAndSessionLocation(userApp, sl);
+									if (existing == null) {
+										TagChecker tc =  new TagChecker();
+										tc.setContext(ctx);
+										tc.setUserApp(userApp);
+										tc.setSessionLocation(sl);
+										tagCheckerRepository.save(tc);
+									}
 								}else {
 									log.warn("Import surveillant impossible car la personne correspondant à cet email :" + bean.getEmail() + 
 											", n'est pas dans le ldap "  );

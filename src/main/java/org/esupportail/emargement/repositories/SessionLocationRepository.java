@@ -3,6 +3,7 @@ package org.esupportail.emargement.repositories;
 import java.util.List;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,8 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 	List<SessionLocation> findSessionLocationBySessionEpreuveId(Long Id);
 	
 	 SessionLocation findSessionLocationBySessionEpreuveIdAndLocationNom(Long id, String nom);
+	
+	SessionLocation findBySessionEpreuveAndLocationAndContext(SessionEpreuve sessionEpreuve, Location location, Context context);
 	
 	//STATS
 	@Query(value = "select nom, count(*) from session_location, location, session_epreuve, statut_session "

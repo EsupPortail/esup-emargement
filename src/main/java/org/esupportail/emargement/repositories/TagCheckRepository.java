@@ -329,6 +329,7 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	@Query(value = "select * from tag_check, person where tag_check.person_id = person.id and person.eppn= :eppn and session_epreuve_id= :id", nativeQuery = true)
 	TagCheck findTagCheckBySessionEpreuveIdAndEppn(Long id, String eppn);
 	
+	TagCheck findByPersonAndSessionEpreuveAndContext(Person person, SessionEpreuve sessionEpreuve, Context context);
 	
 	//STATS
 	@Query(value = "select (CASE WHEN session_location_badged_id IS NOT NULL THEN 'Present' WHEN session_location_badged_id IS NULL THEN 'Absent' END) as tagcheck,  count(*) "
