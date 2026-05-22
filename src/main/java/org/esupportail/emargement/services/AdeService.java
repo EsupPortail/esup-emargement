@@ -1000,6 +1000,18 @@ public class AdeService {
 		return values;
 	}
 	
+	public List<String> getPrefByContext(String nom, Context ctx) {
+		List<String> values = new ArrayList<>();
+		List<Prefs> prefs = prefsRepository.findByNomAndContext(nom, ctx);
+		if(!prefs.isEmpty()) {
+			String liste =  prefs.get(0).getValue().trim();
+			String [] splitList = liste.split(",");
+			values = Arrays.asList(splitList);
+		}
+
+		return values;
+	}
+	
 	public String getCurrentProject(String projet, String eppn, String emargementContext) {
 	    if (!appliConfigService.getProjetAde().isEmpty()) {
 	        return appliConfigService.getProjetAde();

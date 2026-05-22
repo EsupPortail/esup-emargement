@@ -139,13 +139,14 @@ public class TaskService {
 	
 	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
 		String idProject = task.getAdeProject();
+		Context ctx = contextRepository.findByKey(emargementContext);
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		task.setStatus(org.esupportail.emargement.domain.Task.Status.INPROGRESS);
 		taskRepository.save(task);
 		
 		List<String> idList = Arrays.asList(task.getParam().split(","));
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject);
+		List<String> planifications = adeService.getPrefByContext(AdeController.ADE_PLANIFICATION + idProject , ctx);
 
         if(!planifications.isEmpty()) {
             int nbJours = Integer.valueOf(planifications.get(0));
@@ -153,7 +154,6 @@ public class TaskService {
             String dateDebut = dateFormat.format(datesDebutFin[0]);
             String dateFin = dateFormat.format(datesDebutFin[1]);
             task.setDateExecution(new Date());
-            Context ctx = contextRepository.findByKey(emargementContext);
 
             log.info("[ADE-DEBUG] ctx={} task='{}' idProject={} sessionId={} nbJours={} dateDebut={} dateFin={} idList={} param='{}'",
                     emargementContext, task.getLibelle(), idProject, sessionId, nbJours, dateDebut, dateFin, idList, task.getParam());
