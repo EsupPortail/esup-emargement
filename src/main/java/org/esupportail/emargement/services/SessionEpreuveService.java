@@ -1149,30 +1149,6 @@ public class SessionEpreuveService {
 		}
 	}
 	
-	@Transactional
-	public void migrateAllStatutSession(Context context) {
-		log.info("Migration des statuts de session : ");
-		List<SessionEpreuve> ses = sessionEpreuveRepository.findSessionEpreuveByContext(context);
-		if(!ses.isEmpty()) {
-			for(SessionEpreuve se : ses) {
-				// OPENED, STANDBY, CLOSED, CANCELLED
-				log.info("Maj statut session : " + se.getNomSessionEpreuve());
-				if(se.getStatutSession()==null) {
-					Statut statut = se.getStatut()!=null ? se.getStatut() : Statut.STANDBY;
-					StatutSession  statutSession  =  statutSessionRepository.findByKeyAndContext(statut.name(), context);
-					log.info(statutSession.getKey());
-					se.setStatutSession(statutSession);
-					sessionEpreuveRepository.save(se);
-					log.info("Maj statut Session pour " + se.getNomSessionEpreuve());
-				}else {
-					log.info("Aucune Maj statut session pour : " + se.getNomSessionEpreuve());
-				}
-			}	
-		}else {
-			log.info("RAS");
-		}
-	}
-
 	public SessionEpreuveResult getSessionsWithPreferences(String eppn, String context, SessionEpreuve sessionSearch,
 			String multiSearch, Long searchString, String dateSessions, String view, Pageable pageable, UserApp userApp,
 			boolean isFromSideBar) {

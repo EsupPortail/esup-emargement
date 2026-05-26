@@ -222,7 +222,7 @@ public class TaskService {
 			
 			// Attendre que tous les contextes soient terminés
 			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-			
+			globalTime.stop();
 			log.info("=== Fin de l'import ADE - Temps total : " + globalTime.getTime() + " ms ===");
 			
 			// Nettoyage : suppression des sessions orphelines
