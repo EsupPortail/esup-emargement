@@ -160,7 +160,7 @@ public class TagCheckerService {
 	}
 	
 	
-	public void sendEmailConsignes (String subject, String bodyMsg, Long sessionEpreuveId, String htmltemplatePdf) throws Exception {
+	public void sendEmailConsignes (String subject, String bodyMsg, Long sessionEpreuveId, String htmltemplatePdf, boolean includeLogo) throws Exception {
 		
 		if(sessionEpreuveId!= null) {
 			List<TagChecker> tcs =  tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(sessionEpreuveId);
@@ -176,7 +176,7 @@ public class TagCheckerService {
 							tc.getUserApp().setNom(ldapUser.getName());
 							tc.getUserApp().setPrenom(ldapUser.getPrenom());
 							tc.getUserApp().setCivilite(ldapUser.getCivilite());
-							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc));
+							String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf,tc), includeLogo);
 							if(appliConfigService.isSendEmails()){
 								emailService.sendMessageWithAttachment(ldapUser.getEmail(), subject, bodyMsg, filePath, "consignes.pdf", new String[0], null, true);
 							}else {

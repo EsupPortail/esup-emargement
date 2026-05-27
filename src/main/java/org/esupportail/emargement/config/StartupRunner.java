@@ -54,7 +54,6 @@ public class StartupRunner implements CommandLineRunner {
         		typeSessionService.updateTypeSession(key);
         		absenceService.updateMotifAbsence(key);
         		sessionEpreuveService.updateStatutSession(key);
-        		sessionEpreuveService.migrateAllStatutSession(context);
         		preferencesService.cleanPrefs(context);
         		if(context.getIsActif()==null) {
         			context.setIsActif(true);

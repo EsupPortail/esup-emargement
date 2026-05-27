@@ -1,0 +1,106 @@
+dn: ou=people,dc=example,dc=org
+changetype: add
+ou: people
+objectclass: organizationalunit
+
+dn: uid=admin,ou=people,dc=example,dc=org
+changetype: add
+uid: admin
+sn: admin
+cn: admin
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: admin@example.org
+eduPersonPrincipalName: admin@example.org
+displayName: Super Admin
+sn: Super
+givenName: Admin
+
+dn: uid=joe,ou=people,dc=example,dc=org
+changetype: add
+uid: joe
+sn: joe
+cn: joe
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: joe@example.org
+eduPersonPrincipalName: joe@example.org
+displayName: Joe Dalton
+sn: Dalton
+givenName: joe
+
+dn: uid=jack,ou=people,dc=example,dc=org
+changetype: add
+uid: jack
+sn: jack
+cn: jack
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: jack@example.org
+eduPersonPrincipalName: jack@example.org
+displayName: Jack Dalton
+sn: Dalton
+givenName: Jack
+
+dn: uid=william,ou=people,dc=example,dc=org
+changetype: add
+uid: william
+sn: william
+cn: william
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: william@example.org
+eduPersonPrincipalName: william@example.org
+displayName: William Dalton
+sn: Dalton
+givenName: William
+
+dn: uid=averell,ou=people,dc=example,dc=org
+changetype: add
+uid: averell
+sn: averell
+cn: averell
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: averell@example.org
+eduPersonPrincipalName: averell@example.org
+displayName: Averell Dalton
+sn: Dalton
+givenName: Averell
+
+dn: uid=ma,ou=people,dc=example,dc=org
+changetype: add
+uid: ma
+sn: ma
+cn: ma
+objectClass: inetOrgPerson
+objectClass: eduPerson
+objectClass: supannPerson
+userPassword: pass
+mail: ma@example.org
+eduPersonPrincipalName: ma@example.org
+displayName: Ma Dalton
+sn: Dalton
+givenName: Ma
+
+dn: ou=groups,dc=example,dc=org
+changetype: add
+ou: groups
+objectclass: organizationalunit
+
+dn: cn=admin,ou=groups,dc=example,dc=org
+changetype: add
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: admin
+uniqueMember: uid=admin,ou=people,dc=example,dc=org

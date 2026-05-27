@@ -1,8 +1,11 @@
 *
 !.gitignore
+!.github/
+!.github/**
 !src/
 !src/**
 !LICENCE
 !README.md
 !NOTICE
 !pom.xml
+src/etc/docker/playwright/playwright-report/**

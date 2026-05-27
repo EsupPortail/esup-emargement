@@ -652,8 +652,8 @@ public class TagCheckService {
         return StringUtils.join(snTagChecks, ", ");
     }
 
-    public void getPdfConvocation(HttpServletResponse response, String htmltemplate) throws Exception {
-        String filePath = pdfGenaratorUtil.createPdf(htmltemplate);
+    public void getPdfConvocation(HttpServletResponse response, String htmltemplate, boolean includeLogo) throws Exception {
+        String filePath = pdfGenaratorUtil.createPdf(htmltemplate, includeLogo);
         FileInputStream fis = null;
         response.setContentType("application/pdf");
         response.setHeader("Content-disposition", "attachment;filename=" + "convocation.pdf");
@@ -703,7 +703,7 @@ public class TagCheckService {
     }
 
     public void sendEmailConvocation(String subject, String bodyMsg, boolean isSendToManager, List<Long> listeIds, String htmltemplatePdf,
-                                     String emargementContext, boolean isAll, Long seId, boolean includePdf) throws Exception {
+                                     String emargementContext, boolean isAll, Long seId, boolean includePdf, boolean includeLogo) throws Exception {
         if (!listeIds.isEmpty() || isAll) {
             int i = 0;
             int j = 0;
@@ -737,7 +737,7 @@ public class TagCheckService {
                     } else if (tc.getGuest() != null) {
                         email = tc.getGuest().getEmail();
                     }
-                    String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf, tc));
+                    String filePath = pdfGenaratorUtil.createPdf(replaceFields(htmltemplatePdf, tc), includeLogo);
                     if (appliConfigService.isSendEmails()) {
                         boolean addAttachment = htmltemplatePdf.isEmpty() || !includePdf ? false : true;
                         emailService.sendMessageWithAttachment(email, subject, bodyMsg, filePath, "convocation.pdf", ccArray, null, addAttachment);

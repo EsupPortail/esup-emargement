@@ -18,9 +18,9 @@ import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.esupportail.emargement.beans.SessionEpreuveResult;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
-import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
@@ -39,7 +39,6 @@ import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
-import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCustom;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
@@ -48,7 +47,6 @@ import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
-import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -56,13 +54,9 @@ import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -95,9 +89,6 @@ public class SessionEpreuveController {
 	StoredFileRepository storedFileRepository;
 	
 	@Autowired
-	SessionEpreuveRepositoryCustom sessionEpreuveRepositoryCustom;
-	
-	@Autowired
 	CampusRepository campusRepository;
 	
 	@Autowired
@@ -120,9 +111,6 @@ public class SessionEpreuveController {
 	
     @Resource
     SessionEpreuveService sessionEpreuveService;
-    
-    @Resource 
-    PreferencesService preferencesService;
     
     @Resource
     SessionLocationService sessionLocationService;
@@ -162,14 +150,6 @@ public class SessionEpreuveController {
 	
 	private final static String ITEM = "sessionEpreuve";
 	
-	private final static String SESSIONS_SORTBYSTATUT = "sessionsSortByStatut";
-	private final static String SESSIONS_SORTBYTYPE = "sessionsSortByType";
-	private final static String SESSIONS_SORTBYPERIOD = "sessionsSortByPeriod";
-	private final static String SESSIONS_SORTBYCAMPUS = "sessionsSortByCampus";
-	private final static String SESSIONS_SORTBYLISTE = "sessionsSortByListe";
-	private final static String SESSIONS_SORTBYADE = "sessionsSortByAde";
-	
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
@@ -177,112 +157,33 @@ public class SessionEpreuveController {
 		return ITEM;
 	}
 
-	@GetMapping(value = "/manager/sessionEpreuve")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC) Pageable pageable, 
-			@RequestParam(required = false) String multiSearch, @RequestParam(required = false) Long searchString,
-			SessionEpreuve sessionSearch,  @RequestParam(required = false) String dateSessions,
-			@RequestParam(required = false) String view) {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
-		Context ctx = contextRepository.findByKey(emargementContext);
-		boolean isAdeEnabled = appliConfigService.isAdeCampusEnabled();
-		ExampleMatcher matcher = ExampleMatcher.matching()
-		.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded", "isGroupeDisplayed", "isSecondTag")
-		.withIgnoreNullValues()
-		.withMatcher("statut", ExampleMatcher.GenericPropertyMatchers.exact())
-		.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
-		.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
-		.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact());
-		if (isAdeEnabled) {
-			matcher.withMatcher("adeBranch", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
-		}
-		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYSTATUT);
-		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYTYPE);
-		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYPERIOD);
-		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYCAMPUS);
-		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYLISTE);
-		List<Prefs> prefsAde = new ArrayList<>();
-		if (isAdeEnabled) {
-			prefsAde = prefsRepository.findByUserAppEppnAndNom(auth.getName(), SESSIONS_SORTBYADE);
-		}
-		if(searchString != null) {
-			sessionSearch.setId(searchString);
-		}
-		if(dateSessions == null) {
-			dateSessions = (prefsPeriod.isEmpty())? "all" : prefsPeriod.get(0).getValue();
-		}
-		if(multiSearch == null) {
-			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getLastAnneeUniv(emargementContext)));
-			String selectedStatut = (prefsStatut.isEmpty())? "" : prefsStatut.get(0).getValue();
-			sessionSearch.setStatutSession((selectedStatut.isEmpty())? null : statutSessionRepository.findByKey(selectedStatut));
-			String selectedType = (prefsType.isEmpty())? "" : prefsType.get(0).getValue();
-			sessionSearch.setTypeSession((selectedType.isEmpty())? null : typeSessionRepository.findById(Long.valueOf(selectedType)).get());
-			String selectedCampus= (prefsCampus.isEmpty())? "" : prefsCampus.get(0).getValue();
-			sessionSearch.setCampus((selectedCampus.isEmpty())? null : campusRepository.findById(Long.valueOf(selectedCampus)).get());
-			String selectedListe= (prefsListe.isEmpty())? "" : prefsListe.get(0).getValue();
-			view = selectedListe.isEmpty()? "all" : selectedListe;
-			if (isAdeEnabled) {
-				String selectedAdeBranch = (prefsAde.isEmpty()) ? "" : prefsAde.get(0).getValue();
-				sessionSearch.setAdeBranch((selectedAdeBranch.isEmpty() || "all".equals(selectedAdeBranch)) ? null
-						: sessionEpreuveService.getAdeBranchById(Long.valueOf(selectedAdeBranch)));
-			}
-		}else{
-			if(sessionSearch.getId()==null) {
-				String prefStatutValue = (sessionSearch.getStatutSession() == null)? "" : sessionSearch.getStatutSession().getKey();
-				preferencesService.updatePrefs(SESSIONS_SORTBYSTATUT, prefStatutValue, auth.getName(), emargementContext, "dummy") ;
-				String prefTypeValue = (sessionSearch.getTypeSession() == null)? "" : sessionSearch.getTypeSession().getId().toString();
-				preferencesService.updatePrefs(SESSIONS_SORTBYTYPE, prefTypeValue, auth.getName(), emargementContext, "dummy") ;
-				String prefPeriodValue = (dateSessions == null)? "all" : dateSessions;
-				preferencesService.updatePrefs(SESSIONS_SORTBYPERIOD, prefPeriodValue, auth.getName(), emargementContext, "dummy") ;
-				String prefCampusValue = (sessionSearch.getCampus() == null)? "" : sessionSearch.getCampus().getId().toString();
-				preferencesService.updatePrefs(SESSIONS_SORTBYCAMPUS, prefCampusValue, auth.getName(), emargementContext, "dummy") ;
-				String prefsListeValue = (view == null)? "" : view;
-				preferencesService.updatePrefs(SESSIONS_SORTBYLISTE, prefsListeValue, auth.getName(), emargementContext, "dummy") ;
-				if (isAdeEnabled) {
-					String prefsAdeValue = (sessionSearch.getAdeBranch() == null)? "" : sessionSearch.getAdeBranch().getId().toString();
-					preferencesService.updatePrefs(SESSIONS_SORTBYADE, prefsAdeValue, auth.getName(), emargementContext, "dummy") ;
-				}
-			}
-		}
-		Example<SessionEpreuve> sessionQuery = Example.of(sessionSearch, matcher);
-		Sort sort = pageable.getSort();
-		if(sort.equals(Sort.unsorted())) {
-			sort = Sort.by(Sort.Order.desc("dateExamen"),Sort.Order.asc("heureEpreuve"), Sort.Order.asc("finEpreuve"));
-		}
+	@GetMapping("/manager/sessionEpreuve")
+	public String list(@PathVariable String emargementContext, Model model,
+			@PageableDefault(size = 20) Pageable pageable, @RequestParam(required = false) String multiSearch,
+			@RequestParam(required = false) Long searchString, SessionEpreuve sessionSearch,
+			@RequestParam(required = false) String dateSessions, @RequestParam(required = false) String view) {
 
-		Page<SessionEpreuve> sessionEpreuvePage = null;
-		
-		if(sessionSearch.getId()!=null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent() ) {
-			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
-			List<SessionEpreuve> ses = new ArrayList<>();
-			ses.add(se);
-			sessionEpreuvePage = new PageImpl<>(ses);
-			sessionSearch.setStatutSession(se.getStatutSession());
-			sessionSearch.setTypeSession(se.getTypeSession());
-			sessionSearch.setAnneeUniv(se.getAnneeUniv());
-			sessionSearch.setId(null);			
-		}else {
-			PageRequest newPageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-			Date dateDebut = sessionEpreuveService.setDateSessionEpreuve("dateDebut", dateSessions);
-			Date dateFin = sessionEpreuveService.setDateSessionEpreuve("dateFin", dateSessions);
-			
-			sessionEpreuvePage= sessionEpreuveRepository.findAll(
-					sessionEpreuveRepositoryCustom.getSpecFromDatesAndExample(dateDebut, dateFin, sessionQuery, view, userApp), newPageRequest);
-		}
-        sessionEpreuveService.computeCounters(sessionEpreuvePage.getContent());
-        model.addAttribute("ctxId", contexteService.getcurrentContext().getId());
-        model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
-        model.addAttribute("sessionEpreuvePage", sessionEpreuvePage);
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
-        model.addAttribute("sessionSearch", sessionSearch);
-        model.addAttribute("statuts", statutSessionRepository.findAll());
-        model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
-        model.addAttribute("sites", campusRepository.findByOrderBySite());
-        model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
-        model.addAttribute("dateSessions", dateSessions);
-        model.addAttribute("view", view);
-        model.addAttribute("userApp", userApp);
-		return "manager/sessionEpreuve/list";
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
+		Context ctx = contextRepository.findByKey(emargementContext);
+		SessionEpreuveResult  result  = sessionEpreuveService.getSessionsWithPreferences(auth.getName(),
+				emargementContext, sessionSearch, multiSearch, searchString, dateSessions, view, pageable, userApp,
+				false);
+
+	    model.addAttribute("sessionEpreuvePage", result.getPage());
+	    model.addAttribute("sessionSearch", sessionSearch);
+	    model.addAttribute("dateSessions", result.getDateSessions());
+	    model.addAttribute("view", result.getView());    
+	    model.addAttribute("userApp", userApp);
+	    model.addAttribute("ctxId", contexteService.getcurrentContext().getId());
+	    model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
+	    model.addAttribute("statuts", statutSessionRepository.findAll());
+	    model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
+	    model.addAttribute("sites", campusRepository.findByOrderBySite());
+	    model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
+	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
+
+	    return "manager/sessionEpreuve/list";
 	}
 
 	@GetMapping(value = "/manager/sessionEpreuve/{id}", produces = "text/html")
@@ -661,7 +562,6 @@ public class SessionEpreuveController {
     			sessionEpreuveService.deleteAll(sessionEpreuveRepository.findSessionEpreuveWithNoSessionLocation(new Date(), contexteService.getcurrentContext().getId()));
     		}
     	}
-		
 		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
 	}
     
@@ -689,4 +589,28 @@ public class SessionEpreuveController {
     	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
     	return String.format("redirect:/%s/manager/sessionEpreuve", emargementContext);
     }
+	
+	@GetMapping("/manager/sessionEpreuve/sessions/{type}")
+	public String getSessions(@PathVariable String emargementContext, @PathVariable String type, 
+			@RequestParam(defaultValue = "0") int page, @RequestParam(required = false) Long activeSessionId, 
+			@RequestParam(required = false) String search, Model model, Authentication auth) {
+		Pageable pageable = PageRequest.of(page, 5);
+
+		SessionEpreuve searchObj = new SessionEpreuve();
+
+		if (search != null && !search.isEmpty()) {
+			searchObj.setNomSessionEpreuve(search); // 👈 clé
+		}
+		UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
+		Page<SessionEpreuve> sessions = sessionEpreuveService.getSessionsWithPreferences(auth.getName(),
+				emargementContext, searchObj, (search != null ? "search" : null), null, null, null, pageable, userApp,
+				true).getPage();
+
+		model.addAttribute("sessions", sessions.getContent());
+		model.addAttribute("page", page);
+		model.addAttribute("hasNext", sessions.hasNext());
+		model.addAttribute("activeSessionId", activeSessionId);
+		model.addAttribute("search", search);
+		return "manager/sessionEpreuve/session-list :: list(type='" + type + "')";
+	}
 }
