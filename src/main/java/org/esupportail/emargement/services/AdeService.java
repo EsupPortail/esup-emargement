@@ -335,7 +335,12 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)==0 ? false : true;
+			boolean isSessionExisted = false;
+			if (ade.getSessionEpreuve().getAdeRepetition() != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(ade.getActivityId(), ade.getSessionEpreuve().getAdeRepetition(), ctx)>0;
+			} else {
+				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)>0;
+			}
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;
@@ -913,7 +918,12 @@ public class AdeService {
 
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {
 		for (SessionEpreuve se : seList) {
-			boolean isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx)==0 ? false : true;
+			boolean isSessionExisted = false;
+			if (se.getAdeRepetition() != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), ctx)>0;
+			} else {
+				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx)>0;
+			}
 			if(!isSessionExisted) {
 	          se.setAdeOrphan(true);
 	          sessionEpreuveRepository.save(se);
