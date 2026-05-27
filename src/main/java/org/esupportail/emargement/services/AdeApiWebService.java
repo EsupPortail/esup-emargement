@@ -718,27 +718,43 @@ public class AdeApiWebService implements AdeApiService {
 						Long eventId = Long.valueOf(element.getAttribute("id"));
 						String activityId = element.getAttribute("activityId");
 						Long activityIdValue = Long.valueOf(activityId);
-						boolean isAlreadyimport = false;
-						Date dateExamen = formatter.parse(element.getAttribute("date"));
-						Date heureDebut = formatter1.parse(element.getAttribute("startHour"));
-						Date heureFin = formatter1.parse(element.getAttribute("endHour"));
-						if(sessionEpreuveRepository.countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx)>0){
-							isAlreadyimport = true;
-						}else if(sessionEpreuveRepository.countByAdeEventIdAndContext(eventId, ctx) >0) {
-							isAlreadyimport = true;
+						String adeRepetitionStr = element.getAttribute("repetition");
+						Integer adeRepetitionValue = null;
+						if (adeRepetitionStr != null && !adeRepetitionStr.isEmpty()) {
+							adeRepetitionValue = Integer.valueOf(adeRepetitionStr);
+						}
+						String adeSessionStr = element.getAttribute("session");
+						Integer adeSessionValue = null;
+						if (adeSessionStr != null && !adeSessionStr.isEmpty()) {
+							adeSessionValue = Integer.valueOf(adeSessionStr);
+						}
+
+                        Date dateExamen = formatter.parse(element.getAttribute("date"));
+                        Date heureDebut = formatter1.parse(element.getAttribute("startHour"));
+                        Date heureFin = formatter1.parse(element.getAttribute("endHour"));
+						// Recherche de la session existante en cascade :
+						// 1) (activiteId, repetition, session) - clé métier robuste à une replanification ADE
+						// 2) (activiteId, date, heureDebut, heureFin) - fallback pour les sessions créées avant l'ajout du triplet
+						// 3) eventId - dernier recours
+						SessionEpreuve existingSession = findExistingSessionForEvent(
+								activityIdValue, adeRepetitionValue, adeSessionValue, dateExamen, heureDebut, heureFin, eventId, ctx);
+						boolean isAlreadyimport = (existingSession != null);
+						// Auto-migration : si on a trouvé une session héritée par fallback (sans repetition/session en base)
+						// et qu'ADE nous fournit maintenant ces valeurs, on enrichit la session pour les futures synchros
+						if (isAlreadyimport
+								&& ((adeRepetitionValue != null && existingSession.getAdeRepetition() == null)
+								|| (adeSessionValue != null && existingSession.getAdeSession() == null))) {
+							log.info("Auto-migration adeRepetition/adeSession pour SessionEpreuve id={} (eventId={}, activityId={}) -> repetition={}, session={}",
+									existingSession.getId(), eventId, activityIdValue, adeRepetitionValue, adeSessionValue);
+							existingSession.setAdeRepetition(adeRepetitionValue);
+							existingSession.setAdeSession(adeSessionValue);
+							sessionEpreuveRepository.save(existingSession);
 						}
 						if(existingSe == null && !isAlreadyimport && !update|| "true".equals(existingSe)|| update){
 							SessionEpreuve se = null;
-							if(isAlreadyimport) {
-								List<SessionEpreuve> ses = null;
-								if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx);
-									se = ses.get(0);
-								}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
-									ses = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
-									se = ses.get(0);
-								}
-							}else {
+                            if(isAlreadyimport) {
+                                se = existingSession;
+                            }else {
 								se = new SessionEpreuve();
 							}
 							adeResourceBean.setActivityId(activityIdValue);
@@ -762,18 +778,20 @@ public class AdeApiWebService implements AdeApiService {
 								se.setFinEpreuve(heureFin);
 								se.setAdeEventId( Long.valueOf(element.getAttribute("id")));
 								se.setAdeActiviteId(activityIdValue);
+								if (adeRepetitionValue != null) {
+									se.setAdeRepetition(adeRepetitionValue);
+								}
+								if (adeSessionValue != null){
+									se.setAdeSession(adeSessionValue);
+								}
 								se.setLibelleAdeBranch(libelle);
 								//pour l'instant
 								if(!campusRepository.findByContext(ctx).isEmpty()) {
 									se.setCampus(campusRepository.findByContext(ctx).get(0));
 								}
-								if(isAlreadyimport) {
-									if(!sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(activityIdValue, dateExamen, heureDebut, heureFin, ctx).get(0).getDateCreation());
-									}else if (!sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).isEmpty()) {
-										se.setDateCreation(sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx).get(0).getDateCreation());
-									}
-								}
+                                if(isAlreadyimport && existingSession != null) {
+                                    se.setDateCreation(existingSession.getDateCreation());
+                                }
 								adeResourceBean.setAlreadyimport(isAlreadyimport);
 								adeResourceBean.setEventId(eventId);
 								Date lastUpdate = null;
@@ -1223,4 +1241,35 @@ public class AdeApiWebService implements AdeApiService {
 	    }
 		return vet;
 	}
+
+    /**
+     * Cherche une SessionEpreuve existante correspondant à un évènement ADE, en cascade :
+     * 1. (adeActiviteId, adeRepetition) - clé métier robuste à une replanification ADE
+     * 2. (adeActiviteId, dateExamen, heureEpreuve, finEpreuve) - fallback pour les sessions créées
+     *    avant l'ajout du champ adeRepetition (NULL en base)
+     * 3. adeEventId - dernier recours
+     *
+     * @return la SessionEpreuve existante, ou null si aucune ne matche
+     */
+	private SessionEpreuve findExistingSessionForEvent(Long activityIdValue, Integer adeRepetitionValue, Integer adeSessionValue,
+													   Date dateExamen, Date heureDebut, Date heureFin, Long eventId, Context ctx) {
+		if (adeRepetitionValue != null && adeSessionValue != null) {
+			List<SessionEpreuve> bySemanticKey = sessionEpreuveRepository
+					.findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(activityIdValue, adeRepetitionValue, adeSessionValue, ctx);
+			if (!bySemanticKey.isEmpty()) {
+				return bySemanticKey.get(0);
+			}
+		}
+        List<SessionEpreuve> byDateTime = sessionEpreuveRepository
+                .findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(
+                        activityIdValue, dateExamen, heureDebut, heureFin, ctx);
+        if (!byDateTime.isEmpty()) {
+            return byDateTime.get(0);
+        }
+        List<SessionEpreuve> byEventId = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
+        if (!byEventId.isEmpty()) {
+            return byEventId.get(0);
+        }
+        return null;
+    }
 }
