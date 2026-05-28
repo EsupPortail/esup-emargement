@@ -371,12 +371,26 @@ public class AdeService {
 					processSessionEpreuve(se, campus, ctx);
 					processTypeSession(ade, se, ctx);
 					sessionEpreuveRepository.save(se);
+                    long perfT0 = System.currentTimeMillis();
 					int nbStudents = processStudents(se, ade, sessionId, groupes, ctx);
+                    long perfT1 = System.currentTimeMillis();
 					List<SessionLocation> sls = new ArrayList<>();
 					processLocations(se, ade, sessionId, ctx, sls, nbStudents);
+                    long perfT2 = System.currentTimeMillis();
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
+                    long perfT3 = System.currentTimeMillis();
 					processInstructors(ade, sessionId, ctx, sls);
+                    long perfT4 = System.currentTimeMillis();
+
+                    log.info("[PERF] session={} students={}ms locations={}ms repartition={}ms instructors={}ms (nbStudents={})",
+                            se.getId(),
+                            (perfT1 - perfT0),
+                            (perfT2 - perfT1),
+                            (perfT3 - perfT2),
+                            (perfT4 - perfT3),
+                            nbStudents);
+
 					if (appliConfigService.isAdeImportAfficherGroupes(ctx)) {
 						se.setIsGroupeDisplayed(true);
 					}
