@@ -138,6 +138,8 @@ public class TaskService {
 	}
 	
 	public void processTask(Task task, String emargementContext, Long dureeMax, int numImport) throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException, XPathExpressionException {
+		AdeImportCache.begin("processTask:" + emargementContext + ":" + task.getAdeProject());
+		try {
 		String idProject = task.getAdeProject();
 		Context ctx = contextRepository.findByKey(emargementContext);
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
@@ -181,6 +183,9 @@ public class TaskService {
 			log.info("Aucune valeur de planification pour le projet : " + idProject);
 			task.setStatus(org.esupportail.emargement.domain.Task.Status.FAILED);
 			taskRepository.save(task);
+		}
+		} finally {
+			AdeImportCache.end();
 		}
 	}
 

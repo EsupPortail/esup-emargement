@@ -328,6 +328,8 @@ public class AdeService {
 	@Transactional
 	public int saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, Campus campus, 
 			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax) throws ParseException {
+		AdeImportCache.begin("saveEvents:" + emargementContext + ":" + (update ? "update" : "import"));
+		try {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
@@ -412,6 +414,9 @@ public class AdeService {
 			}
 		}
 		return i;
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 
 	private void clearSessionRelatedData(SessionEpreuve se) {
@@ -926,6 +931,8 @@ public class AdeService {
 	}
 
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {
+		AdeImportCache.begin("updateSessionEpreuve:" + emargementContext + ":" + typeSync);
+		try {
 		for (SessionEpreuve se : seList) {
             boolean isSessionExisted = false;
 
@@ -951,6 +958,9 @@ public class AdeService {
 					}
 			}
 		}
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 	
     public String getJsonfile(String fatherId, String emargementContext, String category, String idProject) {
@@ -961,6 +971,8 @@ public class AdeService {
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update, String libelle)
 			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException{
+		AdeImportCache.begin("importEvents:" + emargementContext + ":" + (update ? "update" : "import"));
+		try {
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -992,6 +1004,9 @@ public class AdeService {
 			}
 		}
 		return nbImports;
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 	
 	public List<String> getValuesPref(String eppn, String pref) {
