@@ -86,11 +86,12 @@ puis on repositionne spring.jpa.hibernate.ddl-auto à update pour que les procha
         <property name="description" value="via Esup SGC"/>
     </bean>
 
-### Environnement de test/développement sous docker
+### Environnement de test sous docker
 
-Vous pouvez lancer un environnement de test/développement d'esup-emargement via docker-compose.
+Vous pouvez lancer un environnement de test d'esup-emargement via docker-compose.
+
 ```
-docker compose -f src/etc/docker-compose.yml up
+docker compose -f src/etc/docker-compose.yml --profile with-esup-emargement up
 ```
 
 Une fois lancée, l'application esup-emargement sera accessible à l'adresse http://localhost:8080
@@ -102,13 +103,23 @@ Les utilisateurs et mots de passe par défaut sont les suivants :
 * william/pass
 * averell/pass
 
+### Environnement de développement sous docker
+
+Vous pouvez aussi lancer ce même environnement mais sans l'application esup-emargement, afin de pouvoir le lancer depuis votre IDE.
+
+Cet environnement vous permet le développement d'esup-emargement dans un environnement étanche à votre Système d'Information :
+
+```
+docker compose -f src/etc/docker-compose.yml up
+```
+
 ### Tests Playwright
 
 Des tests end-to-end sont disponibles pour esup-emargement via Playwright.
-Pour les lancer, lancez le docker avec le profil "playwright" :
+Pour les lancer, lancez le docker avec le profil "playwright" et "with-esup-emargement" :
 
 ```
-docker compose -f src/etc/docker-compose.yml --profile playwright up
+docker compose -f src/etc/docker-compose.yml --profile with-esup-emargement --profile playwright up
 ```
 
 ### Téléchargement
