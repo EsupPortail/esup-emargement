@@ -20,6 +20,8 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -35,12 +37,36 @@ public class AppliConfigService {
 	@Autowired
     private MessageSource messageSource;
 	
+	@Autowired(required = false)
+	private CacheManager cacheManager;
+	
 	@Resource
 	LogService logService;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private static final String DELIMITER_MULTIPLE_VALUES = ",";
+
+	/** Nom du cache Spring contenant les valeurs d'AppliConfig par contexte. Doit rester en sync avec CachingConfig. */
+	public static final String APPLI_CONFIG_CACHE = "appliConfig";
+
+	/**
+	 * Vide intégralement le cache des valeurs de configuration.
+	 * <p>
+	 * À appeler après TOUTE écriture (save / setValue / suppression) d'une AppliConfig,
+	 * y compris les écritures faites directement via {@code AppliConfigRepository}
+	 * depuis un contrôleur. Le cache étant porté par contexte+clé, on évince tout
+	 * pour rester simple et sûr (le cache est de toute façon repeuplé à la première lecture).
+	 */
+	public void evictAllAppliConfigCache() {
+		if (cacheManager != null) {
+			org.springframework.cache.Cache c = cacheManager.getCache(APPLI_CONFIG_CACHE);
+			if (c != null) {
+				c.clear();
+				log.debug("Cache appliConfig vidé");
+			}
+		}
+	}
 
 	enum AppliConfigKey {
 		CONVOC_TYPE, CONVOC_SUJET_MAIL, CONVOC_BODY_MAIL, CONSIGNE_TYPE, CONSIGNES_ENABLED,
@@ -223,6 +249,7 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeCampusGroupeAutoEnabled:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeCampusGroupeAutoEnabled(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CREATE_GROUPE_AUTO, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
@@ -241,11 +268,13 @@ public class AppliConfigService {
 	 * @deprecated Cf. getAdeImportSourceParticipants
 	 * @return
 	 */
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isMembersAdeImport:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isMembersAdeImport(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_MEMBERS, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getAdeImportSourceParticipants:' + (#ctx == null ? 'null' : #ctx.key)")
 	public String getAdeImportSourceParticipants(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_SOURCE_PARTICIPANTS, ctx);
 		String source = appliConfig==null ? "" : appliConfig.getValue();
@@ -261,11 +290,13 @@ public class AppliConfigService {
 		return source;
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeImportAfficherGroupes:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeImportAfficherGroupes(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_IMPORT_AFFICHER_GROUPES, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getCategoriesAde:' + (#ctx == null ? 'null' : #ctx.key)")
 	public String getCategoriesAde(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_CATEGORIES, ctx);
 		if(appliConfig==null) {
@@ -278,11 +309,13 @@ public class AppliConfigService {
 		return appliConfig.getValue();
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeVetDisplayed:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeVetDisplayed(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_VET, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getProjetAde'")
 	public  String getProjetAde() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_PROJET);
 		return appliConfig==null ? "" : appliConfig.getValue();
@@ -343,6 +376,7 @@ public class AppliConfigService {
 		return appliConfig==null ? "code" : appliConfig.getValue().trim();
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getAdeMemberAttribute:' + (#ctx == null ? 'null' : #ctx.key)")
 	public  String getAdeMemberAttribute(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_MEMBER_ATTRIBUTE, ctx);
 		return appliConfig==null ? "code" : appliConfig.getValue().trim();
@@ -377,6 +411,7 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeCampusUpdateCapaciteSalleEnabled:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeCampusUpdateCapaciteSalleEnabled(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_UPDATE_CAPACITE_SALLE, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
@@ -387,6 +422,7 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeCampusLimitQueriesEnabled:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeCampusLimitQueriesEnabled(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_LIMIT_QUERIES, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
@@ -397,6 +433,7 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue().trim();
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getAdeSuperGroupe:' + (#ctx == null ? 'null' : #ctx.key)")
 	public  String getAdeSuperGroupe(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_SUPERGROUPE, ctx);
 		return appliConfig==null ? "" : appliConfig.getValue().trim();
@@ -407,11 +444,13 @@ public class AppliConfigService {
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getFormationAde:' + (#ctx == null ? 'null' : #ctx.key)")
 	public  String getFormationAde(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_FORMATION, ctx);
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}
 	
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAdeCampusInstructorManager:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAdeCampusInstructorManager(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ADE_INSTRUCTOR_MANAGER, ctx);
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
@@ -455,6 +494,7 @@ public class AppliConfigService {
 			}
 			log.info("Mise à jour des configs " +list + " pour le contexte : " + context.getKey());
 			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Mise à jour de configs " + list , null,  null, context.getKey(), null);
+			evictAllAppliConfigCache();
 		}
 		return nb;
 	}
@@ -502,7 +542,7 @@ public class AppliConfigService {
 			log.info("Modification des configs " +list + " pour le contexte : " + context.getKey());
 			logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Modification de configs : catégories " , null,  null, context.getKey(), null);
 		}
-		
+		evictAllAppliConfigCache();
 		return nb;
 	}
 	
@@ -541,7 +581,7 @@ public class AppliConfigService {
             	}
             }
         }
-        
+		evictAllAppliConfigCache();
 		return nb;
 	}
 	
