@@ -328,6 +328,8 @@ public class AdeService {
 	@Transactional
 	public int saveEvents(List<AdeResourceBean> beans, String sessionId, String emargementContext, Campus campus, 
 			String idProject, boolean update, String typeSync, List<Long> groupes, Long dureeMax) throws ParseException {
+		AdeImportCache.begin("saveEvents:" + emargementContext + ":" + (update ? "update" : "import"));
+		try {
 		Context ctx = contextRepository.findByContextKey(emargementContext);
 		int i = 0;
 		String total = String.valueOf(beans.size());
@@ -335,12 +337,7 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = false;
-			if (ade.getSessionEpreuve().getAdeRepetition() != null) {
-				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(ade.getActivityId(), ade.getSessionEpreuve().getAdeRepetition(), ctx)>0;
-			} else {
-				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)>0;
-			}
+			boolean isSessionExisted = ade.isAlreadyimport();
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;
@@ -371,12 +368,26 @@ public class AdeService {
 					processSessionEpreuve(se, campus, ctx);
 					processTypeSession(ade, se, ctx);
 					sessionEpreuveRepository.save(se);
+                    long perfT0 = System.currentTimeMillis();
 					int nbStudents = processStudents(se, ade, sessionId, groupes, ctx);
+                    long perfT1 = System.currentTimeMillis();
 					List<SessionLocation> sls = new ArrayList<>();
 					processLocations(se, ade, sessionId, ctx, sls, nbStudents);
+                    long perfT2 = System.currentTimeMillis();
 					//repartition
 					sessionEpreuveService.executeRepartition(se.getId(), "alpha");
+                    long perfT3 = System.currentTimeMillis();
 					processInstructors(ade, sessionId, ctx, sls);
+                    long perfT4 = System.currentTimeMillis();
+
+                    log.info("[PERF] session={} students={}ms locations={}ms repartition={}ms instructors={}ms (nbStudents={})",
+                            se.getId(),
+                            (perfT1 - perfT0),
+                            (perfT2 - perfT1),
+                            (perfT3 - perfT2),
+                            (perfT4 - perfT3),
+                            nbStudents);
+
 					if (appliConfigService.isAdeImportAfficherGroupes(ctx)) {
 						se.setIsGroupeDisplayed(true);
 					}
@@ -403,6 +414,9 @@ public class AdeService {
 			}
 		}
 		return i;
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 
 	private void clearSessionRelatedData(SessionEpreuve se) {
@@ -917,13 +931,19 @@ public class AdeService {
 	}
 
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {
+		AdeImportCache.begin("updateSessionEpreuve:" + emargementContext + ":" + typeSync);
+		try {
 		for (SessionEpreuve se : seList) {
-			boolean isSessionExisted = false;
-			if (se.getAdeRepetition() != null) {
-				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), ctx)>0;
-			} else {
-				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx)>0;
-			}
+            boolean isSessionExisted = false;
+
+            // On s'aligne sur le fallback mis en place dans AdeApiWebService
+            if (se.getAdeRepetition() != null && se.getAdeSession() != null) {
+                isSessionExisted = !sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), se.getAdeSession(), ctx).isEmpty();
+            } else if (se.getAdeRepetition() != null) {
+                isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), ctx) > 0;
+            } else {
+                isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx) > 0;
+            }
 			if(!isSessionExisted) {
 	          se.setAdeOrphan(true);
 	          sessionEpreuveRepository.save(se);
@@ -938,6 +958,9 @@ public class AdeService {
 					}
 			}
 		}
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 	
     public String getJsonfile(String fatherId, String emargementContext, String category, String idProject) {
@@ -948,6 +971,8 @@ public class AdeService {
 			String newGroupe, List<Long> existingGroupe, String existingSe, String codeComposante,
 			Campus campus, List<String> idList, List<AdeResourceBean> beans, String idProject, Long dureeMax, boolean update, String libelle)
 			throws AdeApiRequestException, IOException, ParserConfigurationException, SAXException, ParseException{
+		AdeImportCache.begin("importEvents:" + emargementContext + ":" + (update ? "update" : "import"));
+		try {
 		int nbImports = 0;
 		if (idEvents != null) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -979,6 +1004,9 @@ public class AdeService {
 			}
 		}
 		return nbImports;
+		} finally {
+			AdeImportCache.end();
+		}
 	}
 	
 	public List<String> getValuesPref(String eppn, String pref) {

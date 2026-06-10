@@ -175,6 +175,15 @@ public class AdeApiWebService implements AdeApiService {
     }
 
 	public List<AdeClassroomBean> getListClassrooms(String sessionId, String idItem, List<Long> selectedIds, Context ctx)  throws  ParseException {
+		// On ne cache que les lookups non filtrés (cas du hotpath import). Si le caller passe
+		// un selectedIds, il s'attend à un sous-ensemble filtré, donc on saute le cache.
+		AdeImportCache importCache = (selectedIds == null) ? AdeImportCache.current() : null;
+		if (importCache != null) {
+			List<AdeClassroomBean> cached = importCache.getClassrooms(sessionId, idItem);
+			if (cached != null) {
+				return cached;
+			}
+		}
 		String detail = "9";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlClassroom = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=false&detail=" +detail + "&category=classroom" + idParam;
@@ -220,6 +229,9 @@ public class AdeApiWebService implements AdeApiService {
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
 			log.error("Erreur lors de la récupération de la liste des salles, url : " + urlClassroom, e);
+		}
+		if (importCache != null) {
+			importCache.putClassrooms(sessionId, idItem, adeBeans);
 		}
 		return adeBeans;
 	}
@@ -375,6 +387,13 @@ public class AdeApiWebService implements AdeApiService {
 	}
 	
 	public Map<String, AdeResourceBean> getActivityFromResource(String sessionId, String resourceId, String activityId) throws IOException {
+	    AdeImportCache importCache = AdeImportCache.current();
+	    if (importCache != null) {
+	        Map<String, AdeResourceBean> cached = importCache.getActivities(sessionId, resourceId, activityId);
+	        if (cached != null) {
+	            return cached;
+	        }
+	    }
 	    String url = String.format("%s?sessionId=%s&detail=9&function=getActivities%s",
 	                                urlAde, sessionId, activityId != null ? "&id=" + activityId : "&resources=" + resourceId);
 	    Map<String, AdeResourceBean> mapActivities = new HashMap<>();
@@ -392,16 +411,26 @@ public class AdeApiWebService implements AdeApiService {
 	    } catch (ParserConfigurationException | SAXException e) {
 	    	log.error("erreur lors de la récupération du type d'évènement Ade Campus", e);
 	    }
-
+	    if (importCache != null) {
+	        importCache.putActivities(sessionId, resourceId, activityId, mapActivities);
+	    }
 	    return mapActivities;
 	}
 	
 	public boolean haveAnyMemberGroupsBeenUpdated(AdeResourceBean ade, String sessionId, Context ctx) {
 		if (ade.getLastImport() != null) {
+			final AdeImportCache importCache = AdeImportCache.current();
+			final long lastImportEpoch = ade.getLastImport().getTime();
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.FRANCE);
 			try {
 				// Helper to build and test update from XML
 				BiFunction<String, String, Boolean> checkResourceUpdated = (id, baseUrl) -> {
+					if (importCache != null) {
+						Boolean cached = importCache.getMemberUpdate(sessionId, id, lastImportEpoch);
+						if (cached != null) {
+							return cached;
+						}
+					}
 					try {
 						String urlMembers = String.format(
 								"%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=13", baseUrl, sessionId,
@@ -409,7 +438,10 @@ public class AdeApiWebService implements AdeApiService {
 						DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 						factory.setNamespaceAware(true);
 						DocumentBuilder builder = factory.newDocumentBuilder();
-						Document doc = builder.parse(new java.net.URL(urlMembers).openStream());
+						Document doc;
+						try (InputStream is = openStreamWithTimeout(urlMembers)) {
+							doc = builder.parse(is);
+						}
 						doc.getDocumentElement().normalize();
 
 						XPath xpath = XPathFactory.newInstance().newXPath();
@@ -419,6 +451,9 @@ public class AdeApiWebService implements AdeApiService {
 
 						Date lastUpdateDate = sdf.parse(lastUpdateStr);
 						boolean isAfter = lastUpdateDate.after(ade.getLastImport());
+						if (importCache != null) {
+							importCache.putMemberUpdate(sessionId, id, lastImportEpoch, isAfter);
+						}
 						return isAfter;
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -468,6 +503,13 @@ public class AdeApiWebService implements AdeApiService {
 	}
 	
  	public List<String> getMembersOfEvent(String sessionId, String idResource, String target, Context ctx) {
+	    AdeImportCache importCache = AdeImportCache.current();
+	    if (importCache != null) {
+	        List<String> cached = importCache.getMembers(sessionId, idResource, target);
+	        if (cached != null) {
+	            return cached;
+	        }
+	    }
 	    String detail = "13";
 	    String urlMembers = String.format("%s?sessionId=%s&function=getResources&tree=false&id=%s&detail=%s", 
 	                                      urlAde, sessionId, idResource, detail);
@@ -476,7 +518,10 @@ public class AdeApiWebService implements AdeApiService {
 	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	        factory.setNamespaceAware(true);
 	        DocumentBuilder builder = factory.newDocumentBuilder();
-	        Document doc = builder.parse(urlMembers);
+	        Document doc;
+	        try (InputStream is = openStreamWithTimeout(urlMembers)) {
+	            doc = builder.parse(is);
+	        }
 	        doc.getDocumentElement().normalize();
 	
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
@@ -526,7 +571,11 @@ public class AdeApiWebService implements AdeApiService {
 	        log.error("Erreur lors de la récupération des membres de l'évènement, url : " + urlMembers, e);
 	        e.printStackTrace();
 	    }
-	    return new ArrayList<>(listMembers);
+	    List<String> result = new ArrayList<>(listMembers);
+	    if (importCache != null) {
+	        importCache.putMembers(sessionId, idResource, target, result);
+	    }
+	    return result;
  	}
 	
 	public boolean isResourceFolder(String sessionId, String resourceId) throws Exception {
@@ -891,9 +940,27 @@ public class AdeApiWebService implements AdeApiService {
 		return getDocument(url, null, null);
 	}
 	
+	/**
+	 * Ouvre un InputStream HTTP vers une URL ADE avec timeouts (10s connect / 60s read).
+	 * À utiliser à la place de {@code new URL(s).openStream()} ou {@code DocumentBuilder.parse(String)}
+	 * pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
+	 */
+	private InputStream openStreamWithTimeout(String url) throws IOException {
+		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+		con.setConnectTimeout(10_000);
+		con.setReadTimeout(60_000);
+		return con.getInputStream();
+	}
+
 	public Document getDocument(String url, String login, String password) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
 		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
+		// Timeouts pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
+		// Connect : ~10s couvre largement un handshake TCP + DNS.
+		// Read : 60s laisse de la marge pour les requêtes lourdes (gros groupes ADE) tout en
+		// garantissant qu'un serveur ADE muet libère le thread au lieu de tout figer.
+		con.setConnectTimeout(10_000);
+		con.setReadTimeout(60_000);
 
 		if (null != login) {
 		    String encoded = Base64.getEncoder().encodeToString((login+":"+password).getBytes(StandardCharsets.UTF_8));
