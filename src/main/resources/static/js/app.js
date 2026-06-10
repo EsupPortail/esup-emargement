@@ -927,6 +927,15 @@ function displayEvents(url, table){
 						url: "/webjars/datatables-plugins/i18n/fr-FR.json"
 					}
 				});
+				$('#checkAll').off('click.events').on('click.events', function() {
+					var checked = this.checked;
+					$('.tableFoo').find('.data-checkbox').prop('checked', checked);
+				});
+				$('.tableFoo').off('click.events', 'tbody .data-checkbox').on('click.events', 'tbody .data-checkbox', function() {
+					var total = $('.tableFoo').find('.data-checkbox').length;
+					var nb = $('.tableFoo').find('.data-checkbox:checked').length;
+					$('#checkAll').prop('checked', total > 0 && total === nb);
+				});
 			},
 			error: function(error) {
 				console.log('Error: ' + error);
