@@ -564,6 +564,7 @@ public class PresenceController {
 					AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("LISTE_GESTIONNAIRES").get(0);
 					appliConfig.setValue(StringUtils.join(configsEmail,","));
 					appliConfigRepository.save(appliConfig);
+					appliConfigService.evictAllAppliConfigCache();
 	    		}
     			if(emails!= null && !emails.isEmpty()){
     				if(courriels!=null) {

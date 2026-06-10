@@ -573,6 +573,7 @@ public class SessionEpreuveController {
 		AppliConfig appliConfig = appliConfigRepository.findAppliConfigByKey("AUTO_CLOSE_SESSION").get(0);
 		appliConfig.setValue(String.valueOf(autoCLose));
 		appliConfigRepository.save(appliConfig);
+		appliConfigService.evictAllAppliConfigCache();
 		logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null, emargementContext, null);
 		return String.format("redirect:/%s/manager/sessionEpreuve/old", emargementContext);
 	}
