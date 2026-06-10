@@ -9,7 +9,7 @@ services:
        - ./docker/ldap-config:/container/service/slapd/assets/config/bootstrap/ldif/custom
        - ./docker/ldap-config/schema:/container/service/slapd/assets/config/bootstrap/schema/custom
      ports:
-       - "127.0.0.1:389:389"
+       - 127.0.0.1:389:389
 
    cas:
      build:
@@ -21,7 +21,7 @@ services:
        - ./docker/cas-config:/etc/cas
        - ./docker/cas-config/tmp-cas:/tmp/cas
      ports:
-         - "127.0.0.1:8081:8080"
+         - 127.0.0.1:8081:8080
      healthcheck:
        test: [ "CMD-SHELL", "test -f /tmp/cas.healthcheck-passed || (curl -fs http://cas:8080/cas/login | grep -q username && touch /tmp/cas.healthcheck-passed)" ]
        interval: 5s
@@ -37,8 +37,14 @@ services:
           POSTGRES_USER: emargement
           POSTGRES_PASSWORD: emargement
           POSTGRES_DB: emargement
+          POSTGRES_LISTEN_ADDRESSES: '*'
         ports:
-          - "127.0.0.1:5432:5432"
+          - 127.0.0.1:5432:5432
+        healthcheck:
+          test: [ "CMD-SHELL", "pg_isready -U emargement -d emargement -h localhost" ]
+          interval: 5s
+          timeout: 10s
+          retries: 30
 
    esup-emargement:
         image: maven:3.9.0-eclipse-temurin-17
@@ -59,13 +65,14 @@ services:
           timeout: 10s
           retries: 30
         ports:
-          - "127.0.0.1:8080:8080"
+          - 127.0.0.1:8080:8080
+        network_mode: "host"
         volumes:
           - ../..:/src
           - /app
         depends_on:
           postgresql:
-            condition: service_started
+            condition: service_healthy
           cas:
             condition: service_healthy
 
