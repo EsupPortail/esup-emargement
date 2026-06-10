@@ -438,7 +438,10 @@ public class AdeApiWebService implements AdeApiService {
 						DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 						factory.setNamespaceAware(true);
 						DocumentBuilder builder = factory.newDocumentBuilder();
-						Document doc = builder.parse(new java.net.URL(urlMembers).openStream());
+						Document doc;
+						try (InputStream is = openStreamWithTimeout(urlMembers)) {
+							doc = builder.parse(is);
+						}
 						doc.getDocumentElement().normalize();
 
 						XPath xpath = XPathFactory.newInstance().newXPath();
@@ -515,7 +518,10 @@ public class AdeApiWebService implements AdeApiService {
 	        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	        factory.setNamespaceAware(true);
 	        DocumentBuilder builder = factory.newDocumentBuilder();
-	        Document doc = builder.parse(urlMembers);
+	        Document doc;
+	        try (InputStream is = openStreamWithTimeout(urlMembers)) {
+	            doc = builder.parse(is);
+	        }
 	        doc.getDocumentElement().normalize();
 	
 	        XPathFactory xPathFactory = XPathFactory.newInstance();
@@ -934,9 +940,27 @@ public class AdeApiWebService implements AdeApiService {
 		return getDocument(url, null, null);
 	}
 	
+	/**
+	 * Ouvre un InputStream HTTP vers une URL ADE avec timeouts (10s connect / 60s read).
+	 * À utiliser à la place de {@code new URL(s).openStream()} ou {@code DocumentBuilder.parse(String)}
+	 * pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
+	 */
+	private InputStream openStreamWithTimeout(String url) throws IOException {
+		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+		con.setConnectTimeout(10_000);
+		con.setReadTimeout(60_000);
+		return con.getInputStream();
+	}
+
 	public Document getDocument(String url, String login, String password) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
 		HttpURLConnection con = (HttpURLConnection)urlConnect.openConnection();
+		// Timeouts pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
+		// Connect : ~10s couvre largement un handshake TCP + DNS.
+		// Read : 60s laisse de la marge pour les requêtes lourdes (gros groupes ADE) tout en
+		// garantissant qu'un serveur ADE muet libère le thread au lieu de tout figer.
+		con.setConnectTimeout(10_000);
+		con.setReadTimeout(60_000);
 
 		if (null != login) {
 		    String encoded = Base64.getEncoder().encodeToString((login+":"+password).getBytes(StandardCharsets.UTF_8));
