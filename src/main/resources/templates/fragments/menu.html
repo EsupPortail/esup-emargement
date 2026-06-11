@@ -104,6 +104,9 @@
 					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 					   <a class="nav-link" th:classappend="${active == 'sessions'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/sessions(ctx=${eContext})}">Sessions</a>
 					  </li>
+					  <li class=nav-item mr-2"  th:if="${eContext=='all'}">
+					   <a class="nav-link" th:classappend="${active == 'javaperf'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/javaperf(ctx=${eContext})}">JavaPerf</a>
+					  </li>
 				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 				      	<a class="nav-link" th:classappend="${active == 'help'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/help(ctx=${eContext})}">Aide</a>
 				      </li>

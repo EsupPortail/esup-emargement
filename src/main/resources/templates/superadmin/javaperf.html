@@ -1,0 +1,200 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+
+<head th:replace="fragments/head :: head"></head>
+
+<body>
+	<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+	<div th:replace="fragments/help :: help"></div>
+	<div class="container-fluid px-3 px-md-4 my-2" id="javaPerfPage">
+		<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+			<h3 class="mb-0">Performance / Java</h3>
+		</div>
+		<div class="row g-3 mb-4">
+
+			<!-- MEMOIRE -->
+			<div class="col-xl-4 col-lg-4">
+				<div class="card shadow-sm h-100">
+					<div class="card-header py-2">
+						<strong>Mémoire JVM</strong>
+					</div>
+					<div class="card-body">
+						<div class="row g-2 mb-3">
+							<!-- USED -->
+							<div class="col-md-3 col-6">
+								<div
+									class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-center">
+									<h6 class="text-muted">Used</h6>
+									<div class="fs-3 fw-bold text-danger" th:text="${usedMemoryInMB}">
+									</div>
+									<small class="text-muted">MB</small>
+								</div>
+							</div>
+							<!-- FREE -->
+							<div class="col-md-3 col-6">
+								<div
+									class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-center">
+									<h6 class="text-muted">Free</h6>
+									<div class="fs-3 fw-bold text-success" th:text="${freeMemoryInMB}">
+									</div>
+									<small class="text-muted">MB</small>
+								</div>
+							</div>
+							<!-- TOTAL -->
+							<div class="col-md-3 col-6">
+								<div
+									class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-center">
+									<h6 class="text-muted">Total</h6>
+									<div class="fs-3 fw-bold text-primary" th:text="${totalMemoryInMB}">
+									</div>
+									<small class="text-muted">MB</small>
+								</div>
+							</div>
+							<!-- MAX -->
+							<div class="col-md-3 col-6">
+								<div
+									class="border rounded p-3 text-center h-100 d-flex flex-column justify-content-center">
+									<h6 class="text-muted">Max</h6>
+									<div class="fs-3 fw-bold text-dark" th:text="${maxMemoryInMB}">
+									</div>
+									<small class="text-muted">MB</small>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- DATABASE -->
+			<div class="col-xl-4 col-lg-4">
+				<div class="card shadow-sm h-100">
+					<div class="card-header py-2">
+						<strong>Database</strong>
+					</div>
+
+					<div class="card-body">
+						<div class="mb-3 border rounded">
+							<div class="px-3 py-2 bg-dark text-white d-flex align-items-center">
+								<i class="bi bi-database me-2"></i>
+								<div class="text-truncate flex-grow-1"
+									style="font-family: monospace; font-size: 0.85rem;" th:title="${ds.jdbcUrl}"
+									th:text="${ds.jdbcUrl}">
+								</div>
+							</div>
+						</div>
+						<div class="row text-center">
+							<!-- ACTIVE -->
+							<div class="col-md-4">
+								<div class="border rounded p-3 h-100">
+									<h6>Active</h6>
+									<span class="badge bg-danger fs-5 px-3 py-2"
+										th:text="${ds.hikariPoolMXBean.activeConnections}">
+									</span>
+								</div>
+							</div>
+
+							<!-- IDLE -->
+							<div class="col-md-4">
+								<div class="border rounded p-3 h-100">
+									<h6>Idle</h6>
+									<span class="badge bg-success fs-5 px-3 py-2"
+										th:text="${ds.hikariPoolMXBean.idleConnections}">
+									</span>
+								</div>
+							</div>
+
+							<!-- MAX -->
+							<div class="col-md-4">
+								<div class="border rounded p-3 h-100">
+									<h6>Max Pool</h6>
+									<span class="badge bg-primary fs-5 px-3 py-2" th:text="${ds.maximumPoolSize}">
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- THREADS -->
+			<div class="col-xl-4 col-lg-4">
+				<div class="card shadow-sm h-100">
+					<div class="card-header py-2">
+						<strong>Threads</strong>
+					</div>
+
+					<div class="card-body">
+						<div class="row g-2 mb-2">
+							<div class="col-6">
+								<div class="border rounded p-2 text-center h-100">
+									<div class="text-muted small">Actifs</div>
+									<div class="fs-4 fw-bold" th:text="${javaPerfWrapper.threadCount}">
+									</div>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="border rounded p-2 text-center h-100">
+									<div class="text-muted small">Pic</div>
+									<div class="fs-4 fw-bold" th:text="${javaPerfWrapper.peakThreadCount}">
+									</div>
+								</div>
+							</div>
+						</div>
+						<hr class="my-2">
+						<div class="row g-2">
+							<div th:each="threadState : ${threadStateCount}" class="col-md-4">
+								<div class="border rounded p-3 text-center h-100">
+									<h6 th:text="${threadState.key}"></h6>
+									<span class="fs-4 fw-bold" th:classappend="
+						                        ${threadState.key == 'RUNNABLE'} ? 'text-warning' :
+						                        (${threadState.key == 'BLOCKED'} ? 'text-danger' :
+						                        (${threadState.key == 'WAITING'} ? 'text-info' :
+						                        'text-secondary'))" th:text="${threadState.value}">
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="card shadow-sm">
+			<div class="card-header py-2">
+				<strong>Détail des threads</strong>
+			</div>
+			<div class="table-responsive">
+				<table class="table table-sm table-hover table-striped mb-0">
+					<tr>
+						<th th:text="#{javaperf.thread.id}">Thread Id</th>
+						<th th:text="#{javaperf.thread.name}">Thread Name</th>
+						<th th:text="#{javaperf.thread.state}">Thread State</th>
+						<th th:text="#{javaperf.blocked.count}">Blocked Count</th>
+						<th th:text="#{javaperf.blocked.time}">Blocked Time</th>
+						<th th:text="#{javaperf.waited.count}">Waited Count</th>
+						<th th:text="#{javaperf.waited.time}">Waited Time</th>
+						<th th:text="#{javaperf.stack.trace}">Stack Trace</th>
+					</tr>
+					<tr th:each="threadInfo : ${javaPerfWrapper.threadInfoWrappers}" th:classappend="
+				${currentThreadId eq threadInfo.threadId} ? 'table-success' :
+				(${threadInfo.threadState eq 'RUNNABLE'} ? 'table-warning' :
+				(${threadInfo.threadState eq 'BLOCKED'} ? 'table-danger' : ''))">
+						<td th:text="${threadInfo.threadId}"></td>
+						<td th:text="${threadInfo.threadName}"></td>
+						<td th:text="${threadInfo.threadState}"></td>
+						<td th:text="${threadInfo.blockedCount}"></td>
+						<td th:text="${threadInfo.blockedTime}"></td>
+						<td th:text="${threadInfo.waitedCount}"></td>
+						<td th:text="${threadInfo.waitedTime}"></td>
+						<td>
+							<span th:each="stackTrace : ${threadInfo.stackTrace}">
+								<span
+									th:text="${stackTrace.className} + '.' + ${stackTrace.methodName} + '(' + ${stackTrace.fileName} + ':' + ${stackTrace.lineNumber} + ')'"></span><br />
+							</span>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+	<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
