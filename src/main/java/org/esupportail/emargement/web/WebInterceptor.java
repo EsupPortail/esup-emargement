@@ -30,43 +30,44 @@ public class WebInterceptor implements HandlerInterceptor {
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
-			String context = ContextHelper.getCurrentContext();
-			Context configContext = null;
-			if(!StringUtils.isEmpty(context) && !"all".equals(context) && !WebUtils.isAnonymous()) {
-				configContext = contextRepository.findByContextKey(context);
-				if(configContext==null) {
-					log.warn("No context {} found in DB for url {}", context, request.getRequestURI());
-				}
+		if (modelAndView == null) {
+			return;
+		}
+		String context = ContextHelper.getCurrentContext();
+		Context configContext = null;
+		if(!StringUtils.isEmpty(context) && !"all".equals(context) && !WebUtils.isAnonymous()) {
+			configContext = contextRepository.findByContextKey(context);
+			if(configContext==null) {
+				log.warn("No context {} found in DB for url {}", context, request.getRequestURI());
 			}
-			if (modelAndView != null) {
-				boolean isViewObject = modelAndView.getView() == null;
-				boolean isRedirectView = !isViewObject && modelAndView.getView() instanceof RedirectView;
-				boolean viewNameStartsWithRedirect = isViewObject && modelAndView.getViewName().startsWith(UrlBasedViewResolver.REDIRECT_URL_PREFIX);
+		}
+		boolean isViewObject = modelAndView.getView() == null;
+		boolean isRedirectView = !isViewObject && modelAndView.getView() instanceof RedirectView;
+		boolean viewNameStartsWithRedirect = isViewObject && modelAndView.getViewName().startsWith(UrlBasedViewResolver.REDIRECT_URL_PREFIX);
 
-				if (!isRedirectView && !viewNameStartsWithRedirect) {
-					if (configContext != null) {
-						modelAndView.addObject("title", configContext.getTitle());
-					} else {
-						modelAndView.addObject("title", "Esup-emargement");
-					}
-					modelAndView.addObject("eContext", context);
-					modelAndView.addObject("isSuperAdmin", WebUtils.isSuperAdmin());
-					modelAndView.addObject("isAdmin", WebUtils.isAdmin());
-					modelAndView.addObject("isManager", WebUtils.isManager());
-					modelAndView.addObject("isSupervisor", WebUtils.isSupervisor());
-					modelAndView.addObject("isUser", WebUtils.isUser());
-					modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
-					modelAndView.addObject("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
-					modelAndView.addObject("isEsupSignatureEnabled", appliConfigService.isEsupSignatureEnabled());
-					modelAndView.addObject("isAdeCampusSurveillantEnabled", appliConfigService.isAdeCampusSurveillantEnabled());
-					modelAndView.addObject("isCalendarEnabled", appliConfigService.isCalendarDisplayed());
-					modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());
-					modelAndView.addObject("surveillantTerme", appliConfigService.getSurveillantTerm());
-					modelAndView.addObject("isParticipantEnabled", appliConfigService.isParticipantDisplayed());
-					modelAndView.addObject("isSessionGroupsDisplayed", appliConfigService.isSessionGroupsDisplayed());
-					modelAndView.addObject("availableContexts", WebUtils.availableContexts());
-					modelAndView.addObject("participantTerme", appliConfigService.getParticipantTerm());
-				}
+		if (!isRedirectView && !viewNameStartsWithRedirect) {
+			if (configContext != null) {
+				modelAndView.addObject("title", configContext.getTitle());
+			} else {
+				modelAndView.addObject("title", "Esup-emargement");
+			}
+			modelAndView.addObject("eContext", context);
+			modelAndView.addObject("isSuperAdmin", WebUtils.isSuperAdmin());
+			modelAndView.addObject("isAdmin", WebUtils.isAdmin());
+			modelAndView.addObject("isManager", WebUtils.isManager());
+			modelAndView.addObject("isSupervisor", WebUtils.isSupervisor());
+			modelAndView.addObject("isUser", WebUtils.isUser());
+			modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
+			modelAndView.addObject("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
+			modelAndView.addObject("isEsupSignatureEnabled", appliConfigService.isEsupSignatureEnabled());
+			modelAndView.addObject("isAdeCampusSurveillantEnabled", appliConfigService.isAdeCampusSurveillantEnabled());
+			modelAndView.addObject("isCalendarEnabled", appliConfigService.isCalendarDisplayed());
+			modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());
+			modelAndView.addObject("surveillantTerme", appliConfigService.getSurveillantTerm());
+			modelAndView.addObject("isParticipantEnabled", appliConfigService.isParticipantDisplayed());
+			modelAndView.addObject("isSessionGroupsDisplayed", appliConfigService.isSessionGroupsDisplayed());
+			modelAndView.addObject("availableContexts", WebUtils.availableContexts());
+			modelAndView.addObject("participantTerme", appliConfigService.getParticipantTerm());
 		}
 	}
 }

@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -37,6 +38,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.beans.IsTagableContext;
+import org.esupportail.emargement.beans.TagActionBean;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean;
 import org.esupportail.emargement.domain.Context;
@@ -53,6 +56,7 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagCheckBean;
 import org.esupportail.emargement.domain.TagChecker;
+import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
@@ -248,65 +252,66 @@ public class TagCheckService {
         return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalse(sessionEpreuveId);
     }
 
-    public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable, Long presentId, boolean withUnknown) {
+	public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable, Long presentId,
+			boolean withUnknown) {
+		Page<TagCheck> tagChecks = getTagChecks(id, pageable, presentId, withUnknown);
+		List<String> personEppns = tagChecks.stream().map(TagCheck::getPerson).filter(Objects::nonNull)
+				.map(person -> person.getEppn()).distinct().collect(Collectors.toList());
+		List<String> checkerEppns = tagChecks.stream().map(TagCheck::getTagChecker).filter(Objects::nonNull)
+				.map(tc -> tc.getUserApp().getEppn()).distinct().collect(Collectors.toList());
+		Map<String, LdapUser> ldapPersons = ldapService.getLdapUsersFromNumList(personEppns, "eduPersonPrincipalName");
+		Map<String, LdapUser> ldapCheckers = ldapService.getLdapUsersFromNumList(checkerEppns,
+				"eduPersonPrincipalName");
+		tagChecks.forEach(tc -> {
+			tc.setIsUnknown(tc.getSessionLocationBadged() != null && tc.getSessionLocationExpected() == null);
+			updatePerson(tc, ldapPersons);
+			updateChecker(tc, ldapCheckers);
+		});
+		return tagChecks;
+	}
 
-        Page<TagCheck> allTagChecks = null;
-        if (presentId != null) {
-            allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndIdEquals(id, presentId, pageable);
-        } else {
-            if (withUnknown) {
-                allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(id, id, pageable);
-            } else {
-                allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(id, pageable);
-            }
-        }
-        List<String> tcList = allTagChecks.stream().filter(tagCheck -> tagCheck.getPerson() != null).map(tagCheck -> tagCheck.getPerson().getEppn())
-                .collect(Collectors.toList());
-        Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
+	private Page<TagCheck> getTagChecks(Long id, Pageable pageable, Long presentId, boolean withUnknown) {
+		if (presentId != null) {
+			return tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndIdEquals(id, presentId, pageable);
+		}
+		if (withUnknown) {
+			return tagCheckRepository
+					.findTagCheckBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(
+							id, id, pageable);
+		}
+		return tagCheckRepository.findTagCheckBySessionLocationExpectedId(id, pageable);
+	}
 
-        if (!allTagChecks.getContent().isEmpty()) {
-            List<String> tagCheckerList = allTagChecks.stream().filter(tagCheck -> tagCheck.getTagChecker() != null).map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
-                    .collect(Collectors.toList());
-            Map<String, LdapUser> mapLdapUsers2 = ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName");
+	private void updatePerson(TagCheck tc, Map<String, LdapUser> ldapUsers) {
+		if (tc.getPerson() == null) {
+			return;
+		}
+		LdapUser ldapUser = ldapUsers.get(tc.getPerson().getEppn());
+		if (ldapUser != null) {
+			tc.getPerson().setNom(ldapUser.getName());
+			tc.getPerson().setPrenom(ldapUser.getPrenom());
+			tc.setNomPrenom(String.join(" ", ldapUser.getName(), ldapUser.getPrenom()));
+		} else {
+			tc.setNomPrenom("");
+		}
+	}
 
-            for (TagCheck tc : allTagChecks.getContent()) {
-                if (tc.getSessionLocationBadged() != null && tc.getSessionLocationExpected() == null) {
-                    tc.setIsUnknown(true);
-                } else {
-                    tc.setIsUnknown(false);
-                }
-                if (tc.getPerson() != null) {
-                    if (!mapLdapUsers.isEmpty()) {
-                        LdapUser ldapUser = mapLdapUsers.get(tc.getPerson().getEppn());
-                        if (ldapUser != null) {
-                            tc.getPerson().setNom(ldapUser.getName());
-                            tc.getPerson().setPrenom(ldapUser.getPrenom());
-                            tc.setNomPrenom(ldapUser.getName().concat(ldapUser.getPrenom()));
-                        }
-                    } else {
-                        tc.setNomPrenom("");
-                    }
-                }
-                if (tc.getTagChecker() != null) {
-                    String eppn = tc.getTagChecker().getUserApp().getEppn();
-                    if (!mapLdapUsers2.isEmpty()) {
-                        LdapUser ldapUser2 = mapLdapUsers2.get(eppn);
-                        if (ldapUser2 != null) {
-                            tc.getTagChecker().getUserApp().setNom(mapLdapUsers2.get(eppn).getName());
-                            tc.getTagChecker().getUserApp().setPrenom(mapLdapUsers2.get(eppn).getPrenom());
-                        }
-                    }
-                    if (mapLdapUsers2.isEmpty() && tc.getTagChecker().getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
-                        tc.getTagChecker().getUserApp().setNom(tc.getTagChecker().getUserApp().getContext().getKey());
-                        tc.getTagChecker().getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
-                    }
-                }
-            }
-
-        }
-
-        return allTagChecks;
-    }
+	private void updateChecker(TagCheck tc, Map<String, LdapUser> ldapUsers) {
+		if (tc.getTagChecker() == null) {
+			return;
+		}
+		UserApp userApp = tc.getTagChecker().getUserApp();
+		LdapUser ldapUser = ldapUsers.get(userApp.getEppn());
+		if (ldapUser != null) {
+			userApp.setNom(ldapUser.getName());
+			userApp.setPrenom(ldapUser.getPrenom());
+			return;
+		}
+		if (userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
+			userApp.setNom(userApp.getContext().getKey());
+			userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
+		}
+	}
 
     public Map<String, List<Absence>> getMapAbsences(Date dateDebut, Date dateFin) {
         Map<String, List<Absence>> mapEtp = absenceRepository.findAbsencesWithinDateRange(dateDebut, dateFin != null ? dateFin : dateDebut).stream()
@@ -558,69 +563,55 @@ public class TagCheckService {
     }
 
     public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy) {
+        if (tagChecks.isEmpty()) return 0;
+        // 1. Collecte défensive des EPPNs (garde-fous null)
+        Set<String> allEppns = new HashSet<>();
+        for (TagCheck tc : tagChecks) {
+            if (tc.getPerson() != null)
+                allEppns.add(tc.getPerson().getEppn());
+            if (setTagChecker && tc.getTagChecker() != null
+                    && tc.getTagChecker().getUserApp() != null)          // ← fix NPE point 4
+                allEppns.add(tc.getTagChecker().getUserApp().getEppn());
+            if (setProxy && tc.getProxyPerson() != null)
+                allEppns.add(tc.getProxyPerson().getEppn());
+        }
+        Map<String, LdapUser> ldapCache = allEppns.isEmpty()
+                ? Collections.emptyMap()
+                : ldapService.getLdapUsersFromNumList(new ArrayList<>(allEppns), "eduPersonPrincipalName");
+        // 2. count = nombre de TagCheck effectivement enrichis (cohérent)
         int count = 0;
-
-        if (!tagChecks.isEmpty()) {
-            List<String> eppnList = tagChecks.stream()
-                    .filter(tagCheck -> tagCheck.getPerson() != null)
-                    .map(tagCheck -> tagCheck.getPerson().getEppn())
-                    .collect(Collectors.toList());
-
-            List<String> tagCheckerList = setTagChecker ? tagChecks.stream()
-                    .filter(tagCheck -> tagCheck.getTagChecker() != null)
-                    .map(tagCheck -> tagCheck.getTagChecker().getUserApp().getEppn())
-                    .collect(Collectors.toList()) : Collections.emptyList();
-
-            List<String> tcProxyList = setProxy ? tagChecks.stream()
-                    .filter(tagCheck -> tagCheck.getProxyPerson() != null)
-                    .map(tagCheck -> tagCheck.getProxyPerson().getEppn())
-                    .collect(Collectors.toList()) : Collections.emptyList();
-
-            Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
-            Map<String, LdapUser> mapTagCheckerLdapUsers = setTagChecker
-                    ? ldapService.getLdapUsersFromNumList(tagCheckerList, "eduPersonPrincipalName")
-                    : Collections.emptyMap();
-            Map<String, LdapUser> mapTcProxyLdapUsers = setProxy
-                    ? ldapService.getLdapUsersFromNumList(tcProxyList, "eduPersonPrincipalName")
-                    : Collections.emptyMap();
-
-            for (TagCheck tc : tagChecks) {
-                if (tc.getPerson() != null) {
-                    LdapUser ldapUser = mapLdapUsers.get(tc.getPerson().getEppn());
-                    if (ldapUser != null) {
-                        tc.getPerson().setCivilite(ldapUser.getCivilite());
-                        tc.getPerson().setNom(ldapUser.getName());
-                        tc.getPerson().setPrenom(ldapUser.getPrenom());
-                        tc.setNomPrenom(ldapUser.getName().concat(ldapUser.getPrenom()));
-                    } else {
-                        tc.setNomPrenom("");
-                    }
-                } else if (tc.getGuest() != null) {
-                    tc.setNomPrenom(tc.getGuest().getNom().concat(tc.getGuest().getPrenom()));
+        for (TagCheck tc : tagChecks) {
+            boolean enriched = false;
+            if (tc.getPerson() != null) {
+                LdapUser lu = ldapCache.get(tc.getPerson().getEppn());
+                if (lu != null) {
+                    // ⚠️ MUTATION JPA : acceptable seulement si ces champs sont @Transient
+                    // ou si la mise à jour en base est explicitement souhaitée.
+                    // Sinon → projeter vers un DTO en amont.
+                    tc.getPerson().setCivilite(lu.getCivilite());
+                    tc.getPerson().setNom(lu.getName());
+                    tc.getPerson().setPrenom(lu.getPrenom());
+                    tc.setNomPrenom(lu.getName() + lu.getPrenom());
+                    enriched = true;
+                } else {
+                    tc.setNomPrenom("");
                 }
-
-                if (setTagChecker && tc.getTagChecker() != null) {
-                    LdapUser ldapUser = mapTagCheckerLdapUsers.get(tc.getTagChecker().getUserApp().getEppn());
-                    if (ldapUser != null) {
-                        tc.getTagChecker().getUserApp().setNom(ldapUser.getName());
-                        tc.getTagChecker().getUserApp().setPrenom(ldapUser.getPrenom());
-                    } else {
-                        tc.getTagChecker().getUserApp().setNom("");
-                        tc.getTagChecker().getUserApp().setPrenom("");
-                    }
-                }
-
-                if (setProxy && tc.getProxyPerson() != null) {
-                    LdapUser ldapUser = mapTcProxyLdapUsers.get(tc.getProxyPerson().getEppn());
-                    if (ldapUser != null) {
-                        tc.getProxyPerson().setNom(ldapUser.getName());
-                        tc.getProxyPerson().setPrenom(ldapUser.getPrenom());
-                    } else {
-                        tc.getProxyPerson().setNom("");
-                        tc.getProxyPerson().setPrenom("");
-                    }
-                }
+            } else if (tc.getGuest() != null) {
+                tc.setNomPrenom(tc.getGuest().getNom() + tc.getGuest().getPrenom());
+                enriched = true;
             }
+            if (setTagChecker && tc.getTagChecker() != null
+                    && tc.getTagChecker().getUserApp() != null) {        // ← fix NPE point 4
+                LdapUser lu = ldapCache.get(tc.getTagChecker().getUserApp().getEppn());
+                tc.getTagChecker().getUserApp().setNom(lu != null ? lu.getName() : "");
+                tc.getTagChecker().getUserApp().setPrenom(lu != null ? lu.getPrenom() : "");
+            }
+            if (setProxy && tc.getProxyPerson() != null) {
+                LdapUser lu = ldapCache.get(tc.getProxyPerson().getEppn());
+                tc.getProxyPerson().setNom(lu != null ? lu.getName() : "");
+                tc.getProxyPerson().setPrenom(lu != null ? lu.getPrenom() : "");
+            }
+            if (enriched) count++;
         }
         return count;
     }
@@ -770,214 +761,271 @@ public class TagCheckService {
         }
     }
 
+	private TagActionBean getTagActionBean(String eppn, EsupNfcTagLog log) throws ParseException {
+		String locationNom = log.getLocation();
+		String[] split = locationNom.split(" // ");
+		if (split.length < 4) {
+			throw new IllegalArgumentException("Location invalide : " + locationNom);
+		}
+		String nomSalle = split[2];
+		Long sessionId = Long.valueOf(split[3]);
+		SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(sessionId).orElseThrow();
+		Context ctx = sessionEpreuve.getContext();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = dateFormat.parse(dateFormat.format(new Date()));
+		Date dateFin = (sessionEpreuve.getDateFin() != null)
+				? dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin()))
+				: null;
+		boolean isBlackListed = groupeService.isBlackListed(sessionEpreuve.getBlackListGroupe(), eppn);
+		boolean isSessionLibre = sessionEpreuve.getIsSessionLibre();
+		boolean isTagCheckerTagged = appliConfigService.isTagCheckerDisplayed()
+				&& !tagCheckerRepository.findFirstByContextAndUserAppEppn(ctx, eppn).isEmpty();
+		String eppnInit = log.getEppnInit();
+		return new TagActionBean(eppn, eppnInit, nomSalle, sessionId, sessionEpreuve, ctx, date, dateFin, isBlackListed,
+				isSessionLibre, isTagCheckerTagged);
+	}
+
     public boolean tagAction(String eppn, EsupNfcTagLog esupNfcTagLog, String action) throws ParseException {
-
         boolean isOk = false;
-        boolean isSessionLibre = false;
-        boolean isTagCheckerTagged = false;
-        log.info("tagaction pour l'eppn : " + eppn);
-        String locationNom = esupNfcTagLog.getLocation();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = dateFormat.parse(dateFormat.format(new Date()));
-        // location --> heureDebut//nomSession//nomSalle//idSession
-        String[] splitLocationNom = locationNom.split(" // ");
-        String nomSalle = splitLocationNom[2];
-        String idSession = splitLocationNom[3];
-        Long id = Long.valueOf(idSession);
-        SessionEpreuve sessionEpreuve = sessionEpreuveRepository.findById(id).get();
-        Context ctx = sessionEpreuve.getContext();
-        if (appliConfigService.isTagCheckerDisplayed() && !tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppn).isEmpty()) {
-            isTagCheckerTagged = true;
-        }
-        if (sessionEpreuve != null) {
-            Groupe gpe = sessionEpreuve.getBlackListGroupe();
-            boolean isBlackListed = groupeService.isBlackListed(gpe, eppn);
-            Date dateFin = (sessionEpreuve.getDateFin() != null) ? dateFormat.parse(dateFormat.format(sessionEpreuve.getDateFin())) : null;
-            if ("isTagable".equals(action)) {
-                log.info("isTagable pour l'eppn : " + eppn);
-                boolean isUnknown = false;
-                Long tc = null;
-                if (dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)) {
-                    tc = tagCheckRepository.checkIsTagable(nomSalle, eppn, date, id);
-                } else {
-                    tc = tagCheckRepository.checkIsTagableWithDateFin(nomSalle, eppn, date, dateFin, id);
-                }
-                SessionLocation sessionLocationBadged = null;
-                TagChecker tagChecker = null;
-                sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
-                Long sessionLocationBadgedId = sessionLocationBadged.getId();
-                if (sessionEpreuve.getIsSessionLibre()) {
-                    isSessionLibre = true;
-                    tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, esupNfcTagLog.getEppnInit()).get(0);
-                }
-
-                if (tc == 1 || isSessionLibre || isTagCheckerTagged) {
-                    Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected(sessionLocationBadged);
-                    String msgError = "";
-                    TagCheck newTagCheck = new TagCheck();
-                    Long count = 0L;
-                    if (isSessionLibre) {
-                        try {
-                            if (totalPresent >= sessionLocationBadged.getCapacite()) {
-                                TagCheck tagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationBadged.getId(), eppn);
-                                if (tagCheck != null && !isTagCheckerTagged) {
-                                    saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, TypeEmargement.CARD);
-                                    isOk = true;
-                                } else {
-                                    isOk = false;
-                                }
-                            } else {
-                                if (!isBlackListed) {
-                                    newTagCheck = saveUnknownTagCheck(null, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, TypeEmargement.CARD);
-                                    newTagCheck.setIsBlacklisted(false);
-                                    count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationBadgedId);
-                                } else {
-                                    msgError = eppn;
-                                }
-                                isOk = true;
-                                dataEmitterService.sendData(newTagCheck, 0f, count, new SessionLocation(), msgError);
-                            }
-                        } catch (Exception e) {
-                            log.error("Session libre, problème de carte pour l'eppn : " + eppn, e);
-                        }
-                    } else {
-                        isOk = true;
-                    }
-                    if (isTagCheckerTagged) {
-                        String presence = "true,tagchecker," + eppn + "," + sessionLocationBadgedId;
-                        tagCheckerService.updatePresentsTagCkeckers(presence, TypeEmargement.CARD);
-                        isOk = true;
-                    }
-                } else {
-                    try {
-                        String comment = "";
-                        String eppnInit = esupNfcTagLog.getEppnInit();
-                        tagChecker = tagCheckerRepository.findByContextAndUserAppEppn(ctx, eppnInit).get(0);
-                        sessionLocationBadged = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(sessionEpreuve.getId(), nomSalle);
-                        //on regarde si la personne est dans une autre salle de la session
-                        Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(eppn, date, id);
-                        Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(eppn, date);
-                        SessionLocation sl = null;
-                        List<Long> seId = null;
-                        if (sessionLocationId != null) {
-                            if (sessionEpreuve.getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
-                                sl = sessionLocationRepository.findById(sessionLocationId).get();
-                                comment = "Inconnu dans cette salle, Salle attendue : " + sl.getLocation().getNom();
-                            } else {
-                                isOk = true;
-                            }
-                        } else if (sessionLocationId == null && countSe > 0) {//On regarde si il est est dans une autre session aujourd'hui
-                            //comparaison avec les heures de début et de fin
-                            LocalTime now = LocalTime.now();
-                            seId = sessionEpreuveRepository.getSessionEpreuveIdExpected(eppn, date, now);
-                            if (seId != null) {
-                                String lieu = "";
-                                for (Long sessionId : seId) {
-                                    List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdAndPersonEppnEquals(sessionId, eppn, null).getContent();
-                                    if (!list.isEmpty()) {
-                                        TagCheck tagCheck = list.get(0);
-                                        if (tagCheck.getSessionLocationExpected() != null) {
-                                            lieu = lieu.concat(" --> Session(s) : " + tagCheck.getSessionEpreuve().getNomSessionEpreuve());
-                                            String location = list.get(0).getSessionLocationExpected().getLocation().getNom();
-                                            lieu = lieu.concat(" , lieu : ").concat(location);
-                                        }
-                                    }
-                                }
-                                comment = "Inconnu dans cette session " + lieu;
-                            } else {
-                                comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
-                                isUnknown = true;
-                            }
-                        } else { //Il est vraiment inconnu!!!
-                            comment = "Inconnu";
-                            isUnknown = true;
-                        }
-                        log.info("On enregistre l'inconnu dans la session : " + eppn);
-                        if (sl != null || seId != null || isUnknown) {
-                            TagCheck newTc = saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, isSessionLibre, TypeEmargement.CARD);
-                            dataEmitterService.sendData(newTc, 0f, 0L, new SessionLocation(), "");
-                        }
-                    } catch (Exception e) {
-                        log.error("Problème de carte pour l'eppn : " + eppn, e);
-                    }
-                }
-            } else if ("validateTag".equals(action)) {
-                log.info("validateTag pour l'eppn : " + eppn);
-                Long realSlId = null;
-                log.info("Eppn : " + eppn + " Date " + date);
-                Long sessionLocationId = null;
-                if (dateFin == null || dateFin.equals(sessionEpreuve.getDateExamen()) && dateFin.equals(date)) {
-                    sessionLocationId = tagCheckRepository.getSessionLocationId(nomSalle, eppn, date, id);
-                } else {
-                    sessionLocationId = tagCheckRepository.getSessionLocationIdWithDateFin(nomSalle, eppn, date, dateFin, id);
-                }
-                log.info("SessionLocationId : " + sessionLocationId);
-                TagCheck presentTagCheck = null;
-                if (sessionLocationId != null) {
-                    realSlId = sessionLocationId;
-                    presentTagCheck = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sessionLocationId, eppn);
-                } else {
-                    Long slId = tagCheckRepository.getSessionLocationId(nomSalle, date, id);
-                    realSlId = slId;
-                    if (slId != null) {
-                        SessionLocation sl = sessionLocationRepository.findById(slId).get();
-                        presentTagCheck = tagCheckRepository.findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), esupNfcTagLog.getEppn());
-                    }
-                }
-                String msgError = "";
-                SessionLocation sl = sessionLocationRepository.findById(realSlId).get();
-                if (presentTagCheck != null) {
-                    boolean isBlacklisted = true;
-                    if (!isBlackListed) {
-                        isBlacklisted = false;
-                        TagChecker tagChecker = tagCheckerRepository.findBySessionLocationAndUserAppEppnEquals(sl, esupNfcTagLog.getEppnInit());
-                        if (sessionEpreuve.getIsSecondTag() != null && sessionEpreuve.getIsSecondTag()) {
-                            presentTagCheck.setTagDate2(new Date());
-                            presentTagCheck.setTypeEmargement2(TypeEmargement.CARD);
-                            presentTagCheck.setTagChecker2(tagChecker);
-                        } else {
-                            presentTagCheck.setTagDate(new Date());
-                            presentTagCheck.setTypeEmargement(TypeEmargement.CARD);
-                            presentTagCheck.setTagChecker(tagChecker);
-                        }
-                        presentTagCheck.setSessionLocationBadged(sl);
-                        presentTagCheck.setNbBadgeage(this.getNbBadgeage(presentTagCheck, true));
-                        Long countPresent = tagCheckRepository.countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
-                        sl.setNbPresentsSessionLocation(countPresent);
-                        List<TagChecker> tcList = new ArrayList<>();
-                        tcList.add(presentTagCheck.getTagChecker());
-                        tagCheckerService.setNomPrenom4TagCheckers(tcList);
-                        List<TagCheck> tagCheckList = new ArrayList<>();
-                        tagCheckList.add(presentTagCheck);
-                        setNomPrenomTagChecks(tagCheckList, false, false);
-                        tagCheckRepository.save(presentTagCheck);
-                        isOk = true;
-                    } else {
-                        msgError = eppn;
-                    }
-
-                    //On prend l'id du sl expected
-                    Long slExpected = presentTagCheck.getSessionLocationExpected().getId();
-                    Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(slExpected);
-                    Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(slExpected);
-                    float percent = 0;
-                    if (totalExpected != 0) {
-                        percent = 100 * (Long.valueOf(totalPresent).floatValue() / Long.valueOf(totalExpected).floatValue());
-                    }
-                    presentTagCheck.setIsBlacklisted(isBlacklisted);
-                    dataEmitterService.sendData(presentTagCheck, percent, totalPresent, sl, msgError);
-                } else {
-                    if (isTagCheckerTagged) {
-                        String presence = "true,tagchecker," + eppn + "," + sl.getId();
-                        tagCheckerService.updatePresentsTagCkeckers(presence, TypeEmargement.CARD);
-                        isOk = true;
-                    }
-                }
-            }
+        TagActionBean tab = getTagActionBean(eppn, esupNfcTagLog);
+        if ("isTagable".equals(action)) {
+        	isOk = handleIsTagable(tab);
+        } else if ("validateTag".equals(action)) {
+        	isOk = handleValidateTag(tab);
         }
         return isOk;
     }
+    
+	public boolean handleIsTagable(TagActionBean tab) {
+		log.info("isTagable pour l'eppn : {}", tab.getEppn());
+		IsTagableContext ctx = resolveContext(tab);
+		Long tc;
+		if (tab.getDateFin() == null || (tab.getDateFin().equals(tab.getSessionEpreuve().getDateExamen())
+				&& tab.getDateFin().equals(tab.getDate()))) {
+			tc = tagCheckRepository.checkIsTagable(tab.getNomSalle(), tab.getEppn(), tab.getDate(), tab.getSessionId());
+		} else {
+			tc = tagCheckRepository.checkIsTagableWithDateFin(tab.getNomSalle(), tab.getEppn(), tab.getDate(),
+					tab.getDateFin(), tab.getSessionId());
+		}
+		if (tc != null && tc == 1 || ctx.isSessionLibre() || tab.isTagCheckerTagged()) {
+			return handleKnownOrFree(ctx, tab);
+		}
+		return handleUnknown(ctx, tab);
+	}
+    
+	private IsTagableContext resolveContext(TagActionBean tab) {
+		SessionLocation sessionLocation = sessionLocationRepository.findSessionLocationBySessionEpreuveIdAndLocationNom(
+				tab.getSessionEpreuve().getId(), tab.getNomSalle());
+		boolean isSessionLibre = Boolean.TRUE.equals(tab.getSessionEpreuve().getIsSessionLibre());
+		TagChecker tagChecker = null;
+		if (isSessionLibre) {
+			List<TagChecker> list = tagCheckerRepository.findByContextAndUserAppEppn(tab.getContext(),
+					tab.getEppnInit());
+			if (!list.isEmpty()) {
+				tagChecker = list.get(0);
+			}
+		}
+		return new IsTagableContext(sessionLocation, tagChecker, isSessionLibre);
+	}
+    
+	private boolean handleKnownOrFree(IsTagableContext ctx, TagActionBean tab) {
+		boolean isOk = false;
+		if (ctx.isSessionLibre()) {
+			try {
+				isOk = handleSessionLibre(ctx, tab);
+			} catch (Exception e) {
+				log.error("Session libre, problème de carte pour l'eppn : {}", tab.getEppn(), e);
+			}
+		} else {
+			isOk = true;
+		}
+		if (tab.isTagCheckerTagged()) {
+			tagCheckerService.updatePresentsTagCkeckers(
+					"true,tagchecker," + tab.getEppn() + "," + ctx.getSessionLocation().getId(), TypeEmargement.CARD);
+			isOk = true;
+		}
+		return isOk;
+	}
 
+	private boolean handleSessionLibre(IsTagableContext ctx, TagActionBean tab) {
+		SessionLocation sl = ctx.getSessionLocation();
+		Long totalPresent = tagCheckRepository.countTagCheckBySessionLocationExpected(sl);
+		if (totalPresent >= sl.getCapacite()) {
+			TagCheck existing = tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndEppn(sl.getId(),
+					tab.getEppn());
+			if (existing != null && !tab.isTagCheckerTagged()) {
+				saveUnknownTagCheck(null, tab.getContext(), tab.getEppn(), tab.getSessionEpreuve(), sl,
+						ctx.getTagChecker(), true, TypeEmargement.CARD);
+				return true;
+			}
+			return false;
+		}
+		TagCheck newTagCheck = null;
+		Long count = 0L;
+		String msgError = "";
+		if (!tab.isBlackListed()) {
+			newTagCheck = saveUnknownTagCheck(null, tab.getContext(), tab.getEppn(), tab.getSessionEpreuve(), sl,
+					ctx.getTagChecker(), true, TypeEmargement.CARD);
+			newTagCheck.setIsBlacklisted(false);
+			count = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sl.getId());
+		} else {
+			msgError = tab.getEppn();
+		}
+		TagCheck eventTc = newTagCheck != null ? newTagCheck : new TagCheck();
+		dataEmitterService.sendData(eventTc, 0f, count, new SessionLocation(), msgError);
+		return true;
+	}
+    
+	private boolean handleUnknown(IsTagableContext ctx, TagActionBean tab) {
+		boolean isUnknown = false;
+		try {
+			String comment = "";
+			Long sessionLocationId = tagCheckRepository.getSessionLocationIdExpected(tab.getEppn(), tab.getDate(),
+					tab.getSessionId());
+			if (sessionLocationId != null) {
+				if (tab.getSessionEpreuve().getTypeBadgeage().equals(TypeBadgeage.SALLE)) {
+					SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
+					comment = "Inconnu dans cette salle, Salle attendue : " + sl.getLocation().getNom();
+					saveAndNotifyUnknown(comment, ctx, tab);
+				} else {
+					return true;
+				}
+			} else {
+				Long countSe = sessionEpreuveRepository.countSessionEpreuveIdExpected(tab.getEppn(), tab.getDate());
+				if (countSe > 0) {
+					List<Long> seIds = sessionEpreuveRepository.getSessionEpreuveIdExpected(tab.getEppn(),
+							tab.getDate(), LocalTime.now());
+					if (seIds != null) {
+						comment = "Inconnu dans cette session" + buildLieuDetails(seIds, tab.getEppn());
+					} else {
+						comment = "Inconnu dans cette session, Attendu dans une autre session aujourd'hui";
+						isUnknown = true;
+					}
+					saveAndNotifyUnknown(comment, ctx, tab);
+				} else {
+					comment = "Inconnu";
+					isUnknown = true;
+					saveAndNotifyUnknown(comment, ctx, tab);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Problème de carte pour l'eppn : {}", tab.getEppn(), e);
+		}
+		return !isUnknown;
+	}
+    
+	private void saveAndNotifyUnknown(String comment, IsTagableContext ctx, TagActionBean tab) {
+		log.info("On enregistre l'inconnu dans la session : {}", tab.getEppn());
+		TagChecker tagChecker = ctx.getTagChecker();
+		TagCheck newTc = saveUnknownTagCheck(comment, tab.getContext(), tab.getEppn(), tab.getSessionEpreuve(),
+				ctx.getSessionLocation(), tagChecker, false, TypeEmargement.CARD);
+		dataEmitterService.sendData(newTc, 0f, 0L, new SessionLocation(), "");
+	}
+	
+	private String buildLieuDetails(List<Long> seIds, String eppn) {
+		if (seIds == null || seIds.isEmpty()) {
+			return "";
+		}
+		return tagCheckRepository.findBySessionEpreuveIdInAndPersonEppn(seIds, eppn).stream()
+				.filter(tc -> tc.getSessionLocationExpected() != null)
+				.map(tc -> " --> Session(s) : " + tc.getSessionEpreuve().getNomSessionEpreuve() + " , lieu : "
+						+ tc.getSessionLocationExpected().getLocation().getNom())
+				.collect(java.util.stream.Collectors.joining());
+	}
+
+    public boolean handleValidateTag(TagActionBean tab) {
+    	boolean isOk = false;
+		Date date = tab.getDate();
+		String eppn = tab.getEppn();
+        log.info("validateTag pour l'eppn : " + eppn + " Date " + date);
+        Long realSlId = resolveSessionLocationId(tab);
+        if (realSlId == null) {
+            log.warn("realSlId null pour eppn {}", tab.getEppn());
+            return false;
+        }
+        SessionLocation sl = sessionLocationRepository.findById(realSlId).orElseThrow();
+        TagCheck presentTagCheck = findPresentTagCheck(realSlId, tab.getEppn(), sl);
+        if (presentTagCheck != null) {
+            return processTagCheck(presentTagCheck, sl, tab);
+        }
+        if (tab.isTagCheckerTagged()) {
+            tagCheckerService.updatePresentsTagCkeckers(
+                "true,tagchecker," + tab.getEppn() + "," + sl.getId(),
+                TypeEmargement.CARD
+            );
+            return true;
+        }
+        return isOk;
+    }
+    
+    private TagCheck findPresentTagCheck(Long realSlId, String eppn, SessionLocation sl) {
+        // On tente d'abord avec l'eppn pour ce sessionLocation précis
+        TagCheck tc = tagCheckRepository
+            .findTagCheckBySessionLocationExpectedIdAndEppn(realSlId, eppn);
+        if (tc != null) return tc;
+
+        // Fallback : via la sessionEpreuve
+        return tagCheckRepository
+            .findTagCheckBySessionEpreuveIdAndEppn(sl.getSessionEpreuve().getId(), eppn);
+    }
+    
+    private boolean processTagCheck(TagCheck tc, SessionLocation sl, TagActionBean tab) {
+        if (tab.isBlackListed()) {
+            updateAndBroadcast(tc, sl, true, tab.getEppn());
+            return false;
+        }
+        Date now = new Date();
+        TagChecker tagChecker = tagCheckerRepository
+            .findBySessionLocationAndUserAppEppnEquals(sl, tab.getEppnInit());
+
+        if (Boolean.TRUE.equals(tab.getSessionEpreuve().getIsSecondTag())) {
+            tc.setTagDate2(now);
+            tc.setTypeEmargement2(TypeEmargement.CARD);
+            tc.setTagChecker2(tagChecker);
+        } else {
+            tc.setTagDate(now);
+            tc.setTypeEmargement(TypeEmargement.CARD);
+            tc.setTagChecker(tagChecker);
+        }
+
+        tc.setSessionLocationBadged(sl);
+        tc.setNbBadgeage(getNbBadgeage(tc, true));
+        tagCheckRepository.save(tc);
+        Long countPresent = tagCheckRepository
+            .countTagCheckBySessionLocationExpectedAndSessionLocationBadgedIsNotNull(sl);
+        sl.setNbPresentsSessionLocation(countPresent);
+
+        if (tc.getTagChecker() != null) {
+            tagCheckerService.setNomPrenom4TagCheckers(
+                List.of(tc.getTagChecker())
+            );
+        }
+        setNomPrenomTagChecks(List.of(tc), false, false);
+        updateAndBroadcast(tc, sl, false, "");
+        return true;
+    }
+    
+    private void updateAndBroadcast(TagCheck tc, SessionLocation sl, boolean isBlacklisted, String msgError) {
+        Long slExpectedId = tc.getSessionLocationExpected().getId();
+        Long totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(slExpectedId);
+        Long totalExpected = tagCheckRepository.countBySessionLocationExpectedId(slExpectedId);
+        float percent = totalExpected == 0 ? 0f : (100f * totalPresent / totalExpected);
+
+        tc.setIsBlacklisted(isBlacklisted);
+        dataEmitterService.sendData(tc, percent, totalPresent, sl, msgError);
+    }
+    
+	private Long resolveSessionLocationId(TagActionBean tab) {
+		String eppn = tab.getEppn();
+		if (tab.getDateFin() == null || (tab.getDateFin().equals(tab.getSessionEpreuve().getDateExamen())
+				&& tab.getDateFin().equals(tab.getDate()))) {
+
+			return tagCheckRepository.getSessionLocationId(tab.getNomSalle(), eppn, tab.getDate(), tab.getSessionId());
+		}
+		return tagCheckRepository.getSessionLocationIdWithDateFin(tab.getNomSalle(), eppn, tab.getDate(),
+				tab.getDateFin(), tab.getSessionId());
+	}
+ 
     public TagCheck saveUnknownTagCheck(String comment, Context ctx, String eppn, SessionEpreuve sessionEpreuve, SessionLocation sessionLocationBadged,
                                         TagChecker tagChecker, boolean isSessionLibre, TypeEmargement typeEmargement) {
         TagCheck unknownTc = null;
