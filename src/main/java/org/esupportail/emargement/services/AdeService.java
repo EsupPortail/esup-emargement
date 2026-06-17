@@ -335,11 +335,15 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = false;
-			if (ade.getSessionEpreuve().getAdeRepetition() != null) {
-				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(ade.getActivityId(), ade.getSessionEpreuve().getAdeRepetition(), ctx)>0;
+			boolean isSessionExisted;
+			Integer rep = ade.getSessionEpreuve().getAdeRepetition();
+			Integer ses = ade.getSessionEpreuve().getAdeSession();
+			if (rep != null && ses != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(
+						ade.getActivityId(), rep, ses, ctx) > 0;
 			} else {
-				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx)>0;
+				isSessionExisted = sessionEpreuveRepository
+						.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx) > 0;
 			}
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
@@ -918,11 +922,21 @@ public class AdeService {
 
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {
 		for (SessionEpreuve se : seList) {
-			boolean isSessionExisted = false;
-			if (se.getAdeRepetition() != null) {
-				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), ctx)>0;
+			boolean isSessionExisted;
+			if (se.getAdeRepetition() != null && se.getAdeSession() != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(
+						se.getAdeActiviteId(), se.getAdeRepetition(), se.getAdeSession(), ctx) > 0;
 			} else {
-				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx)>0;
+				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(
+						se.getAdeEventId(), se.getAdeActiviteId(), ctx) > 0;
+			}
+			if (!isSessionExisted) {
+			    se.setAdeOrphan(true);
+			    // adeRepetition et adeSession sont intentionnellement conservés :
+			    // le triplet reste utile pour audit/debug.
+			    // L'exclusion des orphelines dans findExistingSessionForEvent
+			    // (via isAdeOrphanFalse) empêche tout faux match futur.
+			    sessionEpreuveRepository.save(se);
 			}
 			if(!isSessionExisted) {
 	          se.setAdeOrphan(true);

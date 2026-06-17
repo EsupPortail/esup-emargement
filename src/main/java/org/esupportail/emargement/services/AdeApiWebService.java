@@ -1242,34 +1242,67 @@ public class AdeApiWebService implements AdeApiService {
 		return vet;
 	}
 
-    /**
-     * Cherche une SessionEpreuve existante correspondant à un évènement ADE, en cascade :
-     * 1. (adeActiviteId, adeRepetition) - clé métier robuste à une replanification ADE
-     * 2. (adeActiviteId, dateExamen, heureEpreuve, finEpreuve) - fallback pour les sessions créées
-     *    avant l'ajout du champ adeRepetition (NULL en base)
-     * 3. adeEventId - dernier recours
-     *
-     * @return la SessionEpreuve existante, ou null si aucune ne matche
-     */
-	private SessionEpreuve findExistingSessionForEvent(Long activityIdValue, Integer adeRepetitionValue, Integer adeSessionValue,
-													   Date dateExamen, Date heureDebut, Date heureFin, Long eventId, Context ctx) {
-		if (adeRepetitionValue != null && adeSessionValue != null) {
-			List<SessionEpreuve> bySemanticKey = sessionEpreuveRepository
-					.findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(activityIdValue, adeRepetitionValue, adeSessionValue, ctx);
-			if (!bySemanticKey.isEmpty()) {
-				return bySemanticKey.get(0);
-			}
-		}
-        List<SessionEpreuve> byDateTime = sessionEpreuveRepository
-                .findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(
-                        activityIdValue, dateExamen, heureDebut, heureFin, ctx);
-        if (!byDateTime.isEmpty()) {
-            return byDateTime.get(0);
-        }
-        List<SessionEpreuve> byEventId = sessionEpreuveRepository.findByAdeEventIdAndContext(eventId, ctx);
-        if (!byEventId.isEmpty()) {
-            return byEventId.get(0);
-        }
-        return null;
-    }
+	/**
+	 * Cherche une SessionEpreuve existante correspondant à un évènement ADE, en cascade :
+	 * 1. (adeActiviteId, adeRepetition, adeSession) avec isAdeOrphan=false
+	 *    + validation par eventId ou dates — exclut les collisions de triplet post-suppression
+	 * 2. (adeActiviteId, dateExamen, heureEpreuve, finEpreuve) — fallback sessions héritées
+	 * 3. adeEventId — dernier recours
+	 *
+	 * @return la SessionEpreuve existante, ou null si aucune ne matche
+	 */
+	private SessionEpreuve findExistingSessionForEvent(
+	        Long activityIdValue, Integer adeRepetitionValue, Integer adeSessionValue,
+	        Date dateExamen, Date heureDebut, Date heureFin, Long eventId, Context ctx) {
+
+	    // Niveau 1 : clé métier ADE (triplet complet, orphelines exclues)
+	    if (adeRepetitionValue != null && adeSessionValue != null) {
+	        List<SessionEpreuve> candidates = sessionEpreuveRepository
+	                .findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndIsAdeOrphanFalseAndContext(
+	                        activityIdValue, adeRepetitionValue, adeSessionValue, ctx);
+
+	        for (SessionEpreuve candidate : candidates) {
+	            // Cas 1a : même eventId → match sûr (séance stable ou replanifiée avec même clé)
+	            if (eventId.equals(candidate.getAdeEventId())) {
+	                return candidate;
+	            }
+	            // Cas 1b : eventId changé mais dates identiques → replanification ADE
+	            if (sameDateTime(candidate, dateExamen, heureDebut, heureFin)) {
+	                return candidate;
+	            }
+	            // Collision : le triplet a été réattribué par ADE après suppression d'une séance
+	            log.warn("Collision triplet ADE détectée pour SessionEpreuve id={} " +
+	                    "(activityId={}, repetition={}, session={}) : " +
+	                    "dates base [{} {}-{}] != dates ADE [{} {}-{}], " +
+	                    "eventId base={} ADE={}. Fallback sur recherche par dates.",
+	                    candidate.getId(), activityIdValue, adeRepetitionValue, adeSessionValue,
+	                    candidate.getDateExamen(), candidate.getHeureEpreuve(), candidate.getFinEpreuve(),
+	                    dateExamen, heureDebut, heureFin,
+	                    candidate.getAdeEventId(), eventId);
+	        }
+	    }
+
+	    // Niveau 2 : dates/horaires (stable pour les sessions héritées sans triplet en base)
+	    List<SessionEpreuve> byDateTime = sessionEpreuveRepository
+	            .findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(
+	                    activityIdValue, dateExamen, heureDebut, heureFin, ctx);
+	    if (!byDateTime.isEmpty()) {
+	        return byDateTime.get(0);
+	    }
+
+	    // Niveau 3 : eventId seul — dernier recours
+	    List<SessionEpreuve> byEventId = sessionEpreuveRepository
+	            .findByAdeEventIdAndContext(eventId, ctx);
+	    if (!byEventId.isEmpty()) {
+	        return byEventId.get(0);
+	    }
+
+	    return null;
+	}
+
+	private boolean sameDateTime(SessionEpreuve se, Date dateExamen, Date heureDebut, Date heureFin) {
+	    return dateExamen.equals(se.getDateExamen())
+	            && heureDebut.equals(se.getHeureEpreuve())
+	            && heureFin.equals(se.getFinEpreuve());
+	}
 }
