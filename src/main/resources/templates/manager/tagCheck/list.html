@@ -101,6 +101,10 @@
 														th:href="@{/{ctx}/manager/tagCheck/export?sessionId={id}&type=PDF(ctx=${eContext}, id=${sessionEpreuve.id})}">Export PDF</a>
 													</li>
 													<li>
+														<a class="dropdown-item" title="Export QR Code"
+														th:href="@{/{ctx}/manager/tagCheck/export?sessionId={id}&type=QRC(ctx=${eContext}, id=${sessionEpreuve.id})}">Export QR Code</a>
+													</li>
+													<li>
 														<a class="dropdown-item" title="Export WS" 
 														th:href="@{/wsrest/export/tagCheck/{id}(id=${sessionEpreuve.id})}">Export WS</a>
 													</li>
