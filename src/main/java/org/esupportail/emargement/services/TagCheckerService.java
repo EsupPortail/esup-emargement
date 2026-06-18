@@ -94,22 +94,32 @@ public class TagCheckerService {
 		return tagCheckers;
 	}
 	
-	public void setNomPrenom4TagCheckers(List<TagChecker> allTagCheckers) {		
-		if(!allTagCheckers.isEmpty()) {
-			List<String> tcList = allTagCheckers.stream().filter(tc->tc.getUserApp()!=null).map(tagChecker -> tagChecker.getUserApp().getEppn())
-					.collect(Collectors.toList());
-			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(tcList, "eduPersonPrincipalName");
-			for(TagChecker tagChecker: allTagCheckers) {
-				LdapUser ldapUser = mapLdapUsers.get(tagChecker.getUserApp().getEppn());
-				if(ldapUser!=null) {
-					tagChecker.getUserApp().setNom(ldapUser.getName());
-					tagChecker.getUserApp().setPrenom(ldapUser.getPrenom());
-				}
-				if(ldapUser==null && tagChecker.getUserApp().getEppn().startsWith(paramUtil.getGenericUser())) {
-					tagChecker.getUserApp().setNom(tagChecker.getContext().getKey());
-					tagChecker.getUserApp().setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
-				}
+	public void setNomPrenom4TagCheckers(List<TagChecker> allTagCheckers) {
+		if (allTagCheckers.isEmpty())
+			return;
+		// 1. Extraction défensive des EPPNs
+		List<String> eppnList = allTagCheckers.stream().filter(tc -> tc.getUserApp() != null)
+				.map(tc -> tc.getUserApp().getEppn()).collect(Collectors.toList());
+		if (eppnList.isEmpty())
+			return;
+		Map<String, LdapUser> ldapCache = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");
+		// 2. Valeur constante sortie de la boucle
+		final String genericUser = paramUtil.getGenericUser();
+		for (TagChecker tc : allTagCheckers) {
+			if (tc.getUserApp() == null)
+				continue; // ← fix NPE point 1
+			String eppn = tc.getUserApp().getEppn();
+			LdapUser lu = ldapCache.get(eppn);
+			if (lu != null) {
+				// ⚠️ Mutation JPA — voir remarque architecturale
+				tc.getUserApp().setNom(lu.getName());
+				tc.getUserApp().setPrenom(lu.getPrenom());
+			} else if (eppn.startsWith(genericUser)) { // ← fix point 2 (if/else) + point 4
+				tc.getUserApp().setNom(tc.getContext().getKey());
+				tc.getUserApp().setPrenom(StringUtils.capitalize(genericUser));
 			}
+			// cas eppn inconnu LDAP et non générique : nom/prenom inchangés (comportement
+			// original)
 		}
 	}
 	
