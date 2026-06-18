@@ -6,8 +6,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,11 +37,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.beans.ExportContext;
+import org.esupportail.emargement.beans.ExportResult;
 import org.esupportail.emargement.beans.IsTagableContext;
 import org.esupportail.emargement.beans.TagActionBean;
 import org.esupportail.emargement.domain.Absence;
@@ -81,7 +88,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -1105,205 +1111,268 @@ public class TagCheckService {
                 null, emargementContext, null);
     }
 
-    public byte[] exportTagChecks(String type, Long id, HttpServletResponse response, String emargementContext, String anneeUniv, boolean signature) {
-        List<TagCheck> list = null;
-        byte[] pdfBytes = null;
-        String nomFichier = "export";
-        String fin = "";
-        SessionEpreuve se = sessionEpreuveRepository.findById(id).get();
-        if (anneeUniv != null) {
-            list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
-            nomFichier = "Export_inscrits_annee_universitaire_" + anneeUniv;
-        } else {
-            Date dateFin = se.getDateFin();
-            fin = (dateFin != null) ? "_" + String.format("%1$td-%1$tm-%1$tY", dateFin) : "";
-            nomFichier = se.getNomSessionEpreuve().concat("_").concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen())).concat(fin);
-            list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
-            nomFichier = nomFichier.replace(" ", "_");
-        }
+	public ExportResult exportTagChecks(String type, Long id, String emargementContext, String anneeUniv) {
+		SessionEpreuve se = (anneeUniv == null) ? sessionEpreuveRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("SessionEpreuve introuvable : " + id)) : null;
+		ExportContext ctx = buildExportContext(id, se, anneeUniv);
+		switch (type) {
+		case "QRC":
+			return buildQRCResult(ctx, emargementContext);
+		case "PDF":
+			return buildPDFResult(ctx, emargementContext);
+		case "CSV":
+			return buildCSVResult(ctx, emargementContext);
+		default:
+			throw new IllegalArgumentException("Type d'export inconnu : " + type);
+		}
+	}
+	
+	private ExportContext buildExportContext(Long id, SessionEpreuve se, String anneeUniv) {
+	    if (anneeUniv != null) {
+	        List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
+	        this.setNomPrenomTagChecks(list, false, false);
+	        return new ExportContext(
+	            list,
+	            "Export_inscrits_annee_universitaire_" + anneeUniv,
+	            "",
+	            null
+	        );
+	    }
 
-        this.setNomPrenomTagChecks(list, false, false);
-        if ("QRC".equals(type)) {
-            String filename = nomFichier.concat(".pdf");
-            PdfPTable table = new PdfPTable(3);
-            table.setWidthPercentage(100);
-            table.setHorizontalAlignment(Element.ALIGN_CENTER);
-            //On créer l'objet cellule.
-            String libelleSe = null;
-            if (anneeUniv != null) {
-                libelleSe = "Année universitaire " + anneeUniv;
-            } else {
-                TagCheck tch = list.get(0);
-                libelleSe = tch.getSessionEpreuve().getNomSessionEpreuve().concat(" -- ").
-                        concat(String.format("%1$td-%1$tm-%1$tY", (list.get(0).getSessionEpreuve().getDateExamen()))).concat(fin);
-            }
-            PdfPCell cell = new PdfPCell(new Phrase(libelleSe));
-            cell.setBackgroundColor(BaseColor.GREEN);
-            cell.setColspan(3);
-            table.addCell(cell);
+	    Date dateFin = se.getDateFin();
+	    String fin = (dateFin != null) ? "_" + String.format("%1$td-%1$tm-%1$tY", dateFin) : "";
+	    String nomFichier = se.getNomSessionEpreuve()
+	        .concat("_")
+	        .concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()))
+	        .concat(fin)
+	        .replace(" ", "_");
 
-            PdfPCell header1 = new PdfPCell(new Phrase("Personne"));
-            header1.setBackgroundColor(BaseColor.GRAY);
-            PdfPCell header2 = new PdfPCell(new Phrase("Type"));
-            header2.setBackgroundColor(BaseColor.GRAY);
-            PdfPCell header3 = new PdfPCell(new Phrase("QR Code"));
-            header3.setBackgroundColor(BaseColor.GRAY);
-            table.addCell(header1);
-            table.addCell(header2);
-            table.addCell(header3);
-            list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null).getContent();
-            if (!list.isEmpty()) {
-                for (TagCheck tc : list) {
-                    PdfPCell dateCell = null;
-                    String nom = (tc.getPerson() != null) ? tc.getPerson().getNom() : tc.getGuest().getNom();
-                    String prenom = (tc.getPerson() != null) ? tc.getPerson().getPrenom() : tc.getGuest().getPrenom();
-                    dateCell = new PdfPCell(new Paragraph(nom.concat(" ").concat(prenom)));
-                    table.addCell(dateCell);
-                    String typeInd = (tc.getPerson() != null) ? tc.getPerson().getType() : "ext";
-                    typeInd = messageSource.getMessage("person.type.".concat(typeInd.toLowerCase()), null, null);
-                    dateCell = new PdfPCell(new Paragraph(typeInd));
-                    table.addCell(dateCell);
-                    String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn() : tc.getGuest().getEmail();
-                    try {
-                        String qrCodeString = "true," + identifiant + "," + tc.getSessionLocationExpected().getId() + "," + identifiant + ",qrcode@@@notime@@@" + tc.getContext().getId();
-                        String enocdedQrCode = toolUtil.encodeToBase64(qrCodeString);
-                        InputStream is = toolUtil.generateQRCodeImage("qrcode".concat(enocdedQrCode), 5, 5);
-                        byte[] bytes = IOUtils.toByteArray(is);
-                        Image image1 = Image.getInstance(bytes);
-                        dateCell = new PdfPCell(image1, true);
-                        dateCell.setFixedHeight(60f);
-                        table.addCell(dateCell);
-                    } catch (Exception e) {
-                        log.error("Impossible de générer un QR code pour l'identifiant " + identifiant);
-                    }
-                }
-            }
-            Document document = new Document();
-            document.setMargins(10, 10, 10, 10);
-            try {
-                response.setContentType("application/pdf");
-                response.setHeader("Content-Disposition", "attachment; filename=".concat(filename));
-                PdfWriter.getInstance(document, response.getOutputStream());
+	    List<TagCheck> list = tagCheckRepository
+	        .findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null)
+	        .getContent();
+	    this.setNomPrenomTagChecks(list, false, false);
 
-                document.open();
+	    return new ExportContext(list, nomFichier, fin, se);
+	}
+	
+	// -----------------------------------------------------------------------
+	// PDF
+	// -----------------------------------------------------------------------
+	private ExportResult buildPDFResult(ExportContext ctx, String emargementContext) {
+	    List<TagCheck> list = ctx.getList();
+	    String filename     = ctx.getNomFichier().concat(".pdf");
+	    Document document   = new Document();
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-                document.add(table);
-                logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS, "Extraction pdf :" + list.size() + " résultats", null,
-                        null, emargementContext, null);
+	    try {
+	        PdfWriter writer = PdfWriter.getInstance(document, baos);
+	        getTagCheckListAsPDF(list, document, writer, ctx.getSe(), emargementContext);
+	    } catch (DocumentException e) {
+	        log.error("Erreur export PDF", e);
+	        logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED,
+	            "Extraction pdf : " + list.size() + " résultats",
+	            null, null, emargementContext, null);
+	    } finally {
+	        document.close();
+	    }
 
-            } catch (DocumentException de) {
-                de.printStackTrace();
-                logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" + list.size() + " résultats", null,
-                        null, emargementContext, null);
-            } catch (IOException de) {
-                de.printStackTrace();
-                logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" + list.size() + " résultats", null,
-                        null, emargementContext, null);
-            }
+	    // signature=false : le controller streamera les bytes lui-même
+	    return new ExportResult(baos.toByteArray(), "application/pdf", filename);
+	}
+	
+	// -----------------------------------------------------------------------
+	// CSV
+	// -----------------------------------------------------------------------
+	private ExportResult buildCSVResult(ExportContext ctx, String emargementContext) {
+	    List<TagCheck> list = ctx.getList();
+	    String filename     = ctx.getNomFichier().concat(".csv");
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            document.close();
+	    try (CSVWriter writer = new CSVWriter(
+	            new OutputStreamWriter(baos, StandardCharsets.UTF_8))) {
 
-        } else if ("PDF".equals(type)) {
-            String filename = nomFichier.concat(".pdf");
-            Document document = new Document();
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            PdfWriter writer = null;
-            try {
-                if (signature) {
-                    writer = PdfWriter.getInstance(document, byteArrayOutputStream);
-                } else {
-                    response.setContentType("application/pdf");
-                    response.setHeader("Content-Disposition", "attachment; filename=".concat(filename));
-                    writer = PdfWriter.getInstance(document, response.getOutputStream());
-                }
+	        writer.writeNext(new String[]{
+	            "Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom",
+	            "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé",
+	            "Absence", "Malus", "Tiers-temps"
+	        });
+	        for (TagCheck tc : list) {
+	            writer.writeNext(buildCSVLine(tc));
+	        }
+	        log.info("Extraction CSV : {} résultats", list.size());
+	        logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS,
+	            "Extraction CSV : " + list.size() + " résultats",
+	            null, null, emargementContext, null);
+	    } catch (Exception e) {
+	        log.error("Erreur lors de l'extraction CSV", e);
+	        logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED,
+	            "Erreur lors de l'extraction CSV",
+	            null, null, emargementContext, null);
+	    }
 
-                getTagCheckListAsPDF(list, document, writer, se, emargementContext);
-            } catch (DocumentException de) {
-                de.printStackTrace();
-                logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" + list.size() + " résultats", null,
-                        null, emargementContext, null);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED, "Extraction pdf :" + list.size() + " résultats", null,
-                        null, emargementContext, null);
-            }
+	    return new ExportResult(baos.toByteArray(), "text/csv", filename);
+	}
 
-            document.close();
-            if (signature) {
-                pdfBytes = byteArrayOutputStream.toByteArray();
-            }
+	private String[] buildCSVLine(TagCheck tc) {
+	    String dateSession = formatDate(tc.getSessionEpreuve().getDateExamen());
+	    String dateFin     = (tc.getSessionEpreuve().getDateFin() != null)
+	                       ? " / " + formatDate(tc.getSessionEpreuve().getDateFin()) : "";
+	    String presence    = (tc.getTagDate() != null) ? "Présent" : "Absent";
+	    String date        = (tc.getTagDate() != null) ? formatTime(tc.getTagDate()) : "--";
+	    String badged      = (tc.getSessionLocationBadged() != null)
+	                       ? tc.getSessionLocationBadged().getLocation().getNom() : "--";
+	    String attendu     = (tc.getSessionLocationExpected() != null)
+	                       ? tc.getSessionLocationExpected().getLocation().getNom() : "--";
+	    String tiersTemps  = Boolean.TRUE.equals(tc.getIsTiersTemps()) ? "Oui" : "--";
+	    String typeEmarg   = (tc.getTypeEmargement() != null)
+	                       ? messageSource.getMessage(
+	                             "typeEmargement." + tc.getTypeEmargement().name().toLowerCase(),
+	                             null, null)
+	                       : "--";
+	    String nom         = (tc.getPerson() != null) ? tc.getPerson().getNom()
+	                       : (tc.getGuest()  != null) ? tc.getGuest().getNom()  : "";
+	    String prenom      = (tc.getPerson() != null) ? tc.getPerson().getPrenom()
+	                       : (tc.getGuest()  != null) ? tc.getGuest().getPrenom() : "";
+	    String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn()
+	                       : (tc.getGuest()  != null) ? tc.getGuest().getEmail() : "";
+	    String numId       = (tc.getPerson() != null) ? tc.getPerson().getNumIdentifiant() : "";
+	    String absence     = (tc.getAbsence() != null)
+	                       ? tc.getAbsence().getMotifAbsence().getTypeAbsence().name()
+	                         + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name()
+	                       : "";
+	    String malus       = (tc.getAbsence() != null
+	                           && tc.getAbsence().getMotifAbsence() != null
+	                           && Boolean.TRUE.equals(tc.getAbsence().getMotifAbsence().getIsMalus()))
+	                       ? "Oui" : "Non";
 
-        } else if ("CSV".equals(type)) {
-            try {
-                String filename = nomFichier.concat(".csv");
+	    return new String[]{
+	        tc.getSessionEpreuve().getNomSessionEpreuve(),
+	        dateSession + dateFin,
+	        numId, identifiant, nom, prenom,
+	        presence, date, typeEmarg, attendu, badged,
+	        absence, malus, tiersTemps
+	    };
+	}
+	
+	// -----------------------------------------------------------------------
+	// QRC
+	// -----------------------------------------------------------------------
+	private ExportResult buildQRCResult(ExportContext ctx, String emargementContext) {
+	    List<TagCheck> list = ctx.getList();
+	    if (list.isEmpty()) {
+	        log.warn("Export QRC demandé sur une liste vide");
+	        return new ExportResult(new byte[0], "application/pdf",
+	                                ctx.getNomFichier().concat(".pdf"));
+	    }
 
-                response.setContentType("text/csv");
-                response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
-                response.setCharacterEncoding("UTF-8");
+	    String libelleSe = buildLibelleSe(ctx);
+	    PdfPTable table  = buildQRCTable(list, libelleSe);
 
-                // Create a CSV writer
-                CSVWriter writer = new CSVWriter(response.getWriter());
+	    Document document = new Document();
+	    document.setMargins(10, 10, 10, 10);
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-                // Define headers
-                String[] headers = {"Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom", "Présent", "Emargement",
-                        "Type", "Lieu attendu", "Lieu badgé", "Absence", "Malus", "Tiers-temps"};
-                writer.writeNext(headers);
+	    try {
+	        PdfWriter.getInstance(document, baos);
+	        document.open();
+	        document.add(table);
+	        logService.log(ACTION.EXPORT_PDF, RETCODE.SUCCESS,
+	            "Extraction pdf : " + list.size() + " résultats",
+	            null, null, emargementContext, null);
+	    } catch (DocumentException e) {
+	        log.error("Erreur export QRC", e);
+	        logService.log(ACTION.EXPORT_PDF, RETCODE.FAILED,
+	            "Extraction pdf : " + list.size() + " résultats",
+	            null, null, emargementContext, null);
+	    } finally {
+	        document.close();
+	    }
 
-                for (TagCheck tc : list) {
-                    String dateSession = formatDate(tc.getSessionEpreuve().getDateExamen());
-                    String dateFin = (tc.getSessionEpreuve().getDateFin() != null) ? " / " + formatDate(tc.getSessionEpreuve().getDateFin()) : "";
-                    String presence = (tc.getTagDate() != null) ? "Présent" : "Absent";
-                    String date = (tc.getTagDate() != null) ? formatTime(tc.getTagDate()) : "--";
-                    String badged = (tc.getSessionLocationBadged() != null) ? tc.getSessionLocationBadged().getLocation().getNom() : "--";
-                    String attendu = (tc.getSessionLocationExpected() != null) ? tc.getSessionLocationExpected().getLocation().getNom() : "--";
-                    String tiersTemps = (tc.getIsTiersTemps()) ? "Oui" : "--";
-                    String typeEmargement = (tc.getTypeEmargement() != null) ? messageSource.getMessage("typeEmargement.".concat(tc.getTypeEmargement().name().toLowerCase()), null, null) : "--";
-                    String nom = (tc.getPerson() != null) ? tc.getPerson().getNom() : (tc.getGuest() != null) ? tc.getGuest().getNom() : "";
-                    String prenom = (tc.getPerson() != null) ? tc.getPerson().getPrenom() : (tc.getGuest() != null) ? tc.getGuest().getPrenom() : "";
-                    String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn() : (tc.getGuest() != null) ? tc.getGuest().getEmail() : "";
-                    String numIdentifiant = (tc.getPerson() != null) ? tc.getPerson().getNumIdentifiant() : "";
-                    String absence = (tc.getAbsence() != null) ? tc.getAbsence().getMotifAbsence().getTypeAbsence().name() + '-' + tc.getAbsence().getMotifAbsence().getStatutAbsence().name() : "";
-                    String malus = "Non";
-                    if (tc.getAbsence() != null && tc.getAbsence().getMotifAbsence() != null) {
-                        if (Boolean.TRUE.equals(tc.getAbsence().getMotifAbsence().getIsMalus())) {
-                            malus = "Oui";
-                        }
-                    }
+	    return new ExportResult(baos.toByteArray(), "application/pdf",
+	                            ctx.getNomFichier().concat(".pdf"));
+	}
 
-                    String[] line = {
-                            tc.getSessionEpreuve().getNomSessionEpreuve(),
-                            dateSession + dateFin,
-                            numIdentifiant,
-                            identifiant,
-                            nom,
-                            prenom,
-                            presence,
-                            date,
-                            typeEmargement,
-                            attendu,
-                            badged,
-                            absence,
-                            malus,
-                            tiersTemps
-                    };
+	private String buildLibelleSe(ExportContext ctx) {
+	    if (ctx.getSe() == null) {
+	        // chemin anneeUniv : libellé construit à partir du nomFichier
+	        // (ou enrichir ExportContext d'un champ libelle si besoin d'affichage propre)
+	        return ctx.getNomFichier().replace("_", " ");
+	    }
+	    return ctx.getSe().getNomSessionEpreuve()
+	        .concat(" -- ")
+	        .concat(String.format("%1$td-%1$tm-%1$tY", ctx.getSe().getDateExamen()))
+	        .concat(ctx.getFin());
+	}
 
-                    writer.writeNext(line);
-                }
+	private PdfPTable buildQRCTable(List<TagCheck> list, String libelleSe) {
+	    PdfPTable table = new PdfPTable(3);
+	    table.setWidthPercentage(100);
+	    table.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-                // Close the writer after all rows are written
-                writer.close();
+	    PdfPCell titleCell = new PdfPCell(new Phrase(libelleSe));
+	    titleCell.setBackgroundColor(BaseColor.GREEN);
+	    titleCell.setColspan(3);
+	    table.addCell(titleCell);
 
-                log.info("Extraction CSV: " + list.size() + " résultats");
-                logService.log(ACTION.EXPORT_CSV, RETCODE.SUCCESS, "Extraction CSV: " + list.size() + " résultats", null, null, emargementContext, null);
+	    for (String header : new String[]{"Personne", "Type", "QR Code"}) {
+	        PdfPCell h = new PdfPCell(new Phrase(header));
+	        h.setBackgroundColor(BaseColor.GRAY);
+	        table.addCell(h);
+	    }
 
-            } catch (Exception e) {
-                log.error("Erreur lors de l'extraction CSV", e);  // Log the exception for better traceability
-                logService.log(ACTION.EXPORT_CSV, RETCODE.FAILED, "Erreur lors de l'extraction CSV", null, null, emargementContext, null);
-                e.printStackTrace();
-            }
-        }
-        return pdfBytes;
-    }
+	    for (TagCheck tc : list) {
+	        String nom    = (tc.getPerson() != null) ? tc.getPerson().getNom()    : tc.getGuest().getNom();
+	        String prenom = (tc.getPerson() != null) ? tc.getPerson().getPrenom() : tc.getGuest().getPrenom();
+	        table.addCell(new PdfPCell(new Paragraph(nom.concat(" ").concat(prenom))));
+
+	        String typeRaw = (tc.getPerson() != null) ? tc.getPerson().getType() : "ext";
+	        String typeInd = messageSource.getMessage(
+	            "person.type." + typeRaw.toLowerCase(), null, null);
+	        table.addCell(new PdfPCell(new Paragraph(typeInd)));
+
+	        table.addCell(buildQRCodeCell(tc));
+	    }
+	    return table;
+	}
+
+	private PdfPCell buildQRCodeCell(TagCheck tc) {
+	    String identifiant = (tc.getPerson() != null)
+	        ? tc.getPerson().getEppn()
+	        : tc.getGuest().getEmail();
+	    try {
+	        String raw     = "true," + identifiant + ","
+	                       + tc.getSessionLocationExpected().getId()
+	                       + "," + identifiant
+	                       + ",qrcode@@@notime@@@" + tc.getContext().getId();
+	        String encoded = toolUtil.encodeToBase64(raw);
+	        InputStream is = toolUtil.generateQRCodeImage("qrcode".concat(encoded), 5, 5);
+	        byte[] bytes   = IOUtils.toByteArray(is);
+	        Image image    = Image.getInstance(bytes);
+	        PdfPCell cell  = new PdfPCell(image, true);
+	        cell.setFixedHeight(60f);
+	        return cell;
+	    } catch (Exception e) {
+	        log.error("Impossible de générer un QR code pour l'identifiant {}", identifiant, e);
+	        return new PdfPCell(new Phrase("--"));
+	    }
+	}
+	
+	public String buildContentDisposition(String filename) {
+	    try {
+	        String encoded = URLEncoder.encode(filename, "UTF-8").replace("+", "%20");
+	        // RFC 5987 : filename* pour les caractères hors ASCII
+	        // filename= pour les vieux clients qui ne comprennent pas filename*
+	        return "attachment; filename=\"" + sanitizeAscii(filename) + "\"; filename*=UTF-8''" + encoded;
+	    } catch (UnsupportedEncodingException e) {
+	        // UTF-8 toujours disponible, ne peut pas arriver
+	        return "attachment; filename=\"export\"";
+	    }
+	}
+
+	// Fallback ASCII : remplace les caractères hors plage 0-127 par '_'
+	private String sanitizeAscii(String filename) {
+	    return filename.replaceAll("[^\\x00-\\x7F]", "_");
+	}
 
     public void getTagCheckListAsPDF(
             List<TagCheck> list,

@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.beans.ExportResult;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.TypeSignature;
@@ -65,6 +66,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -427,12 +430,28 @@ public class TagCheckController {
 	public void getPdfConvocation(HttpServletResponse response, @RequestParam String htmltemplate, @RequestParam(defaultValue = "false") boolean includeLogo) throws Exception {
     	tagCheckService.getPdfConvocation(response,htmltemplate, includeLogo);
 	}
-    
-    @GetMapping("/manager/tagCheck/export")
-    public void exportTagChecks(@PathVariable String emargementContext,@RequestParam String type, @RequestParam("sessionId") Long id, 
-    		 HttpServletResponse response){
-    	tagCheckService.exportTagChecks(type, id, response, emargementContext, null, false);
-    }
+ 
+	@GetMapping("/manager/tagCheck/export")
+	public ResponseEntity<byte[]> export(@RequestParam String type, @RequestParam("sessionId") Long id,
+			@RequestParam(required = false) String anneeUniv, @PathVariable String emargementContext) {
+
+		ExportResult result = tagCheckService.exportTagChecks(type, id, emargementContext, anneeUniv);
+		String disposition = "attachment; filename=\"" + result.getFilename() + "\"";
+
+		// CSV : UTF-8 BOM pour Excel
+		if ("CSV".equals(type)) {
+			byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+			byte[] body = new byte[bom.length + result.getBytes().length];
+			System.arraycopy(bom, 0, body, 0, bom.length);
+			System.arraycopy(result.getBytes(), 0, body, bom.length, result.getBytes().length);
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+					.header(HttpHeaders.CONTENT_DISPOSITION, disposition).body(body);
+		}
+		
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType(result.getContentType()))
+				.header(HttpHeaders.CONTENT_DISPOSITION, tagCheckService.buildContentDisposition(result.getFilename()))
+				.body(result.getBytes());
+	}
     
 	@Transactional
 	@PostMapping(value = "/manager/tagCheck/sendConvocation", produces = "text/html")
