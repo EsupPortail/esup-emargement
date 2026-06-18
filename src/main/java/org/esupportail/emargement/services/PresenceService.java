@@ -114,7 +114,7 @@ public class PresenceService {
         SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
         SessionEpreuve se = sl.getSessionEpreuve();
         List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveIdOrderByPersonEppn(se.getId(), null).getContent();
-    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+    	tagCheckService.setNomPrenomTagChecks(list, false, false, false);
         String dateFin = (se.getDateFin()!=null)? "" + String.format("%1$td-%1$tm-%1$tY", (se.getDateFin())) : "";
         String nomFichier = "Export_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin)).concat(".pdf");

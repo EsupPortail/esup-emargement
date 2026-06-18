@@ -222,7 +222,7 @@ public class AssiduiteController {
 				tcs.removeAll(tcs);
 				tcs .addAll(temp);
 			}
-			tagCheckService.setNomPrenomTagChecks(tcs, true, true);	
+			tagCheckService.setNomPrenomTagChecks(tcs, true, true, true);
 		}
 
 		Map<String, String> mapTcs = tagCheckService.getPersonWithTotalDuration(tcs);

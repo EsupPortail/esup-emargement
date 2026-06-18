@@ -13,6 +13,7 @@
 					<th>Nom</th>
 					<th>Prénom</th>
 					<th>Num Etu</th>
+					<th>Email</th>
 					<th>Groupe</th>
 					<th class="text-center">Absence/Retard</th>
 					<th class="text-center">Statut</th>
@@ -40,6 +41,7 @@
 					</td>
 					<td th:text="${individu.prenom}"></td>
 					<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
+					<td th:text="${tc.email}"></td>
 					<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
 					<td data-bs-toggle="tooltip" th:title="${tc.absence ne null and tc.absence.dateModification ne null and tc.absence.userApp  ne null ? 'Modificateur : ' + tc.absence.userApp.eppn + ' le ' +
 						#dates.format(tc.absence.dateModification, 'dd/MM/yy HH:mm') : ''}">

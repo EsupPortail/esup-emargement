@@ -528,7 +528,6 @@ public class TagCheckService {
         return bilanCsv;
     }
 
-
     public List<List<String>> getListForimport(List<String> usersGroupLdap) {
         List<List<String>> rows = new ArrayList<>();
         for (String user : usersGroupLdap) {
@@ -538,7 +537,6 @@ public class TagCheckService {
         }
         return rows;
     }
-
 
     public List<List<String>> setAddList(TagCheck tc) {
 
@@ -568,7 +566,7 @@ public class TagCheckService {
         personService.deleteUnusedPersons(contextRepository.findByContextKey(se.getContext().getKey()));
     }
 
-    public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy) {
+    public int setNomPrenomTagChecks(List<TagCheck> tagChecks, boolean setTagChecker, boolean setProxy, boolean setEmail) {
         if (tagChecks.isEmpty()) return 0;
         // 1. Collecte défensive des EPPNs (garde-fous null)
         Set<String> allEppns = new HashSet<>();
@@ -599,6 +597,9 @@ public class TagCheckService {
                     tc.getPerson().setPrenom(lu.getPrenom());
                     tc.setNomPrenom(lu.getName() + lu.getPrenom());
                     enriched = true;
+                    if(setEmail) {
+						tc.setEmail(lu.getEmail());
+                    }
                 } else {
                     tc.setNomPrenom("");
                 }
@@ -1006,7 +1007,7 @@ public class TagCheckService {
                 List.of(tc.getTagChecker())
             );
         }
-        setNomPrenomTagChecks(List.of(tc), false, false);
+        setNomPrenomTagChecks(List.of(tc), false, false, false);
         updateAndBroadcast(tc, sl, false, "");
         return true;
     }
@@ -1130,7 +1131,7 @@ public class TagCheckService {
 	private ExportContext buildExportContext(Long id, SessionEpreuve se, String anneeUniv) {
 	    if (anneeUniv != null) {
 	        List<TagCheck> list = tagCheckRepository.findTagCheckBySessionEpreuveAnneeUniv(anneeUniv);
-	        this.setNomPrenomTagChecks(list, false, false);
+	        this.setNomPrenomTagChecks(list, false, false, true);
 	        return new ExportContext(
 	            list,
 	            "Export_inscrits_annee_universitaire_" + anneeUniv,
@@ -1150,7 +1151,7 @@ public class TagCheckService {
 	    List<TagCheck> list = tagCheckRepository
 	        .findTagCheckBySessionEpreuveIdOrderByPersonEppn(id, null)
 	        .getContent();
-	    this.setNomPrenomTagChecks(list, false, false);
+	    this.setNomPrenomTagChecks(list, false, false, true);
 
 	    return new ExportContext(list, nomFichier, fin, se);
 	}
@@ -1192,7 +1193,7 @@ public class TagCheckService {
 	            new OutputStreamWriter(baos, StandardCharsets.UTF_8))) {
 
 	        writer.writeNext(new String[]{
-	            "Session", "Date", "Numéro Etu", "Eppn", "Nom", "Prénom",
+	            "Session", "Date", "Numéro Etu", "Eppn", "Email", "Nom", "Prénom",
 	            "Présent", "Emargement", "Type", "Lieu attendu", "Lieu badgé",
 	            "Absence", "Malus", "Tiers-temps"
 	        });
@@ -1235,6 +1236,7 @@ public class TagCheckService {
 	                       : (tc.getGuest()  != null) ? tc.getGuest().getPrenom() : "";
 	    String identifiant = (tc.getPerson() != null) ? tc.getPerson().getEppn()
 	                       : (tc.getGuest()  != null) ? tc.getGuest().getEmail() : "";
+	    String email 	   = tc.getEmail();
 	    String numId       = (tc.getPerson() != null) ? tc.getPerson().getNumIdentifiant() : "";
 	    String absence     = (tc.getAbsence() != null)
 	                       ? tc.getAbsence().getMotifAbsence().getTypeAbsence().name()
@@ -1248,7 +1250,7 @@ public class TagCheckService {
 	    return new String[]{
 	        tc.getSessionEpreuve().getNomSessionEpreuve(),
 	        dateSession + dateFin,
-	        numId, identifiant, nom, prenom,
+	        numId, identifiant, email, nom, prenom,
 	        presence, date, typeEmarg, attendu, badged,
 	        absence, malus, tiersTemps
 	    };
@@ -2511,7 +2513,7 @@ public class TagCheckService {
         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm");
 
         if (!tagChecks.isEmpty()) {
-            setNomPrenomTagChecks(tagChecks, true, true);
+            setNomPrenomTagChecks(tagChecks, true, true, false);
             for (TagCheck tc : tagChecks) {
                 TagCheckBean bean = new TagCheckBean();
                 bean.setCodeEtape(StringUtils.defaultString(tc.getCodeEtape(), ""));
@@ -2635,7 +2637,7 @@ public class TagCheckService {
         TagCheck tc = tagCheckRepository.findById(id).get();
         List<TagCheck> tcs = new ArrayList<>();
         tcs.add(tc);
-        setNomPrenomTagChecks(tcs, false, false);
+        setNomPrenomTagChecks(tcs, false, false, false);
         SessionEpreuve se = tc.getSessionEpreuve();
         String nomFichier = "attestation_ " + tc.getNomPrenom() + "_"
                 + se.getNomSessionEpreuve().replace("", "_") + ".pdf";

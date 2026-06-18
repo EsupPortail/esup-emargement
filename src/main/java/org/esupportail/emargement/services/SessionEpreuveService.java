@@ -347,7 +347,7 @@ public class SessionEpreuveService {
                 results = tagCheckRepository.findTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndIsTiersTempsFalseOrderByPersonEppn(sessionEpreuveId);
             }
             // Trie alpha : utiliser NomPrenom
-            tagCheckService.setNomPrenomTagChecks(results, false, false);
+            tagCheckService.setNomPrenomTagChecks(results, false, false, false);
             results = results.stream()
                     .sorted(Comparator.comparing(TagCheck::getNomPrenom))
                     .collect(Collectors.toList());
@@ -440,7 +440,7 @@ public class SessionEpreuveService {
                 results = tagCheckRepository.findTagCheckBySessionEpreuveIdAndIsTiersTempsFalseOrderByPersonEppn(sessionEpreuveId);
             }
             // Trie alpha sur NomPrenom
-            tagCheckService.setNomPrenomTagChecks(results, false, false);
+            tagCheckService.setNomPrenomTagChecks(results, false, false, false);
             results = results.stream()
                     .sorted(Comparator.comparing(TagCheck::getNomPrenom))
                     .collect(Collectors.toList());
@@ -548,7 +548,7 @@ public class SessionEpreuveService {
     	String nomFichier = "Liste_".concat(se.getNomSessionEpreuve()).concat("_").concat(sl.getLocation().getNom()).concat("_").
     			concat(String.format("%1$td-%1$tm-%1$tY", se.getDateExamen()).concat(dateFin));
     	nomFichier = nomFichier.replace(" ", "_").concat(".pdf");
-		tagCheckService.setNomPrenomTagChecks(list, false, false);
+		tagCheckService.setNomPrenomTagChecks(list, false, false, false);
 		Collections.sort(list,  new Comparator<TagCheck>() {	
 			@Override
             public int compare(TagCheck obj1, TagCheck obj2) {

@@ -91,7 +91,7 @@ public class EsupSignatureService {
 			 se = tc.getSessionEpreuve();
 			 List<TagCheck> list = new ArrayList<>();
 			 list.add(tc);
-			 tagCheckService.setNomPrenomTagChecks(list, false, false);
+			 tagCheckService.setNomPrenomTagChecks(list, false, false, false);
 			 title = "attestion de présence de " + tc.getPerson().getPrenom() + tc.getPerson().getNom();
 			 nomFichier = setNomFichierFromSessionEpreuve(se, title.replace(" ", "_"));
 			 

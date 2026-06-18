@@ -99,6 +99,9 @@ public class TagCheck implements ContextSupport {
     
     private Integer nbBadgeage;
 
+    @Transient
+    private String email;
+
 	public Long getId() {
 		return id;
 	}
@@ -305,5 +308,13 @@ public class TagCheck implements ContextSupport {
 
 	public void setTagChecker2(TagChecker tagChecker2) {
 		this.tagChecker2 = tagChecker2;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 }

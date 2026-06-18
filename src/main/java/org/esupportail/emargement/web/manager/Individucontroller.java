@@ -123,7 +123,7 @@ public class Individucontroller {
 			Page<TagCheck> pTagChecks = null;
 			if(tagCheckRepository.countTagCheckByPersonEppn(searchString)>0) {
 				pTagChecks = tagCheckRepository.findTagCheckByPersonEppn(searchString, null);
-				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent(), false, false);
+				tagCheckService.setNomPrenomTagChecks(pTagChecks.getContent(), false, false, false);
 			}else {
 				pTagChecks = tagCheckRepository.findTagCheckByGuestEmail(searchString, null);
 			}
@@ -183,7 +183,7 @@ public class Individucontroller {
 		}else if(typeSearch!=null && "sessionEpreuve".equals(typeSearch)) {
 			Long sessionEpreuveId = Long.valueOf(searchString);
 			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionEpreuveId(sessionEpreuveId);
-			tagCheckService.setNomPrenomTagChecks(tcs, false, false);
+			tagCheckService.setNomPrenomTagChecks(tcs, false, false, false);
 			model.addAttribute("activite", sessionEpreuveRepository.findById(sessionEpreuveId).get());	
 			model.addAttribute("activitePage", tcs);
 			model.addAttribute("nbBadgeage", tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(sessionEpreuveId));

@@ -348,7 +348,7 @@ public class PresenceTransactionalService {
 				    	}
 			    	}
 			    	list.add(presentTagCheck);
-			    	tagCheckService.setNomPrenomTagChecks(list, false, false);
+			    	tagCheckService.setNomPrenomTagChecks(list, false, false, false);
 			    	if(presentTagCheck.getTagChecker() != null) {
 			        	List<TagChecker> tcList = new ArrayList<>();
 			        	tcList.add(presentTagCheck.getTagChecker());
