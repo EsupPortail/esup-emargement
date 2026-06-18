@@ -153,7 +153,7 @@ public class LocationController {
     }
     
     @PostMapping("/admin/location/update/{id}")
-    public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid Location location, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes){
+    public String update(@PathVariable String emargementContext, @Valid Location location, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes){
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, location);
             return "admin/location/update";

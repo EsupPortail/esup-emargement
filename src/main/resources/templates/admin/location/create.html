@@ -10,22 +10,6 @@
 		    	<div  class="alert alert-danger" th:if="${error}">Le lieu avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
   				<div class="card-body">
                     <form action="#" th:action="@{/{ctx}/admin/location/create(ctx=${eContext})}" th:object="${location}" method="post" enctype="multipart/form-data" >
-	                    <div class="form-group row alert alert-primary" th:if="${!#lists.isEmpty(eventLocations)}">
-	                   		<div class="col-lg-2">
-	                    		<label for="locationEvent" class="form-label">Suggestions</label><span class="text-danger font-weight-bold" th:text="${' (' + #lists.size(eventLocations)  + ')'}"></span>
-	                    	</div>
-	                    	<div class="col-lg-6">
-	                        	<select id="icsEventLocations">
-									<option data-placeholder="true"></option>
-									<option th:each="el : ${eventLocations}"
-											th:value="${el}" 
-											th:text="${el}"></option>
-								</select>
-							</div>
-							<div class="col-lg-2">
-								<a th:href="@{/{ctx}/admin/location/addAll(ctx=${eContext})}" onclick="return confirm('Confirmez-vous l\'import de tous les lieux?');" class="btn btn-success" id="">Importer tous ces lieux</a>
-							</div>
-						</div>
 	                    <div class="row mb-3">
 	                   		<div class="col-lg-2">
 	                    		<label for="nom" class="form-label">Nom</label>

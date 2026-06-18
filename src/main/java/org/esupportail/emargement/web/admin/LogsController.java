@@ -59,7 +59,7 @@ public class LogsController {
 	}
 
     @PostMapping("/admin/logs/search")
-    public String search(@PathVariable String emargementContext,@Valid Log logObject, Model model,  @PageableDefault(size = 10, direction = Direction.DESC, sort = "logDate")  Pageable pageable,
+    public String search(@Valid Log logObject, Model model,  @PageableDefault(size = 10, direction = Direction.DESC, sort = "logDate")  Pageable pageable,
     					@RequestParam String stringDate)throws ParseException {
     	Page<Log> logsPage= logsRepositoryCustom.findAll(logObject, stringDate, pageable);
     	Date date = null;

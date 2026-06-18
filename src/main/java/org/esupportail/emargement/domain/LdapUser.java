@@ -24,7 +24,7 @@ public final class LdapUser {
     private @Attribute(name = "supannEtuId") String numEtudiant;
     private @Attribute(name = "supannCivilite") String civilite;
     private @Attribute(name = "supannEmpId") String numPersonnel;
-    
+           
 	public Name getId() {
 		return id;
 	}
