@@ -1,5 +1,4 @@
 package org.esupportail.emargement.web.superadmin;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -13,6 +12,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import org.esupportail.emargement.services.UnusedColumnDetectorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.pool2.factory.PooledContextSource;
@@ -31,6 +31,9 @@ import com.zaxxer.hikari.HikariDataSource;
 public class JavaPerfController {
 	
 	private final static String ITEM = "javaperf";
+	
+	@Resource
+	UnusedColumnDetectorService detector;
 
 	@Resource
 	DataSource basicDataSources;
@@ -47,7 +50,7 @@ public class JavaPerfController {
 	}
 	
 	@GetMapping(value = "/superadmin/javaperf")
-	public String getJavaPerf(Model uiModel) throws IOException {
+	public String getJavaPerf(Model uiModel) {
 
 		Runtime runtime = Runtime.getRuntime();
 		long maxMemoryInMB = runtime.maxMemory() / 1024 / 1024;
@@ -91,7 +94,14 @@ public class JavaPerfController {
 		uiModel.addAttribute("currentThreadId", currentThreadId);
 
         uiModel.addAttribute("javaPerfWrapper", new JavaPerfWrapper(threadMXBean, threadInfos));
-
+     // Controller
+        List<List<String>> rows = new ArrayList<>();
+        detector.findUnusedColumns().forEach((table, cols) -> {
+            cols.forEach(col -> {
+                rows.add(Arrays.asList(table, col));
+            });
+        });
+        uiModel.addAttribute("unusedColumns", rows);
         return "superadmin/javaperf";
 	}
 
