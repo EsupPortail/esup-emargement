@@ -3,7 +3,6 @@ package org.esupportail.emargement.repositories;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
@@ -16,12 +15,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, Long>,JpaSpecificationExecutor<SessionEpreuve>{
 
-	Long countByNomSessionEpreuve(String nomSessionEpreuve);
-	
-	Long countByAdeEventId(Long id);
-	
-	Long countByAdeEventIdAndContext(Long id, Context ctx);
-	
 	Long countByAdeEventIdAndAdeActiviteIdAndContext(Long eventId, Long activityId , Context ctx);
 	
 	Long countByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(Long adeActiviteId, Integer repetiton, Integer session, Context ctx);
@@ -29,24 +22,15 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve> findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndIsAdeOrphanFalseAndContext(Long activityId,
 			Integer repetition, Integer session, Context ctx);
 	
-	Long countByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(Long id, Date date, Date heureDebut, Date heureFin, Context ctx);
-	
 	Long countByNomSessionEpreuveAndDateExamenAndHeureEpreuveAndFinEpreuve(String nomSessionEpreuve, Date dateExamen, Date heureDebut, Date heureFin);
-	
-	List<SessionEpreuve> findByAdeEventId(Long id);
 	
 	List<SessionEpreuve> findByAdeEventIdAndContext(Long id, Context ctx);
 	
 	List<SessionEpreuve> findByAdeActiviteIdAndDateExamenAndHeureEpreuveAndFinEpreuveAndContext(Long id, Date date, Date heureDebut, Date heureFin, Context ctx);
 
-	List<SessionEpreuve> findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(Long activityId, Integer repetition, Integer session, Context ctx);
-	List<SessionEpreuve> findByIdIn(List<Long> id);
-	
 	List<SessionEpreuve> findSessionEpreuveByStatutSessionKeyInOrderByDateExamen(List<String> keys);
 	
 	List<SessionEpreuve> findByContextAndAdeEventIdIsNotNullAndIsAdeOrphanIsNullAndAnneeUnivAndDateCreationLessThan(Context context, String anneUniv, Date today);
-	
-	List<SessionEpreuve> findByContextAndAdeEventIdIn(Context context, Set<Long> set);
 	
 	List<SessionEpreuve>  findSessionEpreuveByContext(Context context);
 	
@@ -55,8 +39,6 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve>  findByContextAndDateExamenLessThanAndStatutSessionKeyNotIn(Context context, Date today, List<String> keys);
 	
 	List<SessionEpreuve> findByContextAndDateExamenAndStatutSessionKey(Context context, Date today, String key);
-	
-	List<SessionEpreuve>  findByContextAndDateExamenAndStatutSessionKeyNotIn(Context context, Date today, List<String> keys);
 	
 	List<SessionEpreuve>  findByContextAndDateExamenGreaterThanEqualAndDateExamenLessThanEqual(Context context, Date today, Date endDate);
 	
@@ -80,11 +62,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
 	
-	List<SessionEpreuve> findDistinctByNomSessionEpreuveLikeIgnoreCase(String nom);
-	
 	List<SessionEpreuve> findByNomSessionEpreuveLikeIgnoreCase(String nom);
-	
-	List<SessionEpreuve> findByNomSessionEpreuve(String nom);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
@@ -189,14 +167,14 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	@Query(value = "select site, count(*) as count from session_epreuve, campus, statut_session where "
 			+ "session_epreuve.campus_id=campus.id and session_epreuve.context_id=:context "
 			+ "and session_epreuve.statut_session_id = statut_session.id "
-			+ "and key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by site order by count desc;", nativeQuery = true)
+			+ "and key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by site order by count desc;", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByCampus(Long context, String anneeUniv);
 	
 	@Query(value = "SELECT CAST(DATE_PART('month', date_examen) AS INTEGER) AS month, count(*) "
 			+ "AS count FROM session_epreuve, statut_session  "
 			+ "WHERE session_epreuve.context_id=:context "
 			+ "and session_epreuve.statut_session_id = statut_session.id "
-			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv GROUP BY month", nativeQuery = true)
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv GROUP BY month", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByYearMonth(Long context, String anneeUniv);
 	
 	@Query(value = "select statut_session.key as session_key, " +
@@ -205,7 +183,7 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
             "from session_epreuve, context, statut_session " +
             "where session_epreuve.context_id = context.id " +
             "and session_epreuve.statut_session_id = statut_session.id " +
-            "and annee_univ like :anneeUniv " +
+            "and annee_univ = :anneeUniv " +
             "group by statut_session.key, statut " +
             "order by statut_session.key, statut, cnt",
     nativeQuery = true)
@@ -215,13 +193,13 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "where session_epreuve.type_session_id = type_session.id "
 			+ "and session_epreuve.statut_session_id = statut_session.id "
 			+ "and session_epreuve.context_id=:context and statut_session.key IN ('CLOSED', 'ENDED') "
-			+ "and annee_univ like :anneeUniv group by type_session.key", nativeQuery = true)
+			+ "and annee_univ = :anneeUniv group by type_session.key", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByType(Long context, String anneeUniv);
 	
 	@Query(value = "select context.key as ctx, type_session.key as type, count(*) from session_epreuve, context, type_session, statut_session "
 			+ "where session_epreuve.type_session_id = type_session.id and "
 			+ "session_epreuve.statut_session_id = statut_session.id and "
-			+ "session_epreuve.context_id=context.id and statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by context.key, type_session.key order by ctx, type, count;", nativeQuery = true)
+			+ "session_epreuve.context_id=context.id and statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by context.key, type_session.key order by ctx, type, count;", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByTypeByContext(String anneeUniv);
 	
 	List<SessionEpreuve> findByContextOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Context ctx);

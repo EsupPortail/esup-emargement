@@ -47,7 +47,6 @@ import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
 import org.esupportail.emargement.repositories.AbsenceRepository;
-import org.esupportail.emargement.repositories.AdeBranchRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
@@ -82,8 +81,6 @@ public class AdeApiWebService implements AdeApiService {
 	
 	final static String ADE_STORED_SESSION = "adeStoredSession";
 	
-	private final static String ADE_STORED_PROJET = "adeStoredProjet";
-	
 //	private final static String pathCopyFile = "/opt/ade";
 
 	public final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
@@ -111,9 +108,6 @@ public class AdeApiWebService implements AdeApiService {
 	
 	@Autowired
 	private CampusRepository campusRepository;
-	
-	@Autowired
-	private AdeBranchRepository adeBranchRepository;
 	
 	@Autowired
 	AbsenceRepository absenceRepository;

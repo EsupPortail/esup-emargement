@@ -68,9 +68,6 @@ public class TaskService {
 	@Resource	
 	AdeService adeService;
 	
-	@Resource
-	ContextService contextService;
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Value("${log.all.retention}")

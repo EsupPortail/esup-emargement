@@ -53,7 +53,7 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 			+ "AND session_location.session_epreuve_id = session_epreuve.id "
 			+ "AND session_epreuve.statut_session_id = statut_session.id "
 			+ "AND session_location.context_id=:context "
-			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by nom order by count desc", nativeQuery = true)
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by nom order by count desc", nativeQuery = true)
 	List<Object[]> countSessionLocationByLocation(Long context, String anneeUniv);
 	
 }
