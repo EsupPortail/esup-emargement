@@ -71,7 +71,6 @@
 					<div class="card-header py-2">
 						<strong>Database</strong>
 					</div>
-
 					<div class="card-body">
 						<div class="mb-3 border rounded">
 							<div class="px-3 py-2 bg-dark text-white d-flex align-items-center">
@@ -111,6 +110,11 @@
 									</span>
 								</div>
 							</div>
+						</div>
+						<div class="d-grid">
+							<button th:if="${!unusedColumns.empty}" class="btn btn-warning btn-sm text-center mt-2" data-bs-toggle="modal" data-bs-target="#dbAuditModal">
+								<i class="bi bi-database-exclamation"></i> Colonnes orphelines
+							</button>
 						</div>
 					</div>
 				</div>
@@ -194,6 +198,52 @@
 				</table>
 			</div>
 		</div>
+	</div>
+	<!-- Modal -->
+	<div class="modal fade" id="dbAuditModal" tabindex="-1">
+	    <div class="modal-dialog modal-lg">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title">Colonnes orphelines</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+	            </div>
+	            <div class="modal-body">
+	                <p class="text-success" th:if="${unusedColumns.isEmpty()}">
+	                    <i class="bi bi-check-circle"></i> Aucune colonne orpheline détectée.
+	                </p>
+	                <div th:unless="${unusedColumns.isEmpty()}">
+	                    <div class="alert alert-warning py-2 text-center fw-bold">
+	                        Colonnes présentes en base mais absentes des <code>@Entity</code><br />
+							A vous de vérifier et de les supprimer manuellement.
+	                    </div>
+	                    <table class="table table-sm table-bordered table-hover">
+	                        <thead class="table-light">
+	                            <tr>
+	                                <th>Table</th>
+	                                <th>Colonne</th>
+	                            </tr>
+	                        </thead>
+	                        <tbody>
+								<tr th:each="row : ${unusedColumns}">
+								    <td>
+										<span class="badge"
+										      th:classappend="${row.get(0).hashCode() % 4 == 0 ? 'bg-primary' :
+										                       row.get(0).hashCode() % 4 == 1 ? 'bg-success' :
+										                       row.get(0).hashCode() % 4 == 2 ? 'bg-warning' :
+										                       'bg-danger'}"
+										      th:text="${row.get(0)}">
+										</span>									</td>
+								    <td><code th:text="${row.get(1)}"></code></td>
+								</tr>
+	                        </tbody>
+	                    </table>
+	                </div>
+	            </div>
+	            <div class="modal-footer">
+	                <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+	            </div>
+	        </div>
+	    </div>
 	</div>
 	<footer th:replace="fragments/footer :: footer"></footer>
 </body>
