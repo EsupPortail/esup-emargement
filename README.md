@@ -34,6 +34,24 @@ redémarrage de postgresql
     create USER esupemargement with password 'esup';
     grant ALL ON DATABASE esupemargement to esupemargement;
     ALTER DATABASE esupemargement OWNER TO esupemargement;
+    
+index
+  
+  CREATE INDEX idx_person_eppn ON person(eppn);
+  CREATE INDEX idx_session_epreuve_context ON session_epreuve(context_id);
+  CREATE INDEX idx_session_epreuve_dates ON session_epreuve(
+	    date_examen,
+	    date_fin
+	);
+  CREATE INDEX idx_tag_check_perf ON tag_check(
+	    context_id,
+	    session_epreuve_id,
+	    is_tiers_temps
+	);
+  CREATE INDEX idx_tag_check_person_session ON tag_check(
+	    person_id,
+	    session_epreuve_id
+	);
 
 ### JDBC
 
