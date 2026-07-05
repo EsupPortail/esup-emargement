@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" [<!ENTITY parameters SYSTEM "src/test/resources/testng-parameters.xml">]>
+
+
+<suite name="Suite" parallel="false">
+
+    &parameters;
+
+    <test name="all-tests" preserve-order="true" verbose="2">
+        <packages>
+            <package name=".*"/>
+        </packages>
+        <!--
+            La couverture de tests est à ce jour très partielle mais il est possible de la compléter.
+            Les tests ajoutés par la suite pourront être compatibles ou pas avec une version antérieure
+            d'esup-emargement et pourront permettre éventuelement de comparer le fonctionnement de la 
+            dernière version (d'esup-emargement ou des scripts de test) avec une version antérieur 
+            que vous pouvez avoir déployée. 
+
+            S'il se trouve que certains tests sont là pour tester de nouvelles fonctionnalités non disponibles
+            dans la version (antérieure) vous pouvez lister les tests à ignorer dans la section suivante.
+        -->
+        <classes>
+            <class name="EsupEmargementIT">
+                <methods>
+                    <exclude name="ctx2AffichageColGroupesDansListeSession" />
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>
