@@ -109,37 +109,49 @@ public class UserAppService {
 		 }
     }
     
-	public List<UserApp> setNomPrenom(List<UserApp>allUserApps, boolean isIncluded){
-		List<UserApp> newList = new ArrayList<>();
-		if(!allUserApps.isEmpty()) {
-			List<String> userAppList = allUserApps.stream().filter(userApp -> userApp.getEppn()!=null).map(userApp -> userApp.getEppn())
-					.collect(Collectors.toList());
-			Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(userAppList, "eduPersonPrincipalName");
-			for(UserApp userApp : allUserApps) {
-				LdapUser ldapUser = mapLdapUsers.get(userApp.getEppn());
-				if(ldapUser!=null) {
-					userApp.setNom(ldapUser.getName());
-					userApp.setPrenom(ldapUser.getPrenom());
-					newList.add(userApp);
-				}
-				if(ldapUser!=null && isIncluded) {
-					newList.add(userApp);
-				}
-				if(ldapUser == null && isIncluded) {
-					userApp.setNom("--");
-					userApp.setPrenom("--");
-					newList.add(userApp);
-				}
-				if(ldapUser == null && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
-					userApp.setNom(userApp.getContext().getKey());
-					userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
-					newList.add(userApp);
-				}
-			}
-		}
-		return newList;
-	}
-	
+    public List<UserApp> setNomPrenom(List<UserApp> allUserApps, boolean isIncluded) {
+        List<UserApp> newList = new ArrayList<>();
+
+        if (!allUserApps.isEmpty()) {
+
+            List<String> userAppList = allUserApps.stream()
+                    .filter(userApp -> userApp.getEppn() != null)
+                    .map(UserApp::getEppn)
+                    .collect(Collectors.toList());
+
+            Map<String, LdapUser> mapLdapUsers =
+                    ldapService.getLdapUsersFromNumList(userAppList, "eduPersonPrincipalName");
+
+            for (UserApp userApp : allUserApps) {
+
+                LdapUser ldapUser = mapLdapUsers.get(userApp.getEppn());
+
+                if (ldapUser != null) {
+                    userApp.setNom(ldapUser.getName());
+                    userApp.setPrenom(ldapUser.getPrenom());
+
+                    newList.add(userApp);
+
+                } else if (userApp.getEppn() != null 
+                        && userApp.getEppn().startsWith(paramUtil.getGenericUser())) {
+
+                    userApp.setNom(userApp.getContext().getKey());
+                    userApp.setPrenom(StringUtils.capitalize(paramUtil.getGenericUser()));
+
+                    newList.add(userApp);
+
+                } else if (isIncluded) {
+
+                    userApp.setNom("--");
+                    userApp.setPrenom("--");
+
+                    newList.add(userApp);
+                }
+            }
+        }
+
+        return newList;
+    }
 	public List<String> getUserContexts() {
 		
 		List<String> listContext = new ArrayList<>();
@@ -308,5 +320,28 @@ public class UserAppService {
 			log.error("CSV d'import d'agents non conforme", e);
 		}
 		return eppns;
+	}
+
+	public List<UserApp> findDistinctUserAppByAnneeUniv(String anneeUniv, String currentUserEppn) {
+	    List<UserApp> users = userAppRepository.findUserAppByAnneeUniv(anneeUniv);
+
+	    List<UserApp> distinctUsers = users.stream()
+	            .collect(Collectors.toMap(
+	                    UserApp::getEppn,
+	                    u -> u,
+	                    (u1, u2) -> u1
+	            ))
+	            .values()
+	            .stream()
+	            .collect(Collectors.toList());
+
+	    return setNomPrenom(distinctUsers, true).stream()
+	            .sorted(Comparator
+	                    // utilisateur connecté en premier
+	                    .comparing((UserApp u) -> !u.getEppn().equals(currentUserEppn))
+	                    // puis tri alphabétique
+	                    .thenComparing(UserApp::getNom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+	                    .thenComparing(UserApp::getPrenom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+	            .collect(Collectors.toList());
 	}
 }

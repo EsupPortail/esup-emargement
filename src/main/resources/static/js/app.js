@@ -1576,10 +1576,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		request.send();
 	});
-	//Foemulaire présence
-	$("#presencePage #location").on("change", function() {
-		$("#presenceForm").submit();
-	});
 	
 	//Suppression d'un tagCheck
 	$(document).on("click", ".btn-delete", function(e) {

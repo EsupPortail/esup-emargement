@@ -220,24 +220,36 @@ public class PresenceController {
 
     @GetMapping("/supervisor/presence")
     public Object  getListPresence(@Valid SessionEpreuve sessionEpreuve, @PathVariable String emargementContext, 
-    		@RequestParam(value ="location", required = false) Long sessionLocationId, @RequestParam(value ="present", required = false) Long presentId,
-    		@RequestParam(required = false) Long tc, @RequestParam(required = false) String tcer, 
-    		@RequestParam(required = false) String msgError, @RequestParam(required = false) Long update,
-    		@RequestParam(defaultValue = "OPENED") String keyStatut,
-    		@RequestHeader(value = "HX-Request", required = false) String hxRequest){
+			@RequestParam(value = "location", required = false) Long sessionLocationId,
+			@RequestParam(value = "present", required = false) Long presentId, @RequestParam(required = false) Long tc,
+			@RequestParam(required = false) String tcer, @RequestParam(required = false) String msgError,
+			@RequestParam(required = false) Long update, @RequestParam(required = false) String sessionUser,
+			@RequestParam(required = false) String keyStatut,
+			@RequestHeader(value = "HX-Request", required = false) String hxRequest) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String eppnAuth = auth.getName();
+		String eppnAuth = sessionUser!=null ? sessionUser: auth.getName();
+		if (hxRequest == null && keyStatut == null) {
+			keyStatut = "OPENED";
+		}
     	List<SessionEpreuve> allSessionEpreuves = sessionEpreuveService.getListSessionEpreuveByTagchecker(eppnAuth, keyStatut);
     	if (hxRequest != null) {
     		String params = "";
-    		if(!allSessionEpreuves.isEmpty()) {
-    			SessionEpreuve se = allSessionEpreuves.get(0);
-    			params = "&sessionEpreuve=" + se.getId();
-    			List<SessionLocation>  allSessionLocations = sessionLocationService.getSessionLocationFromTagChecker(se.getId(), eppnAuth);
-    			if(!allSessionLocations.isEmpty()) {
-    				params += "&location=" + allSessionLocations.get(0).getId();
-    			}
+    		if(sessionEpreuve !=null && sessionLocationId!=null) {
+    			params = "&sessionEpreuve=" + sessionEpreuve.getId() +  "&location=" + sessionLocationId;
+				if (keyStatut == null) {
+					keyStatut = sessionEpreuve.getStatutSession().getKey();
+				}
+    		}else {
+        		if(!allSessionEpreuves.isEmpty()) {
+        			SessionEpreuve se = allSessionEpreuves.get(0);
+        			params = "&sessionEpreuve=" + se.getId();
+        			List<SessionLocation>  allSessionLocations = sessionLocationService.getSessionLocationFromTagChecker(se.getId(), eppnAuth);
+        			if(!allSessionLocations.isEmpty()) {
+        				params += "&location=" + allSessionLocations.get(0).getId();
+        			}
+        		}
     		}
+    		params += "&sessionUser=" + eppnAuth;
             String redirectUrl = String.format("/%s/supervisor/presence?keyStatut=%s%s",
                                                emargementContext, keyStatut, params);
             return ResponseEntity.ok()
@@ -248,7 +260,6 @@ public class PresenceController {
     	ModelAndView uiModel= new ModelAndView("supervisor/list");
 
     	uiModel.addObject("scrollTop", appliConfigService.isScrollTopEnabled());
-    	uiModel.addObject("eppnAuth", eppnAuth);
     	if(update!=null) {
     		uiModel=  new ModelAndView("supervisor/list::search_list");
     		if(tcer!=null) {
@@ -269,9 +280,7 @@ public class PresenceController {
     				groupeService.addMember(eppn,idsGpe);
     			}
     		}
-    		uiModel.addObject("sessionEpreuve", sessionEpreuve);
     	}
-        boolean isSessionLibre = false;
         boolean isCapaciteFull = false;
 		Page<TagCheck> tagCheckPage = null;
 		Long totalExpected = Long.valueOf(0) ;
@@ -279,20 +288,19 @@ public class PresenceController {
 		Long totalPresent = Long.valueOf(0) ;
 		Long totalNonRepartis = Long.valueOf(0) ;
 		Long totalNotExpected = Long.valueOf(0) ;
-		String currentLocation = null;
-		
-		boolean isTodaySe = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0)? true : false;
-		boolean isDateOver = (sessionEpreuve.getDateExamen() != null && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0)? true : false;
-        if(sessionLocationId != null) {
+		boolean isTodaySe = sessionEpreuve.getDateExamen() != null
+	            && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") == 0;
+		boolean isDateOver = sessionEpreuve.getDateExamen() != null
+	            && toolUtil.compareDate(sessionEpreuve.getDateExamen(), new Date(), "yyyy-MM-dd") < 0;
+       if(sessionLocationId != null) {
+    	   SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
     		if(sessionEpreuveService.isSessionEpreuveClosed(sessionEpreuve)) {
     			log.info("Aucun badgeage possible, la seesion " + sessionEpreuve.getNomSessionEpreuve() + " est cloturée");
     		}else{
     			totalExpected = tagCheckRepository.countBySessionLocationExpectedId(sessionLocationId);
     			totalAll = tagCheckRepository.countBySessionLocationExpectedIdOrSessionLocationExpectedIsNullAndSessionLocationBadgedId(sessionLocationId, sessionLocationId);
     			if(totalExpected > 0) {
-     				
 		    		tagCheckPage = tagCheckService.getListTagChecksBySessionLocationId(sessionLocationId, null, presentId, true);
-		        	
 		        	totalPresent = tagCheckRepository.countBySessionLocationExpectedIdAndTagDateIsNotNull(sessionLocationId);
 		        	totalNonRepartis = tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNullAndSessionLocationBadgedIsNull(sessionEpreuve.getId());
 		        	totalNotExpected = tagCheckRepository.countTagCheckBySessionLocationExpectedIdIsNullAndSessionLocationBadgedId(sessionLocationId);
@@ -302,29 +310,11 @@ public class PresenceController {
 		        	}
 		        	uiModel.addObject("percent", percent);
     			}
-    			SessionLocation sl = sessionLocationRepository.findById(sessionLocationId).get();
     			uiModel.addObject("sessionLocation", sl);
     			if(totalPresent>=sl.getCapacite()) {
     				isCapaciteFull = true;
     			}
 	        }
-    		currentLocation = sessionLocationId.toString();
-    		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
-    		uiModel.addObject("allTagChecks", allTagChecks);
-    		uiModel.addObject("triBadgeage", appliConfigService.isBadgeageSortAlpha());
-        }
-        if(tc !=null) {
-        	uiModel.addObject("tc", tagCheckRepository.findById(tc).get());
-        }
-		if(presentId != null) {
-			uiModel.addObject("eppn", presentId);
-			uiModel.addObject("collapse", "show");
-		}
-		if(currentLocation != null) {
-			SessionLocation sl = sessionLocationRepository.findById(Long.valueOf(currentLocation)).get();
-			List<TagChecker> tagCheckers = tagCheckerRepository.findBySessionLocation(sl);
-			tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
-			uiModel.addObject("tagCheckers", tagCheckers);
 			List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(sessionEpreuve);
 			sls.remove(sl);
 			if(!sls.isEmpty()) {
@@ -336,6 +326,18 @@ public class PresenceController {
 				}
 				uiModel.addObject("sls", sls);
 			}
+    		List<TagCheck> allTagChecks = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sessionLocationId);
+    		uiModel.addObject("allTagChecks", allTagChecks);
+    		uiModel.addObject("triBadgeage", appliConfigService.isBadgeageSortAlpha());
+    		List<TagChecker> tagCheckers = tagCheckerRepository.findBySessionLocation(sl);
+			tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
+			uiModel.addObject("tagCheckers", tagCheckers);
+        }
+        if(tc !=null) {
+        	uiModel.addObject("tc", tagCheckRepository.findById(tc).get());
+        }
+		if(presentId != null) {
+			uiModel.addObject("collapse", "show");
 		}
 		if(sessionEpreuve.getIsProcurationEnabled()!=null && sessionEpreuve.getIsProcurationEnabled()) {
 			Long countProxyPerson = tagCheckRepository.countTagCheckBySessionEpreuveIdAndProxyPersonIsNotNull(sessionEpreuve.getId());
@@ -348,13 +350,13 @@ public class PresenceController {
 	    	uiModel.addObject("maxProxyPerson", appliConfigService.getMaxProcurations());
 		}
 		
-		isSessionLibre = (sessionEpreuve.getIsSessionLibre() == null) ? false : sessionEpreuve.getIsSessionLibre();
-		
+		boolean isSessionLibre = BooleanUtils.isTrue(sessionEpreuve.getIsSessionLibre());
+
 		if(tagCheckPage != null) {
 			uiModel.addObject("tagCheckPage", tagCheckPage.getContent());
 		}
 		uiModel.addObject("isCapaciteFull", isCapaciteFull);
-        uiModel.addObject("currentLocation", currentLocation);
+        uiModel.addObject("currentLocation", sessionLocationId);
     	uiModel.addObject("nbTagChecksExpected", totalExpected);
     	uiModel.addObject("nbTagChecksPresent", totalPresent);
     	uiModel.addObject("nbNonRepartis", totalNonRepartis);
@@ -383,20 +385,32 @@ public class PresenceController {
 		uiModel.addObject("typePj", "session");
 		uiModel.addObject("eppnAuth", eppnAuth);
 		uiModel.addObject("motifAbsences", motifAbsenceRepository.findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle());
-		
+		boolean isTagcheckersListDisplayed = appliConfigService.isTagCheckersListDisplayed();
+		uiModel.addObject("isTagcheckersListDisplayed", isTagcheckersListDisplayed);
+		if(isTagcheckersListDisplayed) {
+			uiModel.addObject("userApps", userAppService.findDistinctUserAppByAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()), auth.getName()));
+		}
         return uiModel;
     }
     
     @GetMapping("/supervisor/sessionLocation/searchSessionLocations")
     public String search(@RequestParam SessionEpreuve sessionEpreuve, @RequestParam(value = "selectedLocation", required = false) Long selectedLocationId, 
-    		Model uiModel, HttpServletResponse response) {
+    		 @RequestParam(required = false) String sessionUser, Model uiModel, HttpServletResponse response) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    	List<SessionLocation> sessionLocations = sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), auth.getName());
+    	String eppnAuth = sessionUser!=null ? sessionUser: auth.getName();
+    	List<SessionLocation> sessionLocations = sessionLocationService.getSessionLocationFromTagChecker(sessionEpreuve.getId(), eppnAuth);
 		uiModel.addAttribute("sessionLocations", sessionLocations);
 		uiModel.addAttribute("selectedLocationId", selectedLocationId);
-		SessionLocation sl = sessionLocations.get(0);
+		String slString = "";
+		String sessionUserString = "";
+		if(!sessionLocations.isEmpty()) {
+			slString = "&location=" + sessionLocations.get(0).getId();
+		}
+		if(sessionUser != null) {
+			sessionUserString = "&sessionUser=" + sessionUser;
+		}
 		String urlKey = "&keyStatut=" + sessionEpreuve.getStatutSession().getKey();
-		String redirectUrl = "?sessionEpreuve=" + sl.getSessionEpreuve().getId() + "&location=" + sl.getId() + urlKey;
+		String redirectUrl = "?sessionEpreuve=" + sessionEpreuve.getId() + slString + urlKey + sessionUserString;
 		response.setHeader("HX-Redirect", redirectUrl);
  	    return "supervisor/session-locations :: options";
     }
@@ -698,12 +712,13 @@ public class PresenceController {
     }
 
 	@PostMapping("/supervisor/updateSecondTag")
-    public String updateSecondTag(@PathVariable String emargementContext, @RequestParam("id") SessionLocation sl) {
+    public String updateSecondTag(@PathVariable String emargementContext, @RequestParam("id") SessionLocation sl,
+    		@RequestParam String keyStatut, @RequestParam String sessionUser) {
 		SessionEpreuve se = sl.getSessionEpreuve();
     	se.setIsSecondTag(se.getIsSecondTag()!=null && se.getIsSecondTag()? false : true);
     	sessionEpreuveRepository.save(se);
-    	return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s" , emargementContext, 
-    			se.getId(), sl.getId());
+    	return String.format("redirect:/%s/supervisor/presence?keyStatut=%s&sessionEpreuve=%s&location=%s&sessionUser=%s", emargementContext, keyStatut,  
+    			se.getId(), sl.getId(), sessionUser);
     }
 	
     @Transactional

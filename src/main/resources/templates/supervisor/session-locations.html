@@ -2,7 +2,7 @@
     <option value="">Choisir un lieu</option>
     <option th:each="sl : ${sessionLocations}"
         th:value="${sl.id}"
-        th:selected="${selectedLocationId != null and sl.id == selectedLocationId}"
+        th:selected="${currentLocation ne null and sl.id eq currentLocation}"
         th:text="${sl.location.nom}">
     </option>
 </th:block>

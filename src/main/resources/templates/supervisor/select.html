@@ -3,19 +3,31 @@
 	<div th:fragment="select">
 		<div class="row row-cols-auto g-2 align-items-center">
 			<div class="col">
-			  <form th:action="@{/{ctx}/supervisor/presence(ctx=${eContext})}" id="presenceForm" class="row row-cols-auto g-2 align-items-center">
+			  <form id="presenceForm" class="row row-cols-auto g-2 align-items-center">
 				<!-- Sessions disponibles -->
 				<div class="col small text-muted fs-5">
 				  <span th:if="${allSessionEpreuves.isEmpty()}">Aucune session</span>
 				  <span th:unless="${allSessionEpreuves.isEmpty()}" class="badge text-bg-info"
 				        th:text="${#lists.size(allSessionEpreuves)}" th:title="${#lists.size(allSessionEpreuves) + ' session(s)'}"></span>
 				</div>
+				<div class="col" th:if="${isTagcheckersListDisplayed}">
+					<select name="sessionUser" class="slimSelectClass me-2" th:hx-get="@{/{ctx}/supervisor/presence(ctx=${eContext})}"
+						hx-trigger="change" 
+						hx-target="html" 
+						hx-swap="outerHTML" 
+						hx-include="closest form"
+					    hx-params="sessionUser, keyStatut">
+						<option value="">-- Sélectionner un utilisateur --</option>
+						<option th:each="u : ${userApps}" th:value="${u.eppn}" th:text="${u.nom + ' ' + u.prenom}"
+							th:selected="${u.eppn == eppnAuth}">
+						</option>
+					</select>
+				</div>
 				<th:block th:if="${!allSessionEpreuves.isEmpty()}">
-				    <!-- Session -->
 				    <div class="col">
 				      <select name="sessionEpreuve" id="sessionEpreuvePresence"
 				              class="slimSelectClass me-2"
-				              hx-get="sessionLocation/searchSessionLocations"
+							  th:hx-get="${eppnAuth != null} ? @{/{ctx}/supervisor/sessionLocation/searchSessionLocations(ctx=${eContext},sessionUser=${eppnAuth})} : @{/{ctx}/supervisor/sessionLocation/searchSessionLocations(ctx=${eContext})}" 
 				              hx-target="#location"
 				              hx-trigger="change"
 				              hx-indicator=".loading-spinner">
@@ -30,24 +42,30 @@
 				    </div>
 				    <!-- Location -->
 				    <div class="col">
-				      <select name="location" id="location" class="slimSelectClass me-2">
-				        <option th:each="sl : ${allSessionLocations}"
-				                th:selected="${sessionLocation ne null and sl.id eq sessionLocation.id}"
-				                th:value="${sl.id}"
-				                th:text="${sl.location.nom}">
-				        </option>
-				      </select>
+						<select name="location" id="location" class="slimSelectClass me-2"
+							th:hx-get="@{/{ctx}/supervisor/presence(ctx=${eContext})}" 
+							hx-trigger="change" 
+							hx-target="html" 
+							hx-swap="outerHTML"
+							hx-include="#sessionEpreuvePresence">
+						    <option th:each="sl : ${allSessionLocations}"
+						            th:selected="${currentLocation ne null and sl.id eq currentLocation}"
+						            th:value="${sl.id}"
+						            th:text="${sl.location.nom}">
+						    </option>
+						</select>
 				    </div>
 				</th:block>
 				<div class="col">
-					<select name="keyStatut"
-					        class="slimSelectClass me-2"
-							th:hx-get="@{|/${eContext}/supervisor/presence|}"
-					        hx-trigger="change"
-							 hx-target="html" hx-swap="outerHTML">
-					    <option value="OPENED" th:selected="${keyStatut eq 'OPENED'}">En cours</option>
-					    <option value="STANDBY" th:selected="${keyStatut eq 'STANDBY'}">En attente</option>
-					    <option value="ENDED" th:selected="${keyStatut eq 'ENDED'}">Terminé</option>
+					<select name="keyStatut" id="keyStatut" class="slimSelectClass me-2"
+						th:hx-get="@{/{ctx}/supervisor/presence(ctx=${eContext})}" 
+						hx-trigger="change" 
+						hx-target="html" 
+						hx-swap="outerHTML"
+						hx-include="closest form" hx-params="sessionUser, keyStatut">
+						<option value="OPENED" th:selected="${keyStatut eq 'OPENED'}">En cours</option>
+						<option value="STANDBY" th:selected="${keyStatut eq 'STANDBY'}">En attente</option>
+						<option value="ENDED" th:selected="${keyStatut eq 'ENDED'}">Terminé</option>
 					</select>
 				</div>
 			  </form>
@@ -58,7 +76,9 @@
 					<div class="form-check form-switch" th:if="${sessionEpreuve.id != null}">
 						<input class="form-check-input" type="checkbox" role="switch" id="updateSecondTag"
 							th:checked="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
-						<input type="hidden" name="id" th:value="${sessionLocation.id}" />
+						<input type="hidden" name="id" th:value="${currentLocation}" />
+						<input type="hidden" name="sessionUser" th:value="${eppnAuth}" />
+						<input type="hidden" name="keyStatut" th:value="${keyStatut}" />
 						<label class="form-check-label" for="updateSecondTag">Double badgeage</label>
 					</div>
 				</form>
