@@ -45,9 +45,6 @@ public class CalendarService {
 	UserAppRepository userAppRepository;
 	
 	@Resource
-	LdapService ldapService;
-	
-	@Resource
 	PreferencesService preferencesService;
 	
 	@Value("${app.url}")

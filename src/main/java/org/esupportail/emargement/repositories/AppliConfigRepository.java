@@ -1,6 +1,7 @@
 package org.esupportail.emargement.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -20,7 +21,7 @@ public interface AppliConfigRepository extends JpaRepository<AppliConfig, Long> 
 	
 	List<AppliConfig> findAppliConfigByKeyAndContext(String key, Context context);
 	
-	List<AppliConfig> findByContextAndKey(Context context, String key);
+	Optional<AppliConfig> findFirstByContextAndKey(Context context, String key);
 	
 	Long countByContextAndKeyAndCategory(Context context, String key, String category);
 	

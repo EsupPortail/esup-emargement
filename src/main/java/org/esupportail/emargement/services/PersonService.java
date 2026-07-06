@@ -2,13 +2,14 @@ package org.esupportail.emargement.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
-import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -22,24 +23,27 @@ import org.springframework.transaction.annotation.Transactional;
 public class PersonService {
 	
 	@Autowired
-	private LdapUserRepository userLdapRepository;
-	
-	@Autowired
 	private PersonRepository personRepository;
 	
 	@Resource
 	LogService logService;
 	
+	@Resource
+	LdapService ldapService;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public List<Person> setNomPrenom(List<Person> persons){
-		
+		List<String> personList = persons.stream().filter(person -> person.getEppn()!=null).map(person -> person.getEppn())
+				.collect(Collectors.toList());
+		Map<String, LdapUser> mapLdapUsers = ldapService.getLdapUsersFromNumList(personList, "eduPersonPrincipalName");
 		if(!persons.isEmpty()) {
 			for(Person p : persons) {
-				List<LdapUser> userLdaps = userLdapRepository.findByEppnEquals(p.getEppn());
-				if(!userLdaps.isEmpty()) {
-					p.setNom(userLdaps.get(0).getName());
-					p.setPrenom(userLdaps.get(0).getPrenom());
+				LdapUser ldapUser = mapLdapUsers.get(p.getEppn());
+				if(ldapUser!=null) {
+					p.setNom(ldapUser.getName());
+					p.setPrenom(ldapUser.getPrenom());
+					p.setCivilite(ldapUser.getCivilite());
 				}
 			}
 		}
@@ -62,5 +66,4 @@ public class PersonService {
 			log.info("Aucune personne à nettoyer");
 		}
 	}
-
 }

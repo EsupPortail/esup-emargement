@@ -1,6 +1,7 @@
 package org.esupportail.emargement.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Location;
@@ -35,13 +36,16 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 	
 	List<SessionLocation> findSessionLocationByContext(Context context);
 	
-	List<SessionLocation> findByContextAndId(Context context, Long id);
+	//List<SessionLocation> findByContextAndId(Context context, Long id);
+	
+	Optional<SessionLocation> findFirstByContextAndId(Context context, Long id);
 	
 	List<SessionLocation> findSessionLocationBySessionEpreuveId(Long Id);
 	
-	 SessionLocation findSessionLocationBySessionEpreuveIdAndLocationNom(Long id, String nom);
-	
-	SessionLocation findBySessionEpreuveAndLocationAndContext(SessionEpreuve sessionEpreuve, Location location, Context context);
+	SessionLocation findSessionLocationBySessionEpreuveIdAndLocationNom(Long id, String nom);
+
+	SessionLocation findBySessionEpreuveAndLocationAndContext(SessionEpreuve sessionEpreuve, Location location,
+			Context context);
 	
 	//STATS
 	@Query(value = "select nom, count(*) from session_location, location, session_epreuve, statut_session "
@@ -49,7 +53,7 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 			+ "AND session_location.session_epreuve_id = session_epreuve.id "
 			+ "AND session_epreuve.statut_session_id = statut_session.id "
 			+ "AND session_location.context_id=:context "
-			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ like :anneeUniv group by nom order by count desc", nativeQuery = true)
+			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by nom order by count desc", nativeQuery = true)
 	List<Object[]> countSessionLocationByLocation(Long context, String anneeUniv);
 	
 }
