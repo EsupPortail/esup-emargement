@@ -98,7 +98,7 @@ public class SearchController {
             	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchString, null);
             	List<TagCheck>  tagChecksList2 = tagCheckRepositoryCustom.findAll2(searchString, null);
             	if(!tagChecksList.isEmpty()) {
-    	    		tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false);
+					tagCheckService.setNomPrenomTagChecks(tagChecksList, false, false, false);
     	    		for(TagCheck tc : tagChecksList) {
     	    			SearchBean searchBean = new SearchBean();
     	    			searchBean.setNom(tc.getPerson().getNom());
@@ -173,7 +173,7 @@ public class SearchController {
             }else if("tagCheck".equals(type)) {
             	List<TagCheck>  tagChecks = tagCheckRepositoryCustom.findAll(searchString, seId);
             	if(!tagChecks.isEmpty()) {
-            		tagCheckService.setNomPrenomTagChecks(tagChecks, false, false);
+					tagCheckService.setNomPrenomTagChecks(tagChecks, false, false, false);
             	}
             	model.addAttribute("tagChecks", tagChecks);
             }

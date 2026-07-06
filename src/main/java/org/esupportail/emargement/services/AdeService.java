@@ -337,7 +337,16 @@ public class AdeService {
 		StopWatch time = new StopWatch( );
 		time.start( );
 		for(AdeResourceBean ade : beans) {
-			boolean isSessionExisted = ade.isAlreadyimport();
+			boolean isSessionExisted;
+			Integer rep = ade.getSessionEpreuve().getAdeRepetition();
+			Integer ses = ade.getSessionEpreuve().getAdeSession();
+			if (rep != null && ses != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(
+						ade.getActivityId(), rep, ses, ctx) > 0;
+			} else {
+				isSessionExisted = sessionEpreuveRepository
+						.countByAdeEventIdAndAdeActiviteIdAndContext(ade.getEventId(), ade.getActivityId(), ctx) > 0;
+			}
 			if(!isSessionExisted && !update || update){
 				SessionEpreuve se = ade.getSessionEpreuve();
 				boolean isUpdateOk = false;
@@ -934,16 +943,22 @@ public class AdeService {
 		AdeImportCache.begin("updateSessionEpreuve:" + emargementContext + ":" + typeSync);
 		try {
 		for (SessionEpreuve se : seList) {
-            boolean isSessionExisted = false;
-
-            // On s'aligne sur le fallback mis en place dans AdeApiWebService
-            if (se.getAdeRepetition() != null && se.getAdeSession() != null) {
-                isSessionExisted = !sessionEpreuveRepository.findByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), se.getAdeSession(), ctx).isEmpty();
-            } else if (se.getAdeRepetition() != null) {
-                isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndContext(se.getAdeActiviteId(), se.getAdeRepetition(), ctx) > 0;
-            } else {
-                isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(se.getAdeEventId(), se.getAdeActiviteId(), ctx) > 0;
-            }
+			boolean isSessionExisted;
+			if (se.getAdeRepetition() != null && se.getAdeSession() != null) {
+				isSessionExisted = sessionEpreuveRepository.countByAdeActiviteIdAndAdeRepetitionAndAdeSessionAndContext(
+						se.getAdeActiviteId(), se.getAdeRepetition(), se.getAdeSession(), ctx) > 0;
+			} else {
+				isSessionExisted = sessionEpreuveRepository.countByAdeEventIdAndAdeActiviteIdAndContext(
+						se.getAdeEventId(), se.getAdeActiviteId(), ctx) > 0;
+			}
+			if (!isSessionExisted) {
+			    se.setAdeOrphan(true);
+			    // adeRepetition et adeSession sont intentionnellement conservés :
+			    // le triplet reste utile pour audit/debug.
+			    // L'exclusion des orphelines dans findExistingSessionForEvent
+			    // (via isAdeOrphanFalse) empêche tout faux match futur.
+			    sessionEpreuveRepository.save(se);
+			}
 			if(!isSessionExisted) {
 	          se.setAdeOrphan(true);
 	          sessionEpreuveRepository.save(se);

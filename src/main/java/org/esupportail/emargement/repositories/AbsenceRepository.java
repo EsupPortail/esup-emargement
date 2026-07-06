@@ -14,8 +14,6 @@ import org.springframework.stereotype.Repository;
 public interface AbsenceRepository extends JpaRepository<Absence, Long>{
 	
 	List<Absence> findByContext(Context context);
-	
-	List<Absence> findByDateDebutLessThanEqualAndDateFinGreaterThanEqual(Date date, Date date2);
 	 
 	@Query("SELECT a FROM Absence a WHERE a.dateDebut <= :endDate AND a.dateFin >= :startDate")
 	List<Absence> findAbsencesWithinDateRange(Date startDate, Date endDate);

@@ -19,25 +19,15 @@ import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.Task;
 import org.esupportail.emargement.domain.Task.Status;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
-import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.LocationRepository;
-import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.PrefsRepository;
-import org.esupportail.emargement.repositories.SessionEpreuveRepository;
-import org.esupportail.emargement.repositories.SessionLocationRepository;
-import org.esupportail.emargement.repositories.TagCheckRepository;
-import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.TaskRepository;
-import org.esupportail.emargement.repositories.TypeSessionRepository;
-import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
-import org.esupportail.emargement.services.GroupeService;
 import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -78,12 +68,6 @@ public class AdeController {
 	
 	private final static String ITEM = "adeCampus";
 	
-	@Resource
-	HelpService helpService;
-	
-	@Resource
-	TaskService taskService;
-
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@Value("${emargement.ade.home.url}")
@@ -116,25 +100,23 @@ public class AdeController {
 	}
 	
 	@Resource
+	HelpService helpService;
+	
+	@Resource
+	TaskService taskService;
+
+	
+	@Resource
 	AdeService adeService;
 	
 	@Resource
 	LogService logService;
 	
-	@Resource
-	GroupeService groupeService;
-	
 	@Autowired
 	PrefsRepository prefsRepository;
 	
-	@Autowired
-	AppliConfigRepository appliConfigRepository;
-	
 	@Autowired	
 	GroupeRepository groupeRepository;
-
-	@Autowired
-	TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
 	LocationRepository locationRepository;
@@ -142,26 +124,8 @@ public class AdeController {
 	@Autowired
 	CampusRepository campusRepository;
 	
-	@Autowired	
-	SessionLocationRepository sessionLocationRepository;
-	
-	@Autowired
-	TypeSessionRepository typeSessionRepository;
-	
 	@Autowired
 	ContextRepository contextRepository;
-	
-	@Autowired
-	UserAppRepository userAppRepository;
-	
-	@Autowired
-	PersonRepository personRepository;
-	
-	@Autowired
-	SessionEpreuveRepository sessionEpreuveRepository;
-	
-	@Autowired
-	TagCheckRepository tagCheckRepository;
 	
 	@Autowired	
 	TaskRepository taskRepository;
@@ -174,9 +138,6 @@ public class AdeController {
     
     @Resource
     AppliConfigService appliConfigService;
-    
-    @Resource 
-    LdapService ldapService;
     
 	@Autowired
     ToolUtil toolUtil;

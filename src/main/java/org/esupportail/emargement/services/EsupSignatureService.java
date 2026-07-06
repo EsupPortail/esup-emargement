@@ -82,7 +82,7 @@ public class EsupSignatureService {
 		TagCheck tc = null;
 		if(TypeSignature.SESSION.equals(typeSignature)) {
 			 se = sessionEpreuveRepository.findById(id).get();
-			 pdfBytes = tagCheckService.exportTagChecks("PDF", id, response, emargementContext, null, true);
+			 pdfBytes = tagCheckService.exportTagChecks("PDF", id, emargementContext, null).getBytes();
 			 nomFichier = setNomFichierFromSessionEpreuve(se, "");
 			 title =  se.getNomSessionEpreuve();
 		}else {
@@ -91,7 +91,7 @@ public class EsupSignatureService {
 			 se = tc.getSessionEpreuve();
 			 List<TagCheck> list = new ArrayList<>();
 			 list.add(tc);
-			 tagCheckService.setNomPrenomTagChecks(list, false, false);
+			 tagCheckService.setNomPrenomTagChecks(list, false, false, false);
 			 title = "attestion de présence de " + tc.getPerson().getPrenom() + tc.getPerson().getNom();
 			 nomFichier = setNomFichierFromSessionEpreuve(se, title.replace(" ", "_"));
 			 

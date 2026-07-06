@@ -3,7 +3,6 @@ package org.esupportail.emargement.repositories.custom;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -15,7 +14,6 @@ import javax.persistence.criteria.Root;
 import org.esupportail.emargement.domain.Guest;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.TagCheck;
-import org.esupportail.emargement.services.TagCheckService;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -23,9 +21,6 @@ public class TagCheckRepositoryCustom{
 	
 	@PersistenceContext
 	private EntityManager entityManager;
-	
-	@Resource
-	TagCheckService tagCheckService;
 	
 	public List<TagCheck> findAll(String searchString, Long sessionEpreuveId) {
 		

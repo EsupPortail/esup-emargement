@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
   
-    @Autowired
+    @Autowired(required = false)
     public JavaMailSender emailSender;
     
     @Resource
@@ -34,7 +34,7 @@ public class EmailService {
 	private String noReply;
  
     public void sendSimpleMessage(String to, String subject, String text, String [] cc) {
-    	if(appliConfigService.isSendEmails()) {
+    	if(appliConfigService.isSendEmails() && emailSender!=null) {
 	        SimpleMailMessage message = new SimpleMailMessage();
 	        if(!appliConfigService.getTestEmail().isEmpty()) {
 				to = appliConfigService.getTestEmail();
@@ -53,7 +53,7 @@ public class EmailService {
     
     public void sendMessageWithAttachment(String to, String subject, String text, String pathToAttachment, String fileName, String [] cc, 
     		InputStream inputStream, boolean addAttachment) throws MessagingException, IOException {
-    	if(appliConfigService.isSendEmails()) {
+    	if(appliConfigService.isSendEmails() && emailSender!=null) {
 	        MimeMessage message = emailSender.createMimeMessage();
 	    
 	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
