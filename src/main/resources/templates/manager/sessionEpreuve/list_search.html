@@ -19,7 +19,7 @@
 					<div id="searchResults"></div>
 					<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 				</div>
-				<select name="dateSessions" class="slimSelectClass w-auto">
+				<select id="dateSessions" name="dateSessions" class="slimSelectClass w-auto">
 					<option value="day" th:selected="${dateSessions eq 'day'}">Aujourd’hui</option>
 					<option value="week" th:selected="${dateSessions eq 'week'}">Cette semaine</option>
 					<option value="month" th:selected="${dateSessions eq 'month'}">Ce mois</option>
@@ -29,8 +29,14 @@
 					<option value="all" th:selected="${view eq 'all'}">Tout</option>
 					<option value="mine" th:selected="${view eq 'mine'}">Mes sessions</option>
 					<th:block th:if="${userApp!= null and userApp.speciality ne null and userApp.speciality ne ''}">
-						<option value="spe" th:selected="${view eq 'spe'}" th:text="${userApp.speciality}">Spécialté</option>
+						<option value="spe" th:selected="${view eq 'spe'}" th:text="${'SPECIALITE : ' + userApp.speciality}">Spécialté</option>
 					</th:block>
+					<optgroup label="SURVEILLANTS : " class="text-danger" id="toto">
+						<option th:each="u : ${userApps}" th:value="${u.eppn}" 
+							th:text="${u.nom != '--' ? u.nom + ' ' + u.prenom : u.eppn}"
+							th:selected="${view == u.eppn}">
+						</option>
+					</optgroup>
 				</select>
 				<select class="slimSelectClass w-auto" title="Tous les sites" th:field="*{campus}">
 					<option value="">-- SITES --</option>
@@ -54,7 +60,7 @@
 				</select>
 				<div th:replace="manager/sessionEpreuve/show-modal :: show-modal"></div>
 				<div class="col-12 col-md-auto">
-					<a title="Annuler recherche" id="resetSearch" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></a>
+					<button type="submit" name="reset" value="true" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></button>
 				</div>
 			</form>
 		</div>

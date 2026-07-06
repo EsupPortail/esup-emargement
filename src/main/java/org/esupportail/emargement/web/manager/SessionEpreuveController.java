@@ -50,6 +50,7 @@ import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
 import org.esupportail.emargement.services.TagCheckService;
+import org.esupportail.emargement.services.UserAppService;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +130,10 @@ public class SessionEpreuveController {
 	
 	@Resource
 	ContextService contexteService;
-	
+
+	@Resource
+	UserAppService userAppService;
+
 	@Resource
 	HelpService helpService;
 	
@@ -160,10 +164,15 @@ public class SessionEpreuveController {
 	@GetMapping("/manager/sessionEpreuve")
 	public String list(@PathVariable String emargementContext, Model model,
 			@PageableDefault(size = 20) Pageable pageable, @RequestParam(required = false) String multiSearch,
-			@RequestParam(required = false) Long searchString, SessionEpreuve sessionSearch,
+			@RequestParam(required = false) Long searchString, SessionEpreuve sessionSearch, @RequestParam(required = false) Boolean reset,
 			@RequestParam(required = false) String dateSessions, @RequestParam(required = false) String view) {
 
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(reset!=null && reset) {
+			sessionSearch = new SessionEpreuve();
+			view = "all";
+			dateSessions = "all";
+		}
 		UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
 		Context ctx = contextRepository.findByKey(emargementContext);
 		SessionEpreuveResult  result  = sessionEpreuveService.getSessionsWithPreferences(auth.getName(),
@@ -181,6 +190,7 @@ public class SessionEpreuveController {
 	    model.addAttribute("typesSession", sessionEpreuveService.getTypesSession(ctx.getId()));
 	    model.addAttribute("sites", campusRepository.findByOrderBySite());
 	    model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
+	    model.addAttribute("userApps", userAppService.findDistinctUserAppByAnneeUniv(sessionSearch.getAnneeUniv(), auth.getName()));
 	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
 
 	    return "manager/sessionEpreuve/list";
@@ -365,12 +375,6 @@ public class SessionEpreuveController {
 			 return "manager/sessionEpreuve/modal-show1 ::show-modal";
 		 }
 		 return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
-		 /*
-		 return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s#openmodal-%d", 
-				emargementContext, 
-				sessionEpreuve.getAnneeUniv(),
-				sessionEpreuve.getId() 
-			);    */
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
@@ -410,7 +414,6 @@ public class SessionEpreuveController {
     	log.info("Maj d'une session : " + sessionEpreuve.getNomSessionEpreuve());
     	logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
     	return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
- 
     }
     
     @PostMapping(value = "/manager/sessionEpreuve/{id}")

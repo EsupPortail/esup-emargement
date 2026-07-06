@@ -1760,24 +1760,6 @@ document.addEventListener('DOMContentLoaded', function() {
 			$("#searchBox").val(null);
 			document.getElementById("formSearch").submit();
 		});
-		$("#formSearch #resetSearch").on("click", function(event) {
-			$("#searchBox").val(null);
-			$("#statut").val("");
-			$("#typeSession").val("");
-			$("#statutSession").val("");
-			$("#campus").val("");
-			$("#view").val("");
-			$("#adeBranch").val("");
-			var maxValue = -Infinity; 
-			$('#anneeUniv option').each(function() {
-			    var optionValue = parseFloat($(this).val()); // Convert to number
-			    if (!isNaN(optionValue) && optionValue > maxValue) {
-			        maxValue = optionValue;
-			    }
-			});
-			$('#anneeUniv').val(maxValue);
-			document.getElementById("formSearch").submit();
-		});
 		$("#sessionSearch .btn-check").on("change", function(event) {
 			document.getElementById("formSearch").submit();
 		});

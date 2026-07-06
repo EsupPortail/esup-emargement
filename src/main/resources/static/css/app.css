@@ -420,3 +420,6 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 .dropdown-toggle::after {
     display: none;
 }
+.ss-optgroup-label-text{
+	color : red!important
+}

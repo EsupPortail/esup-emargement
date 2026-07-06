@@ -75,7 +75,7 @@ public class SessionEpreuveRepositoryCustom{
 	        predicates.add(QueryByExamplePredicateBuilder.getPredicate(root, builder, example));
 	        predicates2.add(QueryByExamplePredicateBuilder.getPredicate(root, builder, example));
 	        Predicate finalPredicate = null;
-	        if("mine".equals(view) || "spe".equals(view)) {
+	        if(!"all".equals(view)) {
 		        Subquery<Long> subquery = query.subquery(Long.class);
 		        Root<TagChecker> tagCheckerRoot = subquery.from(TagChecker.class);
 		        Join<TagChecker, SessionLocation> tagCheckerJoin = tagCheckerRoot.join("sessionLocation");
@@ -86,7 +86,11 @@ public class SessionEpreuveRepositoryCustom{
 		            Join<TagChecker, UserApp> userAppJoin = tagCheckerRoot.join("userApp");
 		            subquery.select(tagCheckerJoin.get("sessionEpreuve").get("id"))
 		                    .where(builder.like(userAppJoin.get("speciality"), "%" + userApp.getSpeciality() + "%"));
-		        }
+				} else {
+					Join<TagChecker, UserApp> userAppJoin = tagCheckerRoot.join("userApp");
+					subquery.select(tagCheckerJoin.get("sessionEpreuve").get("id"))
+							.where(builder.equal(userAppJoin.get("eppn"), view));
+				}
 	            Predicate sessionEpreuveInSubquery = root.get("id").in(subquery);
 	            predicates.add(sessionEpreuveInSubquery);
 	            predicates2.add(sessionEpreuveInSubquery);

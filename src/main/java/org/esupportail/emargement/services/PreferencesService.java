@@ -40,6 +40,12 @@ public class PreferencesService {
 		UserApp userApp = userAppRepository.findByEppnAndContext(eppn, context);
 		Prefs pref = null;
 		if(!prefs.isEmpty()) {
+			if (prefs.size() > 1) {
+				//on ne garde que le premire élément de la liste, on supprime les autres
+				for (int i = 1; i < prefs.size(); i++) {
+					prefsRepository.delete(prefs.get(i));
+				}
+			}
 			pref = prefs.get(0);
 		}else {
 			pref = new Prefs();

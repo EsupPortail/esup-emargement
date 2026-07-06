@@ -1153,135 +1153,86 @@ public class SessionEpreuveService {
 			boolean isFromSideBar) {
 
 		boolean isAdeEnabled = appliConfigService.isAdeCampusEnabled();
-
 		List<Prefs> prefsStatut = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYSTATUT);
-
 		List<Prefs> prefsType = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYTYPE);
-
 		List<Prefs> prefsPeriod = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYPERIOD);
-
 		List<Prefs> prefsCampus = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYCAMPUS);
-
 		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYLISTE);
-
 		List<Prefs> prefsAde = isAdeEnabled ? prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYADE)
 				: new ArrayList<>();
 
 		if (searchString != null) {
 			sessionSearch.setId(searchString);
 		}
-
 		if (dateSessions == null) {
 			dateSessions = prefsPeriod.isEmpty() ? "all" : prefsPeriod.get(0).getValue();
 		}
-
 		if (multiSearch == null || isFromSideBar) {
-
 			sessionSearch.setAnneeUniv(String.valueOf(getLastAnneeUniv(context)));
-
 			String statut = prefsStatut.isEmpty() ? "" : prefsStatut.get(0).getValue();
-
 			sessionSearch.setStatutSession(statut.isEmpty() ? null : statutSessionRepository.findByKey(statut));
-
 			String type = prefsType.isEmpty() ? "" : prefsType.get(0).getValue();
-
 			sessionSearch.setTypeSession(
 					type.isEmpty() ? null : typeSessionRepository.findById(Long.valueOf(type)).orElse(null));
-
 			String campus = prefsCampus.isEmpty() ? "" : prefsCampus.get(0).getValue();
-
 			sessionSearch
 					.setCampus(campus.isEmpty() ? null : campusRepository.findById(Long.valueOf(campus)).orElse(null));
-
 			view = prefsListe.isEmpty() ? "all" : prefsListe.get(0).getValue();
-
 			if (isAdeEnabled) {
-
 				String ade = prefsAde.isEmpty() ? "" : prefsAde.get(0).getValue();
-
 				sessionSearch
 						.setAdeBranch(ade.isEmpty() || "all".equals(ade) ? null : getAdeBranchById(Long.valueOf(ade)));
 			}
-
 		} else {
-
 			updateUserPreferences(eppn, context, sessionSearch, dateSessions, view, isAdeEnabled);
 		}
-
 		String monSession = sessionSearch.getNomSessionEpreuve();
-
 		if (monSession != null && !monSession.isBlank()) {
 			sessionSearch.setNomSessionEpreuve(monSession.trim());
 		} else {
 			sessionSearch.setNomSessionEpreuve(null);
 		}
-
 		Page<SessionEpreuve> result;
-
 		if (sessionSearch.getId() != null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent()) {
-
 			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
-
 			result = new PageImpl<>(List.of(se));
-
 			// comportement identique à l’ancienne méthode
 			sessionSearch.setStatutSession(se.getStatutSession());
 			sessionSearch.setTypeSession(se.getTypeSession());
 			sessionSearch.setAnneeUniv(se.getAnneeUniv());
-
 			// IMPORTANT
 			sessionSearch.setId(null);
-
 		} else {
-
 			ExampleMatcher matcher = ExampleMatcher.matching()
 
 					.withIgnorePaths("maxBadgeageAlert", "isProcurationEnabled", "isSessionLibre", "isSaveInExcluded",
 							"isGroupeDisplayed", "isSecondTag")
-
 					.withIgnoreNullValues()
-
 					.withMatcher("statutSession", ExampleMatcher.GenericPropertyMatchers.exact())
-
 					.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
-
 					.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
-
 					.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact())
-
 					.withMatcher("nomSessionEpreuve", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
-
 			if (isAdeEnabled) {
-
 				matcher = matcher.withMatcher("adeBranch",
 						ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
 			}
-
 			Example<SessionEpreuve> example = Example.of(sessionSearch, matcher);
-
 			Sort sort = pageable.getSort().isUnsorted()
 					? Sort.by(Sort.Order.desc("dateExamen"), Sort.Order.asc("heureEpreuve"),
 							Sort.Order.asc("finEpreuve"))
 					: pageable.getSort();
-
 			PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-
 			Date dateDebut = setDateSessionEpreuve("dateDebut", dateSessions);
-
 			Date dateFin = setDateSessionEpreuve("dateFin", dateSessions);
-
 			result = sessionEpreuveRepository.findAll(sessionEpreuveRepositoryCustom
 					.getSpecFromDatesAndExample(dateDebut, dateFin, example, view, userApp), pageRequest);
 		}
-
 		computeCounters(result.getContent());
-
 		SessionEpreuveResult sessionEpreuveResult = new SessionEpreuveResult();
-
 		sessionEpreuveResult.setPage(result);
 		sessionEpreuveResult.setView(view);
 		sessionEpreuveResult.setDateSessions(dateSessions);
-
 		return sessionEpreuveResult;
 	}
 	
