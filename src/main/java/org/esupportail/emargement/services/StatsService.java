@@ -22,9 +22,32 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import software.xdev.chartjs.model.charts.BarChart;
+import software.xdev.chartjs.model.charts.DoughnutChart;
+import software.xdev.chartjs.model.charts.LineChart;
+import software.xdev.chartjs.model.charts.PieChart;
+import software.xdev.chartjs.model.data.BarData;
+import software.xdev.chartjs.model.data.DoughnutData;
+import software.xdev.chartjs.model.data.LineData;
+import software.xdev.chartjs.model.data.PieData;
+import software.xdev.chartjs.model.dataset.BarDataset;
+import software.xdev.chartjs.model.dataset.DoughnutDataset;
+import software.xdev.chartjs.model.dataset.LineDataset;
+import software.xdev.chartjs.model.dataset.PieDataset;
+
 @Service
 public class StatsService {
 	
+	private static final int[] ACADEMIC_MONTHS =
+	    {9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8};
+	private static final String[] ACADEMIC_MONTH_LABELS =
+	    {"Sept", "Oct", "Nov", "Déc", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Août"};
+	
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
 	@Autowired
 	SessionEpreuveRepository sessionEpreuveRepository;
 	
@@ -48,6 +71,26 @@ public class StatsService {
 	
 	@Autowired
 	ContextRepository contextRepository;
+	
+    private String withStackedOptions(String chartJson) {
+    	try {
+    		ObjectNode root = (ObjectNode) objectMapper.readTree(chartJson);
+
+    		ObjectNode xAxis = objectMapper.createObjectNode().put("stacked", true);
+    		ObjectNode yAxis = objectMapper.createObjectNode().put("stacked", true);
+    		ObjectNode scales = objectMapper.createObjectNode();
+    		scales.set("x", xAxis);
+    		scales.set("y", yAxis);
+
+    		ObjectNode options = objectMapper.createObjectNode();
+    		options.set("scales", scales);
+    		root.set("options", options);
+
+    		return objectMapper.writeValueAsString(root);
+    	} catch (Exception e) {
+    		return chartJson; // en cas de souci de parsing, on renvoie le graphique non stacké plutôt que rien
+    	}
+    }
 	
 	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
 	public List mapFieldWith2Labels(List<Object[]> queryResults, boolean order) {
@@ -139,62 +182,122 @@ public class StatsService {
         return data;
     }
     
-	public  LinkedHashMap<String,Object> getStats(String typeStats, String key, String param, String year) throws ParseException {
-			
-    	Context ctx = contextRepository.findByContextKey(key);
-		LinkedHashMap<String, Object> results = new LinkedHashMap<String, Object>() {
-			   
-	        {
-	    		String anneeUniv = (!"all".equals(year))?  year : "20%";
+    @SuppressWarnings("unchecked")
+    private String pieOrDoughnut(List<Object[]> queryResults, boolean doughnut) {
+    	List raw = mapFieldWith1Labels(queryResults);
+    	List<String> labels = (List<String>) raw.get(0);
+    	List<Long> values = (List<Long>) raw.get(1);
 
-	        	if("sessionEpreuvesByCampus".equals(typeStats)){
-	        		put("sessionEpreuvesByCampus",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId(), anneeUniv)));
-	        	}else if("sessionLocationByLocation".equals(typeStats)){
-	        		put("sessionLocationByLocation",mapFieldWith1Labels(sessionLocationRepository.countSessionLocationByLocation(ctx.getId(), anneeUniv)));
-	        	}else if("tagCheckersByContext".equals(typeStats)){
-	        		put("tagCheckersByContext",mapFieldWith1Labels(tagCheckerRepository.countTagCheckersByContext(ctx.getId(), anneeUniv)));
-	        	}else if("presenceByContext".equals(typeStats)){
-	        		put("presenceByContext",mapFieldWith1Labels(tagCheckRepository.countPresenceByContext(ctx.getId(), anneeUniv)));
-	        	}else if("sessionEpreuveByYearMonth".equals(typeStats)){
-	        		put("sessionEpreuveByYearMonth",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId(), anneeUniv)));
-	        	}else if("countTagCheckByYearMonth".equals(typeStats)){
-	        		put("countTagCheckByYearMonth",mapFieldWith1Labels(tagCheckRepository.countTagCheckByYearMonth(ctx.getId(), anneeUniv)));
-	        	}else if("countTagChecksByTimeBadgeage".equals(typeStats)){
-	        		put("countTagChecksByTimeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTimeBadgeage(Long.valueOf(param))));
-	        	}else if("countTagChecksByTypeBadgeage".equals(typeStats)){
-	        		put("countTagChecksByTypeBadgeage",mapFieldWith1Labels(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId(), anneeUniv)));
-	        	}else if("countTagCheckBySessionLocationBadgedAndPerson".equals(typeStats)){
-	        		put("countTagCheckBySessionLocationBadgedAndPerson",mapFieldWith1Labels(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId(), anneeUniv)));
-	        	}else if("countSessionEpreuveByType".equals(typeStats)){
-	        		put("countSessionEpreuveByType",mapFieldWith1Labels(sessionEpreuveRepository.countSessionEpreuveByType(ctx.getId(), anneeUniv)));
-	        	}
-	        }
-	    };
-		return results;
+    	if (doughnut) {
+    		DoughnutDataset ds = new DoughnutDataset();
+    		values.forEach(ds::addData);
+    		return new DoughnutChart(new DoughnutData().addLabels(labels.toArray(new String[0])).addDataset(ds)).toJson();
+    	}
+		PieDataset ds = new PieDataset();
+		values.forEach(ds::addData);
+		return new PieChart(new PieData().addLabels(labels.toArray(new String[0])).addDataset(ds)).toJson();
     }
-    
-	public  LinkedHashMap<String,Object> getStatsSuperAdmin(String typeStats,  String year) throws ParseException {
-			
-		LinkedHashMap<String, Object> results = new LinkedHashMap<String, Object>() {
-			   
-	        {
-	        	String anneeUniv = (!"all".equals(year))?  year : "20%";
-	        	
-	        	if("sessionEpreuvesByContext".equals(typeStats)){
-	        		put("sessionEpreuvesByContext",mapFieldWith2Labels(sessionEpreuveRepository.countAllSessionEpreuvesByContext(anneeUniv), true));
-	        	}else if("countTagChecksByContext".equals(typeStats)){
-	        		put("countTagChecksByContext",mapFieldWith2Labels(tagCheckRepository.countTagChecksByContext(anneeUniv), true));
-	        	}else if("countLocationsByContext".equals(typeStats)){
-	        		put("countLocationsByContext",mapFieldWith1Labels(locationRepository.countLocationsByContext()));
-	        	}else if("countUserAppsByContext".equals(typeStats)){
-	        		put("countUserAppsByContext",mapFieldWith2Labels(userAppRepository.countUserAppsByContext(), true));
-	        	}else if("countCampusesByContext".equals(typeStats)){
-	        		put("countCampusesByContext",mapFieldWith1Labels(campusRepository.countCampusesByContext()));
-	        	}else if("countSessionEpreuveByTypeByContext".equals(typeStats)){
-	        		put("countSessionEpreuveByTypeByContext",mapFieldWith2Labels(sessionEpreuveRepository.countSessionEpreuveByTypeByContext(anneeUniv), true));
-	        	}
-	        }
-	    };
-		return results;
+
+    @SuppressWarnings("unchecked")
+    private String bar(List<Object[]> queryResults, String label) {
+    	List raw = mapFieldWith1Labels(queryResults);
+    	List<String> labels = (List<String>) raw.get(0);
+    	List<Long> values = (List<Long>) raw.get(1);
+
+    	BarDataset ds = new BarDataset().setLabel(label);
+    	values.forEach(ds::addData);
+    	return new BarChart(new BarData().addLabels(labels.toArray(new String[0])).addDataset(ds)).toJson();
     }
+
+    @SuppressWarnings("unchecked")
+    private String line(List<Object[]> queryResults) {
+    	List raw = mapFieldWith1Labels(queryResults);
+    	List<String> rawLabels = (List<String>) raw.get(0); // "9", "10", "1", ...
+    	List<Long> rawValues = (List<Long>) raw.get(1);
+
+    	Map<Integer, Long> valuesByMonth = new HashMap<Integer, Long>();
+    	for (int i = 0; i < rawLabels.size(); i++) {
+    		try {
+    			valuesByMonth.put(Integer.valueOf(rawLabels.get(i).trim()), rawValues.get(i));
+    		} catch (NumberFormatException e) {
+    			// libellé non numérique, on ignore
+    		}
+    	}
+
+    	LineDataset ds = new LineDataset();
+    	for (int month : ACADEMIC_MONTHS) {
+    		ds.addData(valuesByMonth.getOrDefault(month, 0L));
+    	}
+
+    	return new LineChart(new LineData().addLabels(ACADEMIC_MONTH_LABELS).addDataset(ds)).toJson();
+    }
+
+    @SuppressWarnings("unchecked")
+    private String stackedBar(List<Object[]> queryResults) {
+    	List raw = mapFieldWith2Labels(queryResults, true);
+    	List<String> labels = (List<String>) raw.get(0);
+    	Map<String, List<Long>> valuesMap = (Map<String, List<Long>>) raw.get(1);
+
+    	BarData data = new BarData().addLabels(labels.toArray(new String[0]));
+    	for (Map.Entry<String, List<Long>> entry : valuesMap.entrySet()) {
+    		BarDataset ds = new BarDataset().setLabel(entry.getKey());
+    		entry.getValue().forEach(ds::addData);
+    		data.addDataset(ds);
+    	}
+
+    	return withStackedOptions(new BarChart(data).toJson());
+    }
+
+	// ---- point d'entrée principal, renvoie directement le JSON Chart.js ----
+
+	public String getStats(String typeStats, String key, String param, String year) throws ParseException {
+		Context ctx = contextRepository.findByContextKey(key);
+		String anneeUniv = (!"all".equals(year)) ? year : "20%";
+
+		switch (typeStats) {
+			case "sessionEpreuvesByCampus":
+				return pieOrDoughnut(sessionEpreuveRepository.countSessionEpreuveByCampus(ctx.getId(), anneeUniv), false);
+			case "sessionLocationByLocation":
+				return pieOrDoughnut(sessionLocationRepository.countSessionLocationByLocation(ctx.getId(), anneeUniv), true);
+			case "tagCheckersByContext":
+				return pieOrDoughnut(tagCheckerRepository.countTagCheckersByContext(ctx.getId(), anneeUniv), false);
+			case "presenceByContext":
+				return pieOrDoughnut(tagCheckRepository.countPresenceByContext(ctx.getId(), anneeUniv), false);
+			case "sessionEpreuveByYearMonth":
+				return line(sessionEpreuveRepository.countSessionEpreuveByYearMonth(ctx.getId(), anneeUniv));
+			case "countTagCheckByYearMonth":
+				return line(tagCheckRepository.countTagCheckByYearMonth(ctx.getId(), anneeUniv));
+			case "countTagChecksByTypeBadgeage":
+				return pieOrDoughnut(tagCheckRepository.countTagChecksByTypeBadgeage(ctx.getId(), anneeUniv), true);
+			case "countTagCheckBySessionLocationBadgedAndPerson":
+				return pieOrDoughnut(tagCheckRepository.countTagCheckBySessionLocationBadgedAndPerson(ctx.getId(), anneeUniv), true);
+			case "countSessionEpreuveByType":
+				return pieOrDoughnut(sessionEpreuveRepository.countSessionEpreuveByType(ctx.getId(), anneeUniv), false);
+			case "countTagChecksByTimeBadgeage":
+				return bar(tagCheckRepository.countTagChecksByTimeBadgeage(Long.valueOf(param)), "Badgeages");
+			default:
+				return null;
+		}
+	}
+
+	public String getStatsSuperAdmin(String typeStats, String year) throws ParseException {
+		String anneeUniv = (!"all".equals(year)) ? year : "20%";
+
+		switch (typeStats) {
+			case "sessionEpreuvesByContext":
+				return stackedBar(sessionEpreuveRepository.countAllSessionEpreuvesByContext(anneeUniv));
+			case "countTagChecksByContext":
+				return stackedBar(tagCheckRepository.countTagChecksByContext(anneeUniv));
+			case "countLocationsByContext":
+				return bar(locationRepository.countLocationsByContext(), "Locations");
+			case "countUserAppsByContext":
+				return stackedBar(userAppRepository.countUserAppsByContext());
+			case "countCampusesByContext":
+				return bar(campusRepository.countCampusesByContext(), "Campus");
+			case "countSessionEpreuveByTypeByContext":
+				return stackedBar(sessionEpreuveRepository.countSessionEpreuveByTypeByContext(anneeUniv));
+			default:
+				return null;
+		}
+	}
 }

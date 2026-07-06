@@ -17,26 +17,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import flexjson.JSONSerializer;
-
 @Controller
 @RequestMapping("/{emargementContext}")
-@PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@PreAuthorize(value = "@userAppService.isAdmin() or @userAppService.isManager()")
 public class StatsController {
-	
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	
+
 	@Resource
 	StatsService statsService;
-	
-    @Resource
-    SessionEpreuveService sessionEpreuveService;
-	
+
+	@Resource
+	SessionEpreuveService sessionEpreuveService;
+
 	@Resource
 	HelpService helpService;
-	
+
 	private final static String ITEM = "stats";
-	
+
 	@ModelAttribute("active")
 	public String getActiveMenu() {
 		return ITEM;
@@ -44,31 +42,25 @@ public class StatsController {
 
 	@GetMapping(value = "/manager/stats")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false) String anneeUniv) {
-		
 		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("years", sessionEpreuveService.getYears(emargementContext));
-		if(anneeUniv==null) {
+		if (anneeUniv == null) {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
-			
 		}
 		model.addAttribute("currentAnneeUniv", anneeUniv);
-		
 		return "manager/stats/index";
 	}
-	
-	@GetMapping(value="manager/stats/json", headers = "Accept=application/json; charset=utf-8")
-	@ResponseBody 
-	public String getStats(@PathVariable String emargementContext, @RequestParam String type, @RequestParam(required=false) String param, 
-			@RequestParam(required=false) String anneeUniv) {
-		String flexJsonString = "Aucune statistique à récupérer";
+
+	@GetMapping(value = "manager/stats/json", headers = "Accept=application/json; charset=utf-8")
+	@ResponseBody
+	public String getStats(@PathVariable String emargementContext, @RequestParam String type,
+			@RequestParam(required = false) String param, @RequestParam(required = false) String anneeUniv) {
 		try {
-			JSONSerializer serializer = new JSONSerializer();
-			flexJsonString = serializer.deepSerialize(statsService.getStats(type, emargementContext, param, anneeUniv));
-			
+			String json = statsService.getStats(type, emargementContext, param, anneeUniv);
+			return json != null ? json : "{}";
 		} catch (Exception e) {
-			log.warn("Impossible de récupérer les statistiques " + type , e);
+			log.warn("Impossible de récupérer les statistiques " + type, e);
+			return "{}";
 		}
-		
-    	return flexJsonString;
 	}
 }

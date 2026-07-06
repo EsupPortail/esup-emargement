@@ -109,9 +109,7 @@ var ID = function() {
 	return '_' + Math.random().toString(36).substr(2, 9);
 };
 var allSelect = selectAll;
-var myChartBar = null;
 var suneditor0 = null;
-var selectCmp = null;
 var sortDate;
 //==jQuery remove()
 function remove(id) {
@@ -132,15 +130,6 @@ function stripHTMLTagsUsingDOM(html) {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = html;
   return tempDiv.textContent || tempDiv.innerText || "";
-}
-
-//Convertion rgb-->hex
-function rgb2hex(rgb) {
-	rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-	return (rgb && rgb.length === 4) ? "#" +
-		("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
-		("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
-		("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
 }
 
 function initSelectCheckBoxes(id, searchplaceholder) {
@@ -472,308 +461,41 @@ function createSunEditor(id) {
 	return editor;
 }
 
-//Couleurs pour graphiques stats
-var seed = 11;
+//STATS
+const MANAGER_IDS = ['sessionEpreuvesByCampus', 'sessionLocationByLocation', 'tagCheckersByContext',
+    'presenceByContext', 'sessionEpreuveByYearMonth', 'countTagCheckByYearMonth',
+    'countTagChecksByTypeBadgeage', 'countTagCheckBySessionLocationBadgedAndPerson', 'countSessionEpreuveByType'];
 
-function random() {
-	var x = Math.sin(seed++) * 1000;
-	return x - Math.floor(x);
-}
-var generateColors = [];
-var generateBorderColors = [];
-var generateStackColors = [];
-for (var k = 0; k < 100; k++) {
-	var color = Math.floor(random() * 256) + ',' + Math.floor(random() * 256) + ',' + Math.floor(random() * 256);
-	generateColors.push('rgba(' + color + ', 0.6)');
-	generateStackColors.push('rgba(' + color + ', 0.6)');
-	generateBorderColors.push('rgba(' + color + ', 1)');
-}
-var monthsArray = ["Sept", "Oct", "Nov", "Déc", "Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Août"];
-const moisArray = [[9, 'Sept'], [10, 'Oct'], [11, 'Nov'], [12, 'Déc'], [1, 'Jan'], [2, 'Fev'],
-[3, 'Mar'], [4, 'Avr'], [5, 'Mai'], [6, 'Juin'], [7, 'Juil'], [8, 'Août']
-];
-let moisMap = new Map(moisArray);
+const SUPERADMIN_IDS = ['sessionEpreuvesByContext', 'countTagChecksByContext', 'countLocationsByContext',
+    'countUserAppsByContext', 'countCampusesByContext', 'countSessionEpreuveByTypeByContext'];
 
-function chartNoData(ctx, chart) {
-	ctx.save();
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.font = "22px Arial";
-	ctx.fillStyle = "gray";
-	ctx.fillText('Aucune donnée disponible', chart.width / 2, chart.height / 2);
-	ctx.restore();
+const year = document.getElementById('anneeUnivSelect')?.value;
+async function renderChart(canvasId, baseUrl, { year, param } = {}) {
+    const el = document.getElementById(canvasId);
+    if (!el) return;
+
+    const params = new URLSearchParams({ type: canvasId });
+    if (year) params.set('anneeUniv', year);
+    if (param) params.set('param', param);
+
+    const res = await fetch(`${emargementContextUrl}/${baseUrl}/stats/json?${params}`);
+    if (!res.ok) return;
+    const config = await res.json();
+    if (!config.data) return;
+    new Chart(el.getContext('2d'), config);
 }
 
-//affiche stats
-function getStats(year, param, url, id, chartType, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, datalabels) {
-	Chart.register({
-		id: id,
-		afterDraw: function(chart) {
-			if (chart.data.datasets.length === 0 || (chart.data.datasets.length != 0 && chart.data.datasets[0].data.length === 0)) {
-				var ctx = chart.ctx;
-				chartNoData(ctx, chart);
-			}
-		}
-	});
-	var request = new XMLHttpRequest();
-	var paramUrl = (param != null) ? '&' + param : '';
-	request.open('GET', emargementContextUrl + "/" + url + "/stats/json?&anneeUniv=" + year + "&type=" + id + paramUrl, true);
-	request.onload = function() {
-		if (request.status >= 200 && request.status < 400) {
-			if (this.response != "") {
-				var data = JSON.parse(this.response);
-				if ((Object.keys(data[id]).length) > 0) {
-					if (chartType == "multiBar") {
-						multiChartStackBar(data[id], id, 3, transTooltip, formatDate, 'linear');
-					} else if (chartType == "chartBar") {
-						chartBar(data[id], label1, id, transTooltip, formatDate, data[data2], label2);
-					} else if (chartType == "pie") {
-						chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-					} else if (chartType == "doughnut") {
-						chartPieorDoughnut(data[id], id, chartType, option, datalabels);
-					} else if (chartType == "lineChart") {
-						lineChart(data[id], id, fill, arrayDates, formatDate);
-					}
-				}
-			}
-		}
-	}
-	request.send();
-}
+function initStatsCharts() {
+    const year = document.getElementById('anneeUnivSelect')?.value;
 
-function lineChart(data, id, fill, arrayDates, formatDate) {
-	if (document.getElementById(id) != null) {
-		let inlineValeurs = [];
-		var inlineDatasets = [];
-		var a = 8;
-		const valeursArray = [["9", 0], ["10", 0], ["11", 0], ["12", 0], ["1", 0],
-		["2", 0], ["3", 0], ["4", 0], ["5", 0], ["6", 0], ["7", 0], ["8", 0]
-		];
-		const mapArray = new Map(valeursArray);
-		//dates
-		var dates = arrayDates;
-		for (i = 0; i < data[0].length; i++) {
-			mapArray.set(data[0][i], data[1][i]);
-			inlineValeurs = Array.from(mapArray.values());
-		}
-		inlineDatasets.push({
-			label: '',
-			backgroundColor: generateColors[a],
-			borderColor: generateColors[a],
-			pointBorderColor: "#fff",
-			pointHoverBorderColor: "#fff",
-			pointBackgroundColor: generateColors[a],
-			data: inlineValeurs,
-			spanGaps: true,
-			fill: fill,
-		});
-		var dateLabels = dates;
-		if (formatDate) {
-			dateLabels = [];
-			for (var ind in dates) {
-				dateLabels.push(formatDateString(dates[ind]));
-			};
-		}
-		var dataMois = {
-			labels: dateLabels,
-			datasets: inlineDatasets
-		};
-		var ctx3 = document.getElementById(id).getContext("2d");
-		new Chart(ctx3, {
-			type: 'line',
-			data: dataMois,
-		});
-	}
-}
-
-function chartPieorDoughnut(data, id, type, option, datalabels) {
-	if (document.getElementById(id) != null) {
-		if (typeof datalabels == "undefined") {
-			datalabels = false;
-		}
-		var legend = true;
-		if (option == "legend") {
-			legend = false;
-		}
-		var dataSets = [];
-		var doughnutDataArray = [];
-		dataSets.push({
-			data: data[1],
-			backgroundColor: generateStackColors,
-			hoverBackgroundColor: generateColors
-		});
-		var doughnutDataArray = {
-			labels: data[0],
-			datasets: dataSets
-		};
-		var ctx3 = document.getElementById(id).getContext("2d");
-		new Chart(ctx3, {
-			type: type,
-			data: doughnutDataArray,
-			options: {
-				responsive: true, animateRotate: false,
-				legend: {
-					display: legend
-				},
-				plugins: {
-					datalabels: {
-						backgroundColor: function(context) {
-							return context.dataset.backgroundColor;
-						},
-						borderColor: 'white',
-						borderRadius: 25,
-						borderWidth: 2,
-						color: 'white',
-						display: function(context) {
-							var dataset = context.dataset;
-							var count = dataset.data.length;
-							var value = dataset.data[context.dataIndex];
-							return value > count * 1.5;
-						},
-						font: {
-							weight: 'bold'
-						},
-						formatter: Math.round
-					},
-					tooltip: {
-						enabled: true,
-						callbacks: {
-							label: function(context) {
-								let total1 = context.dataset.data.reduce((x, y) => x + y)
-								var currentValue = context.parsed;
-								var percentage = ((currentValue / total1) * 100).toFixed(1);
-								var label = ' ' + context.label || '';
-								if (label) {
-									label += ' : ';
-								}
-								label += currentValue + " (" + percentage + " %)";
-
-								return label;
-							}
-						}
-					}
-				}
-			}
-		});
-	}
-}
-
-function multiChartStackBar(allData, id, start, transTooltip, formatDate, scaleType) {
-	if (document.getElementById(id) != null) {
-		const footer = (tooltipItems) => {
-			let sum = 0;
-
-			tooltipItems.forEach(function(tooltipItem) {
-				sum += tooltipItem.parsed.y;
-			});
-			return 'Total: ' + sum;
-		};
-		var dataSets = [];
-		var k = 0;
-		for (key in allData[1]) {
-			dataSets.push({
-				label: key,
-				data: allData[1][key],
-				backgroundColor: generateStackColors[k]
-			});
-			k++;
-		}
-		var barChartData = {
-			labels: allData[0],
-			datasets: dataSets
-		}
-		var ctx = document.getElementById(id).getContext("2d");
-		new Chart(ctx, {
-			type: 'bar',
-			data: barChartData,
-			options: {
-				responsive: true,
-				interaction: {
-					mode: 'index'
-				},
-				legend: {
-					display: true
-				},
-				tooltip: {
-					callbacks: {
-						footer: footer,
-					}
-				},
-				scales: {
-					x: {
-						stacked: true,
-					},
-					y: {
-						stacked: true
-					}
-				},
-				plugins: {
-					tooltip: {
-						callbacks: {
-							footer: footer,
-						}
-					}
-				}
-			}
-		});
-	}
-}
-function chartBar(data1, label1, id, transTooltip, formatDate, data2, label2) {
-	if (document.getElementById(id) != null) {
-		var listLabels = [];
-		var listValeurs = [];
-		var listTooltipLabels = [];
-		var datasets = [{
-			label: label1,
-			backgroundColor: generateColors[3],
-			borderColor: generateBorderColors[3],
-			borderWidth: 1,
-			data: data1[1],
-			datalabels: {
-				display: true
-			}
-		}];
-		if (data2 != null) {
-			var listValeurs2 = [];
-			for (var idx2 in data2) {
-				listValeurs2.push(data2[idx2]);
-			};
-			datasets.push({
-				label: label2,
-				backgroundColor: generateColors[4],
-				borderColor: generateBorderColors[4],
-				borderWidth: 1,
-				data: listValeurs2,
-				datalabels: {
-					display: true
-				}
-			})
-		}
-		var barChartData = {
-			labels: data1[0],
-			datasets: datasets
-		}
-		var ctx = document.getElementById(id).getContext("2d");
-		new Chart(ctx, {
-			type: 'bar',
-			data: barChartData,
-			options: {
-				responsive: true,
-				plugins: {
-					legend: {
-						display: false
-					}
-				},
-				scales: {
-					y: {
-						ticks: {
-							beginAtZero: true
-						}
-					}
-				}
-			}
-		});
-	}
+    if (document.getElementById('statsCharts') && year) {
+        document.body.style.backgroundColor = '#f2f2f2';
+        MANAGER_IDS.forEach(id => renderChart(id, 'manager', { year }));
+    }
+    if (document.getElementById('statsSuperAdminCharts') && year) {
+        document.body.style.backgroundColor = '#f2f2f2';
+        SUPERADMIN_IDS.forEach(id => renderChart(id, 'superadmin', { year }));
+    }
 }
 
 //jstree
@@ -978,6 +700,8 @@ function setupModal(modalId, fields) {
 }
 //==jQuery document.ready
 document.addEventListener('DOMContentLoaded', function() {
+	
+	initStatsCharts();
 	//Messages modal bilan CSv
 	var dialogMsg = document.querySelector('#modalBilanCsvBody');
 	if (dialogMsg != null) {
@@ -1228,50 +952,33 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
-	//stats
-	var year = $("#anneeUnivSelect option:selected").val();
-	if (document.getElementById('statsCharts') != null) {
-		var url = "manager";
-		$("body").css("background-color", "#f2f2f2");
-		//getStats(year, param, null,id, chartType,  option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, byMonth)
-		getStats(year, null, url, "sessionEpreuvesByCampus", "pie");
-		getStats(year, null, url, "sessionLocationByLocation", "doughnut");
-		getStats(year, null, url, "tagCheckersByContext", "pie", "legend");
-		getStats(year, null, url, "presenceByContext", "pie");
-		getStats(year, null, url, "sessionEpreuveByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
-		getStats(year, null, url, "countTagCheckByYearMonth", "lineChart", null, null, false, null, null, null, true, monthsArray);
-		getStats(year, null, url, "countTagChecksByTypeBadgeage", "doughnut");
-		getStats(year, null, url, "countTagCheckBySessionLocationBadgedAndPerson", "doughnut");
-		getStats(year, null, url, "countSessionEpreuveByType", "pie");
-	}
-	//stats superadmin
-	if (document.getElementById('statsSuperAdminCharts') != null) {
-		var url = "superadmin";
-		$("body").css("background-color", "#f2f2f2");
-		//getStats(param, null,id, chartType,  spinner, option, transTooltip, formatDate, label1, data2, label2, fill, arrayDates, byMonth)
-		getStats(year, null, url, "sessionEpreuvesByContext", "multiBar");
-		getStats(year, null, url, "countTagChecksByContext", "multiBar");
-		getStats(year, null, url, "countLocationsByContext", "chartBar");
-		getStats(year, null, url, "countUserAppsByContext", "multiBar");
-		getStats(year, null, url, "countCampusesByContext", "chartBar");
-		getStats(year, null, url, "countSessionEpreuveByTypeByContext", "multiBar");
-	}
-
 	//stats session epreuve
-	$('[id^=modalChartSeBtn]').on('click', function(e) {
-		var url = "manager";
-		var splitId = this.id.split("-");
-		var canvas = document.getElementById("countTagChecksByTimeBadgeage");
-		canvas.remove();
-		$('#chartListSession').append("<canvas id='countTagChecksByTimeBadgeage' style='height: 394px; width: 789px;' height='394' width='789'></canvas>");
-		getStats(null, "&param=" + splitId[1], url, "countTagChecksByTimeBadgeage", "chartBar");
-	})
+	document.body.addEventListener('click', (e) => {
+	    const btn = e.target.closest('[id^=modalChartSeBtn]');
+	    if (!btn) return;
+
+	    const sessionId = btn.id.split('-')[1];
+
+	    const oldCanvas = document.getElementById('countTagChecksByTimeBadgeage');
+	    if (oldCanvas) {
+	        const fresh = document.createElement('canvas');
+	        fresh.id = 'countTagChecksByTimeBadgeage';
+	        fresh.style.height = '394px';
+	        fresh.style.width = '789px';
+	        fresh.height = 394;
+	        fresh.width = 789;
+	        oldCanvas.replaceWith(fresh);
+	    }
+
+	    renderChart('countTagChecksByTimeBadgeage', 'manager', { param: sessionId });
+	});
+
 	$('#modal-chart').on('shown.bs.modal', function(event) {
-		var button = $(event.relatedTarget) // Button that triggered the modal
-		var title = button.data('whatever') // Extract info from data-* attributes
-		var modal = $(this)
-		modal.find('.modal-title').text(title)
-	})
+	    var button = $(event.relatedTarget);
+	    var title = button.data('whatever');
+	    $(this).find('.modal-title').text(title);
+	});
+	
 	
 	const setupCalendar = (calendarId, urlPath) => {
 	    const calendarEl = document.getElementById(calendarId);
@@ -1563,20 +1270,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	});
 
-	//Préférence : voir sessions antérieure
-	$(document).on('change', '#oldSessionsCheck', function() {
-		var value = (this.checked) ? "true" : "false";
-		var redirect = window.location.origin + window.location.pathname;
-		var request = new XMLHttpRequest();
-		request.open('GET', emargementContextUrl + "/supervisor/prefs/updatePrefs?pref=seeOldSessions&value=" + value, true);
-		request.onload = function() {
-			if (request.status >= 200 && request.status < 400) {
-				window.location.href = redirect;
-			}
-		}
-		request.send();
-	});
-	
 	//Suppression d'un tagCheck
 	$(document).on("click", ".btn-delete", function(e) {
 	    e.preventDefault();
@@ -1758,9 +1451,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	if (document.getElementById("sessionSearch") != null) {
 		$("#formSearch select").on("change", function(event) {
 			$("#searchBox").val(null);
-			document.getElementById("formSearch").submit();
-		});
-		$("#sessionSearch .btn-check").on("change", function(event) {
 			document.getElementById("formSearch").submit();
 		});
 	}
@@ -2234,18 +1924,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.getElementById("searchUrl2").value=window.location.search;
 	}
 	//ADE
-	function handleSelectChange(elementId, action) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.addEventListener("change", function () {
-                if (typeof action === "function") {
-                    action(); // Call function action (form submission case)
-                } else {
-                    window.location.href = `${emargementContextUrl}${action}?idProjet=${this.value}`;
-                }
-            });
-        }
-    }
 
 	if(document.getElementById("projet") != null){
 		$("#projet").on("change", function(event) {
@@ -2287,28 +1965,6 @@ document.addEventListener('DOMContentLoaded', function() {
         opacity: false
     });
 
-	const hash = window.location.hash;
-	if (hash.startsWith("#openmodal-")) {
-		const id = hash.replace("#openmodal-", "");
-		fetch(emargementContextUrl + `/manager/sessionEpreuve/${id}?modal=true`)
-			.then(res => res.text())
-			.then(html => {
-				const modalEl = document.getElementById("show-modal");
-				modalEl.querySelector(".modal-content").innerHTML = html;
-				new bootstrap.Modal(modalEl).show();
-				history.replaceState(null, '', window.location.pathname + window.location.search);
-			});
-	}
-	if (hash === "#openmodal") {
-		const modalEl = document.getElementById("show-modal");
-		new bootstrap.Modal(modalEl).show();
-		history.replaceState(null, '', window.location.pathname + window.location.search);
-	}
-	document.addEventListener('click', function(event) {
-		if (event.target.classList.contains('closeModal')) {
-			window.location.reload();
-		}
-	});
 	//enable tooltips
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
@@ -2322,7 +1978,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				htmltemplatePdf.value = editor1.getContents();
 	    });
 	}
-	
 	
 	//Autocomplete
 	if (document.querySelector('#suPage, #presencePage, #userAppPage, #locationPage, #sessionEpreuvePage, #recherchePage, #addMembersPage, #extractionPage, #createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #assiduitePage, #tagChecksListPage')) {
