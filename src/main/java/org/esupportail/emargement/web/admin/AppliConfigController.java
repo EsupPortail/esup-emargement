@@ -123,6 +123,7 @@ public class AppliConfigController {
         }
 		appliConfig.setContext(contexteService.getcurrentContext());
 		appliConfigRepository.save(appliConfig);
+		appliConfigService.evictAllAppliConfigCache();
 		log.info("Création config : " + "Key : ".concat(appliConfig.getKey()));
 		logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
 				emargementContext, null);
@@ -141,6 +142,7 @@ public class AppliConfigController {
         original.setValue(appliConfig.getValue());
         original.setDescription(appliConfig.getDescription());
         appliConfigRepository.save(original);
+        appliConfigService.evictAllAppliConfigCache();
         log.info("Maj config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
         logService.log(ACTION.UPDATE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
         		emargementContext, null);
@@ -153,6 +155,7 @@ public class AppliConfigController {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     	try {
 			appliConfigRepository.delete(appliConfig);
+			appliConfigService.evictAllAppliConfigCache();
 			log.info("Suppression config : " + "Key : ".concat(appliConfig.getKey()).concat(appliConfig.getValue()));
 	        logService.log(ACTION.DELETE_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
 	        		emargementContext, null);
