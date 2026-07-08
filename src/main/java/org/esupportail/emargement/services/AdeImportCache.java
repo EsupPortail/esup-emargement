@@ -23,6 +23,7 @@ public final class AdeImportCache {
     private static final Logger log = LoggerFactory.getLogger(AdeImportCache.class);
 
     private static final ThreadLocal<AdeImportCache> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
 
     /** Clé : "sessionAdeId|resourceId|target". Valeur : liste des membres/codes retournés. */
     private final Map<String, List<String>> membersByKey = new HashMap<>();
@@ -49,37 +50,48 @@ public final class AdeImportCache {
     }
 
     /**
-     * Démarre un cache pour le thread courant. Si un cache existait déjà (cas d'un
-     * import imbriqué ou d'une fuite), il est conservé et un warn est tracé : le
-     * deuxième appel à {@link #begin(String)} ne crée pas un nouveau cache pour ne
-     * pas masquer un bug de cycle de vie.
+     * Démarre un cache pour le thread courant, ou réutilise celui déjà actif en cas
+     * d'appel imbriqué (incrémente la profondeur). Seul le {@link #end()} correspondant
+     * au begin() le plus externe finalise réellement le cache — voir {@link #end()}.
      */
     public static AdeImportCache begin(String label) {
+        int depth = DEPTH.get();
         AdeImportCache existing = CURRENT.get();
         if (existing != null) {
-            log.warn("AdeImportCache déjà actif pour ce thread (label='{}'), nouveau begin('{}') ignoré.",
-                    existing.label, label);
+            DEPTH.set(depth + 1);
+            log.warn("AdeImportCache déjà actif pour ce thread (label='{}'), begin('{}') imbriqué : profondeur={}.",
+                    existing.label, label, depth + 1);
             return existing;
         }
         AdeImportCache cache = new AdeImportCache(label);
         CURRENT.set(cache);
+        DEPTH.set(1);
         log.info("PERF AdeImportCache.begin [label={}]", label);
         return cache;
     }
 
-    /** Renvoie le cache du thread courant, ou {@code null} s'il n'y en a pas (mode non caché). */
     public static AdeImportCache current() {
         return CURRENT.get();
     }
 
     /**
-     * Termine le cache du thread courant et trace les statistiques de hits/misses.
-     * <strong>Doit être appelé dans un bloc finally</strong> de la méthode qui a
-     * fait {@link #begin(String)} pour éviter les fuites de ThreadLocal.
+     * Décrémente la profondeur d'appel. Ne finalise (log des stats + nettoyage du
+     * ThreadLocal) que lorsque la profondeur retombe à 0, c'est-à-dire au end()
+     * correspondant au begin() le plus externe. <strong>Doit être appelé dans un bloc
+     * finally</strong> de chaque méthode ayant fait {@link #begin(String)}.
      */
     public static void end() {
         AdeImportCache cache = CURRENT.get();
-        if (cache == null) return;
+        if (cache == null) {
+            DEPTH.remove();
+            return;
+        }
+        int depth = DEPTH.get();
+        if (depth > 1) {
+            DEPTH.set(depth - 1);
+            log.debug("AdeImportCache end() imbriqué (label={}, profondeur restante={})", cache.label, depth - 1);
+            return;
+        }
         try {
             long durMs = System.currentTimeMillis() - cache.startMs;
             log.info("PERF AdeImportCache.end [label={}] [duration={} ms] " +
@@ -92,9 +104,9 @@ public final class AdeImportCache {
                     cache.memberUpdatesHits, cache.memberUpdatesMisses);
         } finally {
             CURRENT.remove();
+            DEPTH.remove();
         }
     }
-
     // --- Members ---
 
     public List<String> getMembers(String sessionAdeId, String resourceId, String target) {
