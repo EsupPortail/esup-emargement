@@ -942,15 +942,6 @@ public class AdeApiWebService implements AdeApiService {
 	 * À utiliser à la place de {@code new URL(s).openStream()} ou {@code DocumentBuilder.parse(String)}
 	 * pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
 	 */
-	
-	/* 
-	private InputStream openStreamWithTimeout(String url) throws IOException {
-		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-		con.setConnectTimeout(10_000);
-		con.setReadTimeout(60_000);
-		return con.getInputStream();
-	}
-	*/
 
 	private InputStream openStreamWithTimeout(String url, String graviteeApiKey) throws IOException {
 		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -1313,26 +1304,9 @@ public class AdeApiWebService implements AdeApiService {
 		String vet = "";
 		try {
 
-				URL url = new URL(urlVet);
-        		HttpURLConnection con= (HttpURLConnection) url.openConnection();
-
-				// Timeouts pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
-				// Connect : ~10s couvre largement un handshake TCP + DNS.
-				// Read : 60s laisse de la marge pour les requêtes lourdes (gros groupes ADE) tout en
-				// garantissant qu'un serveur ADE muet libère le thread au lieu de tout figer.
-				con.setConnectTimeout(10_000);
-				con.setReadTimeout(60_000);
-
-				// Ajoute entête key - gravitee uniquement si elle est renseignée
-				if (graviteeApiKey != null && !graviteeApiKey.trim().isEmpty()) {
-					con.setRequestProperty("X-Gravitee-Api-Key", graviteeApiKey);
-				}
-
-				log.info("Envoie cle gravitee dans getVersionEtape : " + graviteeApiKey);
+			InputStream input = openStreamWithTimeout(urlVet, graviteeApiKey);
 
 				try {
-										
-					InputStream input = con.getInputStream();
 					SAXBuilder sax = new SAXBuilder(); 
 					/// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
 					sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -1366,44 +1340,6 @@ public class AdeApiWebService implements AdeApiService {
 			return vet;		
 			
 	}
-
-
-	/* 
-	public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException {
-		String detail = "11";
-		String idParam = (idItem!=null)? "&id=" + idItem : "";
-		String urlVet = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" + detail + "&category=trainee"+ idParam;
-		String vet = "";
-		try {
-	    	  InputStream input = new URL(urlVet).openStream();
-	          SAXBuilder sax = new SAXBuilder();
-	          /// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
-	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-	          org.jdom2.Document doc = sax.build(input);
-	          org.jdom2.Element rootNode = doc.getRootElement();
-	          List<org.jdom2.Element> list = rootNode.getChildren("category");
-	          for (org.jdom2.Element target : list) {
-	        	  List<org.jdom2.Element> branch = target.getChildren("branch");
-	        	  for (org.jdom2.Element target1 : branch) {
-	        		  List<org.jdom2.Element> branch2 = target1.getChildren("branch");
-	        		  for (org.jdom2.Element target2 : branch2) {
-	        			  String code = target2.getAttributeValue("code");
-							if(code!=null) {
-								String splitCode [] = code.split("_");
-								if(splitCode.length>1) {
-									vet = splitCode[1];
-								}
-							}
-	        		  }
-	        	  }
-	          }
-		}catch (IOException | JDOMException e) {
-	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet, e);
-	    }
-		return vet;
-	}
-		*/
 
 	/**
 	 * Cherche une SessionEpreuve existante correspondant à un évènement ADE, en cascade :
