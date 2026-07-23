@@ -36,5 +36,5 @@ public interface AdeApiService {
 	public String getSessionId(boolean forceNewId, String emargementContext, String idProject) throws IOException, ParserConfigurationException, SAXException;
 	public void disconnectSession(String emargementContext);
     public String getJsonfile(String fatherId, String emargementContext, String category, String idProject);
-    public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException;
+    public String getVersioneEtape(String sessionId, String idItem,String graviteeApiKey) throws IOException, ParserConfigurationException, SAXException;
 }
