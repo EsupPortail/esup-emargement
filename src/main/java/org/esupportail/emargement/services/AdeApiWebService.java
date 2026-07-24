@@ -977,19 +977,7 @@ public class AdeApiWebService implements AdeApiService {
     	if (graviteeApiKey != null && !graviteeApiKey.trim().isEmpty()) {
         	con.setRequestProperty("X-Gravitee-Api-Key", graviteeApiKey);
     	}
-
-		log.info("Envoie cle gravitee : " + graviteeApiKey);
-
-		// *************************
-
-		log.info("###Test envoi des valeurs entetes Http###");
-
-		Map<String, List<String>> headers = con.getRequestProperties();
-
-		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-			log.info(entry.getKey() + " = " + entry.getValue());
-		}
-
+		
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
