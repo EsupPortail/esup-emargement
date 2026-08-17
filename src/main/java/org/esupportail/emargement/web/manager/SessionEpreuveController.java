@@ -172,6 +172,7 @@ public class SessionEpreuveController {
 			sessionSearch = new SessionEpreuve();
 			view = "all";
 			dateSessions = "all";
+			sessionSearch.setAnneeUniv(String.valueOf(sessionEpreuveService.getCurrentanneUniv()));
 		}
 		UserApp userApp = userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext);
 		Context ctx = contextRepository.findByKey(emargementContext);
