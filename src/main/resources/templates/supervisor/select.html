@@ -71,8 +71,8 @@
 			  </form>
 		  </div>
 			<div class="col">
-				<form th:if="${sessionLocation ne null}" th:action="@{/{ctx}/supervisor/updateSecondTag(ctx=${eContext})}"
-					method="post" id="formSecondTag">
+				<form th:if="${sessionLocation ne null}" th:hx-post="@{/{ctx}/supervisor/updateSecondTag(ctx=${eContext})}"
+					id="formSecondTag" hx-trigger="change" >
 					<div class="form-check form-switch" th:if="${sessionEpreuve.id != null}">
 						<input class="form-check-input" type="checkbox" role="switch" id="updateSecondTag"
 							th:checked="${sessionEpreuve.isSecondTag !=null and sessionEpreuve.isSecondTag}">
@@ -80,6 +80,19 @@
 						<input type="hidden" name="sessionUser" th:value="${eppnAuth}" />
 						<input type="hidden" name="keyStatut" th:value="${keyStatut}" />
 						<label class="form-check-label" for="updateSecondTag">Double badgeage</label>
+					</div>
+				</form>
+			</div>
+			<div class="col" th:if="${isTrombiViewEnabled}">
+				<form th:if="${sessionLocation ne null}" th:hx-post="@{/{ctx}/supervisor/updateViewMode(ctx=${eContext})}"
+					hx-trigger="change" id="trombi">
+					<div class="form-check form-switch ms-2" th:if="${sessionEpreuve.id != null}">
+						<input class="form-check-input" type="checkbox" role="switch" id="updateSecondTag"
+							th:checked="${viewMode eq 'trombi'}">
+						<input type="hidden" name="id" th:value="${currentLocation}" />
+						<input type="hidden" name="sessionUser" th:value="${eppnAuth}" />
+						<input type="hidden" name="keyStatut" th:value="${keyStatut}" />
+						<label class="form-check-label" for="trombi">Trombi</label>
 					</div>
 				</form>
 			</div>

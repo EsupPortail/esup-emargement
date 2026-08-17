@@ -82,4 +82,15 @@ public class PreferencesService {
 			}
 		}
 	}
+	
+	public Prefs getPrefs(String eppn, String nom) {
+		List<Prefs> prefs = null;
+		if(eppn != null) {
+			prefs = prefsRepository.findByUserAppEppnAndNomLike(eppn, nom + "%");
+		}else {
+			prefs = prefsRepository.findByNom(nom);
+		}
+		return prefs.isEmpty() ? null : prefs.get(0);
+	}
+	
 }

@@ -17,6 +17,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
@@ -62,6 +63,8 @@ import com.itextpdf.text.pdf.PdfWriter;
 public class PresenceService {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
+	public final static String PRESENCE_VIEWMODE = "presenceViewMode";
+	
 	@Autowired
 	private TagCheckRepository tagCheckRepository;
 	
@@ -95,6 +98,9 @@ public class PresenceService {
     @Resource
 	DataEmitterService dataEmitterService;
     
+	@Resource
+	PreferencesService preferencesService;
+
     @Resource
     PresenceTransactionalService presenceTransactionalService;
 	
@@ -249,5 +255,20 @@ public class PresenceService {
 			photo64 = Base64Utils.encodeToString(httpResponse.getBody());
 		}
 		return photo64;
+	}
+	
+	public void updateViewMode(String eppn, String emargementContext) {
+		Prefs pref = preferencesService.getPrefs(eppn, PRESENCE_VIEWMODE);
+		String value = null;
+		if (pref != null) {
+			if("table".equals(pref.getValue())) {
+                value = "trombi";
+			} else {
+				value = "table";
+			}
+		} else {
+			value = "table";
+		}
+		preferencesService.updatePrefs(PRESENCE_VIEWMODE, value, eppn, emargementContext, "dummy");
 	}
 }

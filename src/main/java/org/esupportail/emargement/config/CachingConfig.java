@@ -1,10 +1,14 @@
 package org.esupportail.emargement.config;
 
+import java.time.Duration;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Active le mécanisme de cache Spring pour les valeurs de configuration applicative
@@ -16,11 +20,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableCaching
 public class CachingConfig {
-
     public static final String APPLI_CONFIG_CACHE = "appliConfig";
+    public static final String PHOTOS_CACHE = "photosCache";
 
     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager(APPLI_CONFIG_CACHE);
+        CaffeineCacheManager manager = new CaffeineCacheManager(APPLI_CONFIG_CACHE, PHOTOS_CACHE);
+        manager.setCaffeine(Caffeine.newBuilder()
+                .expireAfterWrite(Duration.ofHours(24))
+                .maximumSize(1000));
+        return manager;
     }
 }

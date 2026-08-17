@@ -1,0 +1,101 @@
+<div th:fragment="trombi" id="trombi-grid" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 row-cols-xl-8 g-3">
+	<div class="col" th:each="tagCheck : ${tagCheckPage}">
+	<div th:id="${tagCheck.id}"
+	     class="card h-100 text-center trombi-card position-relative"
+	     th:classappend="${(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre)} ? 'border-warning' 
+	                    : (${tagCheck.tagDate == null and tagCheck.tagDate2 == null} ? 'border-danger bg-danger-subtle'
+	                    : (${tagCheck.tagDate != null and tagCheck.tagDate2 == null} ? 'border-success bg-success-subtle'
+	                    : (${tagCheck.tagDate != null and tagCheck.tagDate2 != null} ? 'border-info bg-info-subtle'
+	                    : (${tagCheck.tagDate == null and tagCheck.tagDate2 != null} ? 'border-warning bg-warning-subtle' : ''))))">
+
+	    <!-- Icône type d'émargement : coin haut-gauche -->
+	    <span class="position-absolute top-0 start-0 ms-2 mt-1" th:if="${tagCheck.typeEmargement != null}" th:switch="${#strings.toString(tagCheck.typeEmargement.name())}">
+	        <i th:case="'CARD'" class="fas fa-id-card text-primary" title="Carte"></i>
+	        <i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+	        <i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+	        <i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
+	        <i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" th:title="${'QrCode ' + participantTerme}"></i>
+	        <i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>
+	        <i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+	    </span>
+	    <!-- Tooltip infos complémentaires : coin haut-droit -->
+		<th:block th:if="${tagCheck.tagDate != null or (sessionEpreuve.isSecondTag != null and sessionEpreuve.isSecondTag and tagCheck.tagDate2 != null) or tagCheck.tagChecker != null or (tagCheck.absence != null and tagCheck.absence.motifAbsence != null) or (tagCheck.comment != null and tagCheck.comment != '') or (isGroupeDisplayed and tagCheck.person != null) or tagCheck.sessionLocationBadged != null}">
+		    <span class="position-absolute top-0 end-0 me-2 mt-1 text-muted infoTooltip" style="cursor: help;"
+		          data-bs-toggle="tooltip" data-bs-html="true" data-bs-placement="left"
+		          th:attr="data-bs-title=${
+		              (tagCheck.tagDate != null ? 'Heure : ' + #dates.format(tagCheck.tagDate, 'dd/MM/yy HH:mm:ss') + '&lt;br&gt;' : '') +
+		              (sessionEpreuve.isSecondTag != null and sessionEpreuve.isSecondTag and tagCheck.tagDate2 != null ? 'Heure 2 : ' + #dates.format(tagCheck.tagDate2, 'dd/MM/yy HH:mm:ss') + '&lt;br&gt;' : '') +
+		              (tagCheck.tagChecker != null ? 'Validé par : ' + tagCheck.tagChecker.userApp.prenom + ' ' + tagCheck.tagChecker.userApp.nom + '&lt;br&gt;' : '') +
+		              (tagCheck.absence != null and tagCheck.absence.motifAbsence != null ? 'Absence : ' + tagCheck.absence.motifAbsence.libelle + '&lt;br&gt;' : '') +
+		              (tagCheck.comment != null and tagCheck.comment != '' ? 'Commentaire : ' + tagCheck.comment + '&lt;br&gt;' : '') +
+		              (isGroupeDisplayed and tagCheck.person != null ? 'Groupe : ' + #strings.listJoin(tagCheck.person.groupes.![nom], ',') + '&lt;br&gt;' : '') +
+		              (tagCheck.sessionLocationBadged != null ? 'Lieu : ' + tagCheck.sessionLocationBadged.location.nom : '')
+		          }">
+		        <i class="fa fa-info-circle"></i>
+		    </span>
+		</th:block>
+	    <div class="card-body p-2 pt-3">
+	        <!-- Photo -->
+			<div class="ratio ratio-1x1 rounded-circle overflow-hidden mx-auto mb-2 bg-body-secondary" style="max-width:80px;">
+
+			    <!-- Silhouette : affichée tant qu'aucun émargement (1er ou 2e tag) -->
+			    <div class="silhouette d-flex align-items-center justify-content-center text-secondary"
+			         th:if="${tagCheck.tagDate == null and tagCheck.tagDate2 == null}">
+			        <i class="fa fa-user fa-2x"></i>
+			    </div>
+
+			    <!-- Photo réelle : uniquement si émargé (personne identifiée uniquement, pas les invités) -->
+			    <img th:if="${tagCheck.person != null and (tagCheck.tagDate != null or tagCheck.tagDate2 != null)}"
+			         class="rounded-circle object-fit-cover"
+					 th:src="@{/{ctx}/supervisor/{eppn}/photo(ctx=${eContext}, eppn=${tagCheck.person.eppn})}" 
+			         th:alt="${tagCheck.person.nom}"/>
+
+			    <!-- Invité émargé sans photo dispo : icône dédiée plutôt que silhouette générique -->
+			    <div class="d-flex align-items-center justify-content-center text-secondary"
+			         th:if="${tagCheck.guest != null and (tagCheck.tagDate != null or tagCheck.tagDate2 != null)}">
+			        <i class="fa fa-user-friends fa-2x"></i>
+			    </div>
+			</div>
+	        <!-- Switch(es), sans label -->
+	        <div th:unless="${tagCheck.absence ne null}" class="d-flex justify-content-center gap-3 mb-1">
+	            <div class="form-check form-switch mb-0">
+	                <input class="form-check-input presenceCheck" type="checkbox" role="switch" name="presenceCheck"
+	                       th:if="${tagCheck.person != null}"
+	                       th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}"
+	                       th:checked="${tagCheck.tagDate != null}"
+	                       th:disabled="${tagCheck.tagDate != null and (tagCheck.isUnknown or isSessionLibre)}"/>
+	                <input class="form-check-input presenceCheck" type="checkbox" role="switch" name="presenceCheck"
+	                       th:if="${tagCheck.guest != null}"
+	                       th:value="${'' + ',' + sessionLocation.id + ',' + tagCheck.guest.email}"
+	                       th:checked="${tagCheck.tagDate != null}"
+	                       th:disabled="${tagCheck.tagDate != null and (tagCheck.isUnknown or isSessionLibre)}"/>
+	            </div>
+	            <div class="form-check form-switch mb-0" th:if="${sessionEpreuve.isSecondTag != null and sessionEpreuve.isSecondTag}">
+	                <input class="form-check-input presenceCheck" type="checkbox" role="switch" name="presenceCheck"
+	                       th:if="${tagCheck.person != null}"
+	                       th:value="${tagCheck.person.eppn + ',' + sessionLocation.id}"
+	                       th:checked="${tagCheck.tagDate2 != null}"
+	                       th:disabled="${tagCheck.tagDate2 != null and tagCheck.isUnknown}"/>
+	                <input class="form-check-input presenceCheck" type="checkbox" role="switch" name="presenceCheck"
+	                       th:if="${tagCheck.guest != null}"
+	                       th:value="${'' + ',' + sessionLocation.id + ',' + tagCheck.guest.email}"
+	                       th:checked="${tagCheck.tagDate2 != null}"
+	                       th:disabled="${tagCheck.tagDate2 != null and tagCheck.isUnknown}"/>
+	            </div>
+	        </div>
+	        <!-- Nom -->
+	        <p class="card-text small text-truncate mb-0 fw-semibold">
+				<th:block th:if="${tagCheck.person != null and tagCheck.person.nom != null}">
+					<span class="text-uppercase" th:text="${(tagCheck.person.nom != null) ? tagCheck.person.nom: tagCheck.person.eppn}"></span>
+					<span th:if="${tagCheck.person.nom != null}" th:text="' ' + ${tagCheck.person.prenom}"></span>
+				</th:block>
+				<th:block th:if="${tagCheck.person == null and tagCheck.guest == null}">
+					<span class="text-uppercase" th:if="${tagCheck.guest != null}" th:text="${(tagCheck.guest.nom != null) ? tagCheck.guest.nom : tagCheck.guest.email}"></span>
+					<span th:if="${tagCheck.guest.nom != null}" th:text="' ' + ${tagCheck.guest.prenom}"></span>
+				</th:block>
+	            <span th:if="${tagCheck.guest != null}" th:text="${(tagCheck.guest.nom != null) ? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email}"></span>
+	        </p>
+	    </div>
+	</div>
+	</div>
+</div>

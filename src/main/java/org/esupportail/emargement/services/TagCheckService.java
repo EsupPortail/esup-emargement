@@ -87,6 +87,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -258,24 +259,57 @@ public class TagCheckService {
         return tagCheckRepository.countTagCheckBySessionEpreuveIdAndSessionLocationExpectedIsNotNullAndIsTiersTempsFalse(sessionEpreuveId);
     }
 
-	public Page<TagCheck> getListTagChecksBySessionLocationId(Long id, Pageable pageable, Long presentId,
-			boolean withUnknown) {
-		Page<TagCheck> tagChecks = getTagChecks(id, pageable, presentId, withUnknown);
-		List<String> personEppns = tagChecks.stream().map(TagCheck::getPerson).filter(Objects::nonNull)
-				.map(person -> person.getEppn()).distinct().collect(Collectors.toList());
-		List<String> checkerEppns = tagChecks.stream().map(TagCheck::getTagChecker).filter(Objects::nonNull)
-				.map(tc -> tc.getUserApp().getEppn()).distinct().collect(Collectors.toList());
-		Map<String, LdapUser> ldapPersons = ldapService.getLdapUsersFromNumList(personEppns, "eduPersonPrincipalName");
-		Map<String, LdapUser> ldapCheckers = ldapService.getLdapUsersFromNumList(checkerEppns,
-				"eduPersonPrincipalName");
-		tagChecks.forEach(tc -> {
-			tc.setIsUnknown(tc.getSessionLocationBadged() != null && tc.getSessionLocationExpected() == null);
-			updatePerson(tc, ldapPersons);
-			updateChecker(tc, ldapCheckers);
-		});
-		return tagChecks;
-	}
+    public Page<TagCheck> getListTagChecksBySessionLocationId(
+            Long id,
+            Pageable pageable,
+            Long presentId,
+            boolean withUnknown) {
 
+    	Pageable safePageable = pageable != null ? pageable : Pageable.unpaged();
+    	Page<TagCheck> tagChecks = getTagChecks(id, safePageable, presentId, withUnknown);
+
+        Map<String, LdapUser> ldapPersons = ldapService.getLdapUsersFromNumList(
+                tagChecks.stream()
+                        .map(TagCheck::getPerson)
+                        .filter(Objects::nonNull)
+                        .map(Person::getEppn)
+                        .distinct()
+                        .collect(Collectors.toList()),
+                "eduPersonPrincipalName"
+        );
+
+        Map<String, LdapUser> ldapCheckers = ldapService.getLdapUsersFromNumList(
+                tagChecks.stream()
+                        .map(TagCheck::getTagChecker)
+                        .filter(Objects::nonNull)
+                        .map(tc -> tc.getUserApp().getEppn())
+                        .distinct()
+                        .collect(Collectors.toList()),
+                "eduPersonPrincipalName"
+        );
+
+        tagChecks.forEach(tagCheck -> {
+            tagCheck.setIsUnknown(
+                    tagCheck.getSessionLocationBadged() != null
+                            && tagCheck.getSessionLocationExpected() == null
+            );
+            updatePerson(tagCheck, ldapPersons);
+            updateChecker(tagCheck, ldapCheckers);
+        });
+
+        List<TagCheck> sorted = tagChecks.getContent().stream()
+                .sorted(Comparator.comparing(
+                        TagCheck::getNomPrenom,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(
+                sorted,
+                safePageable,
+                tagChecks.getTotalElements()
+        );
+    }
+    
 	private Page<TagCheck> getTagChecks(Long id, Pageable pageable, Long presentId, boolean withUnknown) {
 		if (presentId != null) {
 			return tagCheckRepository.findTagCheckBySessionLocationExpectedIdAndIdEquals(id, presentId, pageable);
@@ -289,17 +323,22 @@ public class TagCheckService {
 	}
 
 	private void updatePerson(TagCheck tc, Map<String, LdapUser> ldapUsers) {
-		if (tc.getPerson() == null) {
-			return;
-		}
-		LdapUser ldapUser = ldapUsers.get(tc.getPerson().getEppn());
-		if (ldapUser != null) {
-			tc.getPerson().setNom(ldapUser.getName());
-			tc.getPerson().setPrenom(ldapUser.getPrenom());
-			tc.setNomPrenom(String.join(" ", ldapUser.getName(), ldapUser.getPrenom()));
-		} else {
-			tc.setNomPrenom("");
-		}
+	    if (tc.getPerson() == null) {
+	        return;
+	    }
+
+	    LdapUser ldapUser = ldapUsers.get(tc.getPerson().getEppn());
+
+	    if (ldapUser != null) {
+	        tc.getPerson().setNom(ldapUser.getName());
+	        tc.getPerson().setPrenom(ldapUser.getPrenom());
+
+	        tc.setNomPrenom(Stream.of(ldapUser.getName(), ldapUser.getPrenom())
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.joining(" ")));
+	    } else {
+	        tc.setNomPrenom("");
+	    }
 	}
 
 	private void updateChecker(TagCheck tc, Map<String, LdapUser> ldapUsers) {

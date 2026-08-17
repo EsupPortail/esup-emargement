@@ -106,9 +106,6 @@ a.page-link.active{
 .minusSize{
 	font-size: .8em;
 }
-#searchTagCheck{
-	width: 175px;
-}
 /*STATS*/
 .chart {
     position: relative;
@@ -422,4 +419,55 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 }
 .ss-optgroup-label-text{
 	color : red!important
+}
+.silhouette, .real-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.real-photo {
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity .35s ease, transform .35s ease;
+}
+.card.emarge .real-photo { opacity: 1; transform: scale(1); }
+.card.emarge .silhouette { display: none; }
+.check-badge {
+    opacity: 0;
+    transform: scale(0.5) translate(50%, -50%);
+    transition: opacity .25s ease, transform .25s ease;
+}
+.card.emarge .check-badge {
+    opacity: 1;
+    transform: scale(1) translate(50%, -50%);
+}
+.trombi-grid .card[role="button"] {
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* Effet hover uniquement si pas encore émargé */
+.trombi-grid .card[role="button"]:not(.emarge):hover {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Une fois émargé, on désactive visuellement le pointeur/hover */
+.trombi-grid .card.emarge {
+    cursor: default;
+}
+
+/* Accessibilité clavier : même effet au focus qu'au hover */
+.trombi-grid .card[role="button"]:not(.emarge):focus-visible {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+@media (min-width: 1200px) {
+    .row-cols-xl-8 > * {
+        flex: 0 0 auto;
+        width: 12.5%; /* 100% / 8 */
+    }
 }
