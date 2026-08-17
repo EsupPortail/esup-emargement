@@ -98,9 +98,7 @@ function buildDataTableOptions(customOrder) {
       badgesContainer.appendChild(badge);
     });
   }
-function insertBefore(el, referenceNode) {
-	referenceNode.parentNode.insertBefore(el, referenceNode);
-}
+
 function confirmSubmission() {
   return confirm("Confirrmez-vous cette action?");
 }
@@ -311,12 +309,6 @@ function getCalendar(calendarEl, urlEvents, editable) {
 	calendar.render();
 }
 
-function createDateFromString(dateString) {
-	const [day, month, year] = dateString.split('/').map(Number);
-	const adjustedYear = year < 70 ? 2000 + year : 1900 + year;
-	return new Date(adjustedYear, month - 1, day);
-}
-
 //Configs
 function displayFormconfig(val, valeur) {
 	var checkTrue = "";
@@ -499,15 +491,7 @@ function initStatsCharts() {
 }
 
 //jstree
-function openAndCheckNodes(nodeIds) {
-	$.each(nodeIds, function(index, nodeId) {
-		var node = $('#jstree').jstree(true).get_node(nodeId);
-		if (node) {
-			$('#frmt').jstree(true).check_node(node);
-			$('#frmt').jstree(true).open_node(node);
-		}
-	});
-}
+
 
 function updateJsTree(selectedData, category, idProject) {
 	var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?idProject=" + idProject + "&category=" + category + "&fatherId=" + selectedData;
@@ -937,20 +921,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		$("#selectedUsers").text(nbSelected);
 	});
 
-	// tableau inscrits
-	var tempsAmenage = document.getElementById('tempsAmenage');
-	var repartition = document.getElementById('repartition');
-	if (tempsAmenage != null) {
-		tempsAmenage.addEventListener('change', function(e) {
-			document.getElementById('formSearch').submit();
-		});
-	}
-	if (repartition != null) {
-		repartition.addEventListener('change', function(e) {
-			document.getElementById('formSearch').submit();
-		});
-	}
-
 	var helpForm = document.getElementById('helpForm');
 	if (helpForm != null) {
 		var suneditor = createSunEditor('value');
@@ -1200,19 +1170,6 @@ document.addEventListener('DOMContentLoaded', function() {
 					initTablePresence(sortDate);
 				});
 		}, false);
-
-		if (document.getElementById('searchTagCheck') != null) {
-			var selectPresence = new SlimSelect({
-				select: '#searchTagCheck',
-				allowDeselect: true
-			});
-		}
-
-		$("#searchTagCheck").change(function() {
-			$("#collapseTable").removeClass("d-none");
-			$("#collapseTable table tbody").empty();
-			$("#" + this.value).clone().appendTo("#collapseTable table tbody");
-		});
 	}
 
 	initSlimSelects();
@@ -1894,9 +1851,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	$("#clearFilters").on("click", function(event) {
 		window.location.href = window.location.origin + window.location.pathname;
 	});
-	$("#updateSecondTag").on("change", function(event) {
-		$("#formSecondTag").submit();
-	});
 	
 	initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
 	initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
@@ -1933,12 +1887,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		document.getElementById("searchUrl2").value=window.location.search;
 	}
 	//ADE
-
-	if(document.getElementById("projet") != null){
-		$("#projet").on("change", function(event) {
-				$("#projetForm").submit();
-		});
-	}
 	if(document.getElementById("projetParam") != null){
 		$("#projetParam").on("change", function(event) {
 				window.location.href = emargementContextUrl + "/manager/adeCampus/params?idProjet=" + this.value;
@@ -2192,10 +2140,12 @@ document.addEventListener('htmx:afterSettle', function(evt) {
 document.addEventListener("htmx:afterRequest", function(event) {
 	if (document.getElementById("presencePage")){
 		let locationSelect = document.getElementById("location");
-		if (locationSelect.children.length > 1) {
-			locationSelect.removeAttribute("disabled");
-		} else {
-			locationSelect.setAttribute("disabled", "true");
+		if (locationSelect != null) {
+			if (locationSelect.children.length > 1) {
+				locationSelect.removeAttribute("disabled");
+			} else {
+				locationSelect.setAttribute("disabled", "true");
+			}
 		}
 	}
 });

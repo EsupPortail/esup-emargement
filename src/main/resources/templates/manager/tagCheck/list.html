@@ -164,14 +164,14 @@
 												<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>	
 											</div>
 											<div class="col">
-								    			<select name="tempsAmenage" id="tempsAmenage" class="form-select  me-1"> 
+								    			<select name="tempsAmenage" id="tempsAmenage" class="form-select  me-1" onchange="this.form.submit()"> 
 												    <option value="" th:selected="${tempsAmenage==''}">---Temps aménagé---</option>
 												    <option value="tiers" th:selected="${tempsAmenage=='tiers'}">Tiers-temps</option>
 												    <option value="notTiers" th:selected="${tempsAmenage=='notTiers'}">Non tiers-temps</option>
 												</select>
 											</div>
 											<div class="col">
-								    			<select  name="repartition" id="repartition" class="form-select"  th:if="${not #lists.isEmpty(listeRepartition)}"> 
+								    			<select  name="repartition" id="repartition" class="form-select" onchange="this.form.submit()" th:if="${not #lists.isEmpty(listeRepartition)}"> 
 												    <option value="">---Répartition ---</option>
 													<option th:each="rep : ${listeRepartition}"
 															th:value="${rep.id}" th:text="${rep.nom}" th:selected="${rep.id==repartitionId}"></option>

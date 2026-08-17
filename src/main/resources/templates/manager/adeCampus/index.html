@@ -13,7 +13,7 @@
 							 <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"/></p>
 						</th:block>
 						<th:block th:unless="${isAdeConfigOk}">
-							<select class="form-select" name="projet" id="projet">
+							<select class="form-select" name="projet" id="projet" onchange="this.form.submit()">
 								<option value="">----Projets----</option>
 								<option th:each="proj : ${projects}"
 									th:value="${proj.key}" th:text="${proj.value}"
