@@ -32,7 +32,7 @@ public class MotifAbsence {
 	private Context context;
 	
 	public static enum TypeAbsence {
-	       ABSENCE, EXCLUSION, RETARD
+	       ABSENCE, EXCLUSION, RETARD, DISPENSE
 	}
 	
 	public static enum StatutAbsence {
