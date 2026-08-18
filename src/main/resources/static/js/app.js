@@ -309,51 +309,6 @@ function getCalendar(calendarEl, urlEvents, editable) {
 	calendar.render();
 }
 
-//Configs
-function displayFormconfig(val, valeur) {
-	var checkTrue = "";
-	var checkFalse = "";
-	if (valeur == "true") {
-		checkTrue = "checked='checked'";
-	} else if (valeur == "false") {
-		checkFalse = "checked='checked'";
-	}
-	if (checkTrue == "" && checkFalse == "" && val == "BOOLEAN") {
-		checkTrue = "checked='checked'";
-	}
-	var bool = '<div class="col-lg-10"><div id="boolGroup"><label class="radio-inline"><input type="radio" name="value" id="boolTrue" value="true"' + checkTrue + '/> True' +
-		'</label><label class="radio-inline ml-2"><input type="radio" name="value" id="boolFalse" value="false" ' + checkFalse + ' /> False</label></div></div>';
-
-	switch (val) {
-		case 'HTML':
-			remove("boolGroup");
-			remove("valeur");
-			remove("suneditor_valeur");
-			$("#suneditor").closest("div").after("<div class='col-lg-10'><textarea class='form-control' id='valeur' name='value'></textarea></div>");
-			suneditor0 = createSunEditor('valeur');
-			suneditor0.setContents(valeur);
-			break;
-		case 'TEXT':
-			if (suneditor0 != null) {
-				suneditor0 = suneditor0.hide();
-			}
-			remove("suneditor_valeur");
-			remove("boolGroup");
-			remove("valeur");
-			$("#suneditor").closest("div").after("<div class='col-lg-10'><textarea class='form-control' id='valeur' name='value'>" + valeur + "</textarea></div>");
-			break;
-		case 'BOOLEAN':
-			if (suneditor0 != null) {
-				suneditor0 = suneditor0.hide();
-			}
-			remove("boolGroup");
-			remove("suneditor_valeur");
-			remove("valeur");
-			$("#suneditor").closest("div").after(bool);
-			break;
-	}
-}
-
 function deleteParam(urlLocation, name) {
 	const url = new URL(urlLocation);
 	url.searchParams.delete(name);
@@ -806,39 +761,24 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 
 	}, false);
-
+	
 	//Configs
-	var boolGroup = document.getElementById("boolGroup");
-	if (boolGroup != null) {
-		boolGroup.style.display = "none";
-	}
-	var valeur = document.getElementById("hiddenValeur");
-	if (valeur != null) {
-		var typeConfig = document.querySelector("input[type=radio][name=type]:checked");
-		if (typeConfig != null) {
-			displayFormconfig(typeConfig.value, valeur.value);
-		}
-
-		var radioType = document.querySelectorAll('input[type=radio][name=type]');
-		Array.from(radioType).forEach(function(link) {
-			return link.addEventListener('click', function(event) {
-				displayFormconfig(this.value, valeur.value);
+	if (document.getElementById('valeur') != null) {
+		suneditor0 = createSunEditor('valeur');
+		//configs
+		var appliConfig = document.getElementById('configForm');
+		if (appliConfig != null) {
+			appliConfig.addEventListener('submit', function(e) {
+				e.preventDefault();
+				var radioType = document.querySelectorAll('input[type=radio][name=type]:checked')[0].value;
+				if (radioType == "HTML") {
+					document.getElementById("valeur").value = suneditor0.getContents();
+				}
+				appliConfig.submit();
 			});
-		});
+		}
 	}
-
-	//configs
-	var appliConfig = document.getElementById('configForm');
-	if (appliConfig != null) {
-		appliConfig.addEventListener('submit', function(e) {
-			e.preventDefault();
-			var radioType = document.querySelectorAll('input[type=radio][name=type]:checked')[0].value;
-			if (radioType == "HTML") {
-				document.getElementById("valeur").value = suneditor0.getContents();
-			}
-			appliConfig.submit();
-		});
-	}
+	
 	//submit export inscrits
 	var submitExport = document.getElementById('submitExport')
 	if (submitExport) {

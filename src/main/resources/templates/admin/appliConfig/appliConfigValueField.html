@@ -1,0 +1,19 @@
+<!-- fragments/appliConfigValueField.html -->
+<div th:fragment="valueField(type, value)">
+    <div th:if="${type != null and type.name() == 'TEXT'}">
+        <textarea class="form-control"  name="value" th:text="${value}" rows="5"></textarea>
+    </div>
+    <div th:if="${type != null and type.name() == 'HTML'}">
+        <textarea class="form-control" id="valeur" name="value" th:text="${value}" rows="5"></textarea>
+    </div>
+    <div th:if="${type != null and type.name() == 'BOOLEAN'}" id="boolGroup">
+        <label class="radio-inline">
+            <input type="radio" name="value" id="boolTrue" value="true"
+                   th:checked="${value == 'true'}"/> True
+        </label>
+        <label class="radio-inline ml-2">
+            <input type="radio" name="value" id="boolFalse" value="false"
+                   th:checked="${value == 'false'}"/> False
+        </label>
+    </div>
+</div>

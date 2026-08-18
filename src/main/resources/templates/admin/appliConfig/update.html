@@ -27,24 +27,30 @@
 								 <input type="text" th:field="*{key}" class="form-control" required="required" readonly="readonly">
 							</div>
 						</div>
-	                    <div class="row mb-3">
-	                    		<label for="type" class="col-lg-2 form-label">Type</label>
-	                    	<div class="col-lg-10">
-							<label class="radio-inline">
-							  <input type="radio" name="type" id="typeText" value="TEXT" th:checked="${checked=='TEXT'}" disabled="disabled"/> Texte
-							</label>
-							<label class="radio-inline">
-							  <input type="radio" name="type" id="typeHtml" value="HTML" th:checked="${checked=='HTML'}" disabled="disabled"/> Html
-							</label>
-							<label class="radio-inline">
-							  <input type="radio" name="type" id="typeBoolean" value="BOOLEAN" th:checked="${checked=='BOOLEAN'}" disabled="disabled"/> Booléen
-							</label>
-							</div>
-						</div>			
 						<div class="row mb-3">
-	                   		<div class="col-lg-2">
-	                    		<label for="value" class="col-lg-2 form-label" id="suneditor">Valeur</label>
-	                    	</div>
+							<label for="type" class="col-lg-2 form-label">Type</label>
+							<div class="col-lg-10">
+								<label class="radio-inline">
+									<input type="radio" name="type" id="typeText" value="TEXT" th:checked="${checked=='TEXT'}"
+										disabled="disabled" /> Texte
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="type" id="typeHtml" value="HTML" th:checked="${checked=='HTML'}"
+										disabled="disabled" /> Html
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="type" id="typeBoolean" value="BOOLEAN" th:checked="${checked=='BOOLEAN'}"
+										disabled="disabled" /> Booléen
+								</label>
+							</div>
+						</div>
+						<div class="row mb-3">
+						    <div class="col-lg-2">
+						        <label for="valeur" class="col-lg-2 form-label">Valeur</label>
+						    </div>
+							<div class="col-lg-10">
+						    	<div th:replace="admin/appliConfig/appliConfigValueField :: valueField(${appliConfig.type}, ${appliConfig.value})"></div>
+							</div>
 						</div>
 						<div class="row mb-3">
 	                    		<label for="description" class="col-lg-2 form-label">Description</label>
