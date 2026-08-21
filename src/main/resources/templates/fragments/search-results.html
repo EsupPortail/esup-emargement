@@ -42,6 +42,8 @@
 					<span th:text="${sessionEpreuve.nomSessionEpreuve}"></span>
 					<span class="fw-bold ms-2">Site : </span>
 					<span th:text="${sessionEpreuve.campus.site}"></span>
+					<span th:if="${isAdeVetDisplayed}" class="fw-bold ms-2">Version : </span>
+					<span th:if="${isAdeVetDisplayed}" th:text="${sessionEpreuve.adeVET ?: 'aucun'}"></span>
 					<span class="fw-bold ms-2">Date : </span>
 					<span th:text="${#dates.format(sessionEpreuve.dateExamen,'dd-MM-yyyy')}"></span>
 				</div>

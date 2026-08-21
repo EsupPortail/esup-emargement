@@ -17,6 +17,8 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
@@ -24,6 +26,7 @@ import org.esupportail.emargement.repositories.custom.SessionEpreuveRepositoryCu
 import org.esupportail.emargement.repositories.custom.TagCheckRepositoryCustom;
 import org.esupportail.emargement.repositories.custom.TagCheckerRepositoryCustom;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
+import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.LdapGroupService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -63,6 +66,9 @@ public class SearchController {
 	
 	@Autowired
 	GroupeRepository groupeRepository;
+
+	@Autowired
+	ContextRepository contextRepository;
 	
 	@Resource
 	UserAppService userAppService;
@@ -78,9 +84,12 @@ public class SearchController {
 	
 	@Resource
 	LdapService ldapService;
+
+	@Resource
+	AppliConfigService appliConfigService;
 	
     @GetMapping("/supervisor/search/{type}")
-    public String searchUsers(@PathVariable String type, 
+    public String searchUsers(@PathVariable String type, @PathVariable String emargementContext,
     		@RequestParam String searchString, @RequestParam(required = false) Long seId, Model model) throws InvalidNameException {
         if (searchString.length() > 3) {
         	if("userApp".equals(type)) {
@@ -91,8 +100,11 @@ public class SearchController {
         		List<Location> locations= locationRepositoryCustom.findAll(searchString);
         		model.addAttribute("locations", locations);
         	}else if("sessionEpreuve".equals(type)) {
-        		List<SessionEpreuve> sessionEpreuves= sessionEpreuveRepositoryCustom.findAll(searchString);
+				Context context = contextRepository.findByKey(emargementContext);
+				boolean isAdeVetDisplayed = appliConfigService.isAdeVetDisplayed(context);
+        		List<SessionEpreuve> sessionEpreuves= sessionEpreuveRepositoryCustom.findAll(searchString,isAdeVetDisplayed);
         		model.addAttribute("sessionEpreuves", sessionEpreuves);
+				model.addAttribute("isAdeVetDisplayed", isAdeVetDisplayed);
         	}else if("individuTagCheck".equals(type)) {
         		List<SearchBean> searchBeans = new ArrayList<>();
             	List<TagCheck>  tagChecksList = tagCheckRepositoryCustom.findAll(searchString, null);

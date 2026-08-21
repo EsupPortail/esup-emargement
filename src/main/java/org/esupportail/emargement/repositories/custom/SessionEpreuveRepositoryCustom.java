@@ -32,7 +32,7 @@ public class SessionEpreuveRepositoryCustom{
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	public List<SessionEpreuve> findAll(String searchString){
+	public List<SessionEpreuve> findAll(String searchString, boolean isAdeVetDisplayed){
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SessionEpreuve> query = criteriaBuilder.createQuery(SessionEpreuve.class);
         Root<SessionEpreuve> c = query.from(SessionEpreuve.class);
@@ -41,6 +41,9 @@ public class SessionEpreuveRepositoryCustom{
         if(searchString!=null) {
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(c.get("nomSessionEpreuve")),'%' + searchString.toLowerCase()  + '%'));
         	orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(u.get("site")),'%' + searchString.toLowerCase()  + '%'));
+			if(isAdeVetDisplayed) {
+				orPredicates.add(criteriaBuilder.like(criteriaBuilder.lower(c.get("adeVET")),'%' + searchString.toLowerCase()  + '%'));
+			}
         }
         query.where(criteriaBuilder.or(orPredicates.toArray(new Predicate[orPredicates.size()])));
         query.orderBy(criteriaBuilder.desc(c.get("dateExamen")));
