@@ -323,6 +323,9 @@ dl dd:after {
 #importUsersLdapform .dropdown{
 	display: none;
 }
+#formSearch .searchBox {
+    min-width: 260px;
+}
 .sticky-md-top{
 	top: 140px;
 	z-index: 999;

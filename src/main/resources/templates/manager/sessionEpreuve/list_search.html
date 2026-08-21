@@ -15,7 +15,7 @@
 					<input name="searchString" class="form-control searchBox" pattern="[0-9.]+"
 						th:hx-get="@{|/${eContext}/supervisor/search/sessionEpreuve|}" hx-trigger="keyup changed"
 						hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off"
-						placeholder="Recherche sur  nom, site">
+						th:placeholder="${isAdeVetDisplayed ? 'Recherche sur Nom, Version, Site' : 'Recherche sur Nom, Site'}" />
 					<div id="searchResults"></div>
 					<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 				</div>
