@@ -179,7 +179,8 @@ public class SessionEpreuveController {
 		SessionEpreuveResult  result  = sessionEpreuveService.getSessionsWithPreferences(auth.getName(),
 				emargementContext, sessionSearch, multiSearch, searchString, dateSessions, view, pageable, userApp,
 				false);
-
+			
+		model.addAttribute("isAdeVetDisplayed", appliConfigService.isAdeVetDisplayed(ctx));
 	    model.addAttribute("sessionEpreuvePage", result.getPage());
 	    model.addAttribute("sessionSearch", sessionSearch);
 	    model.addAttribute("dateSessions", result.getDateSessions());
