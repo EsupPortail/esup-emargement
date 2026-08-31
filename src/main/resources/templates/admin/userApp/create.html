@@ -4,58 +4,62 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="createUserApp">
-           	<div class="card">
-		    	<div class="card-header"><h2>Ajouter un agent</h2></div>
-		    	<div  class="alert alert-danger" th:if="${error}">L'agent avec l'eppn <strong><span th:text="${eppn}"></span></strong> existe déjà!!</div>
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/admin/userApp/create(ctx=${eContext})}" th:object="${userApp}" method="post">
-	                    <div class="row mb-3">
-	                    	<label for="eppn" class="col-lg-2 form-label">Eppn</label>
-	                    	<div class="col-lg-10">
-								<input type="hidden" th:id="eppn" th:name="eppn"/>
-								<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" type="email"
-									hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
-									autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-								<div id="searchResults"></div>
-								<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-							</div>
+		<div class="container-fluid px-3 px-md-4 my-2" id="createUserApp">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Ajouter un agent</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/admin/userApp(ctx=${eContext})}" class="btn btn-info"
+						title="Agents"><i class="fa fa-home fa-lg"></i></a>
+				</div>				
+			</div>			
+		    <div  class="alert alert-danger" th:if="${error}">L'agent avec l'eppn <strong><span th:text="${eppn}"></span></strong> existe déjà!!</div>
+			<form action="#" th:action="@{/{ctx}/admin/userApp/create(ctx=${eContext})}" th:object="${userApp}" method="post">
+				<div class="row mb-3">
+					<label for="eppn" class="col-lg-2 form-label">Eppn</label>
+					<div class="col-lg-10">
+						<input type="hidden" th:id="eppn" th:name="eppn" />
+						<input name="searchString" class="form-control searchBox"
+							th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" type="email" hx-trigger="keyup changed"
+							hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off"
+							placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+						<div id="searchResults"></div>
+						<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+					</div>
+				</div>
+				<div class="row mb-3" th:if="${#ctx.containsVariable('ldapUser')}">
+					<label for="userRole" class="col-lg-2 form-label">Mon identifiant</label>
+					<div class="col-lg-10">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" name="myEppn" th:value="${ldapUser.eppn}" />
+							<label class="form-check-label" th:text="${ldapUser.eppn}"></label>
 						</div>
-						<div class="row mb-3" th:if="${#ctx.containsVariable('ldapUser')}">
-							<label for="userRole" class="col-lg-2 form-label">Mon identifiant</label>
-							<div class="col-lg-10">
-								<div class="form-check">
-								      <input class="form-check-input" type="checkbox"  name="myEppn" th:value="${ldapUser.eppn}" />
-								      <label class="form-check-label"  th:text="${ldapUser.eppn}"></label>
-								</div>
-							</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<label for="userRole" class="col-lg-2 form-label">Spécialité</label>
+					<div class="col-lg-10">
+						<div class="col-lg-10">
+							<input type="text" th:field="*{speciality}" class="form-control">
 						</div>
-						<div class="row mb-3">
-							<label for="userRole" class="col-lg-2 form-label">Spécialité</label>
-							<div class="col-lg-10">
-								<div class="col-lg-10">
-									<input type="text" th:field="*{speciality}" class="form-control">
-								</div>
-							</div>
-						</div>
-						<div class="row mb-3">
-	                    	<label for="userRole" class="col-lg-2 form-label">Rôle</label>
-	                    	<div class="col-lg-10">
-								 <select th:field="*{userRole}" class="form-control" required="required">
-								<option th:each="role : ${allRoles}"
-									th:value="${role}" th:text="#{${'role.' + #strings.toLowerCase(role)}(${#strings.toUpperCase(surveillantTerme)})}"></option>
-							</select>
-							</div>
-						</div>
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-	                            </div>
-	                        </div>                  
-	                    </form>
-	                </div>
-                </div>
-           	</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<label for="userRole" class="col-lg-2 form-label">Rôle</label>
+					<div class="col-lg-10">
+						<select th:field="*{userRole}" class="form-control" required="required">
+							<option th:each="role : ${allRoles}" th:value="${role}"
+								th:text="#{${'role.' + #strings.toLowerCase(role)}(${#strings.toUpperCase(surveillantTerme)})}">
+							</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6 mt-5">
+						<input type="submit" class="btn btn-success" value="Valider">
+					</div>
+				</div>
+			</form>
+		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
 </html>

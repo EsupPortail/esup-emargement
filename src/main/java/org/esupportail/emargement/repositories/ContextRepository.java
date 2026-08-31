@@ -27,5 +27,7 @@ public interface ContextRepository extends JpaRepository<Context, Long>{
 	
 	List<Context> findByIsActifTrueOrderByKey();
 	
+	List<Context> findByOrderByKey();
+	
 	Context findByKey(String key);
 }

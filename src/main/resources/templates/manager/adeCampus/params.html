@@ -4,19 +4,21 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid px-3 px-md-4 my-3" >
+		<div class="container-fluid px-3 px-md-4 my-2">
 			<form th:action="@{/{ctx}/manager/adeCampus/saveParams(ctx=${eContext})}" method="post" onsubmit="return confirmSubmission()">
 				<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-			    	<h3>Ade Campus<small class="h5"> - paramètres</small><br />
-					<!-- Nouveau bloc juste sous le h3 -->
-			       <small class="fw-bold text-danger h6" th:text="${projects.get(idProject)}">
-			           <br />
-			           <th:block th:if="${prefComp != null}">
-			               <small th:text="${'Modification :  ' + prefComp.userApp.eppn}"></small>
-			               <small th:if="${prefComp.dateModification != null}" th:text="${' le ' + prefComp.dateModification}"></small>
-			           </th:block>
-			       </small>
-				   </h3>
+					<div>
+				    	<h2 class="fs-3 mb-0">Ade Campus<small class="h5"> - paramètres</small><b2>
+						<!-- Nouveau bloc juste sous le h3 -->
+						<br />
+				       <small class="fw-bold text-danger h6" th:text="${projects.get(idProject)}">
+				           <br />
+				           <th:block th:if="${prefComp != null}">
+				               <small th:text="${'Modification :  ' + prefComp.userApp.eppn}"></small>
+				               <small th:if="${prefComp.dateModification != null}" th:text="${' le ' + prefComp.dateModification}"></small>
+				           </th:block>
+				       </small>
+				   </div>
 			       <th:block th:if="${isAdeConfigOk}" >
 			           <p class="fw-bold mt-2" th:text="${projects.get(idProject)}"></p>
 			           <input type="hidden" name="idProject" th:value="${idProject}" />

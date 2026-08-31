@@ -4,102 +4,101 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="userAppPage">
-           	<div class="card">
-	    		<div class="card-header">
-		    		<div class="row">
-			    		<div class="col">
-					    	<h2>Agents</h2>
-					    </div>
-					    <div class="col">
-						    <div class="row float-end">
-						    	<div class="col-auto">
-							    	<button class="btn btn-info ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
-							    	<a th:if="${isAdeCampusEnabled}" href="#"  data-bs-toggle="modal" data-bs-target="#adeModalAgents" class="btn btn-primary ms-2" title="Ajout depuis ADE">ADE</a>
-							    	<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ms-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
-							    	<a th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}" class="btn btn-primary float-right me-2" title="Importer des inscrits à partir du LDAP ou d'un CSV"><i class="fas fa-user-plus"></i></a>
-						    	</div>
-						    </div>
-					    </div>
-	    			</div>
-	    		 </div>
-	    		<div class="alert alert-info" th:if="${#ctx.containsVariable('message')}" th:text="${message}"></div>
-
-  				<div class="card-body">
-		    		<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-					   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
-					   		<div class="row">
-			    				<div class="col">
-									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/userApp|}"
-										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
-										autocomplete="off" placeholder="Recherche">
-									<div id="searchResults"></div>
-									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-								</div>
-								<div class="col">
-									<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
-								</div>
-							</div>
-						</form>
-		    		</div>
-		    		<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
-						<table class="table table-hover table-striped table-bordered">
-							<thead class="sticky-top">
-								<tr>
-									<th scope="col"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
-									<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
-									<th scope="col"><a class="sorted" sd:pagination-sort="speciality">Spécialité</a></th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
-
-									<th scope="col" class="center">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr th:each="userApp : ${userAppPage}" th:id="${userApp.id}" th:class="${#strings.equals(itsme,userApp.eppn)} ? table-info : ''">
-									<td th:text="${userApp.eppn}">Eppn</td>
-									<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
-									<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
-									<td th:text="#{${'role.' + #strings.toLowerCase(userApp.userRole)}(${#strings.toUpperCase(surveillantTerme)})}">Rôle</td>
-									<td th:text="${userApp.speciality}"></td>									
-									<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
-									<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
-									<td class="center"><a th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-										<a class="ms-2" th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">
-											<i class="fa fa-pen text-warning"></i>
-										</a>
-										<a class="ms-2" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${userApp.id }">
-											<i class="fa fa-trash text-danger"></i></a>
-											<i th:if="${#strings.equals(itsme,userApp.eppn)  and isAdminContext}" class="fa fa-trash disabled ms-2"></i>
-										<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
-										    <div class="modal-dialog">
-										        <div class="modal-content">
-										        	<form id="command" th:action="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
-											        	<input type="hidden" name="_method" value="delete" />
-											            <div class="modal-header">
-											                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-											            </div>
-											            <div class="modal-body">
-											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
-											                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
-											            </div>
-											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
-											            </div>
-										            </form>
-										        </div>
-										    </div>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-						<nav th:replace="fragments/pagination :: pagination"></nav>
-					</div>
+		<div class="container-fluid px-3 px-md-4 my-2" id="userAppPage">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Agents</h2>
+				<div class="d-flex align-items-center gap-2">
+					<button class="btn btn-info ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un agent"><i class="fas fa-search"></i></button>
+					<a th:if="${isAdeCampusEnabled}" href="#"  data-bs-toggle="modal" data-bs-target="#adeModalAgents" class="btn btn-primary ms-2" title="Ajout depuis ADE">ADE</a>
+					<a th:href="@{/{ctx}/admin/userApp?form(ctx=${eContext})}" class="btn btn-primary ms-2" title="Ajouter un agent"><i class="fa fa-plus fa-lg"></i></a>
+					<a th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}" class="btn btn-primary float-right me-2" title="Importer des inscrits à partir du LDAP ou d'un CSV"><i class="fas fa-user-plus"></i></a>
 				</div>
+			</div>
+	    	<div class="alert alert-info" th:if="${#ctx.containsVariable('message')}" th:text="${message}"></div>
+			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+			   	<form action="#" th:action="@{|/${eContext}/admin/userApp|}" id="formSearch" class="form-inline alert alert-dark p-1 " >
+			   		<div class="row">
+	    				<div class="col">
+							<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/userApp|}"
+								hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+								autocomplete="off" placeholder="Recherche">
+							<div id="searchResults"></div>
+							<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+						</div>
+						<div class="col">
+							<a title="Annuler recherche" th:href="@{|/${eContext}/admin/userApp|}" class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="alert alert-danger" th:if="${error}">L'agent <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans l'application.Veuillez supprimer les dépendances avant la suppression.</div>
+				<table class="table table-hover table-striped table-bordered">
+					<thead class="sticky-top">
+						<tr>
+							<th scope="col"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+							<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</th>
+							<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</th>
+							<th scope="col"><a class="sorted" sd:pagination-sort="userRole">Rôle</a></th>
+							<th scope="col"><a class="sorted" sd:pagination-sort="speciality">Spécialité</a></th>
+							<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="dateCreation">Date de création</a></th>
+							<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="lastConnexion">Dernière connexion</a></th>
+	
+							<th scope="col" class="center">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="userApp : ${userAppPage}" th:id="${userApp.id}" th:class="${#strings.equals(itsme,userApp.eppn)} ? table-info : ''">
+							<td th:text="${userApp.eppn}">Eppn</td>
+							<td th:text="${userApp.nom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Nom</td>
+							<td th:text="${userApp.prenom}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Prénom</td>
+							<td th:text="#{${'role.' + #strings.toLowerCase(userApp.userRole)}(${#strings.toUpperCase(surveillantTerme)})}">Rôle</td>
+							<td th:text="${userApp.speciality}"></td>									
+							<td th:text="${#dates.format(userApp.dateCreation, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Date de création</td>
+							<td th:text="${#dates.format(userApp.lastConnexion, 'dd-MM-yyyy HH:mm')}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Dernière connexion</td>
+							<td class="center">
+								<div class="dropdown">
+									<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+										<i class="fa-solid fa-ellipsis-vertical"></i>
+									</button>
+									<ul class="dropdown-menu dropdown-menu-end">
+										<li><a class="dropdown-item" th:href="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}">Voir</a>
+										</li>
+										<th:block th:if="${isAdminContext}">
+											<li><a class="dropdown-item" th:href="@{/{ctx}/admin/userApp/{id}?form(id=${userApp.id},ctx=${eContext})}">Modifier</a>
+											</li>
+											<li>
+												<a class="dropdown-item" href="#" th:if="${!#strings.equals(itsme,userApp.eppn) and isAdminContext}"  data-bs-toggle="modal" data-bs-target="#modal-warning" 
+																					th:attr="data-bs-target='#modal-warning'+${userApp.id }">									
+												Supprimer</a>
+											</li>
+										</th:block>
+									</ul>
+								</div>				
+								<div class="modal modal-warning fade in" th:id="modal-warning+${userApp.id}" >
+								    <div class="modal-dialog">
+								        <div class="modal-content">
+								        	<form id="command" th:action="@{/{ctx}/admin/userApp/{id}(id=${userApp.id},ctx=${eContext})}" method="POST">
+									        	<input type="hidden" name="_method" value="delete" />
+									            <div class="modal-header">
+									                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+									            </div>
+									            <div class="modal-body">
+									                <div class="alert alert-danger text-center">Confirmez-vous la suppression de l'agent : <br />
+									                	 <span th:text="${userApp.eppn}" class="font-weight-bold"></span> ?</div>
+									            </div>
+									            <div class="modal-footer">
+									                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+									                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+									            </div>
+								            </form>
+								        </div>
+								    </div>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<nav th:replace="fragments/pagination :: pagination"></nav>
 			</div>
 			<div class="modal fade" id="adeModalAgents" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				<div class="modal-dialog">

@@ -4,155 +4,271 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" th:with="size=${#lists.size(form.list)}">
-			<div class="alert alert-danger mt-2" th:if="${form.list.isEmpty()}">Aucun lieu de session n'existe pour la répartition des inscrits!!</div>
-         	<div class="card">
-	    		<div class="card-header">
-	    			<div class="row">
-		    			<div class="col-lg-2">
-	    					<h2>Répartition</h2>
-							<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
-							#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
-							<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
-						</div>
-	    				<div class="col-lg-10">
-		    				<div class="row">
-		    					<div class="col-lg-12">	
-									<div th:if="${not #lists.isEmpty(form.list)}">
-										<div class="row mb-2">
-											<div class="alert alert-info row" th:classappend="${size > 1} ? 'col-lg-5 ' : 'col-lg-10'">
-												<th:block th:if="${capaciteTotaleTiersTemps >0}">
-													<div class="col-lg-6 text-center bg-light text-dark">
-														<p><b>Temps non aménagé</b> <br />
-															<span th:text="${'A répartir: ' +  countTagChecksNotTiersTemps}"></span>
-															<span th:text="${'Utilisé : ' + countTagChecksRepartisNotTiersTemps + ' / ' + capaciteTotaleNotTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-6 text-center  bg-light text-dark">
-														<p><b>Temps aménagé</b><br />
-															<span  th:text="${'A répartir: ' +  countTagChecksTiersTemps}"></span>
-															<span th:text="${'Utilisé : ' + countTagChecksRepartisTiersTemps + ' / ' + capaciteTotaleTiersTemps}"></span>
-														</p>
-													</div>
-												</th:block>
-												<th:block th:unless="${capaciteTotaleTiersTemps >0}">
-													<div class="text-center  bg-light text-dark">
-														<p><b>Répartition</b> <br />
-														<span th:text="${'A répartir: ' +  totalArepartirTagChecks}"></span>
-														<span th:text="${'Utilisé : ' + totalRepartisTagChecks + ' / ' + capaciteTotaleNotTiersTemps}"></span>
-													</div>
-												</th:block>
-												<div class="col-lg-12  bg-light text-center pb-2">
-													<div class="row">
-														<form th:action="@{/{ctx}/manager/sessionEpreuve/executeRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}">
-															<button type="submit" class=" btn btn-warning">Répartir</button>
-															<a th:href="@{/{ctx}/manager/sessionEpreuve/deleteRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" class=" btn btn-primary ms-2">Réinitialiser</a>
-															<input type="hidden" id="alphaOrderRepartition" name="alphaOrder" value="alpha" />
-														</form>
-													</div>
-												</div>
-											</div>
-											<div class="col-lg-2 alert alert-info row">
-												<span>TRI : </span>
-												<div class="form-check form-check-inline">
-												  <input class="form-check-input" type="radio" name="tagCheckOrder" id="inlineRadio2" value="alpha"
-												  	th:checked="${tagCheckOrderValue eq 'alpha' or tagCheckOrderValue eq null}">
-												  <label class="form-check-label" for="inlineRadio2">Alphabétique</label>
-												</div>
-												<div class="form-check form-check-inline ">
-												  <input class="form-check-input" type="radio" name="tagCheckOrder" id="inlineRadio1" value="random"
-												  	th:checked="${tagCheckOrderValue eq 'random'}">
-												  <label class="form-check-label" for="inlineRadio1">Aléatoire</label>
-												</div>
-												<div class="form-check form-check-inline">
-												  <input class="form-check-input" type="radio" name="tagCheckOrder" id="inlineRadio3" value="numEtu"
-												  	th:checked="${tagCheckOrderValue eq 'numEtu'}">
-												  <label class="form-check-label" for="inlineRadio3">Numéro étudiant</label>
-												</div>												
-												 <!--button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-												    <span class="h5 fw-bold">PLACEMENT</span>
-												 </button-->
-											</div>
-											<th:block th:if="${capaciteTotaleTiersTemps >0}">
-												<div class="col-lg-5 alert alert-info row" th:if="${size > 1}">
-													<div class="col-lg-6 text-center bg-light text-dark" id="affinageNotTiersTemps">
-														<p><b>Temps non aménagé</b> <br />
-															<span id="tempCapaciteNotTiers">0</span> / <span id="currentCapaciteNotTiers" th:text="${countTagChecksRepartisNotTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-6 text-center  bg-light text-dark" id="affinageTiersTemps">
-														<p><b>Temps aménagé</b> <br />
-															<span id="tempCapaciteTiers">0</span> / <span id="currentCapaciteTiers" th:text="${countTagChecksRepartisTiersTemps}"></span>
-														</p>
-													</div>
-													<div class="col-lg-12  bg-light text-center pb-2 pt-2">
-															<button class="btn btn-success" id="affinerButton" disabled="disabled">Modifier répartition</button>
-													</div>
-												</div>
-											</th:block>
-											<th:block th:unless="${capaciteTotaleTiersTemps >0}">
-												<div class="col-lg-5 alert alert-info row" th:if="${size > 1}">
-													<div class="text-center  bg-light text-dark" id="affinageTiersTemps">
-														<div><b>Répartition</b> <br />
-															<span id="tempCapaciteNotTiers">0</span> / <span id="currentCapaciteNotTiers" th:text="${totalRepartisTagChecks}"></span>
-														</div>
-														<div class="col-lg-12  bg-light text-center pb-2 pt-2">
-															<button class="btn btn-success" id="affinerButton" disabled="disabled">Modifier répartition</button>
-														</div>
-													</div>
-											</th:block>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<p class="font-weight-bold text-danger" th:text="${isOver} ? 'Le nombre d\'étudiants inscrits est supérieur à la capacité d\'accueil globale.' : ''"></p>
-	    			</div>
-	    		</div>
-		    	<div class="card-body">
-	    			<form id="formAffinage" th:action="@{/{ctx}/manager/sessionEpreuve/affinerRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:object="${form}" method="post">
-						<input type="hidden" id="alphaOrderAffinage" name="alphaOrder" th:value="${tagCheckOrderValue}" />
-						<table class="table table-hover table-striped table-bordered table-sm align-middle">
-							<thead class="sticky-top">
-								<tr>
-									<th scope="col">Lieu</th>
-									<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Priorité</th>
-									<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Réservé Temps aménagé</th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Capacité</th>
-									<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"> Candidats</th>
-									<th scope="col">Taux de remplissage</th>
-									<th scope="col" class="center" th:if="${size > 1}">Modification</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr th:each="repartition, itemStat: *{list}">
-									<td th:text="${repartition.location.nom}"></td>
-									<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${repartition.priorite}"></td>
-									<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i  th:id="${'tempsAmenage_' +repartition.id}" th:title="${(repartition.isTiersTempsOnly)? 'Oui' : 'Non'}" 
-										th:class="${repartition.isTiersTempsOnly} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-									<td th:text="${repartition.capacite}" th:id="${'capacite_' +repartition.id}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-									<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a th:id="${'candidats_' +repartition.id}" th:text="${repartition.nbInscritsSessionLocation}" th:href="@{/{ctx}/manager/sessionEpreuve/tagCheckList/{id}(id=${repartition.id},ctx=${eContext})}"></a></td>
-									<td th:text="${repartition.tauxRemplissage + ' %'}" th:id="${'txRemplissage_' +repartition.id}"></td>
-									<td class="center" th:if="${size > 1}">
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].isTiersTempsOnly}" />
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].priorite}" />
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].capacite}" />
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].location}" />
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].sessionEpreuve}" />
-										<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].id}" />
-										<span class="row">
-											<span class="col-lg-10">
-												<input type="number" class="affinage" th:value="${repartition.nbInscritsSessionLocation}" th:field="*{list[__${itemStat.index}__].nbInscritsSessionLocation}"
-													th:id="${'spinner_'+ repartition.isTiersTempsOnly + '_' + repartition.id}"  min="0" th:attr="max=${repartition.capacite}"/>
-											</span>
-											<span  class="col-lg-2" th:id="${'newPercent_'+ repartition.id}"   id="newPercent" th:text="${repartition.tauxRemplissage + ' %'}" ></span>
-										</span>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</form>	
+		<div class="container-fluid px-3 px-md-4 my-2" th:with="size=${#lists.size(form.list)}">
+			<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+				<div>
+					<!-- Partie gauche -->
+					<h2 class="fs-3 mb-0">Répartition</h2>
+					<small class="text-muted fs-5">
+						<span th:text="${sessionEpreuve.nomSessionEpreuve + ' le '
+						                    + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy')
+						                    + #dates.format(sessionEpreuve.heureEpreuve, ' HH:mm')
+						                    + #dates.format(sessionEpreuve.finEpreuve, ' - HH:mm')
+						                    + ' à ' + sessionEpreuve.campus.site}">
+						</span>
+						<span th:if="${sessionEpreuve.dateFin != null}"
+							th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}">
+						</span>
+					</small>
 				</div>
+				<!-- Partie droite -->
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-info" title="Sessions">
+						<i class="fa fa-home fa-lg"></i>
+					</a>
+				</div>
+			</div>
+			<div class="alert alert-danger mt-2" th:if="${form.list.isEmpty()}">Aucun lieu de session n'existe pour la répartition des inscrits!!</div>
+			<th:block th:if="${not #lists.isEmpty(form.list)}">
+			    <div class="row g-3 mb-3">
+			        <div th:classappend="${size > 1} ? 'col-lg-5' : 'col-lg-10'">
+			            <div class="card h-100 border-info">
+			                <div class="card-header bg-info text-white fw-bold">
+			                    Répartition
+			                </div>
+			                <div class="card-body p-0">
+			                    <th:block th:if="${capaciteTotaleTiersTemps > 0}">
+			                        <div class="row g-0">
+			                            <div class="col-md-6 text-center p-3 border-end">
+			                                <div class="fw-bold mb-2">
+			                                    Temps non aménagé
+			                                </div>
+			                                <div class="small text-muted">
+			                                    A répartir :
+			                                    <span th:text="${countTagChecksNotTiersTemps}"></span>
+			                                </div>
+			                                <div class="small text-muted">
+			                                    Utilisé :
+			                                    <span th:text="${countTagChecksRepartisNotTiersTemps
+			                                        + ' / ' + capaciteTotaleNotTiersTemps}">
+			                                    </span>
+			                                </div>
+			                            </div>
+			                            <div class="col-md-6 text-center p-3">
+			                                <div class="fw-bold mb-2">
+			                                    Temps aménagé
+			                                </div>
+			                                <div class="small text-muted">
+			                                    A répartir :
+			                                    <span th:text="${countTagChecksTiersTemps}"></span>
+			                                </div>
+			                                <div class="small text-muted">
+			                                    Utilisé :
+			                                    <span th:text="${countTagChecksRepartisTiersTemps
+			                                        + ' / ' + capaciteTotaleTiersTemps}">
+			                                    </span>
+			                                </div>
+			                            </div>
+			                        </div>
+			                    </th:block>
+			                    <th:block th:unless="${capaciteTotaleTiersTemps > 0}">
+			                        <div class="text-center p-3">
+			                            <div class="fw-bold mb-2">
+			                                Répartition
+			                            </div>
+			                            <div class="small text-muted">
+			                                A répartir :
+			                                <span th:text="${totalArepartirTagChecks}"></span>
+			                            </div>
+			                            <div class="small text-muted">
+			                                Utilisé :
+			                                <span th:text="${totalRepartisTagChecks
+			                                    + ' / ' + capaciteTotaleNotTiersTemps}">
+			                                </span>
+			                            </div>
+			                        </div>
+			                    </th:block>
+			                </div>
+			                <div class="card-footer text-center">
+			                    <form th:action="@{/{ctx}/manager/sessionEpreuve/executeRepartition/{id}
+			                        (id=${sessionEpreuve.id},ctx=${eContext})}"
+			                          class="d-inline">
+			                        <button type="submit" class="btn btn-warning">
+			                            Répartir
+			                        </button>
+			                        <a th:href="@{/{ctx}/manager/sessionEpreuve/deleteRepartition/{id}
+			                            (id=${sessionEpreuve.id},ctx=${eContext})}"
+			                           class="btn btn-primary ms-2">
+			                            Réinitialiser
+			                        </a>
+			                        <input type="hidden"
+			                               id="alphaOrderRepartition"
+			                               name="alphaOrder"
+			                               value="alpha" />
+			                    </form>
+			                </div>
+			            </div>
+			        </div>
+			        <div class="col-lg-2">
+			            <div class="card h-100 border-info">
+			                <div class="card-header bg-info text-white fw-bold">
+			                    Tri
+			                </div>
+			                <div class="card-body">
+			                    <div class="form-check mb-2">
+			                        <input class="form-check-input"
+			                               type="radio"
+			                               name="tagCheckOrder"
+			                               id="inlineRadio2"
+			                               value="alpha"
+			                               th:checked="${tagCheckOrderValue eq 'alpha'
+			                                   or tagCheckOrderValue eq null}">
+
+			                        <label class="form-check-label" for="inlineRadio2">
+			                            Alphabétique
+			                        </label>
+			                    </div>
+			                    <div class="form-check mb-2">
+			                        <input class="form-check-input"
+			                               type="radio"
+			                               name="tagCheckOrder"
+			                               id="inlineRadio1"
+			                               value="random"
+			                               th:checked="${tagCheckOrderValue eq 'random'}">
+
+			                        <label class="form-check-label" for="inlineRadio1">
+			                            Aléatoire
+			                        </label>
+			                    </div>
+			                    <div class="form-check">
+			                        <input class="form-check-input"
+			                               type="radio"
+			                               name="tagCheckOrder"
+			                               id="inlineRadio3"
+			                               value="numEtu"
+			                               th:checked="${tagCheckOrderValue eq 'numEtu'}">
+
+			                        <label class="form-check-label" for="inlineRadio3">
+			                            Numéro étudiant
+			                        </label>
+			                    </div>
+			                </div>
+			            </div>
+			        </div>
+			        <th:block th:if="${size > 1}">
+			            <th:block th:if="${capaciteTotaleTiersTemps > 0}">
+			                <div class="col-lg-5">
+			                    <div class="card h-100 border-info">
+			                        <div class="card-header bg-info text-white fw-bold">
+			                            Affinage de la répartition
+			                        </div>
+			                        <div class="card-body p-0">
+			                            <div class="row g-0">
+			                                <div class="col-md-6 text-center p-3 border-end">
+			                                    <div class="fw-bold mb-2">
+			                                        Temps non aménagé
+			                                    </div>
+			                                    <span id="tempCapaciteNotTiers">0</span>
+			                                    /
+			                                    <span id="currentCapaciteNotTiers"
+			                                          th:text="${countTagChecksRepartisNotTiersTemps}">
+			                                    </span>
+			                                </div>
+			                                <div class="col-md-6 text-center p-3">
+			                                    <div class="fw-bold mb-2">
+			                                        Temps aménagé
+			                                    </div>
+			                                    <span id="tempCapaciteTiers">0</span>
+			                                    /
+			                                    <span id="currentCapaciteTiers"
+			                                          th:text="${countTagChecksRepartisTiersTemps}">
+			                                    </span>
+			                                </div>
+			                            </div>
+			                        </div>
+			                        <div class="card-footer text-center">
+
+			                            <button class="btn btn-success"
+			                                    id="affinerButton"
+			                                    disabled="disabled">
+			                                Modifier répartition
+			                            </button>
+			                        </div>
+			                    </div>
+			                </div>
+			            </th:block>
+			            <th:block th:unless="${capaciteTotaleTiersTemps > 0}">
+			                <div class="col-lg-5">
+			                    <div class="card h-100 border-info">
+			                        <div class="card-header bg-info text-white fw-bold">
+			                            Affinage de la répartition
+			                        </div>
+			                        <div class="card-body text-center">
+			                            <div class="fw-bold mb-2">
+			                                Répartition
+			                            </div>
+			                            <span id="tempCapaciteNotTiers">0</span>
+			                            /
+			                            <span id="currentCapaciteNotTiers"
+			                                  th:text="${totalRepartisTagChecks}">
+			                            </span>
+			                        </div>
+			                        <div class="card-footer text-center">
+			                            <button class="btn btn-success"
+			                                    id="affinerButton"
+			                                    disabled="disabled">
+			                                Modifier répartition
+			                            </button>
+			                        </div>
+			                    </div>
+			                </div>
+			            </th:block>
+			        </th:block>
+			    </div>
+			</th:block>
+				<p class="font-weight-bold text-danger" th:text="${isOver} ? 'Le nombre d\'étudiants inscrits est supérieur à la capacité d\'accueil globale.' : ''"></p>
+    			<form id="formAffinage" th:action="@{/{ctx}/manager/sessionEpreuve/affinerRepartition/{id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:object="${form}" method="post">
+					<input type="hidden" id="alphaOrderAffinage" name="alphaOrder" th:value="${tagCheckOrderValue}" />
+					<table class="table table-hover table-striped table-bordered table-sm align-middle">
+						<thead class="sticky-top">
+							<tr>
+								<th scope="col">Lieu</th>
+								<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Priorité</th>
+								<th scope="col" class="center d-none d-lg-table-cell d-xl-table-cell">Réservé Temps aménagé</th>
+								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell">Capacité</th>
+								<th scope="col" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"> Candidats</th>
+								<th scope="col">Taux de remplissage</th>
+								<th scope="col" class="center" th:if="${size > 1}">Modification</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="repartition, itemStat: *{list}">
+								<td th:text="${repartition.location.nom}"></td>
+								<td class="d-none d-lg-table-cell d-xl-table-cell" th:text="${repartition.priorite}"></td>
+								<td class="text-center d-none d-lg-table-cell d-xl-table-cell"><i  th:id="${'tempsAmenage_' +repartition.id}" th:title="${(repartition.isTiersTempsOnly)? 'Oui' : 'Non'}" 
+									th:class="${repartition.isTiersTempsOnly} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
+								<td th:text="${repartition.capacite}" th:id="${'capacite_' +repartition.id}" class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td class="d-none d-md-table-cell d-lg-table-cell d-xl-table-cell"><a th:id="${'candidats_' +repartition.id}" th:text="${repartition.nbInscritsSessionLocation}" th:href="@{/{ctx}/manager/sessionEpreuve/tagCheckList/{id}(id=${repartition.id},ctx=${eContext})}"></a></td>
+								<td th:text="${repartition.tauxRemplissage + ' %'}" th:id="${'txRemplissage_' +repartition.id}"></td>
+								<td class="center" th:if="${size > 1}">
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].isTiersTempsOnly}" />
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].priorite}" />
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].capacite}" />
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].location}" />
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].sessionEpreuve}" />
+									<input class="form-control" type="hidden" th:field="*{list[__${itemStat.index}__].id}" />
+									<span class="row">
+										<span class="col-lg-10">
+											<input type="number" class="affinage" th:value="${repartition.nbInscritsSessionLocation}" th:field="*{list[__${itemStat.index}__].nbInscritsSessionLocation}"
+												th:id="${'spinner_'+ repartition.isTiersTempsOnly + '_' + repartition.id}"  min="0" th:attr="max=${repartition.capacite}"/>
+										</span>
+										<span  class="col-lg-2" th:id="${'newPercent_'+ repartition.id}"   id="newPercent" th:text="${repartition.tauxRemplissage + ' %'}" ></span>
+									</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>	
 			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

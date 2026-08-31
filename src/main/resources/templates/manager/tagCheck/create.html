@@ -4,152 +4,158 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="createTagCheckPage">
-           	<div class="card">
-           		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
-					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
-						vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
-				</div>
-		    	<div class="card-header" th:with="sessionEpreuve=${allSessionEpreuves[0]}"><h2>Ajouter un inscrit</h2>
-					<small class="text-muted h5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
+		<div class="container-fluid px-3 px-md-4 my-2" id="createTagCheckPage">
+			<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2" th:with="sessionEpreuve=${allSessionEpreuves[0]}">
+		        <div>
+		             <h2 class="fs-3 mb-1">
+		                Ajouter un inscrit
+		                <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span>
+		            </h2>
+					<small class="text-muted fs-5" th:text="${sessionEpreuve.nomSessionEpreuve + ' le ' + #dates.format(sessionEpreuve.dateExamen, 'dd-MM-yyyy') +
 					#dates.format(sessionEpreuve.heureEpreuve, ' HH:mm') +  #dates.format(sessionEpreuve.finEpreuve, '  - HH:mm') + ' à ' + sessionEpreuve.campus.site}"></small>
-					<span class="text-muted h5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
-				</div>
-  				<div class="card-body">
-					<ul class="nav nav-tabs" role="tablist" >
-					    <li class="nav-item"><a th:classappend="${type == 'interne'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=interne(ctx=${eContext},id=${id})}">INTERNE</a></li>
-					    <li class="nav-item"><a th:classappend="${type == 'externe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=externe(ctx=${eContext},id=${id})}">EXTERNE</a></li>
-					 </ul>	
-			  		<div th:if="${type == 'interne'}">
-	                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post" id="createTagCheckForm">
-	                    	<div class="row mb-3 mt-3">
-		                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
-		                    	<div class="col-lg-10">
-									<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
-										<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-											th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
-									</select>
-								</div>
-							</div>
-							<div class="row mb-3">              				
-		                    	<label for="sessionLocationExpected" class="col-lg-2 form-label">Lieu</label>
-		                    	<div class="col-lg-10">	
-									<select name="sessionLocationExpected"  id="sessionLocationExpected">
-										<option value ="">-----Aucun----</option>
-										<option th:each="sl : ${allSessionLocations}"
-											th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
-									</select>
-								</div>
-							</div>	
-		                    <div class="row mb-3">
-		                        <label for="eppn" class="col-lg-2 form-label">Eppn</label>
-			                    <div class="col-lg-10">
-									<input type="hidden" th:id="eppn" th:name="person.eppn"/>
-									<input id="searchString" name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
-										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
-										autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-									<div id="searchResults"></div>
-									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>			                    
-								</div>
-			                 </div>
-		                    <div class="row mb-3">
-			                    <label for="numIdentifiant" class="col-lg-2 form-label">N° identifiant</label>
-		                    	<div class="col-lg-10">
-									<input type ="number" th:id="numIdentifiant" th:name="person.numIdentifiant" class="form-control">
-								</div>
-							</div>
-							<div class="row mb-3">
-								<label for="numIdentifiant" class="col-lg-2 form-label">Temps aménagé</label>
-								<div class="col-lg-10">
-								    <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
-								    </div>
-							  	</div>
-							</div>
-							<div class="row mb-3">
-								<label for="checkLdap" class="col-lg-2 form-label">Vérification Ldap</label>
-								<div class="col-lg-10">
-								    <div class="form-check">
-								      <input class="form-check-input" type="checkbox" th:field="*{checkLdap}">
-								    </div>
-							  	</div>
-							</div>
-	                    	<div class="row mb-3">
-		                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Etape</label>
-		                    	<div class="col-lg-10">
-									<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
-										<option value ="">-----Aucune----</option>
-										<option th:each="code : ${codeEtapes}"
-											th:value="${code.key + ' - ' + code.value}" th:text="${code.key + ' - ' + code.value}"></option>
-									</select>
-								</div>
-							</div>						
-		                    <div class="row mb-3">
-		                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
-		                        <div class="col-lg-10">
-		                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
-		                        </div>
-		                    </div>	  
-	                        <div class="row">
-	                            <div class="col-md-6 mt-5">
-	                                <input type="submit" class="btn btn-success" value="Valider">
-	                            </div>
-	                        </div>                  
-	                    </form>
-                    </div>
-			  		<div th:if="${type == 'externe'}">
-	                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
-	                    	<div class="row mb-3 mt-3">
-		                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
-		                    	<div class="col-lg-10">
-									<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
-										<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-											th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
-									</select>
-								</div>
-							</div>
-							<div class="row mb-3">              				
-		                    	<label for="sessionLocationExpected2" class="col-lg-2 form-label">Lieu</label>
-		                    	<div class="col-lg-10">	
-									<select name="sessionLocationExpected"  id="sessionLocationExpected2">
-										<option value ="">-----Aucun----</option>
-										<option th:each="sl : ${allSessionLocations}"
-											th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
-									</select>
-								</div>
-							</div>	
-		                    <div class="row mb-3">
-			                    <label for="email" class="col-lg-2 form-label">Email</label>
-		                    	<div class="col-lg-10">
-									<input type ="email" th:id="email" th:name="guest.email" class="form-control" required="required">
-								</div>
-							</div>
-							<div class="row mb-3">
-			                    <label for="nom" class="col-lg-2 form-label">Nom</label>
-		                    	<div class="col-lg-10">
-									<input type ="text" th:id="nom" th:name="guest.nom" class="form-control" required="required">
-								</div>
-							</div>
-							<div class="row mb-3">
-			                    <label for="prenom" class="col-lg-2 form-label">Prénom</label>
-		                    	<div class="col-lg-10">
-									<input type ="text" th:id="prenom" th:name="guest.prenom" class="form-control" required="required">
-								</div>
-							</div>						
-		                    <div class="row mb-3">
-		                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
-		                        <div class="col-lg-10">
-		                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
-		                        </div>
-		                    </div>	  
-	                        <div class="row">
-	                            <div class="col-md-6 mt-5">
-	                                <input type="submit" class="btn btn-success" value="Valider">
-	                            </div>
-	                        </div>                  
-	                    </form>
-                    </div>	                    
+					<span class="text-muted fs-5" th:if="${sessionEpreuve.dateFin != null}" th:text="${' -- Fin le ' + #dates.format(sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span><br />
                 </div>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(ctx=${eContext}, id=${sessionEpreuve.id})}" class="btn btn-info"
+						title="Inscrits"><i class="fa fa-home fa-lg"></i></a>
+				</div>				
+			</div>
+			<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
+				La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
+					vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
+			</div>
+			<ul class="nav nav-tabs" role="tablist" >
+			    <li class="nav-item"><a th:classappend="${type == 'interne'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=interne(ctx=${eContext},id=${id})}">INTERNE</a></li>
+			    <li class="nav-item"><a th:classappend="${type == 'externe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/tagCheck?form=&sessionEpreuve={id}&type=externe(ctx=${eContext},id=${id})}">EXTERNE</a></li>
+			 </ul>	
+	  		<div th:if="${type == 'interne'}">
+                <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post" id="createTagCheckForm">
+                	<div class="row mb-3 mt-3">
+                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
+                    	<div class="col-lg-10">
+							<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
+								<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+									th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+							</select>
+						</div>
+					</div>
+					<div class="row mb-3">              				
+                    	<label for="sessionLocationExpected" class="col-lg-2 form-label">Lieu</label>
+                    	<div class="col-lg-10">	
+							<select name="sessionLocationExpected"  id="sessionLocationExpected">
+								<option value ="">-----Aucun----</option>
+								<option th:each="sl : ${allSessionLocations}"
+									th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
+							</select>
+						</div>
+					</div>	
+                    <div class="row mb-3">
+                        <label for="eppn" class="col-lg-2 form-label">Eppn</label>
+	                    <div class="col-lg-10">
+							<input type="hidden" th:id="eppn" th:name="person.eppn"/>
+							<input id="searchString" name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"  type="email"
+								hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+								autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+							<div id="searchResults"></div>
+							<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>			                    
+						</div>
+	                 </div>
+                    <div class="row mb-3">
+	                    <label for="numIdentifiant" class="col-lg-2 form-label">N° identifiant</label>
+                    	<div class="col-lg-10">
+							<input type ="number" th:id="numIdentifiant" th:name="person.numIdentifiant" class="form-control">
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="numIdentifiant" class="col-lg-2 form-label">Temps aménagé</label>
+						<div class="col-lg-10">
+						    <div class="form-check">
+						      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
+						    </div>
+					  	</div>
+					</div>
+					<div class="row mb-3">
+						<label for="checkLdap" class="col-lg-2 form-label">Vérification Ldap</label>
+						<div class="col-lg-10">
+						    <div class="form-check">
+						      <input class="form-check-input" type="checkbox" th:field="*{checkLdap}">
+						    </div>
+					  	</div>
+					</div>
+                	<div class="row mb-3">
+                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Etape</label>
+                    	<div class="col-lg-10">
+							<select class="form-control" th:id="codeEtape" th:name="codeEtape" >
+								<option value ="">-----Aucune----</option>
+								<option th:each="code : ${codeEtapes}"
+									th:value="${code.key + ' - ' + code.value}" th:text="${code.key + ' - ' + code.value}"></option>
+							</select>
+						</div>
+					</div>						
+                    <div class="row mb-3">
+                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
+                        <div class="col-lg-10">
+                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+                        </div>
+                    </div>	  
+                    <div class="row">
+                        <div class="col-md-6 mt-5">
+                            <input type="submit" class="btn btn-success" value="Valider">
+                        </div>
+                    </div>                  
+                </form>
+            </div>
+	  		<div th:if="${type == 'externe'}">
+                <form action="#" th:action="@{/{ctx}/manager/tagCheck/create(ctx=${eContext})}" th:object="${tagCheck}" method="post">
+                	<div class="row mb-3 mt-3">
+                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
+                    	<div class="col-lg-10">
+							<select class="form-control" th:id="sessionEpreuve" th:name="sessionEpreuve" >
+								<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+									th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+							</select>
+						</div>
+					</div>
+					<div class="row mb-3">              				
+                    	<label for="sessionLocationExpected2" class="col-lg-2 form-label">Lieu</label>
+                    	<div class="col-lg-10">	
+							<select name="sessionLocationExpected"  id="sessionLocationExpected2">
+								<option value ="">-----Aucun----</option>
+								<option th:each="sl : ${allSessionLocations}"
+									th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}"></option>									
+							</select>
+						</div>
+					</div>	
+                    <div class="row mb-3">
+	                    <label for="email" class="col-lg-2 form-label">Email</label>
+                    	<div class="col-lg-10">
+							<input type ="email" th:id="email" th:name="guest.email" class="form-control" required="required">
+						</div>
+					</div>
+					<div class="row mb-3">
+	                    <label for="nom" class="col-lg-2 form-label">Nom</label>
+                    	<div class="col-lg-10">
+							<input type ="text" th:id="nom" th:name="guest.nom" class="form-control" required="required">
+						</div>
+					</div>
+					<div class="row mb-3">
+	                    <label for="prenom" class="col-lg-2 form-label">Prénom</label>
+                    	<div class="col-lg-10">
+							<input type ="text" th:id="prenom" th:name="guest.prenom" class="form-control" required="required">
+						</div>
+					</div>						
+                    <div class="row mb-3">
+                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
+                        <div class="col-lg-10">
+                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+                        </div>
+                    </div>	  
+                    <div class="row">
+                        <div class="col-md-6 mt-5">
+                            <input type="submit" class="btn btn-success" value="Valider">
+                        </div>
+                    </div>                  
+                </form>
             </div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

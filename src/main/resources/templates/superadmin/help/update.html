@@ -4,41 +4,42 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header"><h2>Modifier une rubrique d'aide</h2></div>
-		    	<div  class="alert alert-danger" th:if="${error}">Le site avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/superadmin/help/update/{id}(ctx=${eContext}, id=${help.id})}" th:object="${help}" method="post" id="helpForm">
-                    	<div class="row mb-3">
-		                    <label for="key" class="col-lg-2 form-label">Categorie</label>
-		                    <div class="col-lg-10">
-		                       <select th:field="*{key}" class="form-control" required="required">
-									<option th:each="cat : ${categories}"
-										th:value="${cat}" th:text="${cat}"></option>
-								</select>  
-		                    </div>
-	                    </div>
-                    	<div class="row mb-3">
-		                    <label for="value" class="col-lg-2 form-label" id="areaEditor">Valeur</label>
-		                    <div class="col-lg-10">
-		                       <textarea class='form-control' th:field="*{value}"></textarea>
-		                    </div>
-	                    </div>
-	                    <div class="row mb-3">
-		                    <label for="description" class="col-lg-2 form-label">Description</label>
-		                    <div class="col-lg-10">
-		                      	<textarea  th:field="*{description}" class="form-control" ></textarea>
-		                    </div>
-	                    </div>
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>                  
-                    </form>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Modifier l'aide</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/all/superadmin/help}" class="btn btn-info" title="Contextes"><i class="fa fa-home fa-lg"></i></a>
+				</div>
+			</div>
+		    <div  class="alert alert-danger" th:if="${error}">Le site avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+            <form action="#" th:action="@{/{ctx}/superadmin/help/update/{id}(ctx=${eContext}, id=${help.id})}" th:object="${help}" method="post" id="helpForm">
+            	<div class="row mb-3">
+                    <label for="key" class="col-lg-2 form-label">Categorie</label>
+                    <div class="col-lg-10">
+                       <select th:field="*{key}" class="form-control" required="required">
+							<option th:each="cat : ${categories}"
+								th:value="${cat}" th:text="${cat}"></option>
+						</select>  
+                    </div>
                 </div>
-            </div>
+            	<div class="row mb-3">
+                    <label for="value" class="col-lg-2 form-label" id="areaEditor">Valeur</label>
+                    <div class="col-lg-10">
+                       <textarea class='form-control' th:field="*{value}"></textarea>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="description" class="col-lg-2 form-label">Description</label>
+                    <div class="col-lg-10">
+                      	<textarea  th:field="*{description}" class="form-control" ></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider">
+                    </div>
+                </div>                  
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

@@ -4,75 +4,89 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header"><h2  th:text="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}"></h2>
-					<small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') +
-					#dates.format(se.heureEpreuve, ' HH:mm') +  #dates.format(se.finEpreuve, '  - HH:mm') + ' à ' + se.campus.site}"></small>
-			        <small class="text-muted h5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
-			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>	
-		    	</div>
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/manager/tagChecker/create(ctx=${eContext})}" th:object="${tagChecker}" method="post">
-						<div class="row mb-3">
-	                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
-	                    	<div class="col-lg-10">
-								<select name="sessionEpreuve" class="form-control" id="sessionEpreuve" required="required">
-									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-										th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
-								</select>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+			    <div>
+					<h2 class="fs-3 mb-1" th:text="${'Ajouter un ' + #strings.toLowerCase(surveillantTerme)}"></h2>
+			        <small class="text-muted h5">
+			            <span th:text="${se.nomSessionEpreuve + ' le '
+			                + #dates.format(se.dateExamen, 'dd-MM-yyyy')
+			                + #dates.format(se.heureEpreuve, ' HH:mm')
+			                + #dates.format(se.finEpreuve, ' - HH:mm')
+			                + ' à ' + se.campus.site}">
+			            </span>
+			            <span th:if="${se.dateFin != null}"
+			                  th:text="${' -- Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}">
+			            </span>
+			        </small>
+			        <span class="font-weight-bold text-danger"
+			              th:if="${se.statutSession.key eq 'CLOSED'}"
+			              th:text="' -- Session clôturée'">
+			        </span>
+			    </div>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/tagChecker/sessionEpreuve/{id}(ctx=${eContext}, id=${se.id})}" class="btn btn-info"
+						title="Surveillants"><i class="fa fa-home fa-lg"></i></a>
+				</div>				
+			</div>
+            <form action="#" th:action="@{/{ctx}/manager/tagChecker/create(ctx=${eContext})}" th:object="${tagChecker}" method="post">
+				<div class="row mb-3">
+                	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
+                	<div class="col-lg-10">
+						<select name="sessionEpreuve" class="form-control" id="sessionEpreuve" required="required">
+							<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+								th:value="${sessionEpreuve.id}" th:text="${sessionEpreuve.nomSessionEpreuve}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="row mb-3">
+                	<label for="sessionLocation" class="col-lg-2 form-label">Lieu de Session</label>
+                	<div class="col-lg-9 row">
+                		<div class="col-lg-1 mt-2">
+							<div class="form-check">
+							  <input class="form-check-input" type="checkbox" id="allLocations" name="allLocations">
+							  <label class="form-check-label" for="allLocations">
+							    Tous
+							  </label>
 							</div>
 						</div>
-						<div class="row mb-3">
-	                    	<label for="sessionLocation" class="col-lg-2 form-label">Lieu de Session</label>
-	                    	<div class="col-lg-9 row">
-	                    		<div class="col-lg-1 mt-2">
-									<div class="form-check">
-									  <input class="form-check-input" type="checkbox" id="allLocations" name="allLocations">
-									  <label class="form-check-label" for="allLocations">
-									    Tous
-									  </label>
-									</div>
-								</div>
-								<div class="col-lg-11">            	
-									<select class="form-select" th:id="locationTagChecker" th:name="sessionLocation" required="required">
-										<option th:each="sessionLocation : ${allSessionLocations}"
-											th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
-									</select>
-								</div>
-							</div>
+						<div class="col-lg-11">            	
+							<select class="form-select" th:id="locationTagChecker" th:name="sessionLocation" required="required">
+								<option th:each="sessionLocation : ${allSessionLocations}"
+									th:value="${sessionLocation.id}" th:text="${sessionLocation.location.nom + '  (' + sessionLocation.location.capacite + ' places)'}"></option>
+							</select>
 						</div>
-						<div class="row mb-3">
-	                    	<label for="userApp" class="col-lg-2 form-label">Agent</label>
-	                    	<div class="col-lg-5">
-								<div th:if="${not #lists.isEmpty(tcs)}"class="mb-3 notUsed">
-									<select id="my-select2" name="users" multiple="multiple">
-										<option th:each="tc : ${tcs}" 
-												th:value="${tc.userApp.id}"
-												th:text="${tc.userApp.nom + ' ' + tc.userApp.prenom}"/>
-									</select>	
-								</div>
-							</div>
-	                    	<div class="col-lg-5">
-								<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
-								<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 notUsed">
-									<select id="my-select" name="users" multiple="multiple">
-										<option th:each="userApp : ${allUserApps}" 
-												th:value="${userApp.id}"
-												th:text="${userApp.nom + ' ' + userApp.prenom}"
-												th:selected="${allList.contains(userApp.id)}" />
-									</select>
-								</div>
-							</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+                	<label for="userApp" class="col-lg-2 form-label">Agent</label>
+                	<div class="col-lg-5">
+						<div th:if="${not #lists.isEmpty(tcs)}"class="mb-3 notUsed">
+							<select id="my-select2" name="users" multiple="multiple">
+								<option th:each="tc : ${tcs}" 
+										th:value="${tc.userApp.id}"
+										th:text="${tc.userApp.nom + ' ' + tc.userApp.prenom}"/>
+							</select>	
 						</div>
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider" id="submitForm">
-                            </div>
-                        </div>                  
-                    </form>
-                </div>
-            </div>
+					</div>
+                	<div class="col-lg-5">
+						<div th:if="${#lists.isEmpty(allUserApps)}" class="mb-2"><span class='text-danger font-weight-bold alertmsg'>Aucun agent disponible ou tous les agents du site sont déjà affectés</span><br/></div>
+						<div th:if="${not #lists.isEmpty(allUserApps)}"class="mb-3 notUsed">
+							<select id="my-select" name="users" multiple="multiple">
+								<option th:each="userApp : ${allUserApps}" 
+										th:value="${userApp.id}"
+										th:text="${userApp.nom + ' ' + userApp.prenom}"
+										th:selected="${allList.contains(userApp.id)}" />
+							</select>
+						</div>
+					</div>
+				</div>
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider" id="submitForm">
+                    </div>
+                </div>                  
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

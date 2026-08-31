@@ -4,91 +4,95 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="addMembersPage">
-	        <div class="card">
-		    	<div class="card-header"><h2>Ajouter des membres</h2></div>
-	 			<div class="card-body" id="addMembersGroupe">
-	 			  	<ul class="nav nav-tabs mb-3" role="tablist" >
-					    <li class="nav-item"><a th:classappend="${type == 'user'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/user(ctx=${eContext})}">UTILISATEUR</a></li>
-					    <li class="nav-item"><a th:classappend="${type == 'session'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/session(ctx=${eContext})}">SESSION</a></li>
-					    <li class="nav-item"><a th:classappend="${type == 'groupe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/groupe(ctx=${eContext})}">GROUPE</a></li>
-				  	</ul>
-					<div th:if="${type == 'user'}" >
-						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMember|}"	id="formSearch" method="post">
-							<div class="row">
-								<div class="col-lg-4">
-									<label for="searchIndividu">Eppn</label>
-									<div class="col">
-										<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
-											th:hx-get="@{|/${eContext}/supervisor/search/individuTagCheck|}" hx-trigger="keyup changed" required="required"
-											hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche Inscrit">
-										<div id="searchResults2" class="searchResults"></div>
-										<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-										<p id="tcIdentity" class="form-text"></p>
-									</div>
-								</div>
-								<div class="col-lg-8">
-									<label for="groupes">Importer dans groupe(s)</label> 
-									<select th:id="groupes" th:name="groupes" multiple="multiple" required>
-										<option value="" data-placeholder="true"></option>
-										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
-											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
-									</select>
-									<button type="submit" class="btn btn-success mt-2">Ajouter</button>
+		<div class="container-fluid px-3 px-md-4 my-2" id="addMembersPage">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Ajouter des membres</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}" class="btn btn-info" title="Groupes"><i
+							class="fa fa-home fa-lg"></i></a>
+				</div>
+			</div>
+ 			<div id="addMembersGroupe">
+ 			  	<ul class="nav nav-tabs mb-3" role="tablist" >
+				    <li class="nav-item"><a th:classappend="${type == 'user'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/user(ctx=${eContext})}">UTILISATEUR</a></li>
+				    <li class="nav-item"><a th:classappend="${type == 'session'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/session(ctx=${eContext})}">SESSION</a></li>
+				    <li class="nav-item"><a th:classappend="${type == 'groupe'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/groupe/addMembers/groupe(ctx=${eContext})}">GROUPE</a></li>
+			  	</ul>
+				<div th:if="${type == 'user'}" >
+					<form action="#" th:action="@{|/${eContext}/manager/groupe/addMember|}"	id="formSearch" method="post">
+						<div class="row">
+							<div class="col-lg-4">
+								<label for="searchIndividu">Eppn</label>
+								<div class="col">
+									<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
+										th:hx-get="@{|/${eContext}/supervisor/search/individuTagCheck|}" hx-trigger="keyup changed" required="required"
+										hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche Inscrit">
+									<div id="searchResults2" class="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+									<p id="tcIdentity" class="form-text"></p>
 								</div>
 							</div>
-						</form>
-					</div>
-					<div th:if="${type == 'session'}">
-						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromSession|}"	id="formSearch" method="post">
-							<div class="row">
-								<div class="col-lg-4">
-									<label for="searchIndividu">Session</label>
-									<select	th:id="sessionEpreuveGroupes" th:name="seIds" multiple="multiple">
-										<option value="" data-placeholder="true"></option>
-										<option th:each="sessionEpreuve : ${allSessionEpreuves}"
-											th:value="${sessionEpreuve.id}"
-											th:text="${sessionEpreuve.dateExamen + ' -- ' + sessionEpreuve.nomSessionEpreuve + ' (' + 
-														sessionEpreuve.nbInscritsSession + ')'}"></option>
-									</select>
-								</div>
-								<div class="col-lg-8">
-									<label for="groupes">Importer dans groupe(s)</label> 
-									<select th:id="groupes" th:name="groupeIds" multiple="multiple">
-										<option value="" data-placeholder="true"></option>
-										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
-											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
-									</select>
-									<button type="submit" class="btn btn-success mt-2">Ajouter</button>
-								</div>								
+							<div class="col-lg-8">
+								<label for="groupes">Importer dans groupe(s)</label> 
+								<select th:id="groupes" th:name="groupes" multiple="multiple" required>
+									<option value="" data-placeholder="true"></option>
+									<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
+										th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
+								</select>
+								<button type="submit" class="btn btn-success mt-2">Ajouter</button>
 							</div>
-						</form>
-					</div>
-					<div th:if="${type == 'groupe'}" id="addMembersGroupes">
-						<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromGroupe|}"	id="formSearch" method="post">
-							<div class="row">
-								<div class="col-lg-4">
-									<label for="groupes">Groupe</label> 
-									<select class="step1Groupe"
-										th:id="groupes" th:name="groupeIds" multiple="multiple">
-										<option value="" data-placeholder="true"></option>
-										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
-											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
-									</select>
-								</div>					
-								<div class="col-lg-8">
-									<label for="groupes2">Importer dans groupe(s)</label> 
-									<select class="step1Groupe"
-										th:id="groupes2" th:name="groupeIds2" multiple="multiple">
-										<option value="" data-placeholder="true"></option>
-										<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
-											th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
-									</select>
-									<button type="submit" class="btn btn-success mt-2">Ajouter</button>
-								</div>
+						</div>
+					</form>
+				</div>
+				<div th:if="${type == 'session'}">
+					<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromSession|}"	id="formSearch" method="post">
+						<div class="row">
+							<div class="col-lg-4">
+								<label for="searchIndividu">Session</label>
+								<select	th:id="sessionEpreuveGroupes" th:name="seIds" multiple="multiple">
+									<option value="" data-placeholder="true"></option>
+									<option th:each="sessionEpreuve : ${allSessionEpreuves}"
+										th:value="${sessionEpreuve.id}"
+										th:text="${sessionEpreuve.dateExamen + ' -- ' + sessionEpreuve.nomSessionEpreuve + ' (' + 
+													sessionEpreuve.nbInscritsSession + ')'}"></option>
+								</select>
 							</div>
-						</form>
-					</div>
+							<div class="col-lg-8">
+								<label for="groupes">Importer dans groupe(s)</label> 
+								<select th:id="groupes" th:name="groupeIds" multiple="multiple">
+									<option value="" data-placeholder="true"></option>
+									<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
+										th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
+								</select>
+								<button type="submit" class="btn btn-success mt-2">Ajouter</button>
+							</div>								
+						</div>
+					</form>
+				</div>
+				<div th:if="${type == 'groupe'}" id="addMembersGroupes">
+					<form action="#" th:action="@{|/${eContext}/manager/groupe/addMembersFromGroupe|}"	id="formSearch" method="post">
+						<div class="row">
+							<div class="col-lg-4">
+								<label for="groupes">Groupe</label> 
+								<select class="step1Groupe"
+									th:id="groupes" th:name="groupeIds" multiple="multiple">
+									<option value="" data-placeholder="true"></option>
+									<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
+										th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
+								</select>
+							</div>					
+							<div class="col-lg-8">
+								<label for="groupes2">Importer dans groupe(s)</label> 
+								<select class="step1Groupe"
+									th:id="groupes2" th:name="groupeIds2" multiple="multiple">
+									<option value="" data-placeholder="true"></option>
+									<option th:each="groupe : ${groupes}" th:value="${groupe.id}"
+										th:text="${groupe.nom + ' (' + groupe.nbTagCheck + ')'}"></option>
+								</select>
+								<button type="submit" class="btn btn-success mt-2">Ajouter</button>
+							</div>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>

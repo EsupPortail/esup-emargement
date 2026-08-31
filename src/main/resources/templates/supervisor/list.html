@@ -2,28 +2,29 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<head th:replace="fragments/head :: head"></head>
 	<body data-bs-spy="scroll"  data-bs-target="#navbar-example">
-		<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
-		  <div class="offcanvas-header">
-		    <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Webcam</h5>
-		    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-		  </div>
-		  <div class="offcanvas-body">
-				<div class="card text-center box-shadow h-md-250" th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}" 
-					id="webCamDiv">
-					<div id="qrCodeCam" data-role="supervisor"
-						class="card-img-right flex-auto  mt-1">
+		<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasWebcam"
+			aria-labelledby="offcanvasScrollingLabel">
+			<div class="offcanvas-header">
+				<h5 class="offcanvas-title" id="offcanvasScrollingLabel">Webcam</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+			</div>
+			<div class="offcanvas-body">
+				<div class="card text-center box-shadow h-md-250"
+					th:if="${isQrCodeEnabled or isUserQrCodeEnabled or isCardQrCodeEnabled}" id="webCamDiv">
+					<div id="qrCodeCam" data-role="supervisor" class="card-img-right flex-auto  mt-1">
 						<div id="loadingMessage">🎥 Impossible d'accéder à la
 							webCam</div>
 						<canvas id="canvas" class="align-self-center mr-3"></canvas>
 					</div>
 					<div class="card-body d-flex flex-column align-items-start">
 						<strong class="d-inline-block mb-1 text-success">Webcam</strong>
-						<p class="card-text mb-auto">Utilisée pour l'émargement d"un individu grâce à un QR Code 
-						    envoyé par mail  <b>ou</b> 
-						    disponible dans le menu <span th:text="${#strings.toLowerCase(participantTerme)}"></span> de celui-ci (à la date de la session <b>et</b> si il n'a pas déjà émargé).</p>
+						<p class="card-text mb-auto">Utilisée pour l'émargement d"un individu grâce à un QR Code
+							envoyé par mail <b>ou</b>
+							disponible dans le menu <span th:text="${#strings.toLowerCase(participantTerme)}"></span> de
+							celui-ci (à la date de la session <b>et</b> si il n'a pas déjà émargé).</p>
 					</div>
 				</div>
-		  </div>
+			</div>
 		</div>		
 		<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
 			<div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -58,157 +59,205 @@
 				</div>
 			</div>
 		</div>
-		<div class="toast position-fixed top-0 end-0 m-3" id="photoToast"
-		     role="alert" aria-live="assertive" aria-atomic="true" th:if="${sessionLocation != null}">
-		  <div class="toast-header">
-		    <strong class="me-auto"><span id="prenomPresence"></span> <span id="nomPresence" class="fw-bold"></span></strong>
-		    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-		  </div>
-		  <div class="toast-body text-center">
-		    <img id="photoPresent" src="" alt="Photo étudiant" class="rounded" width="160" height="200">
-		  </div>
-		</div>							
+		<div class="toast position-fixed top-0 end-0 m-3" id="photoToast" role="alert" aria-live="assertive" aria-atomic="true"
+			th:if="${sessionLocation != null}">
+			<div class="toast-header">
+				<strong class="me-auto"><span id="prenomPresence"></span> <span id="nomPresence"
+						class="fw-bold"></span></strong>
+				<button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+			</div>
+			<div class="toast-body text-center">
+				<img id="photoPresent" src="" alt="Photo étudiant" class="rounded" width="160" height="200">
+			</div>
+		</div>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="presencePage">
-           	<div class="card">
-				<div class="card-header">
-				  <div class="row align-items-center">
-				    <div class="col">
-					  <h2>Emargement</h2><span th:if="${isSessionLibre}"><small class="text-danger">SESSION LIBRE</small><br/></span>
-					  <span
-					  	th:if="${isSessionLibre and sessionEpreuve !=null and sessionLocation !=null}"
-					  	class="fw-bold h6">
-					  	<small class="fw-bold h6">Remplissage : <span
-					  	th:id="${'totalPresent' + sessionLocation.id}"
-					  	th:text="${nbTagChecksPresent}"></span> / <span
-					  	th:text="${sessionLocation.capacite}"></span></small>
-					  </span>
-					  <span th:if="${!isSessionLibre and tagCheckPage!=null and !tagCheckPage.isEmpty()}">
-					  	<small class="fw-bold h6">Présents : <span
-					  	th:if="${sessionEpreuve.id !=null and sessionLocation !=null}"
-					  	th:id="${'totalPresent' + sessionLocation.id}"
-					  	th:text="${nbTagChecksPresent}"> </span> / <span
-					  	th:text="${nbTagChecksExpected}"></span></small><br /></span>
-					<span th:if="${tagCheckPage!=null and !tagCheckPage.isEmpty() and totalNotExpected>0}">
-						<small class="fw-bold h6 mb-2">Intrus : <span
-						id="totalNotExpected" 
-						th:text="${totalNotExpected}"> </span></small> <small
-						th:if="${sessionEpreuve !=null and sessionLocation !=null}"
-						th:text="${(sessionLocation.isTiersTempsOnly)? 'Temps aménagé' : ''}"></small><br /></span>
-						<span th:if="${sessionEpreuve.isProcurationEnabled}">
-						<span class="fw-bold h6" th:text="${'Procurations : ' + countProxyPerson + '/' + maxProxyPerson}"></span></span>
-						<span th:if="${notInLdap > 0}" class="text-info fw-bold " th:text="' -- ' + ${'Incrit(s) non présent(s) dans le ldap : ' + notInLdap}"></span>
-				    </div>
-				    <div class="col-auto d-none d-md-block">
-				      <div th:replace="~{supervisor/select :: select}"></div>
-				    </div>
-				    <div class="col d-flex align-items-center justify-content-end">
-				      <!-- Buttons (desktop) -->
-				      <div class="d-none d-md-block">
-				        <div th:replace="~{supervisor/buttons :: buttons}"></div>
-				      </div>
-				      <div class="d-md-none d-flex gap-2">
-				        <!-- Burger for buttons -->
-				        <button class="btn btn-primary" type="button" title="Voir Boutons"
-				                data-bs-toggle="collapse" data-bs-target="#hamburgerMenu"
-				                aria-expanded="false" aria-controls="hamburgerMenu">
-				          <i class="fas fa-bars"></i>
-				        </button>
-				        <!-- Burger for filters -->
-				        <button class="btn btn-info" type="button" title="Voir sessions"
-				                data-bs-toggle="collapse" data-bs-target="#hamburgerMenuFilters"
-				                aria-expanded="false" aria-controls="hamburgerMenuFilters">
-				          <i class="fas fa-sliders-h"></i>
-				        </button>
-				      </div>
-				    </div>
-				    
-				    <!-- Collapses (mobile only) -->
-				    <div class="collapse mt-2" id="hamburgerMenu">
-				      <div th:replace="~{supervisor/buttons :: buttons}"></div>
-				    </div>
-				    <div class="collapse mt-2" id="hamburgerMenuFilters">
-				      <div th:replace="~{supervisor/select :: select}"></div>
-				    </div>
-				    
-				    <!-- Modals -->
-				    <div th:replace="~{supervisor/modals :: modals}"></div>
-				  </div>
-
-				  <!-- Optional horizontal list -->
-				  <ul class="alert alert-warning pb-1 pt-1 ms-2 me-2 mb-0 list-group list-group-horizontal-sm"
-				      th:if="${#ctx.containsVariable('sls') and nbTagChecksExpected>0 and #strings.toString(sessionEpreuve.typeBadgeage.name()) == 'SALLE'}">
-				    <li th:each="sl : ${sls}" class="list-group-item me-2 pt-1 pb-1">
-				      <span class="fw-bold" th:text="${sl.location.nom + ' : '}"></span>
-				      <span th:text="${sl.nbPresentsSessionLocation}" th:id="${'sl' + sl.id}">0</span> /
-				      <span th:text="${sl.nbInscritsSessionLocation}"></span>
-				    </li>
-				  </ul>
-				</div>
-				<div th:if="${msgOk != null}"  class="alert alert-success alert-dismissible fade show">
-				   	<strong>Message envoyé avec succès.</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-				</div>
-				<div th:if="${duplicate != null}"  class="alert alert-warning alert-dismissible fade show">
-				   	<strong>Cette absence est déjà associée à une autre session/période pour cette même personne. Veuillez la gérer dans l"interface dédiée.</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-				</div>
-            <div th:classappend ="${msgError == null} ? 'd-none' : ''" class="alert alert-danger alert-dismissible mt-2" id="customMsg">
-            	<span class="fw-bold" th:if="${msgError != null}" th:text="${msgError + ' : '}"></span> Cette personne appartient au groupe des individus non autorisés.
+		<div class="container-fluid px-3 px-md-4 my-2" id="presencePage">
+		    <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+		        <!-- Partie gauche : titre + compteurs -->
+		        <div class="flex-grow-1">
+		            <h2 class="fs-3 mb-0">
+		                Emargement
+		            </h2>
+		            <div>
+		                <!-- Session libre -->
+						<span th:if="${isSessionLibre}">
+							<small class="text-danger">SESSION LIBRE</small><br />
+						</span>
+		                <span th:if="${isSessionLibre and sessionEpreuve != null and sessionLocation != null}">
+		                    <small class="fw-bold h6">
+		                        Remplissage :
+		                        <span th:id="${'totalPresent' + sessionLocation.id}"
+		                              th:text="${nbTagChecksPresent}">
+		                        </span>
+		                        /
+		                        <span th:text="${sessionLocation.capacite}"></span>
+		                    </small>
+		                </span>
+		                <!-- Session normale -->
+		                <span th:if="${!isSessionLibre and tagCheckPage != null and !tagCheckPage.isEmpty()}">
+		                    <small class="fw-bold h6">
+		                        Présents :
+		                        <span th:if="${sessionEpreuve.id != null and sessionLocation != null}"
+		                              th:id="${'totalPresent' + sessionLocation.id}"
+		                              th:text="${nbTagChecksPresent}">
+		                        </span>
+		                        /
+		                        <span th:text="${nbTagChecksExpected}"></span>
+		                    </small>
+		                </span>
+		                <!-- Intrus -->
+		                <span th:if="${tagCheckPage != null and !tagCheckPage.isEmpty() and totalNotExpected > 0}">
+		                    <small class="fw-bold h6 ms-2">
+		                        Intrus :
+		                        <span id="totalNotExpected"
+		                              th:text="${totalNotExpected}">
+		                        </span>
+		                    </small>
+		                    <small th:if="${sessionEpreuve != null and sessionLocation != null}"
+		                           class="ms-2"
+		                           th:text="${sessionLocation.isTiersTempsOnly ? 'Temps aménagé' : ''}">
+		                    </small>
+		                </span>
+		                <!-- Procurations -->
+		                <span th:if="${sessionEpreuve.isProcurationEnabled}"
+		                      class="fw-bold h6 ms-2"
+		                      th:text="${'Procurations : ' + countProxyPerson + '/' + maxProxyPerson}">
+		                </span>
+		                <!-- LDAP -->
+		                <span th:if="${notInLdap > 0}"
+		                      class="text-info fw-bold ms-2"
+		                      th:text="${' -- Inscrit(s) non présent(s) dans le LDAP : ' + notInLdap}">
+		                </span>
+		            </div>
+		        </div>
+		        <!-- Partie centrale : select -->
+		        <div class="d-none d-md-flex justify-content-center px-3">
+		            <div th:replace="~{supervisor/select :: select}"></div>
+		        </div>
+		        <!-- Partie droite : boutons -->
+		        <div class="flex-grow-1 d-flex justify-content-end">
+		            <!-- Desktop -->
+		            <div class="d-none d-md-block">
+		                <div th:replace="~{supervisor/buttons :: buttons}"></div>
+		            </div>
+		            <!-- Mobile -->
+		            <div class="d-md-none d-flex gap-2">
+		                <!-- Burger boutons -->
+		                <button class="btn btn-primary"
+		                        type="button"
+		                        title="Voir Boutons"
+		                        data-bs-toggle="collapse"
+		                        data-bs-target="#hamburgerMenu"
+		                        aria-expanded="false"
+		                        aria-controls="hamburgerMenu">
+		                    <i class="fas fa-bars"></i>
+		                </button>
+		                <!-- Burger select -->
+		                <button class="btn btn-info"
+		                        type="button"
+		                        title="Voir sessions"
+		                        data-bs-toggle="collapse"
+		                        data-bs-target="#hamburgerMenuFilters"
+		                        aria-expanded="false"
+		                        aria-controls="hamburgerMenuFilters">
+		                    <i class="fas fa-sliders-h"></i>
+		                </button>
+		            </div>
+		        </div>
+		    </div>
+		    <!-- Select mobile -->
+		    <div class="collapse mt-2" id="hamburgerMenuFilters">
+		        <div th:replace="~{supervisor/select :: select}"></div>
+		    </div>
+		    <!-- Boutons mobile -->
+		    <div class="collapse mt-2" id="hamburgerMenu">
+		        <div th:replace="~{supervisor/buttons :: buttons}"></div>
+		    </div>
+		    <!-- Modals -->
+		    <div th:replace="~{supervisor/modals :: modals}"></div>
+		    <!-- Liste des lieux -->
+			<div class="d-flex flex-wrap align-items-center gap-2 px-3 py-2 mb-3
+			            bg-warning bg-opacity-10 border-start border-4 border-warning rounded"
+			     th:if="${#ctx.containsVariable('sls')
+			         and nbTagChecksExpected > 0
+			         and #strings.toString(sessionEpreuve.typeBadgeage.name()) == 'SALLE'}">
+			    <div th:each="sl : ${sls}"
+			         class="d-flex align-items-center bg-white border rounded px-3 py-1 shadow-sm">
+			        <span class="fw-semibold me-2"
+			              th:text="${sl.location.nom}">
+			        </span>
+			        <span class="badge bg-primary"
+			              th:id="${'sl' + sl.id}"
+			              th:text="${sl.nbPresentsSessionLocation}">
+			            0
+			        </span>
+			        <span class="text-muted mx-1">/</span>
+			        <span class="fw-semibold"
+			              th:text="${sl.nbInscritsSessionLocation}">
+			        </span>
+			    </div>
 			</div>
-			<div class="alert alert-danger alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">
-	           	<span class="fw-bold"  th:text="${nbEmails}"></span> mail(s envoyé(s)
-	           	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			<div th:if="${msgOk != null}"  class="alert alert-success alert-dismissible fade show">
+			   	<strong>Message envoyé avec succès.</strong>
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			</div>
-            <div th:if="${isSessionLibre and isCapaciteFull}" class="alert alert-dark fw-bold">
-            	La capacité maximale du lieu a été atteinte!! Les nouvelles personnes qui badgeront seront rejetées.
+			<div th:if="${duplicate != null}"  class="alert alert-warning alert-dismissible fade show">
+			   	<strong>Cette absence est déjà associée à une autre session/période pour cette même personne. Veuillez la gérer dans l"interface dédiée.</strong>
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			</div>
-            <div th:if="${!isSessionLibre and nbNonRepartis>0 }" class="alert alert-dark fw-bold">
-            	<p class="h4 text-center"><span th:text="${nbNonRepartis}" ></span> inscrit(s)  non réparti(s) dans cette session. </p>
-			</div>			
-	  		<div class="card-body">
-				<div class="progress mb-1" th:if="${!isSessionLibre}">
-				  <div th:if="${sessionEpreuve.id !=null and sessionLocation !=null && percent != null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar fw-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  
-				  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-				</div>				
-				<div class="row">
-					<div class="collapse" id="collapseExample"  th:if="${sessionEpreuve !=null and sessionLocation !=null}">
-						<div class="card ">
-							<div class="card-body">
-								<form th:action="@{/{ctx}/supervisor/add(ctx=${eContext})}" id="formSearch" method="post">
-									<div class="form-group">
-										<div class="col-lg-2">
-											<label for="searchBox" class="form-label">Individu</label>
-										</div>
-										<div class="col-lg-10">
-											<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"
-												hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
-												autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
-											<div id="searchResults"></div>
-											<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-											<input type="hidden" name="slId" th:value="${sessionLocation.id}" />
-										</div>
-									</div>
-								</form>
+	    <div th:classappend ="${msgError == null} ? 'd-none' : ''" class="alert alert-danger alert-dismissible mt-2" id="customMsg">
+	    	<span class="fw-bold" th:if="${msgError != null}" th:text="${msgError + ' : '}"></span> Cette personne appartient au groupe des individus non autorisés.
+		</div>
+		<div class="alert alert-danger alert-dismissible fade show" th:if="${#ctx.containsVariable('nbEmails')}">
+	       	<span class="fw-bold"  th:text="${nbEmails}"></span> mail(s envoyé(s)
+	       	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		</div>
+	    <div th:if="${isSessionLibre and isCapaciteFull}" class="alert alert-dark fw-bold">
+	    	La capacité maximale du lieu a été atteinte!! Les nouvelles personnes qui badgeront seront rejetées.
+		</div>
+	    <div th:if="${!isSessionLibre and nbNonRepartis>0 }" class="alert alert-dark fw-bold">
+	    	<p class="h4 text-center"><span th:text="${nbNonRepartis}" ></span> inscrit(s)  non réparti(s) dans cette session. </p>
+		</div>			
+		<div class="progress mb-1" th:if="${!isSessionLibre}">
+		  <div th:if="${sessionEpreuve.id !=null and sessionLocation !=null && percent != null}"  th:id="${'progressBar' + sessionLocation.id}" class="progress-bar fw-bold" role="progressbar" th:style="'width: '+ ${percent} + '%;'"  
+		  th:text="${#numbers.formatDecimal(percent,2,2) + '%'}" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+		</div>				
+		<div class="row">
+			<div class="collapse" id="collapseExample"  th:if="${sessionEpreuve !=null and sessionLocation !=null}">
+				<div class="card ">
+					<div class="card-body">
+						<form th:action="@{/{ctx}/supervisor/add(ctx=${eContext})}" id="formSearch" method="post">
+							<div class="form-group">
+								<div class="col-lg-2">
+									<label for="searchBox" class="form-label">Individu</label>
+								</div>
+								<div class="col-lg-10">
+									<input name="searchString" class="form-control searchBox" th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"
+										hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator"
+										autocomplete="off" placeholder="Ici, recherche sur Nom Prénom --- Manuellement : identifiant@univ-ville.fr">
+									<div id="searchResults"></div>
+									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+									<input type="hidden" name="slId" th:value="${sessionLocation.id}" />
+								</div>
 							</div>
-						</div>
+						</form>
 					</div>
-				</div>
-				<div th:fragment="search_list" th:with="blockId=${(sessionLocation != null) ? sessionLocation.id : ''}" th:id="${'resultsBlock' + blockId}">
-					<div th:if="${tagCheck ne null and tagCheck.person ne null and #ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
-					  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
-					  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-					</div>
-					<th:block th:if="${isTrombiViewEnabled and viewMode eq 'trombi'}">
-						<div th:replace="supervisor/trombi :: trombi"></div>
-					</th:block>
-					<th:block th:if="${viewMode eq 'table'}">
-						<div  th:replace="supervisor/table :: tablePresence"></div>
-					</th:block>
 				</div>
 			</div>
-		</div>	                
+		</div>
+		<div th:fragment="search_list" th:with="blockId=${(sessionLocation != null) ? sessionLocation.id : ''}" th:id="${'resultsBlock' + blockId}">
+			<div th:if="${tagCheck ne null and tagCheck.person ne null and #ctx.containsVariable('tagCheck') and tagCheck.nbBadgeage > sessionEpreuve.maxBadgeageAlert}" class="alert alert-danger alert-dismissible fade show" role="alert">
+			  <p><strong><span th:text="${tagCheck.person.prenom + ' ' + tagCheck.person.nom}"></span> a badgé(e) <span th:text=${tagCheck.nbBadgeage}></span> fois</strong></p>
+			  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+			</div>
+			<th:block th:if="${isTrombiViewEnabled and viewMode eq 'trombi'}">
+				<div th:replace="supervisor/trombi :: trombi"></div>
+			</th:block>
+			<th:block th:if="${viewMode eq 'table'}">
+				<div  th:replace="supervisor/table :: tablePresence"></div>
+			</th:block>
+		</div>
 	</div>
 	<footer th:replace="fragments/footer :: footer"></footer>
 </html>

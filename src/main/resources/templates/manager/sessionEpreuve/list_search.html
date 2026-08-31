@@ -54,11 +54,10 @@
 					<option value="">-- ADE --</option>
 					<option th:each="ade : ${adeBranches}" th:value="${ade.id}" th:text="${ade.fullPath}"></option>
 				</select>
-				<select th:field="*{anneeUniv}" class="slimSelectClass w-auto">
+				<select th:if="${!years.empty}" th:field="*{anneeUniv}" class="slimSelectClass w-auto">
 					<option th:each="year, iStat : ${years}" th:value="${#strings.substringBefore(year,'/')}" th:text="${year}">
 					</option>
 				</select>
-				<div th:replace="manager/sessionEpreuve/show-modal :: show-modal"></div>
 				<div class="col-12 col-md-auto">
 					<button type="submit" name="reset" value="true" class="btn btn-danger btn-sm"><i class="fas fa-undo"></i></button>
 				</div>

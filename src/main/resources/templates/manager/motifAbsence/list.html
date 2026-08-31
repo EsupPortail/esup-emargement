@@ -4,94 +4,93 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-			<div class="card">
-				<div class="card-header">
-					<div class="row">
-			    		<div class="col">
-					    	<h2>Motifs d'absences</h2>
-					    </div>
-					    <div class="col">
-							<div class="col-auto">
-								<a th:href="@{/{ctx}/manager/motifAbsence?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter une absence">
-								<i class="fa fa-plus fa-lg"></i></a>
-							</div>								
-					    </div>
-					</div>
-				</div>
-  				<div class="card-body">
-					<table class="table table-hover table-striped table-bordered tableCleanup">
-						<thead class ="center sticky-top">
-							<tr>
-								<th scope="col">Libellé</th>
-								<th scope="col">Type</th>
-								<th scope="col">Statut</th>
-								<th class ="text-center" scope="col" th:text="${surveillantTerme}"></th>
-								<th class ="text-center" scope="col">Actif</th>
-								<th scope="col">Couleur</th>
-                                <th class="d-none d-lg-table-cell d-xl-table-cell" scope="col">Malus</th>
-								<th scope="col">Modificateur</th>
-								<th scope="col">Modification</th>
-								<th scope="col" class="no-sort">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="motif : ${motifAbsences}">
-								<td th:text="${motif.libelle}"></td>
-								<td th:text="${motif.typeAbsence}"></td>
-								<td th:text="${motif.statutAbsence}"></td>
-								<td class ="text-center">
-									<i th:class="${motif.isTagCheckerVisible != null and motif.isTagCheckerVisible} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
-								</td>
-								<td class ="text-center">
-									<i th:class="${motif.isActif != null and motif.isActif} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
-								</td>
-								<td><th:block th:if="${motif.color ne null}">
-										<input type="color" class="form-control" id="head" name="head" th:value="${motif.color}" th:title="${motif.color}" disabled />
-									</th:block>
-								</td>
-                                <td class="d-none d-lg-table-cell d-xl-table-cell text-center">
-                                    <i th:if="${motif.isMalus}" class="fa fa-check text-danger" title="Compte comme malus"></i>
-                                    <i th:unless="${motif.isMalus}" class="fa fa-times text-secondary"></i>
-                                </td>
-								<td th:text="${motif.userApp ne null ? motif.userApp.eppn : ''}"></td>
-								<td th:text="${#dates.format(motif.dateModification, 'dd/MM/yy HH:mm')}"></td>
-								<td>
-									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 
-											th:attr="data-bs-target='#modal-warning'+${motif.id}"><i class="fa fa-trash text-danger ms-2"></i></a>
-									<a th:href="@{/{ctx}/manager/motifAbsence/{id}?form(id=${motif.id},ctx=${eContext})}" 
-											class="center ms-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>								
-									<div class="modal modal-warning fade in" th:id="modal-warning+${motif.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form id="command" th:action="@{/{ctx}/manager/motifAbsence/{id}(id=${motif.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-													<div class="modal-body">
-														<div class="alert alert-danger text-center">
-															Confirmez-vous la suppression du motif: <br /> <span
-															th:text="${motif.libelle}"
-															class="fw-bold"></span>
-														</div>
-													</div>
-													<div class="modal-footer">
-														<button type="button" class="btn btn-outline pull-left"
-															data-bs-dismiss="modal">Fermer</button>
-														<button type="submit"
-															class="btn btn-outline pull-left btn-danger">Valider</button>
-													</div>
-												</form>
-									        </div>
-									    </div>
-									</div>				
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-  			</div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Motifs d'absences</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/motifAbsence?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end"
+						title="Ajouter une absence">
+						<i class="fa fa-plus fa-lg"></i></a>
+				</div>				
+			</div>			
+			<table class="table table-hover table-striped table-bordered tableCleanup">
+				<thead class ="center sticky-top">
+					<tr>
+						<th scope="col">Libellé</th>
+						<th scope="col">Type</th>
+						<th scope="col">Statut</th>
+						<th class ="text-center" scope="col" th:text="${surveillantTerme}"></th>
+						<th class ="text-center" scope="col">Actif</th>
+						<th scope="col">Couleur</th>
+                        <th class="d-none d-lg-table-cell d-xl-table-cell" scope="col">Malus</th>
+						<th scope="col">Modificateur</th>
+						<th scope="col">Modification</th>
+						<th scope="col" class="no-sort text-center">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="motif : ${motifAbsences}">
+						<td th:text="${motif.libelle}"></td>
+						<td th:text="${motif.typeAbsence}"></td>
+						<td th:text="${motif.statutAbsence}"></td>
+						<td class ="text-center">
+							<i th:class="${motif.isTagCheckerVisible != null and motif.isTagCheckerVisible} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
+						</td>
+						<td class ="text-center">
+							<i th:class="${motif.isActif != null and motif.isActif} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
+						</td>
+						<td><th:block th:if="${motif.color ne null}">
+								<input type="color" class="form-control" id="head" name="head" th:value="${motif.color}" th:title="${motif.color}" disabled />
+							</th:block>
+						</td>
+                        <td class="d-none d-lg-table-cell d-xl-table-cell text-center">
+                            <i th:if="${motif.isMalus}" class="fa fa-check text-danger" title="Compte comme malus"></i>
+                            <i th:unless="${motif.isMalus}" class="fa fa-times text-secondary"></i>
+                        </td>
+						<td th:text="${motif.userApp ne null ? motif.userApp.eppn : ''}"></td>
+						<td th:text="${#dates.format(motif.dateModification, 'dd/MM/yy HH:mm')}"></td>
+						<td class ="center">
+							<div class="dropdown">
+								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+									<i class="fa-solid fa-ellipsis-vertical"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" th:href="@{/{ctx}/manager/motifAbsence/{id}?form(id=${motif.id},ctx=${eContext})}">Modifier</a>
+									</li>
+									<li><a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-warning" 
+											th:attr="data-bs-target='#modal-warning'+${motif.id }">Supprimer</a>
+									</li>
+								</ul>
+							</div>							
+							<div class="modal modal-warning fade in" th:id="modal-warning+${motif.id}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/manager/motifAbsence/{id}(id=${motif.id},ctx=${eContext})}" method="POST">
+								        	<input type="hidden" name="_method" value="delete" />
+								            <div class="modal-header">
+								                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								            </div>
+											<div class="modal-body">
+												<div class="alert alert-danger text-center">
+													Confirmez-vous la suppression du motif: <br /> <span
+													th:text="${motif.libelle}"
+													class="fw-bold"></span>
+												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-outline pull-left"
+													data-bs-dismiss="modal">Fermer</button>
+												<button type="submit"
+													class="btn btn-outline pull-left btn-danger">Valider</button>
+											</div>
+										</form>
+							        </div>
+							    </div>
+							</div>				
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

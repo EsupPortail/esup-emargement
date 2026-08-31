@@ -14,7 +14,7 @@
 			    <div class="collapse navbar-collapse" id="navbarSupportedContent">
 			      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 	 				<li class="nav-item mr-2"  th:if="${isAdmin or isManager or isSupervisor}">
-				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fas fa-home"></i></a>
+				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'dashboard'} ? 'active' : ''" th:href="@{/{ctx}/dashboard(ctx=${eContext})}"><i class="fa-solid fa-home"></i></a>
 				     </li>
 	 				<li class="nav-item mr-2" th:if="${isParticipantEnabled and(isAdmin or isManager or isSupervisor or isUser)}">
 				     	<a class="nav-link" th:if="${eContext!='all'}" th:classappend="${active == 'user'} ? 'active' : ''" th:href="@{/{ctx}/user(ctx=${eContext})}">
@@ -106,7 +106,7 @@
 					  </li>
 					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 					   <a class="nav-link" th:classappend="${active == 'javaperf'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/javaperf(ctx=${eContext})}">JavaPerf</a>
-					  </li>
+					  </li>					  
 				      <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 				      	<a class="nav-link" th:classappend="${active == 'help'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/help(ctx=${eContext})}">Aide</a>
 				      </li>

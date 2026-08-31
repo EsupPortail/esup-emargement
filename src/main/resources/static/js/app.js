@@ -436,11 +436,9 @@ function initStatsCharts() {
     const year = document.getElementById('anneeUnivSelect')?.value;
 
     if (document.getElementById('statsCharts') && year) {
-        document.body.style.backgroundColor = '#f2f2f2';
         MANAGER_IDS.forEach(id => renderChart(id, 'manager', { year }));
     }
     if (document.getElementById('statsSuperAdminCharts') && year) {
-        document.body.style.backgroundColor = '#f2f2f2';
         SUPERADMIN_IDS.forEach(id => renderChart(id, 'superadmin', { year }));
     }
 }

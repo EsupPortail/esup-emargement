@@ -4,53 +4,56 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header"><h2>Modifier un lieu</h2></div>
-		    	<div  class="alert alert-danger" th:if="${error}">Le lieu avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
-		    	<div  class="alert alert-danger" th:if="${sls}">
-		    	<span th:text="${capacite + ' '}" class="font-weight-bold"></span> comme capacité maximale n'est pas possible, des capacités supérieures pour ce lieu ont été attribuées dans les sessions suivantes :    
-		    	<span th:each="sl : ${sls}">
-		    		<span th:text="${sl.sessionEpreuve.nomSessionEpreuve + ' : ' + sl.capacite}"></span>
-		    	</span>
-		    	</div>
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/admin/location/update/{id}(ctx=${eContext}, id=${location.id})}" th:object="${location}" method="post" enctype="multipart/form-data">
-	                    <div class="row mb-3">
-	                    	<label for="nom" class="col-lg-2 form-label">Nom</label>
-	                    	<div class="col-lg-10">
-								<input type="text" th:field="*{nom}" class="form-control" required="required">
-							</div>
-						</div>
-	                    <div class="row mb-3">
-	                    	<label for="adresse" class="col-lg-2 form-label">Adresse</label>
-	                    	<div class="col-lg-10">
-								<textarea  th:field="*{adresse}" class="form-control"></textarea>
-							</div>
-						</div>
-	                    <div class="row mb-3">
-	                    	<label for="capacite" class="col-lg-2 form-label">Capacité maximale</label>
-	                    	<div class="col-lg-10">
-								 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
-							</div>
-						</div>
-						<div class="row mb-3">
-	                    	<label for="campus" class="col-lg-2 form-label">Site</label>
-	                    	<div class="col-lg-10">
-								<select th:field="*{campus}" class="form-control" required="required">
-									<option th:each="campus : ${allCampuses}"
-										th:value="${campus.id}" th:text="${campus.site}"></option>
-								</select>
-							</div>
-						</div>
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>                  
-                    </form>
-                </div>
-            </div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Modifier un lieu</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/admin/location(ctx=${eContext})}" class="btn btn-info"
+						title="Lieux"><i class="fa-solid fa-home fa-lg"></i></a>
+				</div>				
+			</div>			
+	    	<div  class="alert alert-danger" th:if="${error}">Le lieu avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+			<div class="alert alert-danger" th:if="${sls}">
+				<span th:text="${capacite + ' '}" class="font-weight-bold"></span> comme capacité maximale n'est pas possible, des
+				capacités supérieures pour ce lieu ont été attribuées dans les sessions suivantes :
+				<span th:each="sl : ${sls}">
+					<span th:text="${sl.sessionEpreuve.nomSessionEpreuve + ' : ' + sl.capacite}"></span>
+				</span>
+			</div>
+            <form action="#" th:action="@{/{ctx}/admin/location/update/{id}(ctx=${eContext}, id=${location.id})}" th:object="${location}" method="post" enctype="multipart/form-data">
+                <div class="row mb-3">
+                	<label for="nom" class="col-lg-2 form-label">Nom</label>
+                	<div class="col-lg-10">
+						<input type="text" th:field="*{nom}" class="form-control" required="required">
+					</div>
+				</div>
+                <div class="row mb-3">
+                	<label for="adresse" class="col-lg-2 form-label">Adresse</label>
+                	<div class="col-lg-10">
+						<textarea  th:field="*{adresse}" class="form-control"></textarea>
+					</div>
+				</div>
+                <div class="row mb-3">
+                	<label for="capacite" class="col-lg-2 form-label">Capacité maximale</label>
+                	<div class="col-lg-10">
+						 <input type="number" min="1" th:field="*{capacite}" class="form-control" required="required">
+					</div>
+				</div>
+				<div class="row mb-3">
+                	<label for="campus" class="col-lg-2 form-label">Site</label>
+                	<div class="col-lg-10">
+						<select th:field="*{campus}" class="slimSelectClass" required="required">
+							<option th:each="campus : ${allCampuses}"
+								th:value="${campus.id}" th:text="${campus.site}"></option>
+						</select>
+					</div>
+				</div>
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider">
+                    </div>
+                </div>                  
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

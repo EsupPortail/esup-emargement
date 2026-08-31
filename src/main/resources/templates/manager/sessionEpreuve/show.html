@@ -4,9 +4,13 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid px-3 px-md-4 my-3">
+		<div class="container-fluid px-3 px-md-4 my-2">
 			<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-				<h3 class="mb-0">Session</h3>
+				<h2 class="fs-3 mb-0">Session</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-info" title="Contextes"><i
+							class="fa fa-home fa-lg"></i></a>
+				</div>
 			</div>		
 			<dl class="row">
 				<dt class="col-sm-2">Nom</dt>

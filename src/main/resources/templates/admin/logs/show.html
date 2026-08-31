@@ -4,31 +4,33 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-	        <div class="card">
-		    	<div class="card-header"><h2>Log</h2></div>
-	 				<div class="card-body">
-					<dl class="row">
-			            <dt class="col-sm-2">Date</dt>
-			            <dd class="col-sm-10" th:text="${#dates.format(log.logDate, 'dd-MM-yyyy HH:mm:ss')}"></dd>
-			            <dt class="col-sm-2">Eppn</dt>
-			            <dd class="col-sm-10" th:text="${log.eppn}"></dd>   
-			            <dt class="col-sm-2">Type</dt>
-			            <dd class="col-sm-10" th:text="${log.type}"></dd>   
-			            <dt class="col-sm-2">Action</dt>
-			            <dd class="col-sm-10" th:text="${log.action}"></dd>
-			            <dt class="col-sm-2">Code</dt>
-			            <dd class="col-sm-10" th:text="${log.retCode}" ></dd>       
-			            
-			            <dt class="col-sm-2">Eppn cible</dt>
-			            <dd class="col-sm-10" th:text="${log.cibleLogin}" ></dd>  
-			            <dt class="col-sm-2">Commentaire</dt>
-			            <dd class="col-sm-10" th:text="${log.comment}"></dd>  
-			            <dt class="col-sm-2">Adresse ip</dt>
-			            <dd class="col-sm-10" th:text="${log.remoteAddress}"></dd>               
-					</dl>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Log</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/admin/logs(ctx=${eContext})}" class="btn btn-info" title="Logs"><i
+							class="fa-solid fa-home fa-lg"></i></a>
 				</div>
 			</div>
+			<dl class="row">
+	            <dt class="col-sm-2">Date</dt>
+	            <dd class="col-sm-10" th:text="${#dates.format(log.logDate, 'dd-MM-yyyy HH:mm:ss')}"></dd>
+	            <dt class="col-sm-2">Eppn</dt>
+	            <dd class="col-sm-10" th:text="${log.eppn}"></dd>   
+	            <dt class="col-sm-2">Type</dt>
+	            <dd class="col-sm-10" th:text="${log.type}"></dd>   
+	            <dt class="col-sm-2">Action</dt>
+	            <dd class="col-sm-10" th:text="${log.action}"></dd>
+	            <dt class="col-sm-2">Code</dt>
+	            <dd class="col-sm-10" th:text="${log.retCode}" ></dd>       
+	            
+	            <dt class="col-sm-2">Eppn cible</dt>
+	            <dd class="col-sm-10" th:text="${log.cibleLogin}" ></dd>  
+	            <dt class="col-sm-2">Commentaire</dt>
+	            <dd class="col-sm-10" th:text="${log.comment}"></dd>  
+	            <dt class="col-sm-2">Adresse ip</dt>
+	            <dd class="col-sm-10" th:text="${log.remoteAddress}"></dd>               
+			</dl>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

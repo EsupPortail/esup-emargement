@@ -4,88 +4,76 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-			<div class="card">
-	    		<div class="card-header">
-					<div class="row">
-	    				<div class="col">
-	    					<h2>Archives</h2>
-	    				</div>
-					</div>
-				</div>    			
-  				<div class="card-body">
-  					<div class="row">
-	  					<div class="col-lg-12">
-							<table class="table  table-bordered">
-								<thead class="sticky-top">
-									<tr>
-										<th scope="col">Année</th>
-										<th scope="col">Sessions</th>
-										<th scope="col" class="d-none d-xl-table-cell">Première</th>
-										<th scope="col" class="d-none d-xl-table-cell">Dernière</th>
-										<th scope="col">Date d'archivage</th>
-										<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Archiveur</th>
-										<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Inscrits archivés</th>
-										<th scope="col">Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr th:each="archive : ${archives}">
-										<td ><a th:href="@{/{ctx}/manager/sessionEpreuve?anneeUniv={annee}(annee=${archive.anneeUniv},ctx=${eContext})}" th:text="${archive.anneeUniv}"></a></td>
-										<td th:text="${archive.nbSessions}"></td>
-										<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.firstDate, 'dd-MM-yyyy')}"></td>
-										<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.lastDate, 'dd-MM-yyyy')}"></td>
-										<td th:text="${#dates.format(archive.dateArchivage, 'dd-MM-yyyy')}"></td>
-										<td th:text="${archive.loginArchivage}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
-										<td th:text="${archive.nbAnonymousTagChecks + ' / ' +  archive.nbTagChecks}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
-										<td class="row">
-											<form th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks == 0}" th:action="@{/{ctx}/admin/archives/export(ctx=${eContext})}" method="post">
-												<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
-								    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
-												<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
-												<a th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks != archive.nbTagChecks}" data-bs-toggle="modal" class="btn btn-primary btn-sm ms-1" 
-													data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${archive.anneeUniv}">Archiver</a>												
-											</form>
-											<div class="modal modal-warning fade in" th:id="modal-warning+${archive.anneeUniv}" >
-											    <div class="modal-dialog">
-											        <div class="modal-content">
-											        	<form id="command" th:action="@{/{ctx}/admin/archives/anonymize(ctx=${eContext})}" method="POST">
-												        	<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
-												            <div class="modal-header">
-												                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-												            </div>
-												            <div class="modal-body">
-												                <div class="alert alert-danger text-center">
-												                	<span th:text="${'Confirmez-vous l''anonymisation irréversible des donnéees de l''année universitaire ' + archive.anneeUniv}" class="font-weight-bold"></span> ?
-												                	 <div class="alert alert-warning text-center mt-2">
-																		<div class="form-check form-check-inline">
-																		  <input class="form-check-input" type="radio" name="booleanAnonymize" id="booleanAnonymize1" value="true">
-																		  <label class="form-check-label" for="inlineRadio1">Oui</label>
-																		</div>
-																		<div class="form-check form-check-inline">
-																		  <input class="form-check-input" type="radio" name="booleanAnonymize" id="booleanAnonymize2" value="false" checked="checked">
-																		  <label class="form-check-label" for="inlineRadio2">Non</label>
-																		</div>
-																	</div>
-															</div>              	 
-												            </div>
-												            <div class="modal-footer">
-												                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-												                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
-												            </div>
-											            </form>
-											        </div>
-											    </div>
-											</div>
-											<span th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks == archive.nbTagChecks}">Aucune action possible. Tout est archivé</span>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-	  					</div>
-  					</div>
-				</div>
-  			</div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Archives</h2>
+			</div>
+			<table class="table  table-bordered">
+				<thead class="sticky-top">
+					<tr>
+						<th scope="col">Année</th>
+						<th scope="col">Sessions</th>
+						<th scope="col" class="d-none d-xl-table-cell">Première</th>
+						<th scope="col" class="d-none d-xl-table-cell">Dernière</th>
+						<th scope="col">Date d'archivage</th>
+						<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Archiveur</th>
+						<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell">Inscrits archivés</th>
+						<th scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="archive : ${archives}">
+						<td ><a th:href="@{/{ctx}/manager/sessionEpreuve?anneeUniv={annee}(annee=${archive.anneeUniv},ctx=${eContext})}" th:text="${archive.anneeUniv}"></a></td>
+						<td th:text="${archive.nbSessions}"></td>
+						<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.firstDate, 'dd-MM-yyyy')}"></td>
+						<td class="d-none d-xl-table-cell" th:text="${#dates.format(archive.lastDate, 'dd-MM-yyyy')}"></td>
+						<td th:text="${#dates.format(archive.dateArchivage, 'dd-MM-yyyy')}"></td>
+						<td th:text="${archive.loginArchivage}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
+						<td th:text="${archive.nbAnonymousTagChecks + ' / ' +  archive.nbTagChecks}" class="d-none d-lg-table-cell d-xl-table-cell"></td>
+						<td class="row">
+							<form th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks == 0}" th:action="@{/{ctx}/admin/archives/export(ctx=${eContext})}" method="post">
+								<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
+				    			<input type="submit" class="btn btn-danger btn-sm exportInscrits" name='type' value="PDF" />
+								<input type="submit" class="btn btn-success btn-sm exportInscrits" name='type' value="CSV" />
+								<a th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks != archive.nbTagChecks}" data-bs-toggle="modal" class="btn btn-primary btn-sm ms-1" 
+									data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${archive.anneeUniv}">Archiver</a>												
+							</form>
+							<div class="modal modal-warning fade in" th:id="modal-warning+${archive.anneeUniv}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/admin/archives/anonymize(ctx=${eContext})}" method="POST">
+								        	<input type="hidden" id="anneeUniv" name="anneeUniv" th:value="${archive.anneeUniv}" />
+								            <div class="modal-header">
+								                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								            </div>
+								            <div class="modal-body">
+								                <div class="alert alert-danger text-center">
+								                	<span th:text="${'Confirmez-vous l''anonymisation irréversible des donnéees de l''année universitaire ' + archive.anneeUniv}" class="font-weight-bold"></span> ?
+								                	 <div class="alert alert-warning text-center mt-2">
+														<div class="form-check form-check-inline">
+														  <input class="form-check-input" type="radio" name="booleanAnonymize" id="booleanAnonymize1" value="true">
+														  <label class="form-check-label" for="inlineRadio1">Oui</label>
+														</div>
+														<div class="form-check form-check-inline">
+														  <input class="form-check-input" type="radio" name="booleanAnonymize" id="booleanAnonymize2" value="false" checked="checked">
+														  <label class="form-check-label" for="inlineRadio2">Non</label>
+														</div>
+													</div>
+											</div>              	 
+								            </div>
+								            <div class="modal-footer">
+								                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+								                <button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+								            </div>
+							            </form>
+							        </div>
+							    </div>
+							</div>
+							<span th:if="${archive.nbTagChecks != 0 and archive.nbAnonymousTagChecks == archive.nbTagChecks}">Aucune action possible. Tout est archivé</span>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

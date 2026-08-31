@@ -287,9 +287,7 @@ public class SessionEpreuveController {
     }
 	
 	@GetMapping(value = "/manager/sessionEpreuve", params = "form", produces = "text/html")
-	public String createForm(Model uiModel, 
-	                         @RequestParam(required = false) String anneeUniv, 
-	                         @RequestHeader(value = "HX-Request", required = false) String hxRequest) {
+	public String createForm(Model uiModel, @RequestParam(required = false) String anneeUniv) {
 	    SessionEpreuve sessionEpreuve = new SessionEpreuve();
 	    sessionEpreuve.setTypeBadgeage(TypeBadgeage.SALLE);
 	    sessionEpreuve.setCampus(
@@ -300,9 +298,6 @@ public class SessionEpreuveController {
 	    	);
 	    populateEditForm(uiModel, sessionEpreuve);
 	    uiModel.addAttribute("currentAnneeUniv", anneeUniv);
-	    if (hxRequest != null) {
-	    	return "manager/sessionEpreuve/create-modal :: modal-create";
-	    }
 	    return "manager/sessionEpreuve/create";
 	}
     
@@ -336,8 +331,7 @@ public class SessionEpreuveController {
     
     @PostMapping("/manager/sessionEpreuve/create")
     public String create(@PathVariable String emargementContext, @Valid SessionEpreuve sessionEpreuve, BindingResult bindingResult, 
-    		Model uiModel, final RedirectAttributes redirectAttributes, @RequestParam String strDateExamen, 
-    		@RequestParam String strDateFin, @RequestHeader(value = "HX-Request", required = false) String hxRequest) throws IOException, ParseException {
+    		Model uiModel,@RequestParam String strDateExamen, @RequestParam String strDateFin) throws IOException, ParseException {
     	Date dateExamen=new SimpleDateFormat("yyyy-MM-dd").parse(strDateExamen);
     	sessionEpreuve.setDateExamen(dateExamen);
     	if(sessionEpreuve.getHeureConvocation() == null) {
@@ -370,12 +364,7 @@ public class SessionEpreuveController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
 		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
-		
-		 if (hxRequest != null) {
-			 uiModel.addAttribute("sessionEpreuve",sessionEpreuve);
-			 return "manager/sessionEpreuve/modal-show1 ::show-modal";
-		 }
-		 return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
+		return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")

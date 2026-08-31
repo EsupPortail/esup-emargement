@@ -4,106 +4,104 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-			<div class="card">
-				<div class="card-header">
-					<div class="row">
-			    		<div class="col">
-					    	<h2>Absences</h2>
-					    </div>
-					    <div class="col">
-							<div class="col-auto">
-								<a th:href="@{/{ctx}/manager/absence?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter une absence">
-								<i class="fa fa-plus fa-lg"></i></a>
-							</div>								
-					    </div>
-					</div>
-				</div>
-  				<div class="card-body">
-					<table class="table table-hover table-striped table-bordered tableAbsence">
-						<thead class ="center sticky-top">
-							<tr>
-								<th scope="col">Civilité</th>
-								<th scope="col">Nom</th>
-								<th scope="col">Prénom</th>
-								<th scope="col">Motif</th>
-								<th scope="col">Type</th>
-								<th scope="col">Statut</th>
-								<th scope="col">Code</th>
-								<th scope="col" class="dateItem">Début</th>
-								<th scope="col" class="dateItem">Fin</th>
-								<th scope="col">début</th>
-								<th scope="col">fin</th>
-								<th scope="col">PJ</th>
-								<th scope="col">Modificateur</th>
-								<th scope="col">Modification</th>
-								<th scope="col">Commentaire</th>
-								<th scope="col" class="no-sort">Actions</th>
-							</tr>
-						</thead>
-						<tbody class ="center">
-							<tr th:each="absence : ${absences}" th:with="ind=${absence.person}">
-								<td th:text="${ind.civilite}"></td>
-								<td th:text="${ind.nom}"></td>
-								<td th:text="${ind.prenom}"></td>
-								<td>
-								    <span>
-								        <th:block th:if="${absence.motifAbsence != null and absence.motifAbsence.color ne null}">
-								            <input class="colorBox" type="color" th:value="${absence.motifAbsence.color}" disabled>
-								        </th:block>
-								        <th:block th:if="${absence.motifAbsence != null}">
-								            <span th:text="${absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
-								        </th:block>
-								    </span>
-								</td>
-								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.typeAbsence : ''}"></td>
-								<td th:text="${absence.motifAbsence != null? absence.motifAbsence.statutAbsence : ''}"></td>
-								<td th:text="${ind.numIdentifiant}"></td>
-								<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
-								<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>
-								<td th:text="${#dates.format(absence.heureDebut, 'HH:mm')}"></td>
-								<td th:text="${#dates.format(absence.heureFin, 'HH:mm')}"></td>
-								<td th:text="${absence.nbStoredFiles}"></td>
-								<td th:text="${absence.userApp ne null ? absence.userApp.eppn : ''}"></td>
-								<td th:text="${#dates.format(absence.dateModification, 'dd/MM/yy HH:mm')}"></td>
-								<td th:text="${absence.commentaire}"></td>
-								<td>
-									<a data-bs-toggle="modal" data-bs-target="#modal-warning" 
-											th:attr="data-bs-target='#modal-warning'+${absence.id }"><i class="fa fa-trash text-danger ms-2"></i></a>
-									<a th:href="@{/{ctx}/manager/absence/{id}?form(id=${absence.id},ctx=${eContext})}" 
-											class="center ms-2" title="Modifier"><i class="fa fa-pen text-warning"></i></a>								
-									<div class="modal modal-warning fade in" th:id="modal-warning+${absence.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form id="command" th:action="@{/{ctx}/manager/absence/{id}(id=${absence.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-													<div class="modal-body">
-														<div class="alert alert-danger text-center">
-															Confirmez-vous la suppression l'absence de: <br /> <span
-															th:if="${ind != null}"
-															th:text="${ind.prenom + ' ' + ind.nom}"
-															class="fw-bold"></span>
-														</div>
-													</div>
-													<div class="modal-footer">
-														<button type="button" class="btn btn-outline pull-left"
-															data-bs-dismiss="modal">Fermer</button>
-														<button type="submit"
-															class="btn btn-outline pull-left btn-danger">Valider</button>
-													</div>
-												</form>
-									        </div>
-									    </div>
-									</div>				
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-  			</div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Absences</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/absence?form(ctx=${eContext})}" class="btn btn-primary ms-1 float-end" title="Ajouter une absence">
+					<i class="fa-solid fa-plus fa-lg"></i></a>		
+				</div>				
+			</div>	
+			<table class="table table-hover table-striped table-bordered tableAbsence">
+				<thead class ="center sticky-top">
+					<tr>
+						<th scope="col">Civilité</th>
+						<th scope="col">Nom</th>
+						<th scope="col">Prénom</th>
+						<th scope="col">Motif</th>
+						<th scope="col">Type</th>
+						<th scope="col">Statut</th>
+						<th scope="col">Code</th>
+						<th scope="col" class="dateItem">Début</th>
+						<th scope="col" class="dateItem">Fin</th>
+						<th scope="col">début</th>
+						<th scope="col">fin</th>
+						<th scope="col">PJ</th>
+						<th scope="col">Modificateur</th>
+						<th scope="col">Modification</th>
+						<th scope="col">Commentaire</th>
+						<th scope="col" class="no-sort">Actions</th>
+					</tr>
+				</thead>
+				<tbody class ="center">
+					<tr th:each="absence : ${absences}" th:with="ind=${absence.person}">
+						<td th:text="${ind.civilite}"></td>
+						<td th:text="${ind.nom}"></td>
+						<td th:text="${ind.prenom}"></td>
+						<td>
+						    <span>
+						        <th:block th:if="${absence.motifAbsence != null and absence.motifAbsence.color ne null}">
+						            <input class="colorBox" type="color" th:value="${absence.motifAbsence.color}" disabled>
+						        </th:block>
+						        <th:block th:if="${absence.motifAbsence != null}">
+						            <span th:text="${absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+						        </th:block>
+						    </span>
+						</td>
+						<td th:text="${absence.motifAbsence != null? absence.motifAbsence.typeAbsence : ''}"></td>
+						<td th:text="${absence.motifAbsence != null? absence.motifAbsence.statutAbsence : ''}"></td>
+						<td th:text="${ind.numIdentifiant}"></td>
+						<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
+						<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>
+						<td th:text="${#dates.format(absence.heureDebut, 'HH:mm')}"></td>
+						<td th:text="${#dates.format(absence.heureFin, 'HH:mm')}"></td>
+						<td th:text="${absence.nbStoredFiles}"></td>
+						<td th:text="${absence.userApp ne null ? absence.userApp.eppn : ''}"></td>
+						<td th:text="${#dates.format(absence.dateModification, 'dd/MM/yy HH:mm')}"></td>
+						<td th:text="${absence.commentaire}"></td>
+						<td>
+							<div class="dropdown">
+								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+									<i class="fa-solid fa-ellipsis-vertical"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" th:href="@{/{ctx}/manager/absence/{id}?form(id=${absence.id},ctx=${eContext})}">Modifier</a>
+									</li>
+									<li><a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-warning" 
+											th:attr="data-bs-target='#modal-warning'+${absence.id }">Supprimer</a>
+									</li>
+								</ul>
+							</div>					
+							<div class="modal modal-warning fade in" th:id="modal-warning+${absence.id}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/manager/absence/{id}(id=${absence.id},ctx=${eContext})}" method="POST">
+								        	<input type="hidden" name="_method" value="delete" />
+								            <div class="modal-header">
+								                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								            </div>
+											<div class="modal-body">
+												<div class="alert alert-danger text-center">
+													Confirmez-vous la suppression l'absence de: <br /> <span
+													th:if="${ind != null}"
+													th:text="${ind.prenom + ' ' + ind.nom}"
+													class="fw-bold"></span>
+												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-outline pull-left"
+													data-bs-dismiss="modal">Fermer</button>
+												<button type="submit"
+													class="btn btn-outline pull-left btn-danger">Valider</button>
+											</div>
+										</form>
+							        </div>
+							    </div>
+							</div>				
+						</td>
+					</tr>
+				</tbody>
+			</table>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

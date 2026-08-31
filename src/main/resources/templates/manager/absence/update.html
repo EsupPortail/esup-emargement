@@ -3,79 +3,81 @@
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header"><h2>Modifier une absence</h2></div>
-  				<div class="card-body">
-					<div class="alert alert-info">Si les dates de cette absence ne sont pas bonnes, vous devez supprimer cette absence et en créer une nouvelle.</div>
-                    <form action="#" th:action="@{/{ctx}/manager/absence/update/{id}(ctx=${eContext},id=${absence.id})}" th:object="${absence}" method="post" enctype="multipart/form-data">
-						<div class="row mb-3">
-							<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
-							<div class="col-lg-10">
-								<select th:field="*{motifAbsence}" required="required">
-								<option value="">----Choisir----</option>
-									<option th:each="motif : ${motifAbsences}"
-										th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
-								</select>
-							</div>
-						</div>
-	                     <div class="row mb-3">
-	                        <label for="eppn"  class="col-lg-2 form-label">Personne</label>
-	                        <div class="col-lg-10">
-								<input type="disabled"class="form-control" th:value="${nomPrenom}" disabled/>
-								<input type="hidden" name="person" th:value="${absence.person.id}" />
-	                        </div>
-	                    </div>
-	                    <div class="row mb-3">
-							<label for="dateExamen" class="col-lg-2 form-label">Date de début</label>
-		                    <div class="col-lg-10">
-		                        <input type="date"  id="strDateDebut" placeholder="dd/MM/YYYY" name="strDateDebut" class="form-control"
-		                        th:value="${#dates.format(absence.dateDebut, 'yyyy-MM-dd')}" required="required" disabled>
-		                    </div>
-	                    </div>
-	                    <div class="row mb-3">		                    
-		                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin</label>
-		                    <div class="col-lg-10">
-		                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
-		                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}" disabled>
-		                    </div>
-	                    </div>
-	                    <div class="row mb-3">
-		                    <label for="heureDebut" class="col-lg-2 form-label">Heure de début</label>
-	                       	<div class="col-lg-10">
-		                        <input type="time" th:field="*{heureDebut}" class="form-control" id="heureDebut"
-		                        	required="required" disabled>
-	                        </div>
-	                    </div>
-	                    <div class="row mb-3">
-	                        <label for="finEpreuve" class="col-lg-2 form-label">Heure de fin</label>
-	                        <div class="col-lg-10">
-	                        	<input type="time" th:field="*{heureFin}" class="form-control" id="heureFin"
-	                        		required="required" disabled>
-	                        </div>
-	                    </div>	                    
-	                    <div class="row mb-3">
-		                    <label for="file" class="col-lg-2 form-label">Pièces jointes</label>
-		                    <div class="col-lg-10">
-			                    <div class="file-loading">
-				 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
-				 				</div>
-			 				</div>
-						</div>
-	                    <div class="row mb-3">
-	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
-	                        <div class="col-lg-10">
-	                        	<textarea th:field="*{commentaire}" class="form-control"></textarea>
-	                        </div>
-	                    </div>
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>
-                    </form>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Modifier une absence<</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/absence(ctx=${eContext})}" class="btn btn-info" title="Motifs d'absence"><i
+							class="fa-solid fa-home fa-lg"></i></a>
+				</div>				
+			</div>	
+			<div class="alert alert-info">Si les dates de cette absence ne sont pas bonnes, vous devez supprimer cette absence et en créer une nouvelle.</div>
+            <form action="#" th:action="@{/{ctx}/manager/absence/update/{id}(ctx=${eContext},id=${absence.id})}" th:object="${absence}" method="post" enctype="multipart/form-data">
+				<div class="row mb-3">
+					<label for="motifAbsence" class="col-lg-2 form-label">Type</label>
+					<div class="col-lg-10">
+						<select th:field="*{motifAbsence}" required="required">
+						<option value="">----Choisir----</option>
+							<option th:each="motif : ${motifAbsences}"
+								th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + ' - ' + motif.statutAbsence +'] '}"></option>
+						</select>
+					</div>
+				</div>
+                 <div class="row mb-3">
+                    <label for="eppn"  class="col-lg-2 form-label">Personne</label>
+                    <div class="col-lg-10">
+						<input type="disabled"class="form-control" th:value="${nomPrenom}" disabled/>
+						<input type="hidden" name="person" th:value="${absence.person.id}" />
+                    </div>
                 </div>
-            </div>
+                <div class="row mb-3">
+					<label for="dateExamen" class="col-lg-2 form-label">Date de début</label>
+                    <div class="col-lg-10">
+                        <input type="date"  id="strDateDebut" placeholder="dd/MM/YYYY" name="strDateDebut" class="form-control"
+                        th:value="${#dates.format(absence.dateDebut, 'yyyy-MM-dd')}" required="required" disabled>
+                    </div>
+                </div>
+                <div class="row mb-3">		                    
+                    <label for="dateExamen" class="col-lg-2 form-label">Date de fin</label>
+                    <div class="col-lg-10">
+                    	<input type="date" placeholder="dd/MM/YYYY" name="strDateFin" class="form-control"
+                        	th:value="${#dates.format(absence.dateFin, 'yyyy-MM-dd')}" disabled>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="heureDebut" class="col-lg-2 form-label">Heure de début</label>
+                   	<div class="col-lg-10">
+                        <input type="time" th:field="*{heureDebut}" class="form-control" id="heureDebut"
+                        	required="required" disabled>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="finEpreuve" class="col-lg-2 form-label">Heure de fin</label>
+                    <div class="col-lg-10">
+                    	<input type="time" th:field="*{heureFin}" class="form-control" id="heureFin"
+                    		required="required" disabled>
+                    </div>
+                </div>	                    
+                <div class="row mb-3">
+                    <label for="file" class="col-lg-2 form-label">Pièces jointes</label>
+                    <div class="col-lg-10">
+	                    <div class="file-loading">
+		 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
+		 				</div>
+	 				</div>
+				</div>
+                <div class="row mb-3">
+                    <label for="comment" class="col-lg-2 form-label">Commentaire</label>
+                    <div class="col-lg-10">
+                    	<textarea th:field="*{commentaire}" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider">
+                    </div>
+                </div>
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

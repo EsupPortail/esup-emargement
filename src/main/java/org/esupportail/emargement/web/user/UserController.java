@@ -96,7 +96,7 @@ public class UserController {
 	}
 
 	@GetMapping(value = "/user")
-	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 20, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
+	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 10, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
 			@RequestParam(required = false) String sessionToken, @RequestParam(required = false, defaultValue = "") String scanClass) throws ParseException{
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(sessionToken!=null) {

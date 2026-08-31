@@ -189,6 +189,7 @@ public class SessionEpreuveService {
 	private final static String SESSIONS_SORTBYCAMPUS = "sessionsSortByCampus";
 	private final static String SESSIONS_SORTBYLISTE = "sessionsSortByListe";
 	private final static String SESSIONS_SORTBYADE = "sessionsSortByAde";
+	private final static String SESSIONS_SORTBYANNEEUNIV = "sessionsSortByAnneeUniv";
 	
 	public void computeCounters(List<SessionEpreuve> sessionEpreuveList) {
 		for(SessionEpreuve session : sessionEpreuveList) {
@@ -1160,6 +1161,7 @@ public class SessionEpreuveService {
 		List<Prefs> prefsListe = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYLISTE);
 		List<Prefs> prefsAde = isAdeEnabled ? prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYADE)
 				: new ArrayList<>();
+		List<Prefs> prefsAnneeUniv = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYANNEEUNIV);
 
 		if (searchString != null) {
 			sessionSearch.setId(searchString);
@@ -1183,6 +1185,8 @@ public class SessionEpreuveService {
 				sessionSearch
 						.setAdeBranch(ade.isEmpty() || "all".equals(ade) ? null : getAdeBranchById(Long.valueOf(ade)));
 			}
+			String anneeUniv = prefsAnneeUniv.isEmpty() ? getLastAnneeUniv(context): prefsAnneeUniv.get(0).getValue();
+			sessionSearch.setAnneeUniv(anneeUniv);
 		} else {
 			updateUserPreferences(eppn, context, sessionSearch, dateSessions, view, isAdeEnabled);
 		}
@@ -1264,5 +1268,8 @@ public class SessionEpreuveService {
 					sessionSearch.getAdeBranch() == null ? "" : sessionSearch.getAdeBranch().getId().toString(), eppn,
 					context, "dummy");
 		}
+
+		preferencesService.updatePrefs(SESSIONS_SORTBYANNEEUNIV, sessionSearch.getAnneeUniv() == null ? getLastAnneeUniv(context): 
+			sessionSearch.getAnneeUniv(), eppn,	context, "dummy");
 	}
 }

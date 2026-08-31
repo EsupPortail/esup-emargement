@@ -4,75 +4,79 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-         	<div class="card">
-	    		<div class="card-header">
-	    			<div class="row">
-			    		<div class="col">
-					    	<h2>Type de session </h2>
-					    </div>
-					    <div class="col">
-						    <div class="row float-end me-1">
-						    	<a th:href="@{/{ctx}/admin/typeSession?form(ctx=${eContext})}" class="btn btn-primary ms-2"><i class="fa fa-plus fa-lg"></i></a>
-						    </div>
-					    </div> 
-	    			</div>
-	    		</div>         	
-  				<div class="card-body">
-		    		<div  class="alert alert-danger" th:if="${error}">Un type de session avec cette clé existe déjà</div>
-								<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkTypeSession)}" >Initialiser types de session : </span>
-									<a th:href="@{/{ctx}/admin/typeSession/updateTypes(ctx=${eContext})}" class="btn btn-warning ms-3">Mettre à jour</a>		
-								</div>
-								<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold" th:text="${nbUpdate + ' '}"></span>type de sessions ajoutée(s)</div>	
-					<table class="table table-hover table-striped table-bordered">
-						<thead class="sticky-top">
-							<tr>
-								<th scope="col">Code</th>
-								<th  scope="col">Libellé</th>
-								<th class ="center" scope="col"><a class="sorted" sd:pagination-sort="addByAdmin">Natif</a></th>
-								<th class ="center" scope="col">Date de modification</th>
-								<th scope="col">Commentaire</th>
-								<th class ="center" scope="col">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="type : ${typeSessionPage}" >
-								<td th:text="${type.key}"></td>
-								<td th:text="${type.libelle}"></td>
-								<td class ="center"><i th:class="${type.addByAdmin} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i></td>
-								<td class ="center" th:text="${#dates.format(type.dateModification, 'dd-MM-yyyy')}"></td>
-								<td th:text="${type.comment}"></td>
-								<td class ="center"><a th:href="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-									<a class ="ms-2" th:href="@{/{ctx}/admin/typeSession/{id}?form(id=${type.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
-									<a class ="ms-2" th:if="${!type.addByAdmin}" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${type.id }"><i class="fa fa-trash text-danger"></i></a>
-									<div class="modal modal-warning fade in" th:id="modal-warning+${type.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form id="command" th:action="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-										               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-										            <div class="modal-body">
-										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce type : <br />
-										                	 <span th:text="${type.libelle}" class="font-weight-bold"></span> ?</div>
-										            </div>
-										            <div class="modal-footer">
-										                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
-										            </div>
-									            </form>
-									        </div>
-									    </div>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<nav th:replace="fragments/pagination :: pagination"></nav>
-					</div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Types de session</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/admin/typeSession?form(ctx=${eContext})}" class="btn btn-primary" title="Ajouter un type de session"><i class="fa-solid fa-plus fa-lg"></i></a>
 				</div>
 			</div>
+			<div class="alert alert-danger" th:if="${error}">Un type de session avec cette clé existe déjà</div>
+			<div class="alert alert-danger" th:if="${not #lists.isEmpty(checkTypeSession)}">Initialiser types de session : </span>
+				<a th:href="@{/{ctx}/admin/typeSession/updateTypes(ctx=${eContext})}" class="btn btn-warning ms-3">Mettre à jour</a>
+			</div>
+			<div class="alert alert-info" th:if="${#ctx.containsVariable('nbUpdate')}"><span class="font-weight-bold"
+					th:text="${nbUpdate + ' '}"></span>type de sessions ajoutée(s)</div>
+			<table class="table table-hover table-striped table-bordered">
+				<thead class="sticky-top">
+					<tr>
+						<th scope="col">Code</th>
+						<th  scope="col">Libellé</th>
+						<th class ="center" scope="col"><a class="sorted" sd:pagination-sort="addByAdmin">Natif</a></th>
+						<th class ="center" scope="col">Date de modification</th>
+						<th scope="col">Commentaire</th>
+						<th class ="center" scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="type : ${typeSessionPage}" >
+						<td th:text="${type.key}"></td>
+						<td th:text="${type.libelle}"></td>
+						<td class ="center"><i th:class="${type.addByAdmin} ? 'fa-solid fa-check text-success' :'fa fa-times text-danger'"></i></td>
+						<td class ="center" th:text="${#dates.format(type.dateModification, 'dd-MM-yyyy')}"></td>
+						<td th:text="${type.comment}"></td>
+						<td class ="center">
+							<div class="dropdown">
+								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+									<i class="fa-solid fa-ellipsis-vertical"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" th:href="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}">Voir</a>
+									</li>
+									<li><a class="dropdown-item" th:href="@{/{ctx}/admin/typeSession/{id}?form(id=${type.id},ctx=${eContext})}">Modifier</a>
+									</li>
+									<li th:if="${!type.addByAdmin}"><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-warning" 
+										th:attr="data-bs-target='#modal-warning'+${type.id}" href="#">Supprimer</a>
+									</li>
+								</ul>
+							</div>				
+							<a class ="ms-2" th:if="${!type.addByAdmin}" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${type.id }"><i class="fa-solid fa-trash text-danger"></i></a>
+							<div class="modal modal-warning fade in" th:id="modal-warning+${type.id}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/admin/typeSession/{id}(id=${type.id},ctx=${eContext})}" method="POST">
+								        	<input type="hidden" name="_method" value="delete" />
+								            <div class="modal-header">
+								               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								            </div>
+								            <div class="modal-body">
+								                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce type : <br />
+								                	 <span th:text="${type.libelle}" class="font-weight-bold"></span> ?</div>
+								            </div>
+								            <div class="modal-footer">
+								                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+								                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+								            </div>
+							            </form>
+							        </div>
+							    </div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		<nav th:replace="fragments/pagination :: pagination"></nav>
+		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
 </html>

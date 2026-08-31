@@ -4,86 +4,89 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="locationPage">
-         	<div class="card">
-	    		<div class="card-header">
-	    			<div class="row">
-			    		<div class="col">
-					    	<h2>Lieux </h2>
-					    </div>
-					    <div class="col">
-							<a th:href="@{/{ctx}/admin/location?form(ctx=${eContext})}" class="btn btn-primary ms-2 float-end"><i class="fa fa-plus fa-lg"></i></a>
-					    	<button class="btn btn-info ms-1 float-end" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un lieu"><i class="fas fa-search"></i></button>
-					    </div> 
-	    			</div>
-	    		</div>	
-  				<div class="card-body">
-	    			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
-						<form action="#" th:action="@{|/${eContext}/admin/location|}" id="formSearch" class="form-inline alert alert-dark p-1 ">
-							<div class="row">
-								<div class="col">
-									<input name="searchString" class="form-control searchBox"
-										th:hx-get="@{|/${eContext}/supervisor/search/location|}" hx-trigger="keyup changed"
-										hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche">
-									<div id="searchResults"></div>
-									<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-								</div>
-								<div class="col">
-									<a title="Annuler recherche" th:href="@{|/${eContext}/admin/location|}"
-										class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
-								</div>
-							</div>
-						</form>
-						</div>
-	    			</div>
-		    		<div  class="alert alert-danger" th:if="${error}">Suppression impossible : le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session.</div>
-					<table class="table table-hover table-striped table-bordered">
-						<thead class="sticky-top">
-							<tr>
-								<th scope="col"><a class="sorted" sd:pagination-sort="nom">Nom</a></th>
-								<th scope="col"><a class="sorted" sd:pagination-sort="capacite">Capacité maximale</a></th>
-								<th scope="col"><a class="sorted" sd:pagination-sort="campus.site">Site</a></th>
-								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Adresse</th>
-								<th class ="center" scope="col">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr th:each="location : ${locationPage}"  th:id="${location.id}" th:class="${(location.campus== null)? 'table-danger' :''}">
-								<td th:text="${location.nom}"></td>
-								<td th:text="${location.capacite}"></td>
-								<td th:text="${(location.campus!= null)? location.campus.site : ''}"></td>
-								<td th:text="${location.adresse}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-								<td class ="text-center"><a th:href="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a>
-									<a class ="ms-2" th:href="@{/{ctx}/admin/location/{id}?form(id=${location.id},ctx=${eContext})}"><i class="fa fa-pen text-warning"></i></a>
-									<a class ="ms-2" data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${location.id }"><i class="fa fa-trash text-danger"></i></a>
-									<div class="modal modal-warning fade in" th:id="modal-warning+${location.id}" >
-									    <div class="modal-dialog">
-									        <div class="modal-content">
-									        	<form id="command" th:action="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}" method="POST">
-										        	<input type="hidden" name="_method" value="delete" />
-										            <div class="modal-header">
-										                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										            </div>
-										            <div class="modal-body">
-										                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce lieu : <br />
-										                	 <span th:text="${location.nom}" class="font-weight-bold"></span> ?</div>
-										            </div>
-										            <div class="modal-footer">
-										                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-										                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
-										            </div>
-									            </form>
-									        </div>
-									    </div>
-									</div>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-					<nav th:replace="fragments/pagination :: pagination"></nav>
-					</div>
+		<div class="container-fluid px-3 px-md-4 my-2" id="locationPage">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Lieux</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/admin/location?form(ctx=${eContext})}" class="btn btn-primary ms-2 float-end"><i class="fa-solid fa-plus fa-lg"></i></a>
+					<button class="btn btn-info ms-1 float-end" type="button" data-bs-toggle="collapse" data-bs-target="#searchCollapse" title="Rechercher un lieu"><i class="fa-solid fa-search"></i></button>
 				</div>
 			</div>
+			<div class="collapse" id="searchCollapse" th:classappend="${collapse}">
+				<form action="#" th:action="@{|/${eContext}/admin/location|}" id="formSearch" class="form-inline alert alert-dark p-1 ">
+					<div class="row">
+						<div class="col">
+							<input name="searchString" class="form-control searchBox"
+								th:hx-get="@{|/${eContext}/supervisor/search/location|}" hx-trigger="keyup changed"
+								hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche">
+							<div id="searchResults"></div>
+							<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+						</div>
+						<div class="col">
+							<a title="Annuler recherche" th:href="@{|/${eContext}/admin/location|}"
+								class="btn btn-danger btn-sm ms-1"><i class="fas fa-undo"></i></a>
+						</div>
+					</div>
+				</form>
+			</div>
+		    <div  class="alert alert-danger" th:if="${error}">Suppression impossible : le lieu <span class="font-weight-bold" th:text="${item}"></span> est utilisé dans une session.</div>
+			<table class="table table-hover table-striped table-bordered">
+				<thead class="sticky-top">
+					<tr>
+						<th scope="col"><a class="sorted" sd:pagination-sort="nom">Nom</a></th>
+						<th scope="col"><a class="sorted" sd:pagination-sort="capacite">Capacité maximale</a></th>
+						<th scope="col"><a class="sorted" sd:pagination-sort="campus.site">Site</a></th>
+						<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Adresse</th>
+						<th class ="center" scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="location : ${locationPage}"  th:id="${location.id}" th:class="${(location.campus== null)? 'table-danger' :''}">
+						<td th:text="${location.nom}"></td>
+						<td th:text="${location.capacite}"></td>
+						<td th:text="${(location.campus!= null)? location.campus.site : ''}"></td>
+						<td th:text="${location.adresse}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+						<td class ="text-center">
+							<div class="dropdown">
+								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+									<i class="fa-solid fa-ellipsis-vertical"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" th:href="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}">Voir</a>
+									</li>
+									<li><a class="dropdown-item" th:href="@{/{ctx}/admin/location/{id}?form(id=${location.id},ctx=${eContext})}">Modifier</a>
+									</li>
+									<li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-warning" 
+										th:attr="data-bs-target='#modal-warning'+${location.id}" href="#">Supprimer</a>
+									</li>
+								</ul>
+							</div>				
+							<div class="modal modal-warning fade in" th:id="modal-warning+${location.id}" >
+							    <div class="modal-dialog">
+							        <div class="modal-content">
+							        	<form id="command" th:action="@{/{ctx}/admin/location/{id}(id=${location.id},ctx=${eContext})}" method="POST">
+								        	<input type="hidden" name="_method" value="delete" />
+								            <div class="modal-header">
+								                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								            </div>
+								            <div class="modal-body">
+								                <div class="alert alert-danger text-center">Confirmez-vous la suppression de ce lieu : <br />
+								                	 <span th:text="${location.nom}" class="font-weight-bold"></span> ?</div>
+								            </div>
+								            <div class="modal-footer">
+								                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+								                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+								            </div>
+							            </form>
+							        </div>
+							    </div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<nav th:replace="fragments/pagination :: pagination"></nav>
+		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
 </html>

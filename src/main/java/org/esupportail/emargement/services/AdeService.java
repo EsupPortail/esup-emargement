@@ -867,6 +867,10 @@ public class AdeService {
 					for(AdeInstructorBean bean : adeInstructorBeans) {
 						UserApp userApp = null;
 						List<LdapUser> ldapUsers = ldapUserRepository.findByEmailContainingIgnoreCase(bean.getEmail());
+						if (bean.getEmail() == null || bean.getEmail().isEmpty()) {
+							log.warn("Import surveillant impossible car l'email est vide pour le surveillant : "
+									+ bean.getNom());
+						}
 						if(!ldapUsers.isEmpty()) {
 							String eppn = ldapUsers.get(0).getEppn();
 							userApp = userAppRepository.findByEppnAndContext(eppn, ctx);

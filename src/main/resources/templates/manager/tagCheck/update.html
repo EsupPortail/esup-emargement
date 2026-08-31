@@ -4,86 +4,92 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header" th:with="se =${tagCheck.sessionEpreuve}"><h2>Modifier une inscription</h2>
-					<small class="text-muted h5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') +
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2" th:with="se =${tagCheck.sessionEpreuve}">
+			    <div>
+			       <h2 class="fs-3 mb-1">
+			            Modifier une inscription
+			            <span class="badge bg-secondary badge-size" th:text="${countTagChecks}"></span>
+			        </h2>
+					<small class="text-muted fs-5" th:text="${se.nomSessionEpreuve + ' le ' + #dates.format(se.dateExamen, 'dd-MM-yyyy') +
 					#dates.format(se.heureEpreuve, ' HH:mm') +  #dates.format(se.finEpreuve, '  - HH:mm') + ' à ' + se.campus.site}"></small>
-			        <small class="text-muted h5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
-			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>	
-		    	</div>
-           		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
-					La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
-						vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
-				</div>		    	
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/manager/tagCheck/update/{id}(ctx=${eContext}, id=${tagCheck.id})}" th:object="${tagCheck}" method="post">
-	                    <div class="row mb-3">
-	                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
-	                    	<div class="col-lg-10">
-	                    		<input type="text"  class="form-control" th:id="*{sessionEpreuve}"  th:value="${tagCheck.sessionEpreuve.nomSessionEpreuve}" disabled="disabled">
-							</div>
-						</div>		
-	                    <div class="row mb-3">
-	                    	<label for="person" class="col-lg-2 form-label">Identifiant</label>
-	                    	<div class="col-lg-10">
-	                    		<input  th:if="${tagCheck.person != null}"  type="text"  class="form-control" th:id="*{person}"  th:value="${tagCheck.person.eppn}" disabled="disabled">
-	                    		<input  th:if="${tagCheck.guest!= null}"  type="text"  class="form-control" th:id="*{guest}"  th:value="${tagCheck.guest.email}" disabled="disabled">
-							</div>
+			        <small class="text-muted fs-5" th:if="${se.dateFin != null}" th:text="${' - Fin le ' + #dates.format(se.dateFin, 'dd-MM-yyyy')}"></small>
+			        <span class="font-weight-bold text-danger" th:text="${se.statutSession.key eq 'CLOSED'} ? ' -- Session cloturée'"></span>					
+				</div>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{id}(ctx=${eContext}, id=${se.id})}" class="btn btn-info"
+						title="Inscrits"><i class="fa fa-home fa-lg"></i></a>
+				</div>				
+			</div>			
+       		<div th:if="${#ctx.containsVariable('capaciteOver')}" class="alert alert-danger">
+				La capacité maximale du lieu <span class="font-weight-bold" th:text="${capaciteOver}"></span> est dépassée, 
+					vous devez augmenter celle-ci pour pouvoir ajouter un nouvel inscrit
+			</div>		    	
+            <form action="#" th:action="@{/{ctx}/manager/tagCheck/update/{id}(ctx=${eContext}, id=${tagCheck.id})}" th:object="${tagCheck}" method="post">
+                <div class="row mb-3">
+                	<label for="sessionEpreuve" class="col-lg-2 form-label">Session</label>
+                	<div class="col-lg-10">
+                		<input type="text"  class="form-control" th:id="*{sessionEpreuve}"  th:value="${tagCheck.sessionEpreuve.nomSessionEpreuve}" disabled="disabled">
+					</div>
+				</div>		
+                <div class="row mb-3">
+                	<label for="person" class="col-lg-2 form-label">Identifiant</label>
+                	<div class="col-lg-10">
+                		<input  th:if="${tagCheck.person != null}"  type="text"  class="form-control" th:id="*{person}"  th:value="${tagCheck.person.eppn}" disabled="disabled">
+                		<input  th:if="${tagCheck.guest!= null}"  type="text"  class="form-control" th:id="*{guest}"  th:value="${tagCheck.guest.email}" disabled="disabled">
+					</div>
+				</div>
+				<div class="row mb-3">              				
+                	<label for="sessionLocationExpected" class="col-lg-2 form-label">Lieu</label>
+                	<div class="col-lg-10">	
+						<select name="sessionLocationExpected"  id="sessionLocationExpected">
+							<option value ="">-----Aucun----</option>
+							<option th:each="sl : ${allSessionLocations}"
+								th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}" 
+								th:selected="${tagCheck.sessionLocationExpected != null &&  (sl.id == tagCheck.sessionLocationExpected.id)}" ></option>									
+						</select>
+					</div>
+				</div>							
+				<div class="row mb-3">
+                	<label class="col-lg-2 form-check-label" th:for="isTiersTemps">
+				        Temps aménagé
+				    </label>
+				    <div class="col-lg-10">	
+					    <div class="form-check">
+					      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
+					    </div>
+				    </div>
+				</div>
+				<div class="row mb-3"  th:if="${!tagCheck.sessionEpreuve.isSessionLibre and tagCheck.tagDate eq null}">
+                	<label class="col-lg-2 form-check-label" th:for="absence">
+				        Absence
+				    </label>
+				    <div class="col-lg-10">
+						<div th:if="${#lists.isEmpty(motifAbsences)}">
+							Aucun motif d'absence existant. Ils doivent être créés dans le menu Gestionnaire.
 						</div>
-						<div class="row mb-3">              				
-	                    	<label for="sessionLocationExpected" class="col-lg-2 form-label">Lieu</label>
-	                    	<div class="col-lg-10">	
-								<select name="sessionLocationExpected"  id="sessionLocationExpected">
-									<option value ="">-----Aucun----</option>
-									<option th:each="sl : ${allSessionLocations}"
-										th:value="${sl.id}" th:text="${sl.location.nom +' ('+  sl.capacite  + ')'}" 
-										th:selected="${tagCheck.sessionLocationExpected != null &&  (sl.id == tagCheck.sessionLocationExpected.id)}" ></option>									
-								</select>
-							</div>
-						</div>							
-						<div class="row mb-3">
-	                    	<label class="col-lg-2 form-check-label" th:for="isTiersTemps">
-						        Temps aménagé
-						    </label>
-						    <div class="col-lg-10">	
-							    <div class="form-check">
-							      <input class="form-check-input" type="checkbox" th:field="*{isTiersTemps}">
-							    </div>
-						    </div>
+						<div th:unless="${#lists.isEmpty(motifAbsences)}">
+							<select class="form-select" id="absence" name="motifAbsence" >
+								<option value ="">--------</option>
+								<option th:each="motif : ${motifAbsences}"
+									th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"
+									th:selected="${tagCheck.absence!=null? tagCheck.absence.motifAbsence.id : null}"></option>
+							</select>
 						</div>
-						<div class="row mb-3"  th:if="${!tagCheck.sessionEpreuve.isSessionLibre and tagCheck.tagDate eq null}">
-	                    	<label class="col-lg-2 form-check-label" th:for="absence">
-						        Absence
-						    </label>
-						    <div class="col-lg-10">
-								<div th:if="${#lists.isEmpty(motifAbsences)}">
-									Aucun motif d'absence existant. Ils doivent être créés dans le menu Gestionnaire.
-								</div>
-								<div th:unless="${#lists.isEmpty(motifAbsences)}">
-									<select class="form-select" id="absence" name="motifAbsence" >
-										<option value ="">--------</option>
-										<option th:each="motif : ${motifAbsences}"
-											th:value="${motif.id}" th:text="${motif.libelle + ' [' + motif.typeAbsence + '] '}"
-											th:selected="${tagCheck.absence!=null? tagCheck.absence.motifAbsence.id : null}"></option>
-									</select>
-								</div>
-						    </div>
-						</div>
-	                    <div class="row mb-3">
-	                        <label for="comment" class="col-lg-2 form-label">Commentaire</label>
-	                        <div class="col-lg-10">	
-	                        	<textarea  th:field="*{comment}" class="form-control" ></textarea>
-	                        </div>
-	                    </div>	  		  
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>                  
-                    </form>
-                </div>
-            </div>
+				    </div>
+				</div>
+                <div class="row mb-3">
+                    <label for="comment" class="col-lg-2 form-label">Commentaire</label>
+                    <div class="col-lg-10">	
+                    	<textarea  th:field="*{comment}" class="form-control" ></textarea>
+                    </div>
+                </div>	  		  
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider">
+                    </div>
+                </div>                  
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

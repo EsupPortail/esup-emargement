@@ -4,466 +4,467 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid" id="extractionPage">
-			<div class="card">
-		    	<div class="card-header" id="toto"><h2>Import/export</h2></div>
-  				<div class="card-body">
-  				    <ul class="nav nav-tabs" role="tablist" >
-					    <li th:if="${apogeeAvailable and #strings.contains(listTabs, 'A')}" class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
-					    <li th:if="${#strings.contains(listTabs, 'L')}" class="nav-item"><a th:classappend="${type == 'ldap'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}">LDAP</a></li>
-					    <li th:if="${#strings.contains(listTabs, 'C')}" class="nav-item"><a th:classappend="${type == 'csv'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/csv(ctx=${eContext})}">CSV</a></li>
-					    <li th:if="${#strings.contains(listTabs, 'G')}" class="nav-item"><a th:classappend="${type == 'groupes'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/groupes(ctx=${eContext})}">GROUPES</a></li>
-				  	</ul>
-  					<div class="row">
-						<th:block th:if="${!#strings.contains(listTabs, 'A') 
-					             and !#strings.contains(listTabs, 'L') 
-					             and !#strings.contains(listTabs, 'C') 
-					             and !#strings.contains(listTabs, 'G')}">
-							<div class="alert alert-warning fw-bold">Votre configuration LIST_IMPORTEXPORT est mauvaise. Elle est soit vide, soit ne contient pas les bons arguments pour afficher les onglets.</div>
-						</th:block>
-						<th:block th:unless="${!#strings.contains(listTabs, 'A') 
-					             and !#strings.contains(listTabs, 'L') 
-					             and !#strings.contains(listTabs, 'C') 
-					             and !#strings.contains(listTabs, 'G')}">
-		  					<div class = "col-lg-12" th:if="${type == 'apogee' and #strings.contains(listTabs, 'A')}">
-		  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
-				                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
-					                    <div class="row mb-3">
-											<label for="codAnu" class="col-lg-2 form-label">Année universitaire</label>
-					                    	<div class="col-lg-10">
-												<select id="codAnu" name="codAnu" required="required" > 
-													<option th:each="year : ${years}"
-														th:value="${year}" th:text="${year}"></option>
-												</select>
-											</div>
-										</div>
-										<div class="row mb-3">
-										    <label for="codSes"  class="col-lg-2 form-label">Code session APOGEE</label>
-										    <div class="col-lg-10">
-											    <select id="codSes" name="codSes">
-											      <option>0</option>
-											      <option selected="selected">1</option>
-											      <option>2</option>
-											    </select>
-											 </div>
-										</div>
-				                    	<div class="row mb-3">
-				                    		<div class="col-lg-2">
-												<label for="codCmp" class="form-label">Composantes</label>
-					                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
-												<span id="nbInscritsComposante"
-												      class="ml-2 text-primary font-weight-bold"
-													  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/composante|}"
-												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes"
-												      hx-include="#codAnu, #codSes, #codCmp"
-												      hx-target="#nbInscritsComposante"
-												      hx-swap="innerHTML">[0]</span>
-					                    	</div>
-					                    	<div class="col-lg-10">
-												<select th:id="codCmp" th:name="codCmp" required="required"
-													th:hx-get="@{|/${eContext}/manager/extraction/search/diplome|}"
-												    hx-trigger="change"
-												    hx-target="#codEtp"
-													hx-include="#codAnu, #codSes, #codCmp">
-												    <option value="">-----choisir----</option>
-												    <option th:each="composante : ${allComposantes}"
-												        th:value="${composante.codCmp}" th:text="${composante.libCmp}"></option>
-												</select>
-											</div>
-										</div>
-				                    	<div class="row mb-3">
-				                    		<div class="col-lg-2">
-					                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
-												<span id="nbCodEtp"
-												      class="ml-2 text-success font-weight-bold"
-													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/diplome|}"
-												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
-												      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
-												      hx-target="#nbCodEtp"
-												      hx-swap="innerHTML">[0]</span>
-												<span id="nbInscritsEtp"
-												      class="ml-2 text-primary font-weight-bold"
-													  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/diplome|}"
-												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
-												      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
-												      hx-target="#nbInscritsEtp"
-												      hx-swap="innerHTML">[0]</span>
-					                    	</div>
-					                    	<div class="col-lg-10">
-												<select th:id="codEtp" th:name="codEtp"
-													th:hx-get="@{|/${eContext}/manager/extraction/search/matiere|}"
-													hx-trigger="change"
-													hx-target="#codElp"
-													hx-include="#codAnu, #codSes, #codCmp, #codEtp">
-												</select>
-											</div>
-										</div>	
-				                    	<div class="row mb-3">
-				                    		<div class="col-lg-2">
-					                    		<label for="codElp" id="labelCodElp"  class="form-label">Matières</label>
-												<span id="nbCodElp"
-												      class="ml-2 text-success font-weight-bold"
-													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/matiere|}"
-												      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
-												      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
-												      hx-target="#nbCodElp"
-												      hx-swap="innerHTML">[0]</span>
-												<span id="nbInscritsMatiere"
-											      class="ml-2 text-primary font-weight-bold"
-												  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/matiere|}"
-											      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
-											      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
-											      hx-target="#nbInscritsMatiere"
-											      hx-swap="innerHTML">[0]</span>
-					                    	</div>
-					                    	<div class="col-lg-10">
-												<select th:id="codElp" th:name="codElp"
-													th:hx-get="@{|/${eContext}/manager/extraction/search/groupe|}"
-													hx-trigger="change"
-													hx-target="#codExtGpe"
-													hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"></select>
-											</div>
-										</div>	
-				                    	<div class="row mb-3">
-				                    		<div class="col-lg-2">
-					                    		<label for="codExtGpe" id="labelCodExtGpe"  class="form-label">Groupes</label>
-												<span id="nbCodExtGpe"
-												      class="ml-2 text-success font-weight-bold"
-													  th:hx-get="@{|/${eContext}/manager/extraction/countItems/groupe|}"
-													  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
-													    change from:#codExtGpe"
-												      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
-												      hx-target="#nbCodExtGpe"
-												      hx-swap="innerHTML">[0]</span>
-												<span id="nbInscritsGroupe"
-												  class="ml-2 text-primary font-weight-bold"
-												  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/groupe|}"
-												  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
-												   change from:#codExtGpe"
-												  hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
-												  hx-target="#nbInscritsGroupe"
-												  hx-swap="innerHTML">[0]</span>
-					                    	</div>
-					                    	<div class="col-lg-10">
-												<select th:id="codExtGpe" th:name="codExtGpe"></select>
-											</div>
-										</div>
-									    <div class="row mb-3">
-									        <div class="col-lg-2">
-									            <label for="sessionEpreuve" class="form-label">Session d’émargement</label>
-									        </div>
-									        <div class="col-lg-10">
-									            <select name="sessionEpreuve" id="sessionEpreuve"
-													th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
-									                hx-trigger="change"
-									                hx-target="#sessionLocation"
-									                hx-include="#sessionEpreuve"
-									                hx-swap="innerHTML">
-									                <option value="">-----choisir----</option>
-									                <option th:each="sessionEpreuve : ${allSessionEpreuves}"
-									                    th:value="${sessionEpreuve.id}"
-									                    th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
-									                </option>
-									            </select>
-									        </div>
-									    </div>
-									    <div class="row mb-3">
-									        <div class="col-lg-2">
-									            <label for="sessionLocation" class="form-label">Lieu</label>
-									        </div>
-									        <div class="col-lg-10">
-									            <select name="sessionLocation" id="sessionLocation">
-									                <option value="">-----Aucun----</option>
-									            </select>
-									        </div>
-									    </div>
-				                        <div class="row">
-			                            	<div class="mt-5">
-				                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
-				                                <button id="import" type="submit" class="btn btn-primary" th:object="${apogeebean}" th:formaction="@{/{ctx}/manager/extraction/importFromApogee(ctx=${eContext})}">
-				                                <span class="spinner-border spinner-border-sm mr-2 statusExport" role="status" aria-hidden="true"></span>Importer</button>
-				                                <span class="text-danger font-weight-bold statusExport ml-2">Importation en cours ...</span>
-				                            </div>
-				                        </div>                  
-				                    </form>
-		                    	</div>
-		                 	 </div>
-		                     <div class = "col-lg-12" th:if="${type == 'ldap' and #strings.contains(listTabs, 'L')}">
-		                     	<div class="bg-light p-3 ">
-		                     		<div class="card-header h3 pl-2 mb-2">Ldap </div>
-				                    <form id="formSearch" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
-				                   		<div class="row mb-3">
-					                    	<label for="codSes" class="col-lg-2 form-label">Groupes Ldap</label>
-					                    	<div class="col-lg-10">
-												<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
-													th:hx-get="@{|/${eContext}/supervisor/search/ldapGroups|}" hx-trigger="keyup changed" required="required"
-													hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche groupe" th:value="${group}">
-												<div id="searchResults2" class="searchResults"></div>
-												<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
-											</div>
-										</div>
-									</form>
-									<form id="importUsersLdapform" name="importUsersLdapform" th:action="@{/{ctx}/manager/extraction/csvFromLdap(ctx=${eContext})}" method="post">
-										<div class="row mb-3">
-								   			<div class="col-lg-2">
-								   				<label for="usersGroupLdap">Liste des membres du groupe <span class="form-label" th:text="${group}"></span></label>
-									    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
-											    	<span id="selectedUsers">0</span> / 
-											    	<span th:text="${ldapMembers.size()}" id="ldapMembersSize"></span>
-											    	<span>
-												    	<button id="selectAll" type="button" class="btn btn-info btn-sm ml-2 mt-n1">Sélection</button>
-											    	</span>					    	
-										    	</div>
-										    </div>
-										    <div class="col-lg-10">
-											    <select multiple class="form-select" id="usersGroupLdap" name="usersGroupLdap" required="required">
-													<option th:each="member : ${ldapMembers}"
-															th:value="${member.eppn}" th:text="${member.prenomNom}"></option>
-											    </select>
-										    </div>
-									  	</div>
-					                    <div class="row mb-3">
-					                    	<label for="sessionEpreuveLdap" class="col-lg-2 form-label">Session d’émargement</label>
-											<div class="col-lg-10">	
-												<select name="sessionEpreuve" id="sessionEpreuveLdap"
-													th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
-												    hx-trigger="change"
-												    hx-target="#sessionLocationLdap"
-												    hx-include="#sessionEpreuveLdap"
-												    hx-swap="innerHTML">
-												    <option value="">-----choisir----</option>
-												    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
-												        th:value="${sessionEpreuve.id}"
-												        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
-												    </option>
-												</select>
-											</div>		
-										</div>
-										<div class="row mb-3">              				
-					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
-					                    	<div class="col-lg-10">	
-												<select name="sessionLocationLdap"  id="sessionLocationLdap">
-													<option value ="">-----Aucun----</option>
-												</select>
-											</div>
-										</div>
-										<div class="shadow p-3 bg-body rounded">
-											<p class="fw-bold text-danger">En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
-												non en tant qu'inscrit.<br />Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
-												<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
-												La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
-											<div class="row mb-3">
-												<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
-												<div class="col-lg-10">
-													 <div class="form-check">
-													      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
-													</div>
-											    </div>
-											</div>
-											<div class="row mb-3">
-												<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
-												<div class="col-lg-10">
-													<div class="form-check form-switch">
-													  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
-													  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
-													</div>
-											    </div>
-											</div>
-											<div class="row mb-3">
-												<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
-												<div class="col-lg-10">
-													<input type="text" class="form-control" name="speciality">
-											    </div>
-											</div>										
-										</div>	
-				                        <div class="row">
-				                            <div class="col-lg-12 mt-5">
-				                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
-				                                <button id="importLdap" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromLdap(ctx=${eContext})}">
-				                                <span class="spinner-border spinner-border-sm mr-2 statusExportLdap" role="status" aria-hidden="true"></span>Importer</button>
-				                                <span class="text-danger font-weight-bold statusExportLdap ml-2">Importation en cours ...</span>
-				                            </div>
-				                        </div> 
-									</form>
-								</div>
-		                    </div>
-		                    <div class = "col-lg-12" th:if="${type == 'csv' and #strings.contains(listTabs, 'C')}">
-								<div class="bg-light p-3 ">
-									<div class="card-header h3 pl-2 mb-2">Import CSV</div>
-									<div class="alert alert-info fw-bold">
-										Le fichier doit contenir sur une colonne soit des N° étudiants, soit des eppn ou un mix. Les champs doivent être avec ou sans guillemets. Le séparateur est le point virgule.<br/>
-										Pour les personnes externes la première colonne doit-être une adresse email, la deuxième le nom et la troisème le prénom.<br />
-										Dans tous les cas si la valeur de la première colonne commence pa '#" , celle-ci ne sera pas pris en compte (en-tête)
+		<div class="container-fluid px-3 px-md-4 my-2" id="extractionPage">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Import/export</h2>
+			</div>			
+		    <ul class="nav nav-tabs" role="tablist" >
+			    <li th:if="${apogeeAvailable and #strings.contains(listTabs, 'A')}" class="nav-item"><a th:classappend="${type == 'apogee'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/apogee(ctx=${eContext})}">APOGEE</a></li>
+			    <li th:if="${#strings.contains(listTabs, 'L')}" class="nav-item"><a th:classappend="${type == 'ldap'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/ldap(ctx=${eContext})}">LDAP</a></li>
+			    <li th:if="${#strings.contains(listTabs, 'C')}" class="nav-item"><a th:classappend="${type == 'csv'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/csv(ctx=${eContext})}">CSV</a></li>
+			    <li th:if="${#strings.contains(listTabs, 'G')}" class="nav-item"><a th:classappend="${type == 'groupes'} ? 'active' : ''" class="nav-link" th:href="@{/{ctx}/manager/extraction/tabs/groupes(ctx=${eContext})}">GROUPES</a></li>
+		  	</ul>
+			<div class="row">
+				<th:block th:if="${!#strings.contains(listTabs, 'A') 
+			             and !#strings.contains(listTabs, 'L') 
+			             and !#strings.contains(listTabs, 'C') 
+			             and !#strings.contains(listTabs, 'G')}">
+					<div class="alert alert-warning fw-bold">Votre configuration LIST_IMPORTEXPORT est mauvaise. Elle est soit vide, soit ne contient pas les bons arguments pour afficher les onglets.</div>
+				</th:block>
+				<th:block th:unless="${!#strings.contains(listTabs, 'A') 
+			             and !#strings.contains(listTabs, 'L') 
+			             and !#strings.contains(listTabs, 'C') 
+			             and !#strings.contains(listTabs, 'G')}">
+  					<div class = "col-lg-12" th:if="${type == 'apogee' and #strings.contains(listTabs, 'A')}">
+  						<div class="bg-light p-3 " id="formApogee"><div class="card-header h3 pl-2 mb-2">Apogée </div>
+		                    <form action="#" th:action="@{/{ctx}/manager/extraction/search(ctx=${eContext})}" th:object="${apogeebean}" method="post"  id="submitExport">
+			                    <div class="row mb-3">
+									<label for="codAnu" class="col-lg-2 form-label">Année universitaire</label>
+			                    	<div class="col-lg-10">
+										<select id="codAnu" name="codAnu" required="required" > 
+											<option th:each="year : ${years}"
+												th:value="${year}" th:text="${year}"></option>
+										</select>
 									</div>
-									<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
-										enctype="multipart/form-data" method="post">
-										<div class="row mb-3">
-					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Fichier</label>
-					                    	<div class="col-lg-10">	
-												<input  type="file" id="files" name="files" class="file" multiple="multiple">
-											</div>
-										</div>
-										<div class="row mb-3">    				
-					                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session d’émargement</label>
-					                    	<div class="col-lg-10">	
-												<select name="sessionEpreuve" id="sessionEpreuveCsv"
-														th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
-													    hx-trigger="change"
-													    hx-target="#sessionLocationCsv"
-													    hx-include="#sessionEpreuveCsv"
-													    hx-swap="innerHTML">
-													    <option value="">-----choisir----</option>
-													    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
-													        th:value="${sessionEpreuve.id}"
-													        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
-													    </option>
-													</select>			
-											</div>
-										</div>
-										<div class="row mb-3">              				
-					                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
-					                    	<div class="col-lg-10">	
-												<select name="sessionLocationCsv"  id="sessionLocationCsv">
-													<option value ="">-----Aucun----</option>
-												</select>
-											</div>
-										</div>
-										<div class="shadow p-3 bg-body rounded">
-											<p class="fw-bold text-danger">
-												En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
-												non en tant qu'inscrit.<br />
-												Dans ce cas le fichier ne doit contenir qu'une colonne d'eppn et aucun en-tête.<br/>Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
-												<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
-												La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
-											<div class="row mb-3">
-												<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
-												<div class="col-lg-10">
-													 <div class="form-check">
-													      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
-													</div>
-											    </div>
-											</div>
-											<div class="row mb-3">
-												<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
-												<div class="col-lg-10">
-													<div class="form-check form-switch">
-													  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
-													  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
-													</div>
-											    </div>
-											</div>
-											<div class="row mb-3">
-												<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
-												<div class="col-lg-10">
-													<input type="text" class="form-control" name="speciality">
-											    </div>
-											</div>				
-										</div>
-										<div class="row">
-				                            <div class="col-lg-12 mt-5">
-					                             <button id="importCsv" type="submit" class="btn btn-primary" >
-				                                <span class="spinner-border spinner-border-sm mr-2 statusExportCsv" role="status" aria-hidden="true"></span>Importer</button>
-				                                <span class="text-danger font-weight-bold statusExportCsv ml-2">Importation en cours ...</span>
-				                            </div>
-				                        </div>
-									</form>
 								</div>
-							</div>
-							<div class = "col-lg-12" th:if="${type == 'groupes' and #strings.contains(listTabs, 'G')}">
-		                    	<div class="bg-light p-3 ">
-			                    	<div class="card-header h3 pl-2 mb-2">Groupes locaux</div>
-			                    	<form id="importUsersGroupeForm" name="importUsersGroupeForm" th:action="@{/{ctx}/manager/extraction/csvFromGroupe(ctx=${eContext})}" method="post">
-		                				<div class="row mb-3">
-					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Groupes</label>
-					                    	<div class="col-lg-10">	
-												<select name="groupe" id="groupe" multiple="multiple" required>
-													<option value ="">-----choisir----</option>
-													 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
-												</select>
-											</div> 
-										</div>
-										<div class="row mb-3">              				
-					                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session d’émargement</label>
-											<div class="col-lg-10">	
-												<select name="sessionEpreuve" id="sessionEpreuveGroupe"
-														th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
-													    hx-trigger="change"
-													    hx-target="#sessionLocationGroupe"
-													    hx-include="#sessionEpreuveGroupe"
-													    hx-swap="innerHTML">
-													    <option value="">-----choisir----</option>
-													    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
-													        th:value="${sessionEpreuve.id}"
-													        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
-													    </option>
-													</select>			
-											</div>												
-										</div>
-										<div class="row mb-3">              				
-					                    	<label for="lieuImportGroupe" class="col-lg-2 form-label">Lieu</label>
-					                    	<div class="col-lg-10">	
-												<select name="sessionLocationGroupe"  id="sessionLocationGroupe">
-													<option value ="">-----Aucun----</option>
-												</select>
+								<div class="row mb-3">
+								    <label for="codSes"  class="col-lg-2 form-label">Code session APOGEE</label>
+								    <div class="col-lg-10">
+									    <select id="codSes" name="codSes">
+									      <option>0</option>
+									      <option selected="selected">1</option>
+									      <option>2</option>
+									    </select>
+									 </div>
+								</div>
+		                    	<div class="row mb-3">
+		                    		<div class="col-lg-2">
+										<label for="codCmp" class="form-label">Composantes</label>
+			                    		<span class='ml-2 text-success font-weight-bold' id='labelCodCmp' th:text="${'[' + #lists.size(allComposantes) + ']'}"></span>
+										<span id="nbInscritsComposante"
+										      class="ml-2 text-primary font-weight-bold"
+											  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/composante|}"
+										      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes"
+										      hx-include="#codAnu, #codSes, #codCmp"
+										      hx-target="#nbInscritsComposante"
+										      hx-swap="innerHTML">[0]</span>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select th:id="codCmp" th:name="codCmp" required="required"
+											th:hx-get="@{|/${eContext}/manager/extraction/search/diplome|}"
+										    hx-trigger="change"
+										    hx-target="#codEtp"
+											hx-include="#codAnu, #codSes, #codCmp">
+										    <option value="">-----choisir----</option>
+										    <option th:each="composante : ${allComposantes}"
+										        th:value="${composante.codCmp}" th:text="${composante.libCmp}"></option>
+										</select>
+									</div>
+								</div>
+		                    	<div class="row mb-3">
+		                    		<div class="col-lg-2">
+			                    		<label for="codEtp" class="form-label" id="labelCodEtp">Diplômes</label>
+										<span id="nbCodEtp"
+										      class="ml-2 text-success font-weight-bold"
+											  th:hx-get="@{|/${eContext}/manager/extraction/countItems/diplome|}"
+										      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
+										      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
+										      hx-target="#nbCodEtp"
+										      hx-swap="innerHTML">[0]</span>
+										<span id="nbInscritsEtp"
+										      class="ml-2 text-primary font-weight-bold"
+											  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/diplome|}"
+										      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp"
+										      hx-include="#codAnu, #codSes, #codCmp, #codEtp"
+										      hx-target="#nbInscritsEtp"
+										      hx-swap="innerHTML">[0]</span>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select th:id="codEtp" th:name="codEtp"
+											th:hx-get="@{|/${eContext}/manager/extraction/search/matiere|}"
+											hx-trigger="change"
+											hx-target="#codElp"
+											hx-include="#codAnu, #codSes, #codCmp, #codEtp">
+										</select>
+									</div>
+								</div>	
+		                    	<div class="row mb-3">
+		                    		<div class="col-lg-2">
+			                    		<label for="codElp" id="labelCodElp"  class="form-label">Matières</label>
+										<span id="nbCodElp"
+										      class="ml-2 text-success font-weight-bold"
+											  th:hx-get="@{|/${eContext}/manager/extraction/countItems/matiere|}"
+										      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
+										      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
+										      hx-target="#nbCodElp"
+										      hx-swap="innerHTML">[0]</span>
+										<span id="nbInscritsMatiere"
+									      class="ml-2 text-primary font-weight-bold"
+										  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/matiere|}"
+									      hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp"
+									      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"
+									      hx-target="#nbInscritsMatiere"
+									      hx-swap="innerHTML">[0]</span>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select th:id="codElp" th:name="codElp"
+											th:hx-get="@{|/${eContext}/manager/extraction/search/groupe|}"
+											hx-trigger="change"
+											hx-target="#codExtGpe"
+											hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp"></select>
+									</div>
+								</div>	
+		                    	<div class="row mb-3">
+		                    		<div class="col-lg-2">
+			                    		<label for="codExtGpe" id="labelCodExtGpe"  class="form-label">Groupes</label>
+										<span id="nbCodExtGpe"
+										      class="ml-2 text-success font-weight-bold"
+											  th:hx-get="@{|/${eContext}/manager/extraction/countItems/groupe|}"
+											  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
+											    change from:#codExtGpe"
+										      hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
+										      hx-target="#nbCodExtGpe"
+										      hx-swap="innerHTML">[0]</span>
+										<span id="nbInscritsGroupe"
+										  class="ml-2 text-primary font-weight-bold"
+										  th:hx-get="@{|/${eContext}/manager/extraction/countAutorises/groupe|}"
+										  hx-trigger="change from:#codCmp, change from:#codAnu, change from:#codSes, change from:#codEtp, change from:#codElp,
+										   change from:#codExtGpe"
+										  hx-include="#codAnu, #codSes, #codCmp, #codEtp, #codElp, #codExtGpe"
+										  hx-target="#nbInscritsGroupe"
+										  hx-swap="innerHTML">[0]</span>
+			                    	</div>
+			                    	<div class="col-lg-10">
+										<select th:id="codExtGpe" th:name="codExtGpe"></select>
+									</div>
+								</div>
+							    <div class="row mb-3">
+							        <div class="col-lg-2">
+							            <label for="sessionEpreuve" class="form-label">Session d’émargement</label>
+							        </div>
+							        <div class="col-lg-10">
+							            <select name="sessionEpreuve" id="sessionEpreuve"
+											th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+							                hx-trigger="change"
+							                hx-target="#sessionLocation"
+							                hx-include="#sessionEpreuve"
+							                hx-swap="innerHTML">
+							                <option value="">-----choisir----</option>
+							                <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+							                    th:value="${sessionEpreuve.id}"
+							                    th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+							                </option>
+							            </select>
+							        </div>
+							    </div>
+							    <div class="row mb-3">
+							        <div class="col-lg-2">
+							            <label for="sessionLocation" class="form-label">Lieu</label>
+							        </div>
+							        <div class="col-lg-10">
+							            <select name="sessionLocation" id="sessionLocation">
+							                <option value="">-----Aucun----</option>
+							            </select>
+							        </div>
+							    </div>
+		                        <div class="row">
+	                            	<div class="mt-5">
+		                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
+		                                <button id="import" type="submit" class="btn btn-primary" th:object="${apogeebean}" th:formaction="@{/{ctx}/manager/extraction/importFromApogee(ctx=${eContext})}">
+		                                <span class="spinner-border spinner-border-sm mr-2 statusExport" role="status" aria-hidden="true"></span>Importer</button>
+		                                <span class="text-danger font-weight-bold statusExport ml-2">Importation en cours ...</span>
+		                            </div>
+		                        </div>                  
+		                    </form>
+                    	</div>
+                 	 </div>
+                     <div class = "col-lg-12" th:if="${type == 'ldap' and #strings.contains(listTabs, 'L')}">
+                     	<div class="bg-light p-3 ">
+                     		<div class="card-header h3 pl-2 mb-2">Ldap </div>
+		                    <form id="formSearch" name="searchLdapGroupForm" th:action="@{/{ctx}/manager/extraction/ldap/searchUsers(ctx=${eContext})}">
+		                   		<div class="row mb-3">
+			                    	<label for="codSes" class="col-lg-2 form-label">Groupes Ldap</label>
+			                    	<div class="col-lg-10">
+										<input name="searchString" class="form-control form-control-underlined border-primary searchBox" data-typeSearch="tagCheck"
+											th:hx-get="@{|/${eContext}/supervisor/search/ldapGroups|}" hx-trigger="keyup changed" required="required"
+											hx-target="#searchResults2" hx-indicator=".htmx-indicator" autocomplete="off" placeholder="Recherche groupe" th:value="${group}">
+										<div id="searchResults2" class="searchResults"></div>
+										<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+									</div>
+								</div>
+							</form>
+							<form id="importUsersLdapform" name="importUsersLdapform" th:action="@{/{ctx}/manager/extraction/csvFromLdap(ctx=${eContext})}" method="post">
+								<div class="row mb-3">
+						   			<div class="col-lg-2">
+						   				<label for="usersGroupLdap">Liste des membres du groupe <span class="form-label" th:text="${group}"></span></label>
+							    		<div class="font-weight-bold"  th:if="${ldapMembers != null}">
+									    	<span id="selectedUsers">0</span> / 
+									    	<span th:text="${ldapMembers.size()}" id="ldapMembersSize"></span>
+									    	<span>
+										    	<button id="selectAll" type="button" class="btn btn-info btn-sm ml-2 mt-n1">Sélection</button>
+									    	</span>					    	
+								    	</div>
+								    </div>
+								    <div class="col-lg-10">
+									    <select multiple class="form-select" id="usersGroupLdap" name="usersGroupLdap" required="required">
+											<option th:each="member : ${ldapMembers}"
+													th:value="${member.eppn}" th:text="${member.prenomNom}"></option>
+									    </select>
+								    </div>
+							  	</div>
+			                    <div class="row mb-3">
+			                    	<label for="sessionEpreuveLdap" class="col-lg-2 form-label">Session d’émargement</label>
+									<div class="col-lg-10">	
+										<select name="sessionEpreuve" id="sessionEpreuveLdap"
+											th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+										    hx-trigger="change"
+										    hx-target="#sessionLocationLdap"
+										    hx-include="#sessionEpreuveLdap"
+										    hx-swap="innerHTML">
+										    <option value="">-----choisir----</option>
+										    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+										        th:value="${sessionEpreuve.id}"
+										        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+										    </option>
+										</select>
+									</div>		
+								</div>
+								<div class="row mb-3">              				
+			                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+			                    	<div class="col-lg-10">	
+										<select name="sessionLocationLdap"  id="sessionLocationLdap">
+											<option value ="">-----Aucun----</option>
+										</select>
+									</div>
+								</div>
+								<div class="shadow p-3 bg-body rounded">
+									<p class="fw-bold text-danger">En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
+										non en tant qu'inscrit.<br />Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
+										<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
+										La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
+									<div class="row mb-3">
+										<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
+										<div class="col-lg-10">
+											 <div class="form-check">
+											      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
 											</div>
-										</div>
-				                        <div class="row">
-				                            <div class="col-lg-12 mt-5">
-				                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
-				                                <button id="importGroupe" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromGroupe(ctx=${eContext})}">
-				                                <span class="spinner-border spinner-border-sm mr-2 statusExportGroupe" role="status" aria-hidden="true"></span>Importer</button>
-				                                <span class="text-danger font-weight-bold statusExportGroupe ml-2">Importation en cours ...</span>
-				                            </div>
-				                        </div>
-									</form>
-			                    </div>
-			                </div>  
-						</th:block>            
-	                </div>
-	            </div>
+									    </div>
+									</div>
+									<div class="row mb-3">
+										<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
+										<div class="col-lg-10">
+											<div class="form-check form-switch">
+											  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
+											  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
+											</div>
+									    </div>
+									</div>
+									<div class="row mb-3">
+										<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
+										<div class="col-lg-10">
+											<input type="text" class="form-control" name="speciality">
+									    </div>
+									</div>										
+								</div>	
+		                        <div class="row">
+		                            <div class="col-lg-12 mt-5">
+		                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
+		                                <button id="importLdap" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromLdap(ctx=${eContext})}">
+		                                <span class="spinner-border spinner-border-sm mr-2 statusExportLdap" role="status" aria-hidden="true"></span>Importer</button>
+		                                <span class="text-danger font-weight-bold statusExportLdap ml-2">Importation en cours ...</span>
+		                            </div>
+		                        </div> 
+							</form>
+						</div>
+                    </div>
+                    <div class = "col-lg-12" th:if="${type == 'csv' and #strings.contains(listTabs, 'C')}">
+						<div class="bg-light p-3 ">
+							<div class="card-header h3 pl-2 mb-2">Import CSV</div>
+							<div class="alert alert-info fw-bold">
+								Le fichier doit contenir sur une colonne soit des N° étudiants, soit des eppn ou un mix. Les champs doivent être avec ou sans guillemets. Le séparateur est le point virgule.<br/>
+								Pour les personnes externes la première colonne doit-être une adresse email, la deuxième le nom et la troisème le prénom.<br />
+								Dans tous les cas si la valeur de la première colonne commence pa '#" , celle-ci ne sera pas pris en compte (en-tête)
+							</div>
+							<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
+								enctype="multipart/form-data" method="post">
+								<div class="row mb-3">
+			                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Fichier</label>
+			                    	<div class="col-lg-10">	
+										<input  type="file" id="files" name="files" class="file" multiple="multiple">
+									</div>
+								</div>
+								<div class="row mb-3">    				
+			                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session d’émargement</label>
+			                    	<div class="col-lg-10">	
+										<select name="sessionEpreuve" id="sessionEpreuveCsv"
+												th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+											    hx-trigger="change"
+											    hx-target="#sessionLocationCsv"
+											    hx-include="#sessionEpreuveCsv"
+											    hx-swap="innerHTML">
+											    <option value="">-----choisir----</option>
+											    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+											        th:value="${sessionEpreuve.id}"
+											        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+											    </option>
+											</select>			
+									</div>
+								</div>
+								<div class="row mb-3">              				
+			                    	<label for="lieuImportCsv" class="col-lg-2 form-label">Lieu</label>
+			                    	<div class="col-lg-10">	
+										<select name="sessionLocationCsv"  id="sessionLocationCsv">
+											<option value ="">-----Aucun----</option>
+										</select>
+									</div>
+								</div>
+								<div class="shadow p-3 bg-body rounded">
+									<p class="fw-bold text-danger">
+										En cochant cette case, vous importerez les personnes en tant qu'agent dans l'application et 
+										non en tant qu'inscrit.<br />
+										Dans ce cas le fichier ne doit contenir qu'une colonne d'eppn et aucun en-tête.<br/>Par défaut ils auront le rôle 'GESTIONNAIRE' sauf si vous choisissez '
+										<span th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></span>'.<br/>
+										La spécialité permet de "grouper" les agents sous une même catégorie qui sert de filtre dans l'affichage des sessions.' </p>
+									<div class="row mb-3">
+										<label for="importTagchecker" class="col-lg-2 form-label">Importer en tant qu'agent</label>
+										<div class="col-lg-10">
+											 <div class="form-check">
+											      <input class="form-check-input" type="checkbox" id="importTagchecker" name="importTagchecker">
+											</div>
+									    </div>
+									</div>
+									<div class="row mb-3">
+										<label for="roleManager" class="col-lg-2 form-label">Rôle</label>
+										<div class="col-lg-10">
+											<div class="form-check form-switch">
+											  <input class="form-check-input" type="checkbox" role="switch" id="roleManager" name="role">
+											  <label class="form-check-label" for="roleManager" th:text="#{${'role.supervisor'}(${#strings.toUpperCase(surveillantTerme)})}"></label>
+											</div>
+									    </div>
+									</div>
+									<div class="row mb-3">
+										<label for="roleManager" class="col-lg-2 form-label">Spécialité</label>
+										<div class="col-lg-10">
+											<input type="text" class="form-control" name="speciality">
+									    </div>
+									</div>				
+								</div>
+								<div class="row">
+		                            <div class="col-lg-12 mt-5">
+			                             <button id="importCsv" type="submit" class="btn btn-primary" >
+		                                <span class="spinner-border spinner-border-sm mr-2 statusExportCsv" role="status" aria-hidden="true"></span>Importer</button>
+		                                <span class="text-danger font-weight-bold statusExportCsv ml-2">Importation en cours ...</span>
+		                            </div>
+		                        </div>
+							</form>
+						</div>
+					</div>
+					<div class = "col-lg-12" th:if="${type == 'groupes' and #strings.contains(listTabs, 'G')}">
+                    	<div class="bg-light p-3 ">
+	                    	<div class="card-header h3 pl-2 mb-2">Groupes locaux</div>
+	                    	<form id="importUsersGroupeForm" name="importUsersGroupeForm" th:action="@{/{ctx}/manager/extraction/csvFromGroupe(ctx=${eContext})}" method="post">
+                				<div class="row mb-3">
+			                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Groupes</label>
+			                    	<div class="col-lg-10">	
+										<select name="groupe" id="groupe" multiple="multiple" required>
+											<option value ="">-----choisir----</option>
+											 <option th:each="groupe: ${allGroupes}" th:value="${groupe.id}" th:text="${groupe.nom + ' [' + groupe.nbTagCheck + ']'}"/>
+										</select>
+									</div> 
+								</div>
+								<div class="row mb-3">              				
+			                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Session d’émargement</label>
+									<div class="col-lg-10">	
+										<select name="sessionEpreuve" id="sessionEpreuveGroupe"
+												th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
+											    hx-trigger="change"
+											    hx-target="#sessionLocationGroupe"
+											    hx-include="#sessionEpreuveGroupe"
+											    hx-swap="innerHTML">
+											    <option value="">-----choisir----</option>
+											    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
+											        th:value="${sessionEpreuve.id}"
+											        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
+											    </option>
+											</select>			
+									</div>												
+								</div>
+								<div class="row mb-3">              				
+			                    	<label for="lieuImportGroupe" class="col-lg-2 form-label">Lieu</label>
+			                    	<div class="col-lg-10">	
+										<select name="sessionLocationGroupe"  id="sessionLocationGroupe">
+											<option value ="">-----Aucun----</option>
+										</select>
+									</div>
+								</div>
+		                        <div class="row">
+		                            <div class="col-lg-12 mt-5">
+		                                <input type="submit" class="btn btn-success" value="Extraire csv"  id="csv">
+		                                <button id="importGroupe" type="submit" class="btn btn-primary" th:formaction="@{/{ctx}/manager/extraction/importFromGroupe(ctx=${eContext})}">
+		                                <span class="spinner-border spinner-border-sm mr-2 statusExportGroupe" role="status" aria-hidden="true"></span>Importer</button>
+		                                <span class="text-danger font-weight-bold statusExportGroupe ml-2">Importation en cours ...</span>
+		                            </div>
+		                        </div>
+							</form>
+	                    </div>
+	                </div>  
+				</th:block>            
             </div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
-		<div class="modal fade" id="modalBilanCsv" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"  
-			th:if="${#ctx.containsVariable('bilanCsv') or #ctx.containsVariable('bilanUserApp')}">
-		  <div class="modal-dialog" role="document">
-		    <div class="modal-content">
-		      <div class="modal-header">
-		        <h5 class="modal-title" id="exampleModalLabel">Bilan</h5>
-		      	 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		      </div>
-		      <div class="modal-body" id="modalBilanCsvBody">
-				  <th:block th:if="${#ctx.containsVariable('bilanCsv')}">
-			     	 <div th:if="${not #lists.isEmpty(bilanCsv)}">
-						<table class="table table-hover table-striped table-bordered">
-							<thead>
-								<tr>
-									<th scope="col" class="table-success">Importés</th>
-									<th scope="col" class="table-warning">Déja  inscrits</th>
-									<th scope="col" class="table-danger">Inconnus LDAP</th>
-									<th scope="col" class="table-danger">Données manquantes</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td th:each="int : ${bilanCsv}"  th:text="${int}" class="center"></td>
-								</tr>
-							</tbody>
-						</table>
-						<p>Voir la liste des inscrits : <a th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${seLink.id})}" th:text="${seLink.nomSessionEpreuve}"></a></p>
+		<div class="modal fade" id="modalBilanCsv" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+			aria-hidden="true" th:if="${#ctx.containsVariable('bilanCsv') or #ctx.containsVariable('bilanUserApp')}">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Bilan</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
-					<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
-						<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la capcité n'est pas suffisante, veuillez le vérifier....</strong></p>
+					<div class="modal-body" id="modalBilanCsvBody">
+						<th:block th:if="${#ctx.containsVariable('bilanCsv')}">
+							<div th:if="${not #lists.isEmpty(bilanCsv)}">
+								<table class="table table-hover table-striped table-bordered">
+									<thead>
+										<tr>
+											<th scope="col" class="table-success">Importés</th>
+											<th scope="col" class="table-warning">Déja inscrits</th>
+											<th scope="col" class="table-danger">Inconnus LDAP</th>
+											<th scope="col" class="table-danger">Données manquantes</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td th:each="int : ${bilanCsv}" th:text="${int}" class="center"></td>
+										</tr>
+									</tbody>
+								</table>
+								<p>Voir la liste des inscrits : <a
+										th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${seLink.id})}"
+										th:text="${seLink.nomSessionEpreuve}"></a></p>
+							</div>
+							<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
+								<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la
+										capcité n'est pas suffisante, veuillez le vérifier....</strong></p>
+							</div>
+						</th:block>
+						<th:block th:if="${#ctx.containsVariable('bilanUserApp')}">
+							<div th:if="${not #lists.isEmpty(bilanUserApp)}" class="alert alert-info fw-bold">
+								<p>Nombre d'agents importé : <span th:text="${bilanUserApp}"></span></p>
+							</div>
+						</th:block>
 					</div>
-				</th:block>
-				<th:block th:if="${#ctx.containsVariable('bilanUserApp')}">
-					<div th:if="${not #lists.isEmpty(bilanUserApp)}" class="alert alert-info fw-bold">
-						<p>Nombre d'agents importé : <span th:text="${bilanUserApp}"></span></p>
-					</div>
-				</th:block>
-		      </div>
-		  	</div>
-		  </div>
-		</div>		
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
