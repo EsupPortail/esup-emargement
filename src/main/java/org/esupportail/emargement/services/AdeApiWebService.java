@@ -100,6 +100,9 @@ public class AdeApiWebService implements AdeApiService {
 	@Value("${emargement.ade.api.auth_type}")
 	private String adeApiAuthType;
 
+	@Value("${emargement.ade.api.gravitee_key:}")
+	private String graviteeApiKey;
+
 	@Autowired
 	private PrefsRepository prefsRepository;
 	
@@ -433,7 +436,7 @@ public class AdeApiWebService implements AdeApiService {
 						factory.setNamespaceAware(true);
 						DocumentBuilder builder = factory.newDocumentBuilder();
 						Document doc;
-						try (InputStream is = openStreamWithTimeout(urlMembers)) {
+						try (InputStream is = openStreamWithTimeout(urlMembers,graviteeApiKey)) {
 							doc = builder.parse(is);
 						}
 						doc.getDocumentElement().normalize();
@@ -513,7 +516,7 @@ public class AdeApiWebService implements AdeApiService {
 	        factory.setNamespaceAware(true);
 	        DocumentBuilder builder = factory.newDocumentBuilder();
 	        Document doc;
-	        try (InputStream is = openStreamWithTimeout(urlMembers)) {
+	        try (InputStream is = openStreamWithTimeout(urlMembers,graviteeApiKey)) {
 	            doc = builder.parse(is);
 	        }
 	        doc.getDocumentElement().normalize();
@@ -879,7 +882,7 @@ public class AdeApiWebService implements AdeApiService {
 																trainees.add(maptrainees);
 																adeResourceBean.setTrainees(trainees);
 																if(appliConfigService.isAdeVetDisplayed(ctx)) {
-																	String adeVet = getVersioneEtape(sessionId, element3.getAttribute("id"));
+																	String adeVet = getVersioneEtape(sessionId, element3.getAttribute("id"),graviteeApiKey);
 																	adeResourceBean.setVet(adeVet);
 																	se.setAdeVET(adeVet);
 																}
@@ -939,12 +942,21 @@ public class AdeApiWebService implements AdeApiService {
 	 * À utiliser à la place de {@code new URL(s).openStream()} ou {@code DocumentBuilder.parse(String)}
 	 * pour éviter qu'un appel ADE figé bloque l'import indéfiniment.
 	 */
-	private InputStream openStreamWithTimeout(String url) throws IOException {
+
+	private InputStream openStreamWithTimeout(String url, String graviteeApiKey) throws IOException {
 		HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 		con.setConnectTimeout(10_000);
 		con.setReadTimeout(60_000);
+
+		// Ajoute entête key - gravitee uniquement si elle est renseignée
+    	if (graviteeApiKey != null && !graviteeApiKey.trim().isEmpty()) {
+        	con.setRequestProperty("X-Gravitee-Api-Key", graviteeApiKey);
+    	}
+
 		return con.getInputStream();
 	}
+
+
 
 	public Document getDocument(String url, String login, String password) throws IOException, ParserConfigurationException, SAXException {
 		URL urlConnect = new URL(url);
@@ -960,7 +972,12 @@ public class AdeApiWebService implements AdeApiService {
 		    String encoded = Base64.getEncoder().encodeToString((login+":"+password).getBytes(StandardCharsets.UTF_8));
 		    con.setRequestProperty("Authorization", "Basic "+encoded);
 		}
-
+		
+		// Ajoute entête key - gravitee uniquement si elle est renseignée
+    	if (graviteeApiKey != null && !graviteeApiKey.trim().isEmpty()) {
+        	con.setRequestProperty("X-Gravitee-Api-Key", graviteeApiKey);
+    	}
+		
 		InputStream inputStream = con.getInputStream();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -1268,39 +1285,48 @@ public class AdeApiWebService implements AdeApiService {
 	    }
 	}
 
-	public String getVersioneEtape(String sessionId, String idItem) throws IOException, ParserConfigurationException, SAXException {
+	public String getVersioneEtape(String sessionId, String idItem, String graviteeApiKey) throws IOException, ParserConfigurationException, SAXException {
 		String detail = "11";
 		String idParam = (idItem!=null)? "&id=" + idItem : "";
 		String urlVet = urlAde + "?sessionId=" + sessionId + "&function=getResources&tree=true&detail=" + detail + "&category=trainee"+ idParam;
 		String vet = "";
 		try {
-	    	  InputStream input = new URL(urlVet).openStream();
-	          SAXBuilder sax = new SAXBuilder();
-	          /// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
-	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-	          sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-	          org.jdom2.Document doc = sax.build(input);
-	          org.jdom2.Element rootNode = doc.getRootElement();
-	          List<org.jdom2.Element> list = rootNode.getChildren("category");
-	          for (org.jdom2.Element target : list) {
-	        	  List<org.jdom2.Element> branch = target.getChildren("branch");
-	        	  for (org.jdom2.Element target1 : branch) {
-	        		  List<org.jdom2.Element> branch2 = target1.getChildren("branch");
-	        		  for (org.jdom2.Element target2 : branch2) {
-	        			  String code = target2.getAttributeValue("code");
-							if(code!=null) {
-								String splitCode [] = code.split("_");
-								if(splitCode.length>1) {
-									vet = splitCode[1];
-								}
+
+			InputStream input = openStreamWithTimeout(urlVet, graviteeApiKey);
+
+				try {
+					SAXBuilder sax = new SAXBuilder(); 
+					/// https://rules.sonarsource.com/java/RSPEC-2755 , prevent xxe
+					sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+					sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+					org.jdom2.Document doc = sax.build(input);
+					org.jdom2.Element rootNode = doc.getRootElement();
+					List<org.jdom2.Element> list = rootNode.getChildren("category");
+					for (org.jdom2.Element target : list) {
+						List<org.jdom2.Element> branch = target.getChildren("branch");
+						for (org.jdom2.Element target1 : branch) {
+							List<org.jdom2.Element> branch2 = target1.getChildren("branch");
+							for (org.jdom2.Element target2 : branch2) {
+								String code = target2.getAttributeValue("code");
+									if(code!=null) {
+										String splitCode [] = code.split("_");
+										if(splitCode.length>1) {
+											vet = splitCode[1];
+										}
+									}
 							}
-	        		  }
-	        	  }
-	          }
-		}catch (IOException | JDOMException e) {
-	    	  log.error("Erreur lors de la récupération de la vet, url : " + urlVet, e);
-	    }
-		return vet;
+						}
+					}
+				}catch (IOException | JDOMException e) {
+		 			log.error("Erreur lors de la récupération de la vet, url : " + urlVet, e);
+				}
+				
+			}catch (IOException e) {
+					log.error("Erreur connexion Http WEBAPI => url : " + urlVet, e);
+			}
+			
+			return vet;		
+			
 	}
 
 	/**
