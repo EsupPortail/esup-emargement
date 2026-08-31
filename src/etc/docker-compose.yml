@@ -15,7 +15,7 @@ services:
      build:
         context: .
         dockerfile_inline: |
-          FROM ghcr.io/esupportail/apereo-cas-ldap:7.3.6
+          FROM ghcr.io/esupportail/apereo-cas-ldap:8.0.1.2
           RUN apt-get update && apt-get -y install curl
      volumes:
        - ./docker/cas-config:/etc/cas
