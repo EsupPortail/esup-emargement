@@ -100,7 +100,7 @@ public class AdeApiWebService implements AdeApiService {
 	@Value("${emargement.ade.api.auth_type}")
 	private String adeApiAuthType;
 
-	@Value("${emargement.ade.api.gravitee_key}")
+	@Value("${emargement.ade.api.gravitee_key:}")
 	private String graviteeApiKey;
 
 	@Autowired
