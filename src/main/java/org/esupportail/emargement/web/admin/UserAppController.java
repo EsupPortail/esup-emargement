@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
@@ -20,7 +21,6 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -54,6 +54,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("userApp")
 public class UserAppController {
 	
 	@Autowired
@@ -84,9 +85,6 @@ public class UserAppController {
 	LdapService ldapService;
 	
 	@Resource
-	HelpService helpService;
-	
-	@Resource
 	PreferencesService preferencesService;
 
 	@Resource
@@ -97,14 +95,12 @@ public class UserAppController {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private final static String ITEM = "userApp";
-	
 	@Autowired
 	ToolUtil toolUtil;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "userApp";
 	}
 	
 	@GetMapping(value = "/admin/userApp")
@@ -139,7 +135,6 @@ public class UserAppController {
 		}
 		model.addAttribute("isAdeCampusEnabled", isAdeCampusEnabled);
         model.addAttribute("userAppPage", userAppPage);
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("itsme", userAppService.getUserAppEppn());
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		model.addAttribute("selectAll", count);
@@ -208,7 +203,6 @@ public class UserAppController {
 		users.add(userAppRepository.findById(id).get());
 		
         uiModel.addAttribute("userApp", userAppService.setNomPrenom(users, true).get(0));
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/userApp/show";
     }
 	
@@ -242,7 +236,6 @@ public class UserAppController {
     	uiModel.addAttribute("contexts", userAppService.getUserContexts());
     	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context));
         uiModel.addAttribute("userApp", userApp);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/admin/userApp/create")

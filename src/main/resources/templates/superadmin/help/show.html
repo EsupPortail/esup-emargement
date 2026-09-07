@@ -9,16 +9,43 @@
 				<h2 class="fs-3 mb-0">Aide</h2>
 				<div class="d-flex align-items-center gap-2">
 					<a th:href="@{/all/superadmin/help}" class="btn btn-info"
-						title="Contextes"><i class="fa fa-home fa-lg"></i></a>
+						title="Contextes"><i class="fa-solid fa-home fa-lg"></i></a>
 				</div>				
 			</div>
 			<dl class="row">
-	            <dt class="col-sm-2">Clé</dt>
-	            <dd class="col-sm-10" th:text="${help.key}"></dd>
-	            <dt class="col-sm-2">Valeur</dt>
-	            <dd class="col-sm-10" th:text="${help.value}"></dd>			   
-	            <dt class="col-sm-2">Description</dt>
-	            <dd class="col-sm-10" th:text="${help.description}"></dd>	             
+				<dt class="col-sm-2">Clé</dt>
+				<dd class="col-sm-10" th:text="${helpItem.key}"></dd>
+				<dt class="col-sm-2">Titre</dt>
+				<dd class="col-sm-10" th:text="${helpItem.title}"></dd>
+				<dt class="col-sm-2">Description</dt>
+				<dd class="col-sm-10" th:text="${helpItem.description}"></dd>
+				<dt class="col-sm-2">Introduction</dt>
+				<dd class="col-sm-10" th:text="${helpItem.intro}"></dd>
+				<dt class="col-sm-2">Actions possibles</dt>
+				<dd class="col-sm-10">
+					<ul class="mb-0"
+						th:if="${not #lists.isEmpty(helpItem.actionsList)}">
+						<li th:each="action : ${helpItem.actionsList}"
+							th:text="${action}">
+						</li>
+					</ul>
+					<span th:if="${#lists.isEmpty(helpItem.actionsList)}"
+						  class="text-muted">
+						Aucune
+					</span>
+				</dd>
+				<dt class="col-sm-2">À retenir</dt>
+				<dd class="col-sm-10"
+					th:text="${helpItem.important}">
+				</dd>
+				<dt class="col-sm-2">Attention</dt>
+				<dd class="col-sm-10"
+					th:text="${helpItem.warning}">
+				</dd>
+				<dt class="col-sm-2">Version</dt>
+				<dd class="col-sm-10"
+					th:text="${helpItem.version}">
+				</dd>
 			</dl>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>

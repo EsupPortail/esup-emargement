@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.beans.HttpSession;
 import org.esupportail.emargement.config.ApplicationStartupListener;
 import org.esupportail.emargement.security.HttpSessionsListenerService;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("sessions")
 public class CurrentSessionsController {
 
     @Autowired
@@ -44,11 +46,9 @@ public class CurrentSessionsController {
     
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private final static String ITEM = "sessions";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "sessions";
 	}
 
 	@GetMapping(value = "/superadmin/sessions")

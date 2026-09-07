@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
@@ -56,6 +57,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("absence")
 public class AbsenceController {
 	
 	@Autowired
@@ -100,13 +102,11 @@ public class AbsenceController {
 	@Resource
 	AbsenceService absenceService;
 
-	private final static String ITEM = "absence";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "absence";
 	}
 	
 	@GetMapping(value = "/manager/absence")

@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.UserApp;
@@ -17,7 +18,6 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.repositories.custom.UserAppRepositoryCustom;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -47,6 +47,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("admins")
 public class SuperAdminController {
 	
 	@Autowired
@@ -73,19 +74,14 @@ public class SuperAdminController {
 	@Resource
 	AppliConfigService appliConfigService;
 	
-	@Resource
-	HelpService helpService;
-	
 	@Autowired
 	ToolUtil toolUtil;
-	
-	private final static String ITEM = "admins";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "admins";
 	}
 
 	@GetMapping(value = "/superadmin/admins")
@@ -116,7 +112,6 @@ public class SuperAdminController {
         model.addAttribute("userAppPage", userAppPage);
 		model.addAttribute("url", "/superadmin/admins");
 		model.addAttribute("paramUrl", "0");
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("itsme", userAppService.getUserAppEppn());
 		model.addAttribute("isAdminContext", userAppService.isAdminOfCurrentContext(emargementContext));
 		return "superadmin/admins/list";
@@ -135,7 +130,6 @@ public class SuperAdminController {
 		userApp = userAppService.setNomPrenom(users, true).get(0);
 
         uiModel.addAttribute("userApp", userApp);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "superadmin/admins/show";
     }
 	
@@ -157,7 +151,6 @@ public class SuperAdminController {
     	uiModel.addAttribute("contexts", contextRepository.findByOrderByKey());
     	uiModel.addAttribute("allRoles", userAppService.getAllRoles(context));
         uiModel.addAttribute("userApp", userApp);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/superadmin/admins/create")

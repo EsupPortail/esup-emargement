@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean2;
 import org.esupportail.emargement.domain.StoredFile;
@@ -38,9 +39,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("assiduite")
 public class AssiduiteController {
-	
-	private final static String ITEM = "assiduite";
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
@@ -62,7 +62,7 @@ public class AssiduiteController {
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "assiduite";
 	}
 	
 	@GetMapping(value = "/manager/assiduite")

@@ -6,13 +6,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.AppliConfigRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -36,6 +36,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("appliConfig")
 public class AppliConfigController {
 	@Autowired
 	AppliConfigRepository appliConfigRepository;
@@ -48,20 +49,15 @@ public class AppliConfigController {
 	
 	@Resource
 	ContextService contexteService;
-	
-	@Resource
-	HelpService helpService;
 
 	@Resource
 	AppliConfigService appliConfigService;
-	
-	private final static String ITEM = "appliConfig";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "appliConfig";
 	}
 	
 	@GetMapping(value = "/admin/appliConfig")
@@ -71,7 +67,6 @@ public class AppliConfigController {
         model.addAttribute("cats", configs);
         model.addAttribute("currentCat", currentCat);
         model.addAttribute("appliConfigPage", appliConfigRepository.findAllByCategoryOrderByKey(currentCat));
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "admin/appliConfig/list";
 	}
 	

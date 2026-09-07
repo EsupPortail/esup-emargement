@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.AppUser;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -15,7 +16,6 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.GroupeService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -46,6 +46,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("groupe")
 public class GroupeController {
 	
 	@Autowired
@@ -69,16 +70,11 @@ public class GroupeController {
 	@Resource
 	GroupeService groupeService;
 	
-	@Resource
-	HelpService helpService;
-	
-	private final static String ITEM = "groupe";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "groupe";
 	}
 	
 	@GetMapping(value = "/manager/groupe")
@@ -86,7 +82,6 @@ public class GroupeController {
 		
 		Page<Groupe> groupePage = groupeRepository.findAll(pageable);
 		groupeService.computeCounters(groupePage.getContent());
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("groupePage", groupePage);
 		return "manager/groupe/list"; 
 	}
@@ -98,7 +93,6 @@ public class GroupeController {
 		grs.add(groupe);
 		groupeService.computeCounters(grs);
         uiModel.addAttribute("groupe",  groupeRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/groupe/show";
     }
 	
@@ -117,7 +111,6 @@ public class GroupeController {
     }
     
     void populateEditForm(Model uiModel, Groupe groupe) {
-    	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("groupe", groupe);
     }
     

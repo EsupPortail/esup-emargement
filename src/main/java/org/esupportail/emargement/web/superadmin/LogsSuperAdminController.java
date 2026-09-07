@@ -4,13 +4,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Log;
 import org.esupportail.emargement.repositories.LogsRepository;
 import org.esupportail.emargement.repositories.custom.LogsRepositoryCustom;
-import org.esupportail.emargement.services.HelpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("logs")
 public class LogsSuperAdminController {
 	
 	@Autowired
@@ -37,14 +37,9 @@ public class LogsSuperAdminController {
 	@Autowired
 	LogsRepositoryCustom logsRepositoryCustom;
 	
-	@Resource
-	HelpService helpService;
-	
-	private final static String ITEM = "logs";
-	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "logs";
 	}
 	
 	@GetMapping(value = "/superadmin/logs")
@@ -70,7 +65,6 @@ public class LogsSuperAdminController {
 	@GetMapping(value = "/superadmin/logs/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("log",  logsRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "superadmin/logs/show";
     }
     
@@ -79,7 +73,6 @@ public class LogsSuperAdminController {
         model.addAttribute("actions", logsRepositoryCustom.findDistinctAction());
         model.addAttribute("cibleLogins", logsRepositoryCustom.findDistinctCibleLogin());
         model.addAttribute("logsPage", logsPage);
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
         model.addAttribute("logObject",logObject );
         model.addAttribute("stringDate",stringDate );
     }

@@ -7,12 +7,12 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.security.ContextUserDetails;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.web.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +33,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor()")
+@HelpPage("prefs")
 public class PrefsController {
-	
-	private final static String ITEM = "prefs";
 	
 	@Autowired
 	ContextRepository contextRepository;
@@ -44,14 +43,11 @@ public class PrefsController {
 	UserAppRepository userAppRepository;
 	
 	@Resource
-	HelpService helpService;
-	
-	@Resource
 	PreferencesService preferencesService;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return  ITEM;
+		return  "prefs";
 	}
 	
 	@GetMapping(value = "/supervisor/prefs")
@@ -76,7 +72,6 @@ public class PrefsController {
 		model.addAttribute("isSuperAdmin", WebUtils.isSuperAdmin());
 		model.addAttribute("map", map);
 		model.addAttribute("otherCtxs", otherCtxs);
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "supervisor/prefs";
 	}
 	

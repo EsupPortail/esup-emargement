@@ -8,11 +8,10 @@
 			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
 				<h2 class="fs-3 mb-0"><span th:class="text-capitalize" th:text="${#strings.toLowerCase(participantTerme)}"></span></h2>
 				<div class="d-flex align-items-center gap-2">
-					<a class=" contextualHelp" data-bs-toggle="tooltip" title="En vert : session émargée en tant que personne connue
-						En orange : session émargée par erreur ou dans la mauvaise salle.">
-						<i class="fas fa-question-circle"></i>
-					</a>
-				</div>
+					<button  th:if="${isSessionQrCodeEnabled}" title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
+						data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR
+						Code</button>
+				</div>					
 			</div>
 			<div class="modal" tabindex="-1" id="modalUser" th:if="${#ctx.containsVariable('sessionToken')}">
 			  <div class="modal-dialog">
@@ -57,9 +56,6 @@
 			<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
 			<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
 			<th:block th:if="${isSessionQrCodeEnabled}">
-				<button title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
-					data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR
-					Code</button>
 				<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
 					id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
 					<div class="offcanvas-header">

@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.services.UnusedColumnDetectorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -28,9 +29,8 @@ import com.zaxxer.hikari.HikariDataSource;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("javaperf")
 public class JavaPerfController {
-	
-	private final static String ITEM = "javaperf";
 	
 	@Resource
 	UnusedColumnDetectorService detector;
@@ -46,7 +46,7 @@ public class JavaPerfController {
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "javaperf";
 	}
 	
 	@GetMapping(value = "/superadmin/javaperf")

@@ -2,10 +2,10 @@ package org.esupportail.emargement.web.manager;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Prefs;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.services.CalendarService;
-import org.esupportail.emargement.services.HelpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +21,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("calendrier")
 public class CalendarController {
-	
-	private final static String ITEM = "calendrier";
 	
 	private final static String CALENDAR_PREF = "calendarPref";
 	
@@ -39,17 +37,13 @@ public class CalendarController {
 	@Autowired
 	PrefsRepository prefsRepository;
 	
-	@Resource
-	HelpService helpService;
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return  ITEM;
+		return  "calendrier";
 	}
 	
 	@GetMapping(value = "/manager/calendar")
 	public String list(Model model, @RequestParam(defaultValue = "") String eppnTagChecker){
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String selectedListe = prefsRepository.findByUserAppEppnAndNom(auth.getName(), CALENDAR_PREF)
 		                                      .stream()

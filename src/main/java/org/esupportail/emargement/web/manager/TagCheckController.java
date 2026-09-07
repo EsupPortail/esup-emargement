@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.beans.ExportResult;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.EsupSignature;
@@ -46,7 +47,6 @@ import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.EmailService;
 import org.esupportail.emargement.services.EsupSignatureService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -89,6 +89,7 @@ import com.google.zxing.WriterException;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("tagCheck")
 public class TagCheckController {
 	
 	@Autowired
@@ -153,10 +154,7 @@ public class TagCheckController {
 	
 	@Resource
 	ContextService contexteService;
-	
-	@Resource
-	HelpService helpService;
-	
+
 	@Resource
 	EmailService emailService;
 	
@@ -166,13 +164,11 @@ public class TagCheckController {
 	@Resource
 	AbsenceService absenceService;
 	
-	private final static String ITEM = "tagCheck";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "tagCheck";
 	}
 	@Autowired
 	ToolUtil toolUtil;
@@ -230,7 +226,6 @@ public class TagCheckController {
 		model.addAttribute("tempsAmenage",tempsAmenage);
 		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(id).get());
 		model.addAttribute("sid",id);
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("listeRepartition", tagCheckService.searchRepartition(id));
 		model.addAttribute("repartitionId", repartitionId);
 		model.addAttribute("eppn", eppn);
@@ -297,7 +292,6 @@ public class TagCheckController {
     	uiModel.addAttribute("allSessionLocations", sessionLocationRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
     	uiModel.addAttribute("allSessionLocations", sessionLocations);
-    	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("tagCheck", TagCheck);
         Map<String,String> mapEtapes = new HashMap<>();
         List<String> etapes = tagCheckService.findDistinctCodeEtapeSessionEpreuve(id);
@@ -422,7 +416,6 @@ public class TagCheckController {
     	uiModel.addAttribute("convocationHtml", appliConfigService.getConvocationContenu());
     	uiModel.addAttribute("sujetMailConvocation", appliConfigService.getConvocationSujetMail());
     	uiModel.addAttribute("bodyMailConvocation", appliConfigService.getConvocationBodyMail());
-    	uiModel.addAttribute("help", helpService.getValueOfKey("convocation"));
         return "manager/tagCheck/convocation";
     }
     

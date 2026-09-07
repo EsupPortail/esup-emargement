@@ -467,3 +467,15 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
         width: 12.5%; /* 100% / 8 */
     }
 }
+.help-content {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    font-weight: 500;
+}
+#offcanvasHelp {
+	--bs-offcanvas-width: 560px;
+}
+
+#offcanvasHelp .offcanvas-header {
+	padding: .9rem 1.5rem;
+}

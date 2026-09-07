@@ -5,11 +5,11 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.repositories.CampusRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -37,6 +37,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("campus")
 public class CampusController {
 	
 	@Autowired
@@ -51,19 +52,14 @@ public class CampusController {
 	@Resource
 	ContextService contexteService;
 	
-	@Resource
-	HelpService helpService;
-	
 	@Autowired
 	ToolUtil toolUtil;
-	
-	private final static String ITEM = "campus";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
-	public String getActiveMenu() {
-		return ITEM;
+	public static String getActiveMenu() {
+		return "campus";
 	}
 	
 	@GetMapping(value = "/admin/campus")
@@ -78,7 +74,6 @@ public class CampusController {
 		
         Page<Campus> campusPage = campusRepository.findAll(toolUtil.updatePageable(pageable, size));
         model.addAttribute("campusPage", campusPage);
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
         model.addAttribute("selectAll", count);
 		return "admin/campus/list";
 	}
@@ -86,7 +81,6 @@ public class CampusController {
 	@GetMapping(value = "/admin/campus/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("campus",  campusRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/campus/show";
     }
 	
@@ -105,7 +99,6 @@ public class CampusController {
     }
     
     void populateEditForm(Model uiModel, Campus campus) {
-    	uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("campus", campus);
     }
     

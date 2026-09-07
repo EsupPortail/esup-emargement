@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.EsupSignature.StatutSignature;
 import org.esupportail.emargement.domain.SessionEpreuve;
@@ -34,6 +35,7 @@ import org.springframework.web.client.RestTemplate;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("esupsignature")
 public class EsupSignatureController {
 	
 	@Resource
@@ -60,11 +62,9 @@ public class EsupSignatureController {
 	@Value("${emargement.esupsignature.workflow.id}")
 	private String workflowId;
 	
-	private final static String ITEM = "esupsignature";
-	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "esupsignature";
 	}
 	
 	@GetMapping(value = "/manager/esupsignature")
@@ -81,7 +81,6 @@ public class EsupSignatureController {
 		model.addAttribute("esupsignaturePage", esupSignatureRepository.findBySessionEpreuve(se, pageable));
 		return "manager/esupSignature/index";
 	}
-
 
 	//http://localhost:8080/Ctx-test/manager/esupsignature/status/12993
 	@GetMapping(value = "/manager/esupsignature/status/{signId}")

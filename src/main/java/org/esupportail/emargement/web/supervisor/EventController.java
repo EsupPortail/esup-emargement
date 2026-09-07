@@ -9,6 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Campus;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
@@ -37,6 +38,7 @@ import org.xml.sax.SAXException;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor() or  @userAppService.isUser()")
+@HelpPage("events")
 public class EventController {
 	
 	@Resource
@@ -53,11 +55,9 @@ public class EventController {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	private final static String ITEM = "events";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "events";
 	}
 	
 	@GetMapping(value = "/supervisor/events")

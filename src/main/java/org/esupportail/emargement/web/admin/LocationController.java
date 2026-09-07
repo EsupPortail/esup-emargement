@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.repositories.CampusRepository;
@@ -13,7 +14,6 @@ import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.custom.LocationRepositoryCustom;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -42,6 +42,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("location")
 public class LocationController {
 	
 	@Autowired
@@ -60,9 +61,6 @@ public class LocationController {
 	LogService logService;
 	
 	@Resource
-	HelpService helpService;
-	
-	@Resource
 	ContextService contexteService;
 	
 	@Autowired
@@ -71,13 +69,11 @@ public class LocationController {
 	@Autowired
 	ToolUtil toolUtil;
 	
-	private final static String ITEM = "location";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "location";
 	}
 
 	@GetMapping(value = "/admin/location")
@@ -98,7 +94,6 @@ public class LocationController {
 		}
         model.addAttribute("locationPage", locationPage);
         model.addAttribute("paramUrl", "0");
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
         model.addAttribute("selectAll", count);
 		return "admin/location/list";
 	}
@@ -106,7 +101,6 @@ public class LocationController {
 	@GetMapping(value = "/admin/location/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("location",  locationRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "admin/location/show";
     }
 	
@@ -127,7 +121,6 @@ public class LocationController {
     void populateEditForm(Model uiModel, Location Location) {
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
         uiModel.addAttribute("location", Location);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/admin/location/create")

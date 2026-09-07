@@ -5,11 +5,11 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TypeSession;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.TypeSessionRepository;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -37,6 +37,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("typeSession")
 public class TypeSessionController {
 
 	private final static String ITEM = "typeSession";
@@ -53,14 +54,11 @@ public class TypeSessionController {
 	ContextRepository contextRepository;
 	
 	@Resource
-	HelpService helpService;
-	
-	@Resource
 	LogService logService;
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "typeSession";
 	}
 	
 	@GetMapping(value = "/admin/typeSession")
@@ -68,7 +66,6 @@ public class TypeSessionController {
 		
         Page<TypeSession> typeSessionPage = typeSessionRepository.findAll(pageable);
         model.addAttribute("typeSessionPage", typeSessionPage);
-        model.addAttribute("help", helpService.getValueOfKey(ITEM));
         if(typeSessionPage.getContent().isEmpty()) {
         	model.addAttribute("checkTypeSession", "ok");
         }

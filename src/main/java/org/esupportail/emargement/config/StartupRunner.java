@@ -8,6 +8,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
+import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.PreferencesService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TypeSessionService;
@@ -38,6 +39,9 @@ public class StartupRunner implements CommandLineRunner {
 	@Resource
 	SessionEpreuveService sessionEpreuveService;
 	
+	@Resource
+	HelpService helpService;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -48,6 +52,9 @@ public class StartupRunner implements CommandLineRunner {
         	for (Context context : contexts) {
         		String key = context.getKey();
         		log.info("-----Contexte : " +  key + " ------");
+        		helpService.cleanObsoleteHelp();
+        		helpService.addMissingHelp();
+        		helpService.updateHelpList();
         		appliConfigService.updateDescription(context); 
         		appliConfigService.updateAppliconfig(context);
         		appliConfigService.updateCatIsMissing(context);

@@ -16,29 +16,69 @@
 			<table class="table table-hover table-striped table-bordered">
 				<thead class="sticky-top">
 					<tr>
-						<th scope="col"><a class="sorted" sd:pagination-sort="key">Clé</a></th>
-						<th scope="col" class="d-none d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="description">Description</a></th>
-						<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Valeur</th>
-						<th class ="center" scope="col">Actions</th>
+						<th scope="col">
+							<a class="sorted" sd:pagination-sort="key">Clé</a>
+						</th>
+						<th scope="col">
+							<a class="sorted" sd:pagination-sort="title">Titre</a>
+						</th>
+						<th scope="col" class="d-none d-lg-table-cell">
+							<a class="sorted" sd:pagination-sort="description">Description</a>
+						</th>
+						<th scope="col" class="d-none d-xl-table-cell">
+							Intro
+						</th>
+						<th scope="col" class="d-none d-xl-table-cell">
+							Actions
+						</th>
+						<th scope="col" class="d-none d-xl-table-cell">
+							À retenir
+						</th>
+						<th scope="col" class="d-none d-xl-table-cell">
+							Attention
+						</th>
+						<th scope="col" class="center">
+							Version
+						</th>
+						<th class="center" scope="col">
+							Actions
+						</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr th:each="help : ${helpPage}">
 						<td th:text="${help.key}"></td>
-						<td th:text="${help.description}" th:maxlength="4" class="d-none d-lg-table-cell d-xl-table-cell"></td>						
-						<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell" th:utext="${help.value}"></td>
-						<td class ="center">
-							<div class="dropdown">
-								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
-									<i class="fa-solid fa-ellipsis-vertical"></i>
-								</button>
-								<ul class="dropdown-menu dropdown-menu-end">
-									<li><a class="dropdown-item" th:href="@{/{ctx}/superadmin/help/{id}(id=${help.id},ctx=${eContext})}">Voir</a>
-									</li>
-									<li><a class="dropdown-item" th:href="@{/{ctx}/superadmin/help/{id}?form(id=${help.id},ctx=${eContext})}">Modifier</a>
-									</li>
-								</ul>
-							</div>				
+						<td th:text="${help.title}"></td>
+						<td class="d-none d-lg-table-cell"
+						    th:text="${help.description}">
+						</td>
+						<td class="d-none d-xl-table-cell">
+							<span th:if="${help.intro != null and !help.intro.isBlank()}"
+							      th:text="${help.intro}">
+							</span>
+						</td>
+						<td class="d-none d-xl-table-cell">
+							<span th:if="${help.actions != null and !help.actions.isBlank()}"
+							      th:text="${help.actions}">
+							</span>
+						</td>
+						<td class="d-none d-xl-table-cell">
+							<span th:if="${help.important != null and !help.important.isBlank()}"
+							      th:text="${help.important}">
+							</span>
+						</td>
+						<td class="d-none d-xl-table-cell">
+							<span th:if="${help.warning != null and !help.warning.isBlank()}"
+							      th:text="${help.warning}">
+							</span>
+						</td>
+						<td class="text-center">
+							<span th:text="${help.version}"></span>
+						</td>
+						<td class="text-center">
+							<a class="dropdown-item" th:href="@{/{ctx}/superadmin/help/{id}(id=${help.id},ctx=${eContext})}">
+								<i class="fa-solid fa-eye me-2 text-primary"></i>
+							</a>
 						</td>
 					</tr>
 				</tbody>

@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.BigFile;
 import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.repositories.StoredFileRepository;
@@ -32,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("file")
 public class FileController {
 	
 	@Autowired
@@ -40,11 +42,9 @@ public class FileController {
 	@Resource
 	ContextService contexteService;
 	
-	private final static String ITEM = "file";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "file";
 	}
 	
 	@GetMapping(value = "/manager/file")
@@ -70,7 +70,7 @@ public class FileController {
 		return "manager/file/list";
 	}
 	
-	@RequestMapping(value="/manager/file/{id}")
+	@GetMapping(value="/manager/file/{id}")
 	public void getPhoto(@PathVariable Long id, HttpServletResponse response) throws IOException {
 		StoredFile storedFile = storedFileRepository.findById(id).get();
 		if(storedFile != null) {
@@ -82,6 +82,5 @@ public class FileController {
 			IOUtils.copy(targetStream, response.getOutputStream());
 		}
 	}
-
 }
 

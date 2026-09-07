@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -16,7 +17,6 @@ import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.UserAppService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +36,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor()")
+@HelpPage("dashboard")
 public class DashboardController {
-	
-	private final static String ITEM = "dashboard";
-	
-	@Resource
-	HelpService helpService;
 	
 	@Resource
 	UserAppService userAppService;
@@ -60,7 +56,7 @@ public class DashboardController {
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return  ITEM;
+		return  "dashboard";
 	}
 	
 	@GetMapping(value = "/dashboard")
@@ -118,8 +114,30 @@ public class DashboardController {
 			model.addAttribute("sePrevious", sePreviousList.get(0));
 		}
 		model.addAttribute("nextSessions", sessionEpreuveRepository.countByDateExamenGreaterThanEqual(new Date()));
-	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
+
 		return "dashboard";
+	}
+	
+	@GetMapping(value = "/dashboard2")
+	public String list2(Model model) {
+	    model.addAttribute("nbSessionsToday", 0);
+	    model.addAttribute("nbSessionsWeek", 8);
+	    model.addAttribute("nbNotSigned", 2);
+	    model.addAttribute("nbAbsences", 0);
+	    model.addAttribute("nbImportErrors", 1);
+
+	    model.addAttribute("sessionsLabels", List.of("Lun","Mar","Mer","Jeu","Ven","Sam","Dim"));
+	    model.addAttribute("sessionsPerDay", List.of(3,5,6,4,5,3,2));
+
+	    model.addAttribute("presenceStats", List.of(85,15));
+
+	    model.addAttribute("recentLogs", List.of(
+	        "Épreuve Math créée",
+	        "Import ADE en échec",
+	        "Agent retiré d'une session"
+	    ));
+	    
+		return "dashboard2";
 	}
 
 }

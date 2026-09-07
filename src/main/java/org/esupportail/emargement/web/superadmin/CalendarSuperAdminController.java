@@ -2,9 +2,9 @@ package org.esupportail.emargement.web.superadmin;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.services.CalendarService;
-import org.esupportail.emargement.services.HelpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("calendrierSupAdmin")
 public class CalendarSuperAdminController {
-	
-	private final static String ITEM = "calendrier";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -34,17 +33,13 @@ public class CalendarSuperAdminController {
 	@Autowired
 	ContextRepository contextRepository;
 	
-	@Resource
-	HelpService helpService;
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return  ITEM;
+		return "calendrier";
 	}
 	
 	@GetMapping(value = "/superadmin/calendar")
 	public String list(Model model){
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("ctxs", contextRepository.findByIsActifTrueOrderByKey());
 		return "superadmin/calendar/index";
 	}

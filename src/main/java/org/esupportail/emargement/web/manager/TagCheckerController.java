@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
@@ -21,7 +22,6 @@ import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -56,6 +56,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("tagChecker")
 public class TagCheckerController {
 	
 	@Autowired
@@ -94,16 +95,11 @@ public class TagCheckerController {
 	@Resource
 	LdapService ldapService;
 	
-	@Resource
-	HelpService helpService;
-	
-	private final static String ITEM = "tagChecker";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "tagChecker";
 	}
 	
 	@GetMapping(value = "/manager/tagChecker/sessionEpreuve/{id}", produces = "text/html")
@@ -115,7 +111,6 @@ public class TagCheckerController {
         model.addAttribute("tagCheckerPage", tagCheckerPage);
 		model.addAttribute("paramUrl", sessionEpreuve.getId());
 		model.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(sessionEpreuve.getId()).get());
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("isConsignesEnabled", appliConfigService.isConsignesEnabled());
 		
 	    if ("true".equals(request.getHeader("HX-Request"))) {
@@ -132,7 +127,6 @@ public class TagCheckerController {
 		tagCheckerService.setNomPrenom4TagCheckers(tagCheckers);
 		
         uiModel.addAttribute("tagChecker", tagCheckers.get(0));
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/tagChecker/show";
     }
 	
@@ -201,7 +195,6 @@ public class TagCheckerController {
     	uiModel.addAttribute("se", allSe.get(0));
     	uiModel.addAttribute("allSessionEpreuves", allSe);
         uiModel.addAttribute("tagChecker", TagChecker);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/manager/tagChecker/create")
@@ -300,7 +293,6 @@ public class TagCheckerController {
     	uiModel.addAttribute("sujetMailConsignes", appliConfigService.getConsigneSujetMail());
     	uiModel.addAttribute("bodyMailConsignes", appliConfigService.getConsigneBodyMail());
     	uiModel.addAttribute("tagCheckers", tagCheckerService.getSnTagCheckers(sessionEpreuve));
-    	uiModel.addAttribute("help", helpService.getValueOfKey("consignes"));
     	uiModel.addAttribute("isSendEmails",appliConfigService.isSendEmails());
         return "manager/tagChecker/consignes";
     }

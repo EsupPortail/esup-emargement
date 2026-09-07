@@ -18,6 +18,7 @@ import javax.validation.Valid;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.beans.SessionEpreuveResult;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -42,7 +43,6 @@ import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.AdeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -71,7 +71,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -81,6 +80,7 @@ import org.xml.sax.SAXException;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("sessionEpreuve")
 public class SessionEpreuveController {
 	
 	@Autowired
@@ -133,9 +133,6 @@ public class SessionEpreuveController {
 
 	@Resource
 	UserAppService userAppService;
-
-	@Resource
-	HelpService helpService;
 	
 	@Resource
 	AdeService adeService;
@@ -152,13 +149,11 @@ public class SessionEpreuveController {
 	@Autowired
 	UserAppRepository userAppRepository;
 	
-	private final static String ITEM = "sessionEpreuve";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "sessionEpreuve";
 	}
 
 	@GetMapping("/manager/sessionEpreuve")
@@ -192,7 +187,6 @@ public class SessionEpreuveController {
 	    model.addAttribute("sites", campusRepository.findByOrderBySite());
 	    model.addAttribute("adeBranches", sessionEpreuveService.getAdeBranches());
 	    model.addAttribute("userApps", userAppService.findDistinctUserAppByAnneeUniv(sessionSearch.getAnneeUniv(), auth.getName()));
-	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
 
 	    return "manager/sessionEpreuve/list";
 	}
@@ -205,7 +199,6 @@ public class SessionEpreuveController {
 		sessionEpreuveService.computeCounters(list);
         uiModel.addAttribute("sessionEpreuve", list.get(0));
         uiModel.addAttribute("attachments", storedFileRepository.findBySessionEpreuve(list.get(0)));
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         if(modal != null){
         	return "manager/sessionEpreuve/show :: modalContent";
         }
@@ -225,7 +218,6 @@ public class SessionEpreuveController {
 		uiModel.addAttribute("totalArepartirTagChecks", totalArepartirTagChecks);
 		uiModel.addAttribute("totalRepartisTagChecks", totalRepartisTagChecks);
 		uiModel.addAttribute("sessionEpreuve", sessionEpreuveRepository.findById(id).get());
-		uiModel.addAttribute("help", helpService.getValueOfKey("repartition"));
 		uiModel.addAttribute("tagCheckOrderValue", (tagCheckOrderValue.isEmpty())? null : tagCheckOrderValue);
 		
 		PropertiesForm form = new PropertiesForm();
@@ -271,7 +263,6 @@ public class SessionEpreuveController {
 				
 		uiModel.addAttribute("sessionLocation", sessionLocationRepository.findById(id).get());
 		uiModel.addAttribute("tagChecks", tagChecks);
-		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("selectAll", tagChecks.getTotalElements());
         return "manager/sessionEpreuve/tagCheckList";
     }
@@ -322,7 +313,6 @@ public class SessionEpreuveController {
     	uiModel.addAttribute("allCampuses", campusRepository.findAll());
     	uiModel.addAttribute("allGroupes", groupeRepository.findAll());
         uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         Date date = Calendar.getInstance().getTime();  
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
         String strDate = dateFormat.format(date);  

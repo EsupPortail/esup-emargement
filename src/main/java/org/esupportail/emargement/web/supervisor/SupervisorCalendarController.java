@@ -2,9 +2,9 @@ package org.esupportail.emargement.web.supervisor;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.repositories.PrefsRepository;
 import org.esupportail.emargement.services.CalendarService;
-import org.esupportail.emargement.services.HelpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor()")
+@HelpPage("calendrierSup")
 public class SupervisorCalendarController {
-	
-	private final static String ITEM = "calendrierSup";
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
@@ -33,17 +32,13 @@ public class SupervisorCalendarController {
 	@Autowired
 	PrefsRepository prefsRepository;
 	
-	@Resource
-	HelpService helpService;
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return  ITEM;
+		return  "calendrierSup";
 	}
 	
 	@GetMapping(value = "/supervisor/calendar")
 	public String list(Model model){
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "supervisor/calendar/index";
 	}
 	

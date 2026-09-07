@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.custom.ContextRepositoryCustom;
@@ -12,7 +13,6 @@ import org.esupportail.emargement.security.ContextUserDetails;
 import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -43,9 +43,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isSuperAdmin()")
+@HelpPage("context")
 public class ContextController {
-
-	private final static String ITEM = "context";
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -57,9 +56,6 @@ public class ContextController {
 	
 	@Resource
 	LogService logService;
-	
-	@Resource
-	HelpService helpService;
 	
 	@Resource
 	ContextService contextService;
@@ -78,7 +74,7 @@ public class ContextController {
 	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "context";
 	}
 	
 	@GetMapping(value = "/superadmin/context")
@@ -86,7 +82,6 @@ public class ContextController {
 		
 		Page<Context> contextPage = contextRepository.findAll(pageable);
 		model.addAttribute("contextPage", contextPage);
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		return "superadmin/context/list";
 	}
 	

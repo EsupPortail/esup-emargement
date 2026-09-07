@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Location;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
@@ -17,7 +18,6 @@ import org.esupportail.emargement.repositories.LocationRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.services.ContextService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.LdapService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
@@ -51,6 +51,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("sessionLocation")
 public class SessionLocationController {
 	
 	@Autowired
@@ -77,16 +78,11 @@ public class SessionLocationController {
 	@Resource
 	ContextService contexteService;
 	
-	@Resource
-	HelpService helpService;
-	
-	private final static String ITEM = "sessionLocation";
-	
 	private final Logger log = LoggerFactory.getLogger(getClass());
     	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "sessionLocation";
 	}
 	
 	@GetMapping(value = "/manager/sessionLocation/sessionEpreuve/{id}", produces = "text/html")
@@ -103,7 +99,6 @@ public class SessionLocationController {
 	    model.addAttribute("sessionLocationPage", sessionLocationPage);
 	    model.addAttribute("sessionEpreuve", sessionEpreuve);
 	    model.addAttribute("paramUrl", sessionEpreuve.getId());
-	    model.addAttribute("help", helpService.getValueOfKey(ITEM));
 
 	    if ("true".equals(request.getHeader("HX-Request"))) {
 	        return "manager/sessionLocation/list :: content";
@@ -115,7 +110,6 @@ public class SessionLocationController {
 	@GetMapping(value = "/manager/sessionLocation/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("sessionLocation",  sessionLocationRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         return "manager/sessionLocation/show";
     }
 	
@@ -159,7 +153,6 @@ public class SessionLocationController {
     	uiModel.addAttribute("allSessionEpreuves", allSe);
     	uiModel.addAttribute("se", allSe.get(0));
         uiModel.addAttribute("sessionLocation", sessionLocation);
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
     }
     
     @PostMapping("/manager/sessionLocation/create")

@@ -5,9 +5,9 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Archive;
 import org.esupportail.emargement.services.ArchiveService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -22,10 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin()")
+@HelpPage("archives")
 public class ArchiveController {
-	
-	@Resource
-	HelpService helpService;
 	
 	@Resource
 	ArchiveService archiveService;
@@ -33,17 +31,14 @@ public class ArchiveController {
 	@Resource
 	TagCheckService tagCheckService;
 	
-	private final static String ITEM = "archives";
-	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "archives";
 	}
 	
 	@GetMapping(value = "/admin/archives")
 	public String list(@PathVariable String emargementContext, Model model){
 		List<Archive> archives = archiveService.getArchivesList(emargementContext);
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("archives", archives);
 		return "admin/archives";
 	}

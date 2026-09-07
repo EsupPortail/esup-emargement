@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import javax.naming.InvalidNameException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
@@ -26,7 +27,6 @@ import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.services.ApogeeService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.GroupeService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.ImportExportService;
 import org.esupportail.emargement.services.LdapGroupService;
 import org.esupportail.emargement.services.LdapService;
@@ -58,6 +58,7 @@ import com.opencsv.CSVWriter;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("extraction")
 public class ExtractionController {
 
 	public enum ExtractionType {apogee, ldap, csv, groupes}
@@ -106,14 +107,9 @@ public class ExtractionController {
 	@Autowired
 	TagCheckRepository tagCheckRepository;
 	
-	@Resource
-	HelpService helpService;
-	
-	private final static String ITEM = "extraction";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "extraction";
 	}
 
 	@ModelAttribute("apogeeAvailable")
@@ -130,7 +126,6 @@ public class ExtractionController {
 	@GetMapping(value = "/manager/extraction/tabs/{type}", produces = "text/html")
     public String redirectTab(Model uiModel, @PathVariable ExtractionType type ) {
 		uiModel.addAttribute("type", type.name());
-		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("allSessionEpreuves", importExportService.getNotFreeSessionEpreuve());
 		if(ExtractionType.apogee.equals(type)) {
 			uiModel.addAttribute("years", importExportService.getYearsUntilNow());
@@ -330,8 +325,6 @@ public class ExtractionController {
 			uiModel.addAttribute("allComposantes", new ArrayList<>());
 		}
 		uiModel.addAttribute("years", importExportService.getYearsUntilNow());
-		uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
-		uiModel.addAttribute("size", helpService.getValueOfKey(ITEM));
 		uiModel.addAttribute("type", "ldap");
 		uiModel.addAttribute("listTabs", appliConfigService.getListImportExport());
     	return "manager/extraction/index";

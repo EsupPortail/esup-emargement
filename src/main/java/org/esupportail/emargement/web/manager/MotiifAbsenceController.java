@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("motifAbsence")
 public class MotiifAbsenceController {
 	
 	@Autowired
@@ -45,11 +47,9 @@ public class MotiifAbsenceController {
 	@Resource
 	LogService logService;
 	
-	private final static String ITEM = "motifAbsence";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "motifAbsence";
 	}
 	
 	@GetMapping(value = "/manager/motifAbsence")

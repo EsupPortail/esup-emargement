@@ -2,7 +2,7 @@ package org.esupportail.emargement.web.superadmin;
 
 import javax.annotation.Resource;
 
-import org.esupportail.emargement.services.HelpService;
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.StatsService;
 import org.slf4j.Logger;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value = "@userAppService.isSuperAdmin()")
+@HelpPage("stats")
 public class StatsSuperAdminController {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -28,21 +29,15 @@ public class StatsSuperAdminController {
 	StatsService statsService;
 
 	@Resource
-	HelpService helpService;
-
-	@Resource
 	SessionEpreuveService sessionEpreuveService;
-
-	private final static String ITEM = "stats";
 
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "stats";
 	}
 
 	@GetMapping(value = "/superadmin/stats")
 	public String list(@PathVariable String emargementContext, Model model, @RequestParam(required = false) String anneeUniv) {
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		if (anneeUniv == null) {
 			anneeUniv = String.valueOf(sessionEpreuveService.getCurrentanneUniv());
 		}

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.AppUser;
 import org.esupportail.emargement.domain.AssiduiteBean;
 import org.esupportail.emargement.domain.EsupSignature;
@@ -29,7 +30,6 @@ import org.esupportail.emargement.repositories.custom.TagCheckerRepositoryCustom
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.EsupSignatureService;
 import org.esupportail.emargement.services.GroupeService;
-import org.esupportail.emargement.services.HelpService;
 import org.esupportail.emargement.services.PersonService;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.TagCheckService;
@@ -50,10 +50,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
-
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager()")
+@HelpPage("individu")
 public class Individucontroller {
 	
 	@Resource
@@ -98,20 +98,15 @@ public class Individucontroller {
 	@Resource	
 	GroupeService groupeService;
 	
-	@Resource
-	HelpService helpService;
-	
 	@Autowired
 	ToolUtil toolUtil;
 	
 	@Value("${emargement.esupsignature.url}")
 	private String urlEsupsignature;
 	
-	private final static String ITEM = "individu";
-	
 	@ModelAttribute("active")
 	public static String getActiveMenu() {
-		return ITEM;
+		return "individu";
 	}
 	
 	@GetMapping(value = "/manager/individu")
@@ -189,7 +184,6 @@ public class Individucontroller {
 			model.addAttribute("nbBadgeage", tagCheckRepository.countBySessionEpreuveIdAndTagDateIsNotNullAndIsUnknownFalse(sessionEpreuveId));
 		}
 		model.addAttribute("types", personService.getTypesPerson());
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
 		model.addAttribute("isConvocationEnabled", appliConfigService.isConvocationEnabled());
 		return "manager/individu/index";
 	}
