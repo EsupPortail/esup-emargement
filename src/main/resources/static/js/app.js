@@ -1569,18 +1569,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	
 	//Recherche assiduité
-	if(document.getElementById("assiduitePage") != null || document.getElementById("recherchePage") != null){
-
-		}
-		$('table.assiduite').DataTable(
-		    buildDataTableOptions([[4, 'desc'], [7, 'asc']])
-		);
-		$('table.assiduite2').DataTable(
-		     buildDataTableOptions([[4, 'desc'], [7, 'asc']])
-		);
-		$('table.assiduite3').DataTable(
-		    buildDataTableOptions([[0, 'asc'], [1, 'asc']])
-		);
+	$('table.assiduite').DataTable(
+	    buildDataTableOptions([[4, 'desc'], [6, 'asc']])
+	);
+	$('table.assiduite2').DataTable(
+	     buildDataTableOptions([[4, 'desc'], [7, 'asc']])
+	);
+	$('table.assiduite3').DataTable(
+	    buildDataTableOptions([[0, 'asc'], [1, 'asc']])
+	);
 	$('.tableTasks').DataTable({
 		responsive: true,
 		ordering: true,
