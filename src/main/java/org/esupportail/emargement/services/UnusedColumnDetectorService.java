@@ -38,37 +38,33 @@ public class UnusedColumnDetectorService {
      * Retourne les colonnes présentes en base mais absentes des @Entity JPA.
      * Clé = nom de table, valeur = liste des colonnes orphelines.
      */
-    public Map<String, List<String>> findUnusedColumns() {
-        Map<String, Set<String>> jpaColumns  = extractJpaColumns();
-        Set<String>              joinTables  = extractJoinTableNames(); // ← nouveau
-        Map<String, Set<String>> dbColumns   = fetchDatabaseColumns();
+	public Map<String, List<String>> findUnusedColumns() {
 
-        Map<String, List<String>> unused = new LinkedHashMap<>();
-
-        dbColumns.forEach((table, dbCols) -> {
-            // Ignorer les tables de jointure @ManyToMany
-        	if (joinTables.stream()
-        	        .anyMatch(jt -> normalizeColumnName(jt)
-        	            .equals(normalizeColumnName(table)))) {
-        	    return;
-        	}
-
-            Set<String> mapped = jpaColumns.getOrDefault(table, Collections.emptySet());
-
-            List<String> orphans = dbCols.stream()
-            	    .filter(col -> mapped.stream()
-            	        .noneMatch(jpa -> normalizeColumnName(jpa)
-            	            .equals(normalizeColumnName(col))))
-            	    .sorted()
-            	    .collect(Collectors.toList());
-
-            if (!orphans.isEmpty()) {
-                unused.put(table, orphans);
-            }
-        });
-
-        return unused;
-    }
+		Map<String, Set<String>> jpaColumns = extractJpaColumns();
+		Set<String> joinTables = extractJoinTableNames();
+		Set<String> excludedTables = Set.of("pg_stat_statements", "pg_stat_statements_info");
+		Map<String, Set<String>> dbColumns = fetchDatabaseColumns();
+		Map<String, List<String>> unused = new LinkedHashMap<>();
+		dbColumns.forEach((table, dbCols) -> {
+			// Ignorer les tables exclues
+			if (excludedTables.stream()
+					.anyMatch(excluded -> normalizeColumnName(excluded).equals(normalizeColumnName(table)))) {
+				return;
+			}
+			// Ignorer les tables de jointure @ManyToMany
+			if (joinTables.stream().anyMatch(jt -> normalizeColumnName(jt).equals(normalizeColumnName(table)))) {
+				return;
+			}
+			Set<String> mapped = jpaColumns.getOrDefault(table, Collections.emptySet());
+			List<String> orphans = dbCols.stream().filter(
+					col -> mapped.stream().noneMatch(jpa -> normalizeColumnName(jpa).equals(normalizeColumnName(col))))
+					.sorted().collect(Collectors.toList());
+			if (!orphans.isEmpty()) {
+				unused.put(table, orphans);
+			}
+		});
+		return unused;
+	}
     
     private String normalizeColumnName(String name) {
         return name
