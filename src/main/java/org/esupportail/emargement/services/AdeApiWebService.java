@@ -142,8 +142,6 @@ public class AdeApiWebService implements AdeApiService {
     @Resource 
     private GroupeService groupeService;
     
-    private AdeService adeService;
-    
     public String getFatherIdResource(String sessionId, String idItem, String category, String tree){
 		String fatherId = "0";
 		String detail = "2";
@@ -1076,7 +1074,7 @@ public class AdeApiWebService implements AdeApiService {
 				// déconnecter
 				// (voir implémentation de updateSessionEpreuve v1.1.5+)
 				if (disconnectSessionBeforeNewSessionId) {
-					disconnectSession(emargementContext);
+					disconnectSession(emargementContext, projectId);
 				}
 
 				// Si la requête a échoué c'est qu'on a récupéré en mémoire un
@@ -1163,9 +1161,9 @@ public class AdeApiWebService implements AdeApiService {
 		return sessionId;
 	}
 
-	public void disconnectSession(String emargementContext) {
+	public void disconnectSession(String emargementContext, String idProject) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext);
+	//	String idProject = adeService.getCurrentProject(null, auth.getName(), emargementContext);
 		List<Prefs> prefsAdeSession = prefsRepository.findByNomAllContexts(ADE_STORED_SESSION + idProject);
 		if(!prefsAdeSession.isEmpty() && !prefsAdeSession.get(0).getValue().isEmpty()){
 			try {

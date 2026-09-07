@@ -78,7 +78,7 @@ public class AdeService {
 
 	public final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
 	
-	@Autowired
+	@Resource
 	private AdeApiService adeApiService;
 
 	@Value("${emargement.ade.api.auth_type}")
@@ -303,7 +303,7 @@ public class AdeService {
 					// déconnecter
 					// (voir implémentation de updateSessionEpreuve v1.1.5+)
 					if (disconnectSessionBeforeNewSessionId) {
-						disconnectSession(emargementContext);
+						disconnectSession(emargementContext, projectId);
 					}
 
 					// Si la requête a échoué c'est qu'on a récupéré en mémoire un
@@ -939,8 +939,8 @@ public class AdeService {
         return adeResourceBeans; 
     }
 	
-	public void disconnectSession(String emargementContext) {
-		adeApiService.disconnectSession(emargementContext);
+	public void disconnectSession(String emargementContext, String idProject) {
+		adeApiService.disconnectSession(emargementContext, idProject);
 	}
 
 	public void updateSessionEpreuve(List<SessionEpreuve> seList, String emargementContext, String typeSync, Context ctx) throws AdeApiRequestException, IOException, ParseException {

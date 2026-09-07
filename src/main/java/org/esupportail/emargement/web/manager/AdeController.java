@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -321,9 +322,11 @@ public class AdeController {
 	}
 
 	@GetMapping(value = "/manager/adeCampus/disconnect")
-	public String disconnect(@PathVariable String emargementContext) {
-		adeService.disconnectSession(emargementContext);
-		return String.format("redirect:/%s/manager/adeCampus", emargementContext);
+	public ResponseEntity<Void> disconnect(@PathVariable String emargementContext, @RequestParam String projectId) {
+		adeService.disconnectSession(emargementContext, projectId);
+		 return ResponseEntity.noContent()
+		            .header("HX-Redirect", "/" + emargementContext + "/manager/adeCampus")
+		            .build();
 	}
 
 	@GetMapping(value = "/manager/adeCampus/json", headers = "Accept=application/json; charset=utf-8")

@@ -53,8 +53,10 @@
 								<li>
 									<hr class="dropdown-divider">
 								</li>
-								<li><a class="dropdown-item" title="Reconnexion session Ade Campus" 
-									th:href="@{/{ctx}/manager/adeCampus/disconnect(ctx=${eContext})}">Reconnexion Ade Campus</a>
+								<li>
+									<a href="#" class="dropdown-item" th:hx-get="@{/{ctx}/manager/adeCampus/disconnect(projectId=${idProject},ctx=${eContext})}" hx-trigger="click">
+										Reconnexion Ade Campus
+									</a>
 								</li>
 								<li>
 									<a class="dropdown-item" title="Ade Campus" target="_blank" th:href="${adeHomeUrl}">ADE</a>
