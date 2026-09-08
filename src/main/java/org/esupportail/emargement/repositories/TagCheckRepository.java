@@ -171,12 +171,18 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	
 	Optional<TagCheck> findFirstBySessionLocationExpectedIdAndGuestEmail(Long id, String email);
 	
-	List<TagCheck> findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+	List<TagCheck> findByTagDateIsNullAndAbsenceMotifAbsenceIdIsNotNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
 			Date from, Date to, Date from1, Date to1, Date from2, Date to2);
 	
 	List<TagCheck> findByTagDateIsNotNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNotNullAndSessionEpreuveDateFinBetweenOrTagDateIsNotNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
 			Date from, Date to, Date from1, Date to1, Date from2, Date to2);
 	
+	List<TagCheck> findBySessionEpreuveDateExamenBetweenOrSessionEpreuveDateFinBetweenOrSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+    		Date from, Date to, Date from1, Date to1, Date from2, Date to2);
+	
+	List<TagCheck> findByTagDateIsNullAndAbsenceMotifAbsenceIdIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+	        Date from, Date to, Date from1, Date to1, Date from2, Date to2);
+			
 	Long countTagCheckBySessionEpreuveIdAndPersonEppnEquals(Long id, String eppn);
 	
 	Long countTagCheckBySessionEpreuveIdAndGuestEmailEquals(Long id, String email);
