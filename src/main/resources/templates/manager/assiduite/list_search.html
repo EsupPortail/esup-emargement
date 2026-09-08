@@ -22,8 +22,10 @@
 					<option value="surv">Surveillant</option>
 				</select>
 				<select class="slimSelectClass assiduiteControl w-auto" th:field="*{situation}">
+					<option value="all">Tout</option>
 					<option value="absence">Absence</option>
 					<option value="presence">Présence</option>
+					<option value="nonEmarg">Non émargé</option>
 				</select>
 				<select class="slimSelectClass assiduiteControl w-auto  clearable" title="Tous les statuts" th:field="*{idAdeBranch}" 
 					th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">
