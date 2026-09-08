@@ -69,7 +69,7 @@ async function createContextAdmin(page) {
   await page.goto('/all/superadmin/admins?form');
   await page.locator('input[name="eppn"]').fill('joe@example.org');
   await page.locator('select[name="userRole"]').selectOption('ADMIN');
-  await page.locator('select[name="context.key"]').selectOption(CONTEXT_KEY);
+  await page.locator('select[name="context.key"]').selectOption(CONTEXT_KEY, { force: true });
   await page.locator('input[type="submit"][value="Valider"]').click();
   await expect(page.locator('table tbody tr', { hasText: 'joe@example.org' }).first().locator('td').first()).toHaveText('joe@example.org');
 }
@@ -77,7 +77,8 @@ async function createContextAdmin(page) {
 async function unactivateAde(page) {
   await page.goto('/testPlaywright/admin/appliConfig');
   // désactivation d'ADE
-  await page.locator('table tbody tr').filter({ hasText: 'ADE_ENABLED' }).first().locator('td.center a').nth(1).click();
+  await page.locator('table tbody tr').filter({ hasText: 'ADE_ENABLED' }).first().locator('td.center .dropdown-toggle').click();
+  await page.locator('table tbody tr').filter({ hasText: 'ADE_ENABLED' }).first().locator('td.center a.dropdown-item', { hasText: 'Modifier' }).click();
   await page.locator('#boolFalse').check();
   await page.locator('input[type="submit"][value="Valider"]').click();
 }
@@ -95,7 +96,8 @@ async function createLocation(page) {
   await page.locator('input[name="nom"]').fill(LOCATION_NAME);
   await page.locator('textarea[name="adresse"]').fill('Adresse Playwright');
   await page.locator('input[name="capacite"]').fill('10');
-  await page.locator('select[name="campus"]').selectOption({ label: SITE_NAME });
+  await page.locator('select[name="campus"]').selectOption({ label: SITE_NAME }, { force: true });
+  await page.locator('select[name="campus"]').dispatchEvent('change');
   await page.locator('input[type="submit"][value="Valider"]').click();
   await expect(page.locator('table tbody tr', { hasText: LOCATION_NAME }).first().locator('td').first()).toHaveText(LOCATION_NAME);
 }
