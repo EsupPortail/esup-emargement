@@ -2,20 +2,28 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
 	<head th:replace="fragments/head :: head"></head>
 	<body>
-		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
-		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid px-3 px-md-4 my-2" id="assiduitePage">
-			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
-				<h2 class="fs-3 mb-0">Assiduité</h2>
-				<div class="col" th:if="${assiduiteBean.getSituation() eq 'absence'}">
-					<a 	class="btn btn-danger float-end" title="Supprimer des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal2">Supprimer des absences</a>
-					<a 	class="btn btn-primary float-end me-2" title="Ajouter des absences" data-bs-toggle="modal" data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
-				</div>
-	        </div>
-			<div th:replace="~{manager/assiduite/list_search :: search}"></div>
-			<div th:replace="~{manager/assiduite/list_table :: table}"></div>
-		</div>
-		<footer th:replace="fragments/footer :: footer"></footer>
-		<div th:replace="~{manager/assiduite/list_modals :: modals}"></div>
-	</body>
+        <nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+        <div th:replace="fragments/help :: help"></div>
+        <div class="container-fluid px-3 px-md-4 my-2" id="assiduitePage">
+            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+                <h2 class="fs-3 mb-0">Assiduité</h2>
+                <div class="col">
+                    <a th:if="${assiduiteBean.getSituation() eq 'absence' or assiduiteBean.getSituation() eq 'all'}" 
+                       class="btn btn-danger float-end" 
+                       title="Supprimer des absences" 
+                       data-bs-toggle="modal" 
+                       data-bs-target="#absenceAssiduiteModal2">Supprimer des absences</a>
+                    <a th:if="${assiduiteBean.getSituation() eq 'all' or assiduiteBean.getSituation() eq 'nonEmarg'}" 
+                       class="btn btn-primary float-end me-2" 
+                       title="Ajouter des absences" 
+                       data-bs-toggle="modal" 
+                       data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
+                </div>
+            </div>
+            <div th:replace="~{manager/assiduite/list_search :: search}"></div>
+            <div th:replace="~{manager/assiduite/list_table :: table}"></div>
+        </div>
+        <footer th:replace="fragments/footer :: footer"></footer>
+        <div th:replace="~{manager/assiduite/list_modals :: modals}"></div>
+    </body>
 </html>

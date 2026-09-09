@@ -126,13 +126,23 @@ public class AssiduiteService {
 	private List<TagCheck> loadTagChecks(AssiduiteBean2 bean, Date debut, Date fin) {
 	    if ("absence".equalsIgnoreCase(bean.getSituation())) {
 	        return tagCheckRepository
-	            .findByTagDateIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+	            .findByTagDateIsNullAndAbsenceMotifAbsenceIdIsNotNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
 	                debut, fin, debut, fin, debut, fin);
-	    } else {
+	    } else if ("presence".equalsIgnoreCase(bean.getSituation())) {
 	        return tagCheckRepository
 	            .findByTagDateIsNotNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNotNullAndSessionEpreuveDateFinBetweenOrTagDateIsNotNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
 	                debut, fin, debut, fin, debut, fin);
 	    }
+		else if ("all".equalsIgnoreCase(bean.getSituation())) {
+	        return tagCheckRepository
+	            .findBySessionEpreuveDateExamenBetweenOrSessionEpreuveDateFinBetweenOrSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+	                debut, fin, debut, fin, debut, fin);
+	    }
+		else {
+			 return tagCheckRepository
+	           .findByTagDateIsNullAndAbsenceMotifAbsenceIdIsNullAndSessionEpreuveDateExamenBetweenOrTagDateIsNullAndSessionEpreuveDateFinBetweenOrTagDateIsNullAndSessionEpreuveDateExamenLessThanEqualAndSessionEpreuveDateFinGreaterThanEqual(
+	                debut, fin, debut, fin, debut, fin);
+		}
 	}
 
 	private void populateEsupSignatureMap(Model model, List<TagCheck> tcs) {
