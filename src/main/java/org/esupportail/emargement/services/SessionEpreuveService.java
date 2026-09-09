@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -1164,12 +1165,29 @@ public class SessionEpreuveService {
 		List<Prefs> prefsAnneeUniv = prefsRepository.findByUserAppEppnAndNom(eppn, SESSIONS_SORTBYANNEEUNIV);
 
 		if (searchString != null) {
-			sessionSearch.setId(searchString);
+
+		    Optional<SessionEpreuve> optionalSession =
+		            sessionEpreuveRepository.findById(searchString);
+
+		    if (optionalSession.isPresent()) {
+
+		        SessionEpreuve se = optionalSession.get();
+
+		        sessionSearch.setId(searchString);
+		        sessionSearch.setStatutSession(se.getStatutSession());
+		        sessionSearch.setTypeSession(se.getTypeSession());
+		        sessionSearch.setAnneeUniv(se.getAnneeUniv());
+		        sessionSearch.setCampus(se.getCampus());
+
+		        if (isAdeEnabled) {
+		            sessionSearch.setAdeBranch(se.getAdeBranch());
+		        }
+		    }
 		}
 		if (dateSessions == null) {
 			dateSessions = prefsPeriod.isEmpty() ? "all" : prefsPeriod.get(0).getValue();
 		}
-		if (multiSearch == null || isFromSideBar) {
+		if ((multiSearch == null && searchString == null) || isFromSideBar) {
 			sessionSearch.setAnneeUniv(String.valueOf(getLastAnneeUniv(context)));
 			String statut = prefsStatut.isEmpty() ? "" : prefsStatut.get(0).getValue();
 			sessionSearch.setStatutSession(statut.isEmpty() ? null : statutSessionRepository.findByKey(statut));
@@ -1187,7 +1205,7 @@ public class SessionEpreuveService {
 			}
 			String anneeUniv = prefsAnneeUniv.isEmpty() ? getLastAnneeUniv(context): prefsAnneeUniv.get(0).getValue();
 			sessionSearch.setAnneeUniv(anneeUniv);
-		} else {
+		} else if (searchString == null) {
 			updateUserPreferences(eppn, context, sessionSearch, dateSessions, view, isAdeEnabled);
 		}
 		String monSession = sessionSearch.getNomSessionEpreuve();

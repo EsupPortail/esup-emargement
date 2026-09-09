@@ -354,7 +354,12 @@ public class SessionEpreuveController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		log.info("Création d'une session : " + sessionEpreuve.getNomSessionEpreuve());
 		logService.log(ACTION.AJOUT_SESSION_EPREUVE, RETCODE.SUCCESS, "Nom : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
-		return String.format("redirect:/%s/manager/sessionEpreuve?anneeUniv=%s", emargementContext, sessionEpreuve.getAnneeUniv());
+		return String.format(
+			    "redirect:/%s/manager/sessionEpreuve?anneeUniv=%s&searchString=%s",
+			    emargementContext,
+			    sessionEpreuve.getAnneeUniv(),
+			    sessionEpreuve.getId()
+			);
     }
     
     @PostMapping("/manager/sessionEpreuve/update/{id}")
