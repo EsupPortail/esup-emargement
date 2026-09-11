@@ -6,6 +6,7 @@ import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import org.esupportail.emargement.domain.ApogeeBean;
 import org.esupportail.emargement.domain.Groupe;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.Person;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.GroupeRepository;
@@ -277,10 +279,12 @@ public class ExtractionController {
 	
 	@GetMapping("/manager/extraction/searchLocations")
     @ResponseBody
-    public String searchLocations(@RequestParam(required = false) Long sessionEpreuve){
+    public String searchLocations(@RequestParam(required = false) List<Long> sessionEpreuve){
 		StringBuilder options = new StringBuilder("<option value=''>-----Aucun----</option>");
-		if(sessionEpreuve != null) {
-			List<SessionLocation> locations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(sessionEpreuve);
+		// Le lieu n'a de sens que si une seule session d'émargement est sélectionnée
+		// (les lieux sont propres à chaque session).
+		if(sessionEpreuve != null && sessionEpreuve.size() == 1) {
+			List<SessionLocation> locations = sessionLocationRepository.findSessionLocationBySessionEpreuveId(sessionEpreuve.get(0));
 		    for (SessionLocation sl : locations) {
 		        options.append("<option value='").append(sl.getId()).append("'>")
 		               .append(sl.getLocation().getNom()).append(" (").append(sl.getCapacite()).append(")")
@@ -331,7 +335,7 @@ public class ExtractionController {
     }
     
     @PostMapping(value = "/manager/extraction/importCsv", produces = "text/html")
-    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files, @RequestParam(value="sessionEpreuve", required = false) Long id, 
+    public String importCsv(@PathVariable String emargementContext, List<MultipartFile> files, @RequestParam(value="sessionEpreuve", required = false) List<Long> ids,
     		@RequestParam(value= "sessionLocationCsv", required = false) Long slId, @RequestParam(required = false) String importTagchecker,
     		@RequestParam(required = false) String role, @RequestParam(required = false) String speciality,
     		final RedirectAttributes redirectAttributes) throws Exception {
@@ -341,10 +345,39 @@ public class ExtractionController {
     	}
     	SequenceInputStream is = new SequenceInputStream(Collections.enumeration(streams));
     	if(importTagchecker == null) {
-	    	List<Integer> bilanCsv =  tagCheckService.importTagCheckCsv(new InputStreamReader(is), null, id, emargementContext, null, true, slId, null);
-	    	redirectAttributes.addFlashAttribute("paramUrl", id);
-	    	redirectAttributes.addFlashAttribute("bilanCsv", bilanCsv);
-	    	redirectAttributes.addFlashAttribute("seLink", sessionEpreuveRepository.findById(id).get());
+    		// Le CSV n'est lu qu'une seule fois, la liste de lignes est ensuite réutilisée
+    		// pour chaque session d'émargement sélectionnée.
+    		List<List<String>> rows = importExportService.readAll(new InputStreamReader(is));
+    		// Le lieu n'a de sens que si une seule session est ciblée (les lieux sont propres à chaque session).
+    		Long slIdToApply = (ids != null && ids.size() == 1) ? slId : null;
+    		Map<SessionEpreuve, List<Integer>> bilanCsvMulti = new LinkedHashMap<>();
+    		// Nom des sessions en échec (session introuvable, erreur interne...), pour affichage.
+    		// importTagCheckCsv n'étant pas transactionnel, l'échec d'une session n'affecte pas
+    		// les sessions déjà traitées avec succès dans la même boucle : chaque session est
+    		// donc isolée dans son propre try/catch pour ne pas interrompre tout le lot.
+    		List<String> echecsCsvMulti = new ArrayList<>();
+    		if (ids != null && rows != null && !rows.isEmpty()) {
+    			for (Long sessionId : ids) {
+    				try {
+    					List<Integer> bilanCsv = tagCheckService.importTagCheckCsv(null, rows, sessionId, emargementContext, null, true, slIdToApply, null);
+    					SessionEpreuve se = sessionEpreuveRepository.findById(sessionId).orElse(null);
+    					// Un bilan vide signale un échec pour cette session (CSV non conforme ou capacité
+    					// de lieu insuffisante) : on ne l'ajoute pas, pour que la vue affiche le message
+    					// d'erreur plutôt qu'un tableau avec une ligne sans colonnes.
+    					if (bilanCsv != null && !bilanCsv.isEmpty() && se != null) {
+    						bilanCsvMulti.put(se, bilanCsv);
+    					} else if (se != null) {
+    						echecsCsvMulti.add(se.getNomSessionEpreuve());
+    					}
+    				} catch (Exception e) {
+    					log.error("Erreur lors de l'import CSV pour la session " + sessionId, e);
+    					echecsCsvMulti.add("session #" + sessionId);
+    				}
+    			}
+    		}
+    		redirectAttributes.addFlashAttribute("paramUrl", ids != null && !ids.isEmpty() ? ids.get(0) : null);
+    		redirectAttributes.addFlashAttribute("bilanCsvMulti", bilanCsvMulti);
+    		redirectAttributes.addFlashAttribute("echecsCsvMulti", echecsCsvMulti);
     	}else {
     		int nbImport = userAppService.importUserApp(userAppService.getEppnsFromCsv(is), contextRepository.findByContextKey(emargementContext) , role, speciality);
     		redirectAttributes.addFlashAttribute("bilanUserApp", nbImport);

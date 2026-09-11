@@ -293,7 +293,8 @@
 							<div class="alert alert-info fw-bold">
 								Le fichier doit contenir sur une colonne soit des N° étudiants, soit des eppn ou un mix. Les champs doivent être avec ou sans guillemets. Le séparateur est le point virgule.<br/>
 								Pour les personnes externes la première colonne doit-être une adresse email, la deuxième le nom et la troisème le prénom.<br />
-								Dans tous les cas si la valeur de la première colonne commence pa '#" , celle-ci ne sera pas pris en compte (en-tête)
+								Dans tous les cas si la valeur de la première colonne commence pa '#" , celle-ci ne sera pas pris en compte (en-tête)<br />
+								Vous pouvez sélectionner plusieurs sessions d'émargement : la même liste de personnes sera importée dans chacune d'elles. Dans ce cas, le lieu ne sera pas appliqué (les lieux sont propres à chaque session).
 							</div>
 							<form action="#" th:action="@{/{ctx}/manager/extraction/importCsv(ctx=${eContext})}"
 								enctype="multipart/form-data" method="post">
@@ -304,15 +305,14 @@
 									</div>
 								</div>
 								<div class="row mb-3">    				
-			                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session d’émargement</label>
+			                    	<label for="sessionEpreuveCsv" class="col-lg-2 form-label">Session(s) d’émargement</label>
 			                    	<div class="col-lg-10">	
-										<select name="sessionEpreuve" id="sessionEpreuveCsv"
+										<select name="sessionEpreuve" id="sessionEpreuveCsv" multiple="multiple" required
 												th:hx-get="@{|/${eContext}/manager/extraction/searchLocations|}"
 											    hx-trigger="change"
 											    hx-target="#sessionLocationCsv"
 											    hx-include="#sessionEpreuveCsv"
 											    hx-swap="innerHTML">
-											    <option value="">-----choisir----</option>
 											    <option th:each="sessionEpreuve : ${allSessionEpreuves}"
 											        th:value="${sessionEpreuve.id}"
 											        th:text="${sessionEpreuve.heureEpreuve + ' || ' + sessionEpreuve.dateExamen + ' || ' + sessionEpreuve.nomSessionEpreuve}">
@@ -423,7 +423,7 @@
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 		<div class="modal fade" id="modalBilanCsv" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-			aria-hidden="true" th:if="${#ctx.containsVariable('bilanCsv') or #ctx.containsVariable('bilanUserApp')}">
+			aria-hidden="true" th:if="${#ctx.containsVariable('bilanCsv') or #ctx.containsVariable('bilanUserApp') or #ctx.containsVariable('bilanCsvMulti')}">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -455,6 +455,38 @@
 							<div th:unless="${not #lists.isEmpty(bilanCsv)}" class="alert alert-danger">
 								<p><strong>Votre fichier CSV n'est pas conforme ou si vous importez dans un lieu précis la
 										capcité n'est pas suffisante, veuillez le vérifier....</strong></p>
+							</div>
+						</th:block>
+						<th:block th:if="${#ctx.containsVariable('bilanCsvMulti')}">
+							<div th:if="${not #maps.isEmpty(bilanCsvMulti)}">
+								<table class="table table-hover table-striped table-bordered">
+									<thead>
+										<tr>
+											<th scope="col">Session</th>
+											<th scope="col" class="table-success">Importés</th>
+											<th scope="col" class="table-warning">Déja inscrits</th>
+											<th scope="col" class="table-danger">Inconnus LDAP</th>
+											<th scope="col" class="table-danger">Données manquantes</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr th:each="entry : ${bilanCsvMulti}">
+											<td><a
+													th:href="@{/{ctx}/manager/tagCheck/sessionEpreuve/{seId}(ctx=${eContext}, seId=${entry.key.id})}"
+													th:text="${entry.key.nomSessionEpreuve}"></a></td>
+											<td th:each="int : ${entry.value}" th:text="${int}" class="center"></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div th:if="${#maps.isEmpty(bilanCsvMulti)}" class="alert alert-danger">
+								<p><strong>Votre fichier CSV n'est pas conforme ou aucune session n'a été sélectionnée, veuillez le vérifier....</strong></p>
+							</div>
+							<div th:if="${#ctx.containsVariable('echecsCsvMulti') and not #lists.isEmpty(echecsCsvMulti)}" class="alert alert-warning">
+								<p><strong>L'import a échoué pour les sessions suivantes (fichier non conforme, capacité de lieu insuffisante ou session introuvable) :</strong></p>
+								<ul>
+									<li th:each="nom : ${echecsCsvMulti}" th:text="${nom}"></li>
+								</ul>
 							</div>
 						</th:block>
 						<th:block th:if="${#ctx.containsVariable('bilanUserApp')}">
