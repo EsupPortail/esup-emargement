@@ -38,6 +38,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	boolean existsByUserAppEppn(String eppn);
 	
 	Optional<TagChecker> findFirstByUserAppEppn(String eppn);
+	
+	Optional<TagChecker> findFirstByUserAppEppnAndSessionLocationId(String eppn, Long id);
 
 	List<TagChecker> findByContextAndUserAppEppn(Context ctx, String eppn);
 	
