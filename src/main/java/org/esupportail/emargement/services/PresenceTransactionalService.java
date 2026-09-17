@@ -26,6 +26,7 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,9 @@ public class PresenceTransactionalService {
 	
 	@Autowired
 	ContextRepository contextRepository;
+
+	@Autowired
+	UserAppRepository userAppRepository;
 	
 	@Resource
 	TagCheckService tagCheckService;
@@ -77,13 +81,14 @@ public class PresenceTransactionalService {
 	ToolUtil toolUtil;
 
 	@Transactional
-	public UpdatePresenceResult doUpdatePresents(String presence, SessionLocation validLocation) throws ParseException {
+	public UpdatePresenceResult doUpdatePresents(String presence, SessionLocation validLocation, Context context) throws ParseException {
 		UpdatePresenceResult result = new UpdatePresenceResult();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date currentDate = dateFormat.parse(dateFormat.format(new Date()));
 		LocalTime currentTime = LocalTime.now();
 		String eppn = null;
-		String email = null; 
+		String email = null;
+		String eppnTagChecker = null;
 		TagChecker tagChecker = null;
 		boolean isTagCheckerNeeded = true;
 		boolean isValid = true;
@@ -93,7 +98,7 @@ public class PresenceTransactionalService {
 		boolean isQrcodeCarte = false;
 		boolean existsInSession = false;
 		List<TagCheck> list = new ArrayList<>();
-		Context ctx = null;
+		Context ctx = context;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String currentUser = auth.getName();
 		if(isValidEppn(presence)) {
@@ -117,8 +122,7 @@ public class PresenceTransactionalService {
 			ctx = contextRepository.findByContextId(Long.valueOf(ctxId));
 			if(!"notime".equals(qrCodetimestamp)) {
 				if(splitTemp.length>3) {
-					String eppnTagChecker = splitTemp[3];
-					tagChecker = tagCheckerRepository.findFirstByContextAndUserAppEppn(ctx, eppnTagChecker).orElse(null);
+					eppnTagChecker = splitTemp[3];
 				}
 				Long qrCodeValidtime = Long.valueOf(appliConfigRepository.findFirstByContextAndKey(ctx,"QRCODE_CHANGE").orElse(null).getValue());
 				Long now = System.currentTimeMillis() / 1000;
@@ -128,7 +132,7 @@ public class PresenceTransactionalService {
 					log.info("QrCode invalide pour " + eppn + ", temps dépassé de " + tempsDepasse + " secondes");
 				}
 			}else{
-				tagChecker = tagCheckerRepository.findFirstByContextAndUserAppEppn(ctx, currentUser).orElse(null);
+				eppnTagChecker = currentUser;
 			}
 		}
 		if(isValid) {
@@ -159,9 +163,9 @@ public class PresenceTransactionalService {
 		    	SessionEpreuve sessionEpreuve =  null;
 		    	if(isQrcodeCarte) {
 		    		eppn = splitPresence[0];
-		    		ctx = contextService.getcurrentContext();
+		    		ctx = (context != null) ? context : contextService.getcurrentContext();
 		    		sessionLocationId = validLocation.getId();
-		    		tagChecker = tagCheckerRepository.findFirstByContextAndUserAppEppn(ctx, currentUser).orElse(null);
+		    		eppnTagChecker = currentUser;
 		    	}else if(splitPresence.length >2) {
 			    	if(eppn == null) {
 			    		eppn = splitPresence[1].trim();
@@ -175,7 +179,7 @@ public class PresenceTransactionalService {
 		    	if(splitPresence.length >3) {
 		    		email = (splitPresence.length >3)? splitPresence[3] : "";
 		    	}
-		    	if(ctx!=null) {
+		    	if(isQrCode || isQrcodeCarte) {
 			    	sessionLocation = sessionLocationRepository.findFirstByContextAndId(ctx, sessionLocationId).orElse(null);
 			    	sessionEpreuve = sessionLocation.getSessionEpreuve();
 			    	List<Long> seId = null;
@@ -281,6 +285,9 @@ public class PresenceTransactionalService {
 		    	if(isPresent && TypeEmargement.MANUAL.equals(typeEmargement) || typeEmargement.name().startsWith(TypeEmargement.QRCODE.name())) {
 		    		sessionLocationBadged = sessionLocation;
 		    	}
+		    	if(tagChecker == null && eppnTagChecker != null) {
+		    		tagChecker = tagCheckerService.resolveTagCheckerForLocation(sessionLocation, eppnTagChecker, ctx);
+		    	}
 		    	if(isUnknown) {
 					TagCheck newTc = tagCheckService.saveUnknownTagCheck(comment, ctx, eppn, sessionEpreuve, sessionLocationBadged, tagChecker, false, typeEmargement);
 					list.add(newTc);
@@ -312,6 +319,9 @@ public class PresenceTransactionalService {
 				    	}
 				    	presentTagCheck.setNbBadgeage(tagCheckService.getNbBadgeage(presentTagCheck, isPresent));
 				    	
+				    	if(tagChecker == null && isTagCheckerNeeded) {
+							tagChecker = (isPresent)? tagCheckerService.resolveTagCheckerForLocation(sessionLocation, currentUser, ctx): null;
+				    	}
 				    	if(tagChecker != null) {
 					    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
 					    		presentTagCheck.setTagChecker2(tagChecker);
@@ -320,7 +330,7 @@ public class PresenceTransactionalService {
 					    	}
 				    		presentTagCheck.setTagChecker(tagChecker);
 				    	}else if(isTagCheckerNeeded) {
-							tagChecker =  (isPresent)? tagCheckerRepository.findFirstByUserAppEppn(currentUser).orElse(null): null;
+							tagChecker =  (isPresent)? tagCheckerService.resolveTagCheckerForLocation(sessionLocation, currentUser, context): null;
 					    	if(se.getIsSecondTag()!=null && se.getIsSecondTag()) {
 					    		presentTagCheck.setTagChecker2(tagChecker);
 					    	}else {
@@ -342,7 +352,7 @@ public class PresenceTransactionalService {
 				    	}else {
 				    		presentTagCheck.setTagDate(date);
 				    	}
-				    	presentTagCheck.setContext((ctx != null)? ctx : contextService.getcurrentContext());
+				    	presentTagCheck.setContext(ctx);
 				    	if(!isBlackListed && isPresent || !isBlackListed && !isPresent || isBlackListed && !isPresent) {
 				    		tagCheckRepository.save(presentTagCheck);
 				    	}
@@ -363,7 +373,7 @@ public class PresenceTransactionalService {
 						msgError = presentTagCheck.getNomPrenom();
 					}
 					float percent = 0;
-					Object obj = tagCheckRepository.countPresenceStats(sessionLocationId, ctx!=null? ctx.getId():null);
+					Object obj = tagCheckRepository.countPresenceStats(sessionLocationId, ctx != null ? ctx.getId() : null);
 
 					Object[] row = (Object[]) obj;
 

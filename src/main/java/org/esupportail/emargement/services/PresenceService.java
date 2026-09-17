@@ -147,8 +147,12 @@ public class PresenceService {
 		}
     }
 	
-	public List<TagCheck> updatePresents(String presence, SessionLocation validLocation) throws ParseException {
-		UpdatePresenceResult result = presenceTransactionalService.doUpdatePresents(presence, validLocation);
+	public List<TagCheck> updatePresents(String presence, SessionLocation validLocation, String emargementContext) throws ParseException {
+		Context ctx = null;
+		if (emargementContext != null && !emargementContext.isEmpty()) {
+			ctx = contextRepository.findByContextKey(emargementContext);
+		}
+		UpdatePresenceResult result = presenceTransactionalService.doUpdatePresents(presence, validLocation, ctx);
 		if (result.hasEmitterData()) {
 			dataEmitterService.sendData(result.getPresentTagCheck(), result.getPercent(), result.getTotalPresent(),
 					result.getSessionLocationBadged(), result.getMsgError());

@@ -130,10 +130,10 @@ public class IndexController {
     
     @GetMapping(value = {"updatePresents", "{emargementContext}/updatePresents"})
     @ResponseBody
-    public  List<TagCheck> updatePresents(@RequestParam String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location) throws ParseException {
+    public  List<TagCheck> updatePresents(@RequestParam String presence, @RequestParam(value ="currentLocation", required=false) SessionLocation location, @PathVariable(value ="emargementContext", required=false) String emargementContext) throws ParseException {
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");
-        return presenceService.updatePresents(presence, location) ;
+        return presenceService.updatePresents(presence, location, emargementContext) ;
     }
     
     @GetMapping(value = {"updatePresentsTagChecker", "{emargementContext}/updatePresentsTagChecker"})

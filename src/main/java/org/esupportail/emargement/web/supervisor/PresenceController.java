@@ -685,10 +685,11 @@ public class PresenceController {
 	}
 
 	@PostMapping("/supervisor/checkAll/{id}")
-	public ResponseEntity<Void> checkAll(@PathVariable("id") SessionLocation sl, @RequestParam String check) {
+	public ResponseEntity<Void> checkAll(@PathVariable("id") SessionLocation sl, @RequestParam String check, @PathVariable String emargementContext) {
 		if ("true".equals(check)) {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String eppn = auth.getName();
+			Context context = contextRepository.findByContextKey(emargementContext);
 			List<TagCheck> tcs = tagCheckRepository.findTagCheckBySessionLocationExpectedId(sl.getId());
 			int i = 0;
 			for (TagCheck tc : tcs) {
@@ -697,7 +698,7 @@ public class PresenceController {
 					tc.setTagDate(new Date());
 					tc.setTypeEmargement(TypeEmargement.MANUAL);
 					tc.setTagChecker(
-							tagCheckerRepository.findTagCheckerByUserAppEppnEquals(eppn, null).getContent().get(0));
+							tagCheckerService.resolveTagCheckerForLocation(sl, eppn, context));
 					tagCheckRepository.save(tc);
 					i++;
 				}

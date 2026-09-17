@@ -15,6 +15,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -251,5 +252,21 @@ public class TagCheckerService {
 			dataEmitterService.sendTagChecker(tagCheckers.get(0));
 		}
 		return tagCheckers;
+	}
+
+	public TagChecker resolveTagCheckerForLocation(SessionLocation sessionLocation, String eppn, Context ctx) {
+		UserApp userApp = userAppRepository.findByEppnAndContext(eppn, ctx);
+		if (sessionLocation == null || eppn == null || eppn.isEmpty() || userApp == null) {
+			return null;
+		}
+		TagChecker tagChecker = tagCheckerRepository.findFirstByUserAppEppnAndSessionLocationId(eppn, sessionLocation.getId()).orElse(null);
+		if (tagChecker == null) {
+			tagChecker = new TagChecker();
+			tagChecker.setUserApp(userApp);
+			tagChecker.setSessionLocation(sessionLocation);
+			tagChecker.setContext(ctx);
+			tagCheckerRepository.save(tagChecker);
+		}	
+		return tagChecker;
 	}
 }
