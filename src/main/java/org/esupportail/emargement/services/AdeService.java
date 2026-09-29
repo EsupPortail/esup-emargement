@@ -1070,8 +1070,8 @@ public class AdeService {
 	}
 	
 	public String getCurrentProject(String projet, String eppn, String emargementContext) {
-	    if (!appliConfigService.getProjetAde().isEmpty()) {
-	        return appliConfigService.getProjetAde();
+	    if (!appliConfigService.getProjetAde(emargementContext).isEmpty()) {
+	        return appliConfigService.getProjetAde(emargementContext);
 	    }
 	    if (projet != null && !projet.isEmpty()) {
 	        preferencesService.updatePrefs(ADE_STORED_PROJET, projet, eppn, emargementContext, "dummy");

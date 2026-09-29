@@ -69,7 +69,7 @@ public class EventController {
 		String idProject =  adeService.getCurrentProject(projet, eppn, emargementContext);
 		uiModel.addAttribute("campuses", campusRepository.findAll());
 		uiModel.addAttribute("existingSe", true);
-		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty()? false : true);
+		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde(emargementContext).isEmpty()? false : true);
 		uiModel.addAttribute("idProject", idProject);
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
