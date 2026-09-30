@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -595,4 +597,85 @@ public class AppliConfigService {
 		return nb;
 	}
 	
+	public List<String> findDistinctCategory(){
+		return appliConfigRepository.findDistinctCategory();
+	}
+	
+	public List<AppliConfig> findByCategoryAndContextKeyOrderByKey(String category, String context){
+		return appliConfigRepository.findByCategoryAndContextKeyOrderByKey(category, context);
+	}
+	
+	@Transactional(readOnly = true)
+	public List<AppliConfig> findGlobalConfigs(String category) {
+
+	    List<AppliConfig> configs =
+	            appliConfigRepository.findByCategoryForAllContexts(category);
+
+	    Map<String, List<AppliConfig>> grouped =
+	            configs.stream()
+	                    .collect(Collectors.groupingBy(
+	                            AppliConfig::getKey,
+	                            LinkedHashMap::new,
+	                            Collectors.toList()));
+
+	    List<AppliConfig> result = new ArrayList<>();
+
+	    for (List<AppliConfig> list : grouped.values()) {
+
+	        if (list.isEmpty()) {
+	            continue;
+	        }
+	        
+	        list.sort(Comparator.comparing(
+	                c -> c.getContext().getKey(),
+	                String.CASE_INSENSITIVE_ORDER));
+
+	        AppliConfig first = list.get(0);
+
+	        boolean sameValue = list.stream()
+	                .map(AppliConfig::getValue)
+	                .distinct()
+	                .count() == 1;
+
+	        first.setSameValue(sameValue);
+	        first.setCommonValue(sameValue ? first.getValue() : null);
+	        first.setContextConfigs(list);
+
+	        result.add(first);
+	    }
+
+	    return result;
+	}
+	
+	@Transactional
+	public int updateForAllContexts(String key, String value) {
+
+		List<AppliConfig> configs = appliConfigRepository.findByKeyForAllContexts(key);
+
+	    for (AppliConfig config : configs) {
+	        config.setValue(value);
+	    }
+
+	    appliConfigRepository.saveAll(configs);
+	    evictAllAppliConfigCache();
+
+	    return configs.size();
+	}
+	
+	@Transactional
+	public AppliConfig updateConfig(Long id, String value) {
+
+	    AppliConfig config = appliConfigRepository
+	            .findById(id)
+	            .orElseThrow(() -> new IllegalArgumentException(
+	                    "Configuration inconnue : " + id));
+
+	    config.setValue(value);
+
+	    AppliConfig saved = appliConfigRepository.save(config);
+
+	    evictAllAppliConfigCache();
+
+	    return saved;
+	}
 }

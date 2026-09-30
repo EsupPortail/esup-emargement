@@ -102,6 +102,9 @@
 				      	<a class="nav-link" th:classappend="${active == 'logs'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/logs(ctx=${eContext})}">Logs</a>
 				      </li>
 					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">
+					  	<a class="nav-link" th:classappend="${active == 'configurations'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/configurations(ctx=${eContext})}">Configurations</a>
+					  </li>				  
+					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">
 					   <a class="nav-link" th:classappend="${active == 'sessions'} ? 'active' : ''" th:href="@{/{ctx}/superadmin/sessions(ctx=${eContext})}">Sessions</a>
 					  </li>
 					  <li class="nav-item mr-2"  th:if="${eContext=='all'}">

@@ -83,52 +83,18 @@ public class AppliConfigController {
         return "admin/appliConfig/show";
     }
 	
-    @GetMapping(value = "/admin/appliConfig", params = "form", produces = "text/html")
-    public String createForm(Model uiModel) {
-    	AppliConfig appliConfig = new AppliConfig();
-    	populateEditForm(uiModel, appliConfig);
-        return "admin/appliConfig/create";
-    }
-    
     @GetMapping(value = "/admin/appliConfig/{id}", params = "form", produces = "text/html")
     public String updateForm(@PathVariable Long id, Model uiModel) {
     	AppliConfig appliConfig = appliConfigRepository.findById(id).get();
     	uiModel.addAttribute("checked", appliConfig.getType().name());
-    	populateEditForm(uiModel, appliConfig);
+    	uiModel.addAttribute("appliConfig", appliConfig);
         return "admin/appliConfig/update";
-    }
-    
-    void populateEditForm(Model uiModel, AppliConfig appliConfig) {
-        uiModel.addAttribute("appliConfig", appliConfig);
-    }
-    
-    @PostMapping("/admin/appliConfig/create")
-    public String create(@PathVariable String emargementContext, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, appliConfig);
-            return "admin/appliConfig/create";
-        }
-        uiModel.asMap().clear();
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(appliConfigRepository.countByKey(appliConfig.getKey())>0) {
-        	redirectAttributes.addFlashAttribute("key",appliConfig.getKey());
-        	redirectAttributes.addFlashAttribute("error", "constrainttError");
-        	log.info("Erreur lors de la création, config déjà existante : " + "Key : ".concat(appliConfig.getKey()));
-        	return "admin/appliConfig/list";
-        }
-		appliConfig.setContext(contexteService.getcurrentContext());
-		appliConfigRepository.save(appliConfig);
-		appliConfigService.evictAllAppliConfigCache();
-		log.info("Création config : " + "Key : ".concat(appliConfig.getKey()));
-		logService.log(ACTION.AJOUT_CONFIG, RETCODE.SUCCESS, "Key : ".concat(appliConfig.getKey()).concat(" value : ").concat(appliConfig.getValue()), auth.getName(), null,
-				emargementContext, null);
-		return String.format("redirect:/%s/admin/appliConfig", emargementContext);
     }
     
     @PostMapping("/admin/appliConfig/update/{id}")
     public String update(@PathVariable String emargementContext, @PathVariable Long id, @Valid AppliConfig appliConfig, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
-            populateEditForm(uiModel, appliConfig);
+        	uiModel.addAttribute("appliConfig", appliConfig);
             return "admin/appliConfig/update";
         }
         uiModel.asMap().clear();

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+
+<head th:replace="fragments/head :: head"></head>
+
+<body>
+	<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+	<div th:replace="fragments/help :: help"></div>
+	<div class="container-fluid px-3 px-md-4 my-2">
+		<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+			<h2 class="fs-3 mb-0">Configurations</h2>
+		</div>
+		<div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+			<i class="fa-solid fa-circle-check me-1"></i>
+			<span th:text="${success}"></span>
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer">
+			</button>
+		</div>
+		<ul class="nav nav-tabs">
+			<li class="nav-item" th:each="cat : ${cats}">
+				<a class="nav-link" th:classappend="${currentCat eq cat} ? 'active' : ''" aria-current="page"
+					th:href="@{/all/superadmin/configurations(contextKey=${currentCtx},category=${cat})}"
+					th:text="${cat}"></a>
+			</li>
+		</ul>
+		<!-- En-têtes de colonnes (desktop uniquement) -->
+		<div class="d-none d-md-flex row g-0 px-3 py-2  fw-semibold text-uppercase">
+			<div class="col-md-4">Clé</div>
+			<div class="col-md-4 text-center">Valeur commune</div>
+			<div class="col-md-3">Valeurs par contexte</div>
+			<div class="col-md-1 text-center">Actions</div>
+		</div>
+		<div class="accordion shadow-sm" id="accordionAppliConfig">
+			<th:block th:each="config : ${appliConfigPage}">
+				<div class="accordion-item">
+					<h2 class="accordion-header d-flex align-items-center">
+						<button class="accordion-button collapsed flex-grow-1" type="button"
+							data-bs-toggle="collapse" th:data-bs-target="'#contexts-' + ${config.id}"
+							aria-expanded="false" th:aria-controls="'contexts-' + ${config.id}">
+							<div class="row w-100 g-2 align-items-center">
+								<div class="col-md-4">
+									<div class="fw-semibold" th:text="${config.key}"></div>
+									<small class="text-muted" th:if="${config.description}"
+										th:text="${config.description}"></small>
+								</div>
+								<div class="col-md-4 text-center">
+									<span th:if="${config.sameValue}" th:utext="${config.commonValue}"></span>
+									<span th:unless="${config.sameValue}" class="text-muted">—</span>
+								</div>
+								<div class="col-md-4 ">
+									<span th:if="${config.sameValue}"
+										class="badge rounded-pill text-bg-light border fs-6 fw-normal">
+										Valeurs par contexte
+										<span th:text="'(' + ${#lists.size(config.contextConfigs)} + ')'"></span>
+									</span>
+									<span th:unless="${config.sameValue}"
+										class="badge rounded-pill text-bg-warning fs-6 fw-normal">
+										<i class="fa-solid fa-triangle-exclamation me-1"></i>
+										Valeurs différentes
+										<span th:text="'(' + ${#lists.size(config.contextConfigs)} + ')'"></span>
+									</span>
+								</div>
+							</div>
+						</button>
+
+						<button type="button" class="btn btn-sm btn-light ms-2 me-3" data-bs-toggle="modal"
+							th:data-bs-target="'#modal-global-' + ${config.id}"
+							title="Modifier la valeur pour tous les contextes">
+							<i class="fa-solid fa-pen"></i>
+						</button>
+					</h2>
+					<div class="accordion-collapse collapse" th:id="'contexts-' + ${config.id}"
+						data-bs-parent="#accordionAppliConfig">
+						<div class="accordion-body p-0">
+							<table class="table table-sm table-hover table-striped table-borderless align-middle mb-0">
+								<tbody>
+									<tr th:each="item : ${config.contextConfigs}">
+										<td class="ps-4 text-muted" style="width: 25%;"
+											th:text="${item.context.key}"></td>
+										<td th:utext="${item.value}"></td>
+										<td class="text-center" style="width: 8%;">
+											<button type="button" class="btn btn-sm btn-light"
+												data-bs-toggle="modal"
+												th:data-bs-target="'#modal-context-' + ${item.id}"
+												title="Modifier cette configuration">
+												<i class="fa-solid fa-pen"></i>
+											</button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<!-- Modales des contextes -->
+							<th:block th:each="item : ${config.contextConfigs}">
+								<!-- Modal modification d'un contexte -->
+								<div class="modal fade" th:id="'modal-context-' + ${item.id}" tabindex="-1"
+									aria-hidden="true">
+									<div class="modal-dialog">
+										<div class="modal-content">
+											<form th:action="@{/all/superadmin/configurations/update}"
+												method="post" onsubmit="return confirm('Confirmez-vous la modification de cette valeur pour ce contexte??');">
+												<input type="hidden" name="id" th:value="${item.id}" />
+												<input type="hidden" name="category" th:value="${currentCat}" />
+												<div class="modal-header">
+													<h5 class="modal-title">
+														Modifier la configuration
+													</h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal"
+														aria-label="Fermer">
+													</button>
+												</div>
+												<div class="modal-body">
+													<div class="mb-3">
+														<label class="form-label fw-semibold">
+															Clé
+														</label>
+														<div class="form-control-plaintext" th:text="${item.key}">
+														</div>
+													</div>
+													<div class="mb-3">
+														<label class="form-label fw-semibold">
+															Contexte
+														</label>
+														<div class="form-control-plaintext"
+															th:text="${item.context.key}">
+														</div>
+													</div>
+													<div class="mb-3">
+														<label class="form-label fw-semibold"
+															th:for="'value-context-' + ${item.id}">
+															Valeur
+														</label>
+													<div
+														th:replace="admin/appliConfig/appliConfigValueField :: valueField(${item.type}, ${item.value})">
+													</div>
+													</div>
+
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary"
+														data-bs-dismiss="modal">
+														Annuler
+													</button>
+													<button type="submit" class="btn btn-primary">
+														<i class="fa-solid fa-check me-1"></i>
+														Enregistrer
+													</button>
+												</div>
+											</form>
+										</div>
+									</div>
+								</div>
+							</th:block>
+						</div>
+					</div>
+				</div>
+				<!-- Modal modification globale -->
+				<div class="modal fade" th:id="'modal-global-' + ${config.id}" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<form th:action="@{/all/superadmin/configurations/updateAll}" method="post"
+								onsubmit="return confirm('Confirmez-vous la modification de cette valeur pour tous les contextes??');">
+								<input type="hidden" name="key" th:value="${config.key}" />
+								<input type="hidden" name="category" th:value="${currentCat}" />
+								<div class="modal-header">
+									<h5 class="modal-title">
+										Modifier la configuration
+									</h5>
+									<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="Fermer">
+									</button>
+								</div>
+								<div class="modal-body">
+									<div class="mb-3">
+										<label class="form-label fw-semibold">
+											Clé
+										</label>
+										<div class="form-control-plaintext" th:text="${config.key}">
+										</div>
+									</div>
+									<div class="mb-3">
+										<label class="form-label fw-semibold" th:for="'value-' + ${config.id}">
+											Nouvelle valeur
+										</label>
+										<div
+											th:replace="admin/appliConfig/appliConfigValueField :: valueField(${config.type}, ${config.value})">
+										</div>
+									</div>
+									<div class="alert alert-warning mb-0">
+										<i class="fa-solid fa-triangle-exclamation me-1"></i>
+										Cette valeur sera appliquée à tous les contextes
+										pour cette configuration.
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+										Annuler
+									</button>
+									<button type="submit" class="btn btn-primary">
+										<i class="fa-solid fa-check me-1"></i>
+										Modifier tous
+									</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</th:block>
+		</div>
+	</div>
+	<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
