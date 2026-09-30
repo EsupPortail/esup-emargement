@@ -10,6 +10,7 @@ import org.esupportail.emargement.domain.SessionEpreuve;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -48,6 +49,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	
 	List<SessionEpreuve> findAllByDateExamenGreaterThan(Date date);
 	
+	List<SessionEpreuve> findByDateExamenOrderByDateExamenAscHeureEpreuveAscFinEpreuveAsc(Date date);
+	
 	List<SessionEpreuve> findByDateExamenLessThanAndDateFinIsNullAndStatutSessionKeyNotOrDateFinLessThanAndStatutSessionKeyNot(Date date, String statut, Date date2, String statut2);
 	
 	List<SessionEpreuve> findAllByDateExamenOrDateFinNotNullAndDateFinLessThanEqualAndDateFinGreaterThanEqual(Date date, Date dateFin, Date dateFin2);
@@ -63,6 +66,51 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	List<SessionEpreuve>  findByBlackListGroupe(Groupe groupe);
 	
 	List<SessionEpreuve> findByNomSessionEpreuveLikeIgnoreCase(String nom);
+	
+	@Query(value =
+	        "select se.* from session_epreuve se "
+	        + "join context c on c.id = se.context_id "
+	        + "where ( "
+	        + "    (se.date_fin is null "
+	        + "     and se.date_examen between cast(:dateDebut as date) "
+	        + "         and coalesce(cast(:dateFin as date), cast(:dateDebut as date))) "
+	        + "    or "
+	        + "    (se.date_fin is not null "
+	        + "     and se.date_examen <= coalesce(cast(:dateFin as date), cast(:dateDebut as date)) "
+	        + "     and se.date_fin >= cast(:dateDebut as date)) "
+	        + ") "
+	        + "and (:contextKey is null or :contextKey = '' or c.key = :contextKey) "
+	        + "order by se.date_examen asc, se.heure_epreuve asc, se.fin_epreuve asc",
+	        nativeQuery = true)
+	List<SessionEpreuve> findAllSessions(
+	        @Param("dateDebut") Date dateDebut,
+	        @Param("dateFin") Date dateFin,
+	        @Param("contextKey") String contextKey);
+	
+	@Query(value =
+	        "select se.* from session_epreuve se "
+	        + "join context c on c.id = se.context_id "
+	        + "where ( "
+	        + "    (se.date_fin is null and se.date_examen = :dateDebut) "
+	        + "    or "
+	        + "    (se.date_fin is not null "
+	        + "     and se.date_examen <= :dateDebut "
+	        + "     and se.date_fin >= :dateDebut) "
+	        + ") "
+	        + "and (:contextKey is null or :contextKey = '' or c.key = :contextKey) "
+	        + "and exists ( "
+	        + "    select 1 from session_location sl "
+	        + "    join tag_checker tc on tc.session_location_id = sl.id "
+	        + "    join user_app ua on ua.id = tc.user_app_id "
+	        + "    where sl.session_epreuve_id = se.id "
+	        + "    and ua.eppn = :eppn "
+	        + ") "
+	        + "order by se.date_examen asc, se.heure_epreuve asc, se.fin_epreuve asc",
+	        nativeQuery = true)
+	List<SessionEpreuve> findAllSessionsForSupervisor(
+	        @Param("dateDebut") Date dateDebut,
+	        @Param("contextKey") String contextKey,
+	        @Param("eppn") String eppn);
 	
 	@Query(value = "select count(*) from tag_check, person, session_epreuve "
 			+ "where tag_check.person_id = person.id "
@@ -230,4 +278,44 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "HAVING COUNT(tag_date) = 0 OR COUNT(*) = SUM(CASE WHEN tag_date IS NULL THEN 1 ELSE 0 END)) "
 			+ "and ((DATE(date_examen) < DATE(:date) AND date_fin IS NULL) OR (date_fin IS NOT NULL AND DATE(date_fin) < DATE(:date)))", nativeQuery = true)
 	List<SessionEpreuve> findSessionEpreuveWithNoTagDate(Date date, Long contextId);
+	
+	@Query(value = "select se.* from session_epreuve se "
+	        + "join context c on c.id = se.context_id "
+	        + "where se.date_examen < cast(:dateFin as date) "
+	        + "and coalesce(se.date_fin, se.date_examen) >= cast(:dateDebut as date) "
+	        + "and (:contextKey is null or :contextKey = '' or c.key = :contextKey) "
+	        + "order by se.date_examen asc, se.heure_epreuve asc, se.fin_epreuve asc",
+	        nativeQuery = true)
+	List<SessionEpreuve> findSessionsBetween(
+	        @Param("dateDebut") Date dateDebut,
+	        @Param("dateFin") Date dateFin,
+	        @Param("contextKey") String contextKey);
+	
+	@Query(value =
+	        "select se.* from session_epreuve se "
+	        + "join context c on c.id = se.context_id "
+	        + "where ( "
+	        + "    (se.date_fin is null "
+	        + "     and se.date_examen >= :dateDebut "
+	        + "     and se.date_examen < :dateFin) "
+	        + "    or "
+	        + "    (se.date_fin is not null "
+	        + "     and se.date_examen < :dateFin "
+	        + "     and se.date_fin >= :dateDebut) "
+	        + ") "
+	        + "and (:contextKey is null or :contextKey = '' or c.key = :contextKey) "
+	        + "and exists ( "
+	        + "    select 1 from session_location sl "
+	        + "    join tag_checker tc on tc.session_location_id = sl.id "
+	        + "    join user_app ua on ua.id = tc.user_app_id "
+	        + "    where sl.session_epreuve_id = se.id "
+	        + "    and ua.eppn = :eppn "
+	        + ") "
+	        + "order by se.date_examen asc, se.heure_epreuve asc, se.fin_epreuve asc",
+	        nativeQuery = true)
+	List<SessionEpreuve> findSessionsBetweenForSupervisor(
+	        @Param("dateDebut") Date dateDebut,
+	        @Param("dateFin") Date dateFin,
+	        @Param("contextKey") String contextKey,
+	        @Param("eppn") String eppn);
 }

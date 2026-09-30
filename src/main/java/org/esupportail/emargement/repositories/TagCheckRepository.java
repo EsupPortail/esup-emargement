@@ -410,4 +410,18 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 			@Param("heureDebut") LocalTime heureDebut, @Param("heureFin") LocalTime heurefin);
 
 	List<TagCheck> findBySessionEpreuveIdAndPersonEppn(Long id, String eppn);
+	
+	@Query(value = "SELECT tc.* "
+	        + "FROM tag_check tc "
+	        + "WHERE tc.session_epreuve_id IN (:sessionIds)",
+	        nativeQuery = true)
+	List<TagCheck> findBySessionEpreuveIn(
+	        @Param("sessionIds") List<Long> sessionIds);
+	
+	@Query(value = "SELECT tc.* "
+	        + "FROM tag_check tc "
+	        + "WHERE tc.session_epreuve_id = :sessionId",
+	        nativeQuery = true)
+	List<TagCheck> findBySessionEpreuveId(
+	        @Param("sessionId") Long sessionId);
 }

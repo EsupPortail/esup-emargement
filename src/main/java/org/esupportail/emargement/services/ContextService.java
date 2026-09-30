@@ -213,4 +213,8 @@ public class ContextService {
 		contextRepository.delete(context);
 	
 	}
+	
+	public List<String> findDistinctKey(){
+		return contextRepository.findIsActiveAndDistinctKey(); 
+	}
 }

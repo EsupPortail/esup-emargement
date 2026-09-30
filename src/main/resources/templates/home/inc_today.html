@@ -1,0 +1,89 @@
+<div th:fragment="inc_today" >
+    <!-- PROGRAMME DU JOUR -->
+	<div class="card shadow-sm">
+		<div class="card-header">
+		    <div class="d-flex justify-content-between align-items-center">
+		        <div>
+		            <h5 class="mb-0">
+						<span th:text="${#temporals.format(#temporals.createNow(), 'EEEE d MMMM')}">
+							                </span>
+		                <small class="text-muted fw-normal">
+		                    · <strong th:text="${dashboard.sessions}"></strong> sessions
+		                    · <strong th:text="${dashboard.encours}"></strong> en cours à <span th:text="${#dates.format(#dates.createNow(), 'HH:mm')}"></span>
+		                </small>
+		            </h5>
+		        </div>
+		    </div>
+		</div>
+
+	    <div class="card-body p-0">
+	        <div class="table-responsive">
+	            <table class="table table-hover align-middle mb-0">
+	                <thead class="table-light">
+	                    <tr>
+	                        <th class="ps-3">Horaire</th>
+	                        <th>Session</th>
+	                        <th>Type</th>
+	                        <th th:if="${role eq 'isSuperAdmin'}">Contexte</th>
+	                        <th>Salle</th>
+	                        <th>Surveillant</th>
+	                        <th class="text-center">Émargements</th>
+							<th class="text-center">Absents</th>
+							<th class="text-center">Inconnus</th>
+							<th class="text-center" th:if="${dashboard.isHasSupervisorSessions()}">Voir</th>
+	                    </tr>
+	                </thead>
+					<tbody>
+						<tr th:each="s : ${dashboard.todaySessions}" th:classappend="${s.enCours} ? 'table-warning' : ''">
+							<td class="ps-3 text-nowrap">
+								<span th:classappend="${s.terminee} ? 'text-muted' : ''"
+								      th:text="${s.horaire}">
+								</span>
+							</td>
+							<td>
+								<strong th:text="${s.nom}">
+								</strong>
+							</td>
+							<td>
+								<span class="badge text-bg-light" th:text="${s.type}">
+								</span>
+							</td>
+							<td th:if="${role eq 'isSuperAdmin'}" th:text="${s.contexte}">
+							</td>
+							<td th:text="${s.salle}">
+							</td>
+							<td th:text="${s.surveillant}">
+							</td>
+							<td class="text-center text-nowrap">
+								<div>
+									<span>
+										<strong th:text="${s.presents}"></strong>
+										/
+										<span th:text="${s.participants}"></span>
+									</span>
+								</div>
+							</td>
+							<td class="text-center text-nowrap" th:text="${s.absents}">
+							</td>
+							<td class="text-center text-nowrap" th:text="${s.inconnus}"></td>
+							<td class="text-end" th:if="${dashboard.isHasSupervisorSessions()}">
+							    <a th:if="${s.isLinkDisplayed}"
+							       th:href="${s.supervisorUrl}"
+							       class="btn btn-sm btn-outline-primary"
+							       title="Interface surveillant">
+							        <i class="fa-solid fa-clipboard-check"></i>
+							    </a>
+							</td>
+						</tr>
+	                    <tr th:if="${#lists.isEmpty(dashboard.todaySessions)}">
+	                        <td colspan="8"
+	                            class="text-center text-muted py-4">
+	                            Aucune session aujourd'hui.
+	                        </td>
+	                    </tr>
+	                </tbody>
+	            </table>
+	        </div>
+	    </div>
+	</div>
+</div>

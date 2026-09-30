@@ -75,6 +75,14 @@ public class WebUtils {
 		 return hasRole("ROLE_PREVIOUS_ADMINISTRATOR");
 	}
 	
+	public static String getEppn() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(auth!=null) {
+			return auth.getName();
+		}
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static boolean hasRole(String roleName) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

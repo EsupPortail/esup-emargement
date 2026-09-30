@@ -479,3 +479,25 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 #offcanvasHelp .offcanvas-header {
 	padding: .9rem 1.5rem;
 }
+
+@media (max-width: 767.98px) {
+
+    .dashboard-tabs .tab-label {
+        display: none;
+    }
+
+    .dashboard-tabs .nav-link {
+        padding-left: .75rem;
+        padding-right: .75rem;
+    }
+
+}
+
+@media (max-width: 767.98px) {
+
+    .dashboard-session-info {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+}

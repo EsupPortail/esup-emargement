@@ -1,0 +1,70 @@
+<div th:fragment="inc_week">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+					<h5 class="mb-0">
+					    Semaine du
+					    <span th:text="${#temporals.format(dashboard.weekStart, 'd MMMM')}"></span>
+					    au
+					    <span th:text="${#temporals.format(dashboard.weekStart.plusDays(6), 'd MMMM')}"></span>
+					</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+			<table class="table table-sm table-hover align-middle">
+			    <thead>
+			        <tr>
+			            <th>Jour</th>
+			            <th th:if="${role eq 'isSuperAdmin'}">Contexte</th>
+			            <th class="text-center">Sessions</th>
+			            <th class="text-center">Participants</th>
+			            <th class="text-center">Présents</th>
+						<th class="text-center">Non émargés</th>
+			            <th class="text-center">Absents</th>
+						<th class="text-center">Inconnus</th>
+			            <th class="text-center">Présence</th>
+			        </tr>
+			    </thead>
+			    <tbody>
+			        <tr th:each="row : ${dashboard.week}" th:classappend="${row.today} ? 'table-warning' : ''">
+			            <td>
+			                <strong><span th:text="${#temporals.format(row.date, 'EEE d MMM')}"></span></strong>
+			            </td>
+			            <td th:if="${role eq 'isSuperAdmin'}" th:text="${row.contextKey}">
+			            </td>
+			            <td class="text-center"
+			                th:text="${row.sessions}">
+			            </td>
+			            <td class="text-center"
+			                th:text="${row.participants}">
+			            </td>
+			            <td class="text-center"
+			                th:text="${row.presents}">
+			            </td>
+						<td class="text-center"
+						    th:text="${row.nonEmarges}">
+						</td>
+			            <td class="text-center"
+			                th:text="${row.absents}">
+			            </td>
+						<td class="text-center"
+						    th:text="${row.unknown}">
+						</td>
+			            <td class="text-center fw-semibold"
+			                th:text="${row.tauxPresence + '%'}">
+			            </td>
+			        </tr>
+					<tr th:if="${#lists.isEmpty(dashboard.week)}">
+					    <td colspan="8"
+					        class="text-center text-muted py-4">
+					        Aucune session cette semaine.
+					    </td>
+					</tr>					
+			    </tbody>
+			</table>
+            </div>
+        </div>
+    </div>
+</div>

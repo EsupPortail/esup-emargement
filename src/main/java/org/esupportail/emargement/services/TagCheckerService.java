@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
-import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.repositories.LdapUserRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
@@ -100,7 +100,8 @@ public class TagCheckerService {
 			return;
 		// 1. Extraction défensive des EPPNs
 		List<String> eppnList = allTagCheckers.stream().filter(tc -> tc.getUserApp() != null)
-				.map(tc -> tc.getUserApp().getEppn()).collect(Collectors.toList());
+				.map(tc -> tc.getUserApp().getEppn()).filter(StringUtils::isNotBlank).distinct()
+				.collect(Collectors.toList());
 		if (eppnList.isEmpty())
 			return;
 		Map<String, LdapUser> ldapCache = ldapService.getLdapUsersFromNumList(eppnList, "eduPersonPrincipalName");

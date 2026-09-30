@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -56,6 +58,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	TagChecker findByUserAppAndSessionLocation(UserApp userApp, SessionLocation sessionLocation);
 	
+	List<TagChecker> findBySessionLocationSessionEpreuveIn(List<SessionEpreuve> ses);
+	
 	//STATS
 	@Query(value = "select user_app.eppn, count(*) from tag_checker, user_app, session_location, statut_session, session_epreuve "
 			+ "where tag_checker.user_app_id = user_app.id "
@@ -65,5 +69,14 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 			+ "where statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv) "
 			+ "AND tag_checker.context_id = :context group by user_app.eppn order by count desc", nativeQuery = true)
 	List<Object[]> countTagCheckersByContext(Long context, String anneeUniv);
+	
+	@Query(value = "SELECT tc.* "
+	        + "FROM tag_checker tc "
+	        + "JOIN session_location sl "
+	        + "  ON sl.id = tc.session_location_id "
+	        + "WHERE sl.session_epreuve_id IN (:sessionIds)",
+	        nativeQuery = true)
+	List<TagChecker> findBySessionEpreuveIn(
+	        @Param("sessionIds") List<Long> sessionIds);
 
 }
