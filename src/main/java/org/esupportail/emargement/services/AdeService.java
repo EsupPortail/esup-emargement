@@ -417,10 +417,9 @@ public class AdeService {
 		if(update) {
 			log.info("Bilan syncrhonisation ADE : " + maj + " importé(s)");
 			logService.log(ACTION.ADE_SYNC, RETCODE.SUCCESS, typeSync + " - Nb maj sessions : " + maj, eppn, null, emargementContext, eppn);
-		}else {
-			if(i>0) {
-				logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
-			}
+		}
+		if(i>0) {
+			logService.log(ACTION.ADE_IMPORT, RETCODE.SUCCESS, "Import évènements : " + i, eppn, null, emargementContext, eppn);
 		}
 		return i;
 		} finally {
@@ -925,7 +924,7 @@ public class AdeService {
 				String fatherId = adeApiService.getIdComposante(sessionId, supannEmpId, "instructor", true);
 				adeResourceBeans = adeApiService.getEventsFromXml(sessionId, fatherId, strDateMin, strDateMax, idEvents, existingSe, update, ctx, libelle);
 			}	
-		} else if (idEvents == null && idList != null && !idList.isEmpty()) {
+		} else if (idList != null && !idList.isEmpty()) {
 			for (String id : idList) {
 				List<AdeResourceBean> beansTrainee = getEventsFromXml(sessionId, id, strDateMin, strDateMax, idEvents,
 						existingSe, update, ctx, libelle);
