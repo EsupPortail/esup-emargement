@@ -23,7 +23,7 @@
 				</select>
 				<select class="slimSelectClass assiduiteControl w-auto" th:field="*{situation}">
 					<option value="all">Tout</option>
-					<option value="absence">Absence</option>
+					<option value="absence" th:if="${assiduiteBean.typeIndividu eq 'etu'}">Absence</option>
 					<option value="presence">Présence</option>
 					<option value="nonEmarg">Non émargé</option>
 				</select>

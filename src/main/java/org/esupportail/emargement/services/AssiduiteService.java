@@ -77,28 +77,26 @@ public class AssiduiteService {
 	// Branche surveillants
 	// ----------------------------------------------------------------
 
-	public void populateModelForSurveillants(Model model,
-	                                           AssiduiteBean2 bean,
-	                                           Date debut, Date fin) {
-	    List<TagChecker> tcers = "absence".equalsIgnoreCase(bean.getSituation())
-	        ? tagCheckerRepository
-	            .findByTagDateIsNullAndSessionLocationSessionEpreuveDateExamenBetween(debut, fin)
-	        : tagCheckerRepository
-	            .findByTagDateIsNotNullAndSessionLocationSessionEpreuveDateExamenBetween(debut, fin);
+	public void populateModelForSurveillants(Model model, AssiduiteBean2 bean, Date debut, Date fin) {
+		String situation = bean.getSituation();
+		List<TagChecker> tcers;
+		if ("nonEmarg".equalsIgnoreCase(situation)) {
+			tcers = tagCheckerRepository.findByTagDateIsNullAndSessionLocationSessionEpreuveDateExamenBetween(debut,
+					fin);
+		} else if ("presence".equalsIgnoreCase(situation)) {
+			tcers = tagCheckerRepository.findByTagDateIsNotNullAndSessionLocationSessionEpreuveDateExamenBetween(debut,
+					fin);
+		} else {
+			tcers = tagCheckerRepository.findBySessionLocationSessionEpreuveDateExamenBetween(debut, fin);
+		}
 
-	    List<TagChecker> result = tcers.stream()
-	        .collect(Collectors.toMap(
-	            t -> t.getSessionLocation().getSessionEpreuve().getId(),
-	            Function.identity(),
-	            (a, b) -> a,
-	            LinkedHashMap::new
-	        ))
-	        .values()
-	        .stream()
-	        .collect(Collectors.toList());
+		List<TagChecker> result = tcers
+				.stream().collect(Collectors.toMap(t -> t.getSessionLocation().getSessionEpreuve().getId(),
+						Function.identity(), (a, b) -> a, LinkedHashMap::new))
+				.values().stream().collect(Collectors.toList());
 
-	    tagCheckerService.setNomPrenom4TagCheckers(result);
-	    model.addAttribute("tagCheckers", result);
+		tagCheckerService.setNomPrenom4TagCheckers(result);
+		model.addAttribute("tagCheckers", result);
 	}
 
 	// ----------------------------------------------------------------

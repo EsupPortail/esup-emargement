@@ -56,6 +56,8 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	
 	List<TagChecker> findByTagDateIsNotNullAndSessionLocationSessionEpreuveDateExamenBetween(Date startDate, Date endDate);
 	
+	List<TagChecker> findBySessionLocationSessionEpreuveDateExamenBetween(Date startDate, Date endDate);
+	
 	TagChecker findByUserAppAndSessionLocation(UserApp userApp, SessionLocation sessionLocation);
 	
 	List<TagChecker> findBySessionLocationSessionEpreuveIn(List<SessionEpreuve> ses);

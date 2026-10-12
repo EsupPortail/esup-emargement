@@ -146,10 +146,12 @@
 					<th scope="col">Nom</th>
 					<th scope="col">Prénom</th>
 		            <th>Session</th>
+					<th>Lieu</th>
 					<th>type</th>
 					<th class="dateItem">Date</th>
 					<th>Début</th>
 					<th>Fin</th>
+					<th class="dateItem" th:if="${assiduiteBean.situation ne 'nonEmarg'}">Emargement</th>
 		        </tr>
 		    </thead>
 		    <tbody th:if="${tagCheckers	 != null and tagCheckers.size() > 0 }">
@@ -157,10 +159,12 @@
 					<td th:text="${tag.userApp != null ? tag.userApp.nom : '-'}"></td>
 					<td th:text="${tag.userApp != null ? tag.userApp.prenom : '-'}"></td>
 					<td th:text="${tag.sessionLocation.sessionEpreuve.nomSessionEpreuve}"></td>
+					<td th:text="${tag.sessionLocation.location.nom}"></td>
 					<td th:text="${tag.sessionLocation.sessionEpreuve.typeSession.libelle}"></td>
 					<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
 					<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
 					<td th:text="${#dates.format(tag.sessionLocation.sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
+					<td th:if="${assiduiteBean.situation ne 'nonEmarg'}" th:text="${#dates.format(tag.tagDate, 'dd/MM/yy')}"></td>
 		        </tr>
 
 		        <!-- Message si liste vide -->
