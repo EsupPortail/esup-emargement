@@ -75,91 +75,106 @@
 					</div>
 				</div>
 			</th:block>
-			<div th:if="${not #lists.isEmpty(tagChecksPage)}">
-				<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
-					<thead class ="center sticky-top">
-						<tr>
-							<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
-							<th scope="col" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
-							<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
-							<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.campus.site">Site</a></th>
-							<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Lieu</a></th>
-							<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
-							<th scope="col" class="d-none d-xl-table-cell">Convocation</th>
-							<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Début</th>
-							<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Fin</th>
-							<th scope="col" class="center">Voir</th>
-						</tr>
-					</thead>
-					<tbody class ="center">
-						<tr th:each="tc : ${tagChecksPage}" th:classappend="${(tc.typeEmargement!=null and !tc.isUnknown? 'table-success' : '') +
-								((tc.isUnknown and !tc.sessionEpreuve.isSessionLibre) ? 'table-warning' : '')}" th:id="${tc.sessionEpreuve.id}" >
-							<td>
-								<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span><br/>
-								<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>						
-								<div th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
-											or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin))
-											or (tc.sessionEpreuve.dateFin!=null
-                                            and #dates.createToday().after(tc.sessionEpreuve.dateExamen)
-                                            and #dates.createToday().before(tc.sessionEpreuve.dateFin))
-										 	and tc.sessionLocationBadged == null and isUserQrCodeEnabled}">
-									<button th:id="${tc.id}" th:if="${isSessionQrCodeEnabled and tc.sessionLocationExpected != null and !tc.sessionEpreuve.isSessionLibre and tc.tagDate == null}" 
-										class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" data-bs-toggle="modal" 
-										data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
-									<i class="fas fa-qrcode"></i></button>
-									<div class="modal" th:if="${tc.sessionLocationExpected != null}" th:id="${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog" data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
-										<div class="modal-dialog" role="document">
-											<div class="modal-content">
-												<div class="modal-header">
-													<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
-													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-												</div>
-												<div class="modal-body" >
-													<span class="fw-bold" th:text="${name}"></span>
-													<img th:id="${'imgQrCodeUser' + tc.id}" th:if="${tc.sessionLocationExpected != null and tc.person!=null}" alt="QrcOde" src=""/>
-												</div>
-											</div>
-										</div>
-									</div>									
-								</div>
-							</td>	
-							<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-xs-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-							<td>
-					            <th:block th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></th:block>
-					            <th:block th:if="${tc.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
-							</td>
-							<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
-							<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
-							<td th:if="${tc.absence !=null}" class ="text-center hiddenBlock">
-						        <th:block th:if="${tc.absence.motifAbsence != null and tc.absence.motifAbsence.color ne null}">
-						            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
-						        </th:block>
-						        <th:block th:if="${tc.absence.motifAbsence != null}">
-						            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
-						        </th:block>
-						   </td>
-							<td th:unless="${tc.absence !=null}" class ="text-center hiddenBlock">
-								<span th:if="${tc.typeEmargement!=null}"
-									th:switch="${#strings.toString(tc.typeEmargement.name())}">
-									<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
-									<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
-									<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
-									<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
-									<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" th:title="${'QrCode ' + participantTerme}"></i>
-									<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>							
-									<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
-								</span>
-							</td>
-							<td th:text="${#dates.format(tc.sessionEpreuve.heureConvocation, 'HH:mm')}" class="d-none d-xl-table-cell"></td>
-							<td th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-							<td th:text="${#dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm')}" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
-							<td class="center"><a th:href="@{/{ctx}/user/{id}(id=${tc.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<nav th:replace="fragments/pagination :: pagination"></nav>
+			<ul class="nav nav-tabs mb-3" role="tablist">
+				<li class="nav-item" role="presentation">
+					<a class="nav-link" th:classappend="${currentTab eq 'calendar'} ? ' active'"
+						th:href="@{/{ctx}/user(tab=calendar,ctx=${eContext})}">
+						<i class="fa-solid fa-calendar-days me-1"></i>
+						Calendrier
+					</a>
+				</li>
+			
+				<li class="nav-item" role="presentation">
+					<a class="nav-link" th:classappend="${currentTab eq 'history'} ? 'active'"
+						th:href="@{/{ctx}/user(tab=history,ctx=${eContext})}">
+						<i class="fa-solid fa-clock-rotate-left me-1"></i>
+						Historique
+					</a>
+				</li>
+			</ul>
+			<th:block th:if="${currentTab == 'calendar'}">
+				<div id='userCalendar'></div>
+			</th:block>
+			<th:block th:if="${currentTab == 'history'}">
+				<div th:if="${not #lists.isEmpty(tagChecksPage)}">
+					<table class="table table-hover table-striped table-bordered" id="tableSessionEpreuve">
+						<thead class ="center sticky-top">
+							<tr>
+								<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.dateExamen">Date</a></th>
+								<th scope="col" class="d-none d-sm-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.typeSession">Type</a></th>
+								<th scope="col"><a class="sorted" sd:pagination-sort="sessionEpreuve.nomSessionEpreuve">Nom</a></th>
+								<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionEpreuve.campus.site">Site</a></th>
+								<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Lieu</a></th>
+								<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
+								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Horaire</th>
+								<th scope="col" class="center">Voir</th>
+							</tr>
+						</thead>
+						<tbody class ="center">
+							<tr th:each="tc : ${tagChecksPage}" th:classappend="${
+									((tc.isUnknown and !tc.sessionEpreuve.isSessionLibre) ? 'table-warning' : '')}" th:id="${tc.sessionEpreuve.id}" >
+								<td>
+									<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd/MM/yyyy')}"></span>
+									  <th:block th:if="${tc.sessionEpreuve.dateFin != null and tc.sessionEpreuve.dateFin != tc.sessionEpreuve.dateExamen}">
+									    <br/><span class="text-muted" th:text="${'→ ' + #dates.format(tc.sessionEpreuve.dateFin, 'dd/MM/yyyy')}"></span>
+									  </th:block>					
+								</td>	
+								<td th:text="${tc.sessionEpreuve.typeSession.libelle}" class="d-none d-sm-table-cell d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"></td>
+								<td>
+						            <th:block th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></th:block>
+						            <th:block th:if="${tc.sessionEpreuve.statutSession.key eq 'CANCELLED'}"><span class="fw-bold text-danger">[Annulé]</span></th:block>
+								</td>
+								<td th:text="${tc.sessionEpreuve.campus.site}" class="d-none d-xl-table-cell"></td>
+								<td th:text="${(tc.sessionLocationExpected != null)? tc.sessionLocationExpected.location.nom : ''}" class="d-none d-xl-table-cell"></td>
+								<td th:if="${tc.absence !=null}" class ="text-center hiddenBlock">
+							        <th:block th:if="${tc.absence.motifAbsence != null and tc.absence.motifAbsence.color ne null}">
+							            <input class="colorBox" type="color" th:value="${tc.absence.motifAbsence.color}" disabled>
+							        </th:block>
+							        <th:block th:if="${tc.absence.motifAbsence != null}">
+							            <span th:text="${tc.absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+							        </th:block>
+							   </td>
+								<td th:unless="${tc.absence !=null}" class ="text-center hiddenBlock">
+									<span th:if="${tc.typeEmargement!=null}"
+										th:switch="${#strings.toString(tc.typeEmargement.name())}">
+										<i th:case="'CARD'" class="fas fa-id-card text-primary h4" title ="Carte"></i>
+										<i th:case="'MANUAL'" class="fas fa-check-square text-success" title="Manuel"></i>
+										<i th:case="'QRCODE'" class="fas fa-qrcode text-secondary" title="QrCode"></i>
+										<i th:case="'QRCODE_SESSION'" class="fas fa-qrcode text-primary" title="QrCode de session"></i>
+										<i th:case="'QRCODE_USER'" class="fas fa-qrcode text-danger" th:title="${'QrCode ' + participantTerme}"></i>
+										<i th:case="'QRCODE_CARD'" class="fas fa-qrcode text-warning" title="QrCode carte"></i>							
+										<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
+									</span>
+								</td>
+								<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><span th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' + #dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm ')}"></td>
+								<td class="center"><a th:href="@{/{ctx}/user/{id}(id=${tc.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<nav th:replace="fragments/pagination :: pagination"></nav>
+			</th:block>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
+		<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalTitle" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title fs-4" id="eventModalTitle"></h5>
+		        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+		      </div>
+		      <div class="modal-body fs-5">
+		        <dl class="row mb-0" id="eventModalBody"></dl>
+				<div id="eventModalQr" class="text-center border-top pt-3 mt-3 d-none">
+				  <div class="small text-muted mb-2">QR code de participation</div>
+				  <img id="eventModalQrImg" alt="QR code de participation" class="img-fluid" style="max-width:260px">
+				</div>
+				<div id="eventModalQr" class="text-center mt-3 d-none">
+				  <img id="eventModalQrImg" alt="QR code de participation" class="img-fluid" style="max-width:300px">
+				</div>
+		      </div>
+		    </div>
+		  </div>
+		</div>
 	</body>
 </html>

@@ -1,29 +1,38 @@
 package org.esupportail.emargement.services;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.esupportail.emargement.beans.ParticipantStart;
 import org.esupportail.emargement.domain.CalendarDTO;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionLocation;
+import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.SessionLocationRepository;
+import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -42,98 +51,213 @@ public class CalendarService {
 	TagCheckerRepository tagCheckerRepository;
 	
 	@Autowired
+	TagCheckRepository tagCheckRepository;
+	
+	@Autowired
 	UserAppRepository userAppRepository;
 	
 	@Resource
 	PreferencesService preferencesService;
 	
+	@Resource
+	UserAppService userAppService;
+	
+	@Resource
+	AppliConfigService appliConfigService;
+	
 	@Value("${app.url}")
 	private String appUrl;
 	
-	public String getEvents(String start, String end, boolean isAll, String view, String calendarPref, String emargementContext, String from) throws ParseException{
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		String eppn = auth.getName();
-		if(!isAll && calendarPref!=null) {
-			String prefsListeValue = (view == null)? "" : view;
-			preferencesService.updatePrefs(calendarPref, prefsListeValue, eppn, emargementContext, "dummy") ;
-		}
-		List <CalendarDTO> l= new ArrayList<>();
-		//2019-11-25T00:00:00+01:00
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
-	    Date startDate = formatter.parse(start);
-	    Date endDate = formatter.parse(end);
-	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); 
-	    DateFormat hourFormat = new SimpleDateFormat("HH:mm");
-	    List<SessionEpreuve> listSe = new ArrayList<>();
-	    if(isAll) {
-	    	if(view == null) {
-	    		listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendar(startDate, endDate);
-	    	}else {
-	    		listSe = sessionEpreuveRepository.getAllSessionEpreuveForCalendarByContext(startDate, endDate, Long.valueOf(view));
-	    	}
-	    }else {
-	    	if(view==null) {
-	    	    listSe = sessionEpreuveRepository.findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(startDate, endDate, startDate, endDate, startDate, endDate);
-	    	}else {
-		    	List<TagChecker> tagCheckers = tagCheckerRepository.findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(eppn, startDate, endDate, eppn, startDate, endDate, eppn, startDate, endDate);
-		    	listSe = tagCheckers.stream()
-		    		    .map(TagChecker::getSessionLocation)
-		    		    .map(SessionLocation::getSessionEpreuve)
-		    		    .distinct()
-		    		    .collect(Collectors.toList());	
-	    	}
-	    }
-	    if(!listSe.isEmpty()) {
-	    	for(SessionEpreuve se : listSe) {
-    			UserApp userApp = userAppRepository.findByEppnAndContext(eppn, se.getContext());
-    			boolean isFromContext = (userApp != null)? true : false;
-	    		CalendarDTO c = new CalendarDTO();
-	    		c.setId(se.getId());
-	    		String title = (!isAll)? se.getNomSessionEpreuve() : se.getContext().getKey().toUpperCase().concat(" : ").concat(se.getNomSessionEpreuve());
-	    		c.setTitle(title);
-	    		String strStart = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getHeureEpreuve()));  
-	    		c.setStart(strStart);
-	    		String strSEnd = null;
-	    		String color = "#3788d8";
-	    		if("OPENED".equals(se.getStatutSession().getKey())) {
-	    			color = "#008000";
-	    		}else if("CLOSED".equals(se.getStatutSession().getKey())) {
-	    			color = "#ff0000";
-	    		}else if("STANDBY".equals(se.getStatutSession().getKey())) {
-	    			color = "#ffa500";
-	    		}
-	    		if(se.getDateFin() != null && !dateFormat.format(se.getDateExamen()).equals(dateFormat.format(se.getDateFin()))) {
-					c.setAllDay(true);
-				}
-	    		if(se.getDateFin() != null) {
-	    			strSEnd = dateFormat.format(se.getDateFin()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
-	    		}else {
-					strSEnd = dateFormat.format(se.getDateExamen()).concat("T").concat(hourFormat.format(se.getFinEpreuve())); 
-				}
-	    		c.setEnd(strSEnd);
-	    		c.setColor(color);String url = "";
-	    		if ("supervisor".equals(from)) {
-	    		    List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
-	    		    String slId = sls.isEmpty() ? "" : String.valueOf(sls.get(0).getId());
-	    		    url = !isFromContext 
-	    		        ? "#" 
-	    		        : String.format("%s/%s/supervisor/presence?sessionEpreuve=%s&location=%s&keyStatut=%s&from=supervisor", 
-	    		                        appUrl, se.getContext().getKey(), se.getId(), slId, se.getStatutSession().getKey());
-	    		} else {
-	    		    url = !isFromContext 
-	    		        ? "#" 
-	    		        : String.format("%s/%s/manager/sessionEpreuve/%s", 
-	    		                        appUrl, se.getContext().getKey(), se.getId());
-	    		}
+	private static final String DEFAULT_COLOR = "#3788d8";
+	private static final Map<String, String> STATUS_COLORS = Map.of(
+	        "OPENED", "#198754",   // vert Bootstrap
+	        "CLOSED", "#dc3545",   // rouge Bootstrap
+	        "STANDBY", "#fd7e14"   // orange Bootstrap
+	);
+	public String getEvents(String start, String end, boolean isAll, String view,
+	                        String calendarPref, String emargementContext, String from) {
 
-	    		c.setUrl(url);
-	    		l.add(c);
-	    	}
+	    String eppn = SecurityContextHolder.getContext().getAuthentication().getName();
+
+	    if (!isAll && calendarPref != null) {
+	        preferencesService.updatePrefs(calendarPref, view == null ? "" : view, eppn, emargementContext, "dummy");
 	    }
-		JSONSerializer serializer = new JSONSerializer();
-		String flexJsonString = "Aucune statistique à récupérer";
-		flexJsonString = serializer.deepSerialize(l);
-		return flexJsonString;
+
+	    Date startDate = Date.from(OffsetDateTime.parse(start).toInstant());
+	    Date endDate = Date.from(OffsetDateTime.parse(end).toInstant());
+
+	    List<SessionEpreuve> sessions = findSessions(startDate, endDate, isAll, view, eppn);
+
+	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	    DateFormat hourFormat = new SimpleDateFormat("HH:mm");
+	    boolean supervisor = "supervisor".equals(from);
+
+	    // évite un findByEppnAndContext par session (N+1) : un appel par contexte
+	    Map<Long, Boolean> accessByContext = new HashMap<>();
+
+	    List<CalendarDTO> events = new ArrayList<>(sessions.size());
+	    for (SessionEpreuve se : sessions) {
+	        boolean isFromContext = accessByContext.computeIfAbsent(se.getContext().getId(),
+	                id -> userAppRepository.findByEppnAndContext(eppn, se.getContext()) != null);
+	        
+	        events.add(toCalendarDTO(se, isAll, isFromContext, supervisor, dateFormat, hourFormat));
+	    }
+
+	    return new JSONSerializer().deepSerialize(events);
+	}
+	
+	public String getParticipantEvents(String start, String end) {
+		String eppn = SecurityContextHolder.getContext().getAuthentication().getName();
+
+		Date startDate = Date.from(OffsetDateTime.parse(start).toInstant());
+		Date endDate = Date.from(OffsetDateTime.parse(end).toInstant());
+
+		List<TagCheck> tagChecks = tagCheckRepository.findForParticipantCalendar(eppn, startDate, endDate);
+
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		DateFormat hourFormat = new SimpleDateFormat("HH:mm");
+
+		List<CalendarDTO> events = new ArrayList<>();
+
+		for (TagCheck tagCheck : tagChecks) {
+			SessionEpreuve se = tagCheck.getSessionEpreuve();
+			if (se == null) {
+				continue;
+			}
+			List<TagChecker> tagCheckers = tagCheckerRepository.findTagCheckerBySessionLocationSessionEpreuveId(se.getId());
+			String professeur = "";
+			String salle = "";
+
+			if (!tagCheckers.isEmpty()) {
+				salle = tagCheckers.stream().map(TagChecker::getSessionLocation).filter(Objects::nonNull)
+						.map(sl -> sl.getLocation().getNom()).distinct().collect(Collectors.joining(", "));
+
+				List<UserApp> userApps = tagCheckers.stream().map(TagChecker::getUserApp).filter(Objects::nonNull)
+						.distinct().collect(Collectors.toList());
+
+				userAppService.setNomPrenom(userApps, false);
+				professeur = userApps.stream().map(u -> u.getNom() + " " + u.getPrenom()).sorted()
+						.collect(Collectors.joining(", "));
+			}
+			events.add(toParticipantCalendarDTO(se, tagCheck, dateFormat, hourFormat, professeur, salle));
+		}
+
+		return new JSONSerializer().deepSerialize(events);
+	}
+	
+	private String getParticipantStatus(TagCheck tagCheck) {
+
+	    if (Boolean.TRUE.equals(tagCheck.getAbsence())) {
+	        return "absent";
+	    }
+
+	    if (tagCheck.getTagDate() != null || tagCheck.getTagDate2() != null) {
+	        return "emarge";
+	    }
+
+	    return "a-emarger";
+	}
+	
+	private CalendarDTO toParticipantCalendarDTO(SessionEpreuve se, TagCheck tagCheck, DateFormat dateFormat,
+			DateFormat hourFormat, String professeur, String salle) {
+
+		String statut = se.getStatutSession().getKey();
+		String day = dateFormat.format(se.getDateExamen());
+		Date endDay = se.getDateFin() != null ? se.getDateFin() : se.getDateExamen();
+		LocalDate today = LocalDate.now();
+		LocalDate debut = toLocalDate(se.getDateExamen());
+		LocalDate fin = se.getDateFin() != null ? toLocalDate(se.getDateFin()) : debut;
+		boolean enCours = !today.isBefore(debut) && !today.isAfter(fin);
+		boolean isUserQrCodeEnabled = appliConfigService.isUserQrCodeEnabled();
+		boolean isSessionQrCodeEnabled = appliConfigService.isSessionQrCodeEnabled();
+
+		boolean dispo = enCours
+		        && isUserQrCodeEnabled && isSessionQrCodeEnabled
+		        && tagCheck.getSessionLocationExpected() != null
+		        && tagCheck.getSessionLocationBadged() == null
+		        && tagCheck.getTagDate() == null
+		        && !Boolean.TRUE.equals(se.getIsSessionLibre());
+
+		CalendarDTO calendar = new CalendarDTO();
+		calendar.setId(se.getId());
+		calendar.setQrCodeAvailable(dispo);
+		if (dispo) {
+			calendar.setQrEppn(tagCheck.getPerson().getEppn());
+			calendar.setQrSession(tagCheck.getSessionLocationExpected().getId());
+		}
+		String participantStatus = getParticipantStatus(tagCheck);
+
+		calendar.setTitle(se.getNomSessionEpreuve());
+		calendar.setStart(day + "T" + hourFormat.format(se.getHeureEpreuve()));
+
+		if (se.getFinEpreuve() != null) {
+			calendar.setEnd(dateFormat.format(endDay) + "T" + hourFormat.format(se.getFinEpreuve()));
+		}
+
+		calendar.setAllDay(se.getDateFin() != null && !day.equals(dateFormat.format(se.getDateFin())));
+		calendar.setColor(STATUS_COLORS.getOrDefault(statut, DEFAULT_COLOR));
+		calendar.setClassNames(new String[] { "participant-" + participantStatus });
+		calendar.setProfesseur(professeur);
+		calendar.setSalle(salle);
+		calendar.setSite(se.getCampus().getSite());
+		calendar.setTypeSession(se.getTypeSession().getKey());
+		return calendar;
+	}
+
+	private List<SessionEpreuve> findSessions(Date start, Date end, boolean isAll, String view, String eppn) {
+	    if (isAll) {
+	        return view == null
+	                ? sessionEpreuveRepository.getAllSessionEpreuveForCalendar(start, end)
+	                : sessionEpreuveRepository.getAllSessionEpreuveForCalendarByContext(start, end, Long.valueOf(view));
+	    }
+	    if (view == null) {
+	        return sessionEpreuveRepository
+	                .findAllByDateExamenLessThanEqualAndDateFinGreaterThanEqualOrDateExamenGreaterThanEqualAndDateExamenLessThanEqualOrDateFinGreaterThanEqualAndDateFinLessThanEqual(
+	                        start, end, start, end, start, end);
+	    }
+	    return tagCheckerRepository
+	            .findByUserAppEppnAndSessionLocationSessionEpreuveDateExamenLessThanEqualAndSessionLocationSessionEpreuveDateFinGreaterThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateExamenGreaterThanEqualAndSessionLocationSessionEpreuveDateExamenLessThanEqualOrUserAppEppnAndSessionLocationSessionEpreuveDateFinGreaterThanEqualAndSessionLocationSessionEpreuveDateFinLessThanEqual(
+	                    eppn, start, end, eppn, start, end, eppn, start, end)
+	            .stream()
+	            .map(tc -> tc.getSessionLocation().getSessionEpreuve())
+	            .distinct()
+	            .collect(Collectors.toList());
+	}
+
+	private CalendarDTO toCalendarDTO(SessionEpreuve se, boolean isAll, boolean isFromContext, boolean supervisor,
+			DateFormat dateFormat, DateFormat hourFormat) {
+
+		String statut = se.getStatutSession().getKey();
+		String day = dateFormat.format(se.getDateExamen());
+
+		Date endDay = se.getDateFin() != null ? se.getDateFin() : se.getDateExamen();
+		CalendarDTO c = new CalendarDTO();
+		c.setId(se.getId());
+		c.setTitle(isAll ? se.getContext().getKey().toUpperCase() + " : " + se.getNomSessionEpreuve()
+				: se.getNomSessionEpreuve());
+		c.setStart(day + "T" + hourFormat.format(se.getHeureEpreuve()));
+		if (se.getFinEpreuve() != null) {
+			c.setEnd(dateFormat.format(endDay) + "T" + hourFormat.format(se.getFinEpreuve()));
+		}
+		c.setAllDay(se.getDateFin() != null && !day.equals(dateFormat.format(se.getDateFin())));
+		c.setColor(STATUS_COLORS.getOrDefault(statut, DEFAULT_COLOR));
+		c.setUrl(buildUrl(se, statut, isFromContext, supervisor));
+		return c;
+	}
+
+	private String buildUrl(SessionEpreuve se, String statut, boolean isFromContext, boolean supervisor) {
+	    if (!isFromContext) {
+	        return "#";
+	    }
+	    String ctx = se.getContext().getKey();
+	    if (supervisor) {
+	        // requête faite uniquement quand elle est utile
+	        List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+	        String slId = sls.isEmpty() ? "" : String.valueOf(sls.get(0).getId());
+	        return String.format("%s/%s/supervisor/presence?sessionEpreuve=%s&location=%s&keyStatut=%s&from=supervisor",
+	                appUrl, ctx, se.getId(), slId, statut);
+	    }
+	    return String.format("%s/%s/manager/sessionEpreuve/%s", appUrl, ctx, se.getId());
 	}
 	
 	public List<LocalDate> getDatesInPeriod(Date startDate, Date endDate) {
@@ -153,4 +277,19 @@ public class CalendarService {
 		return lDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 	}
 
+	public ParticipantStart defaultParticipantStart(String eppn, LocalDate today) {
+	    Date from = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
+	    Optional<LocalDate> next = tagCheckRepository.findNextEventDate(eppn, from)
+	            .map(d -> d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+
+	    if (next.isEmpty()) return new ParticipantStart("history", today);
+	    LocalDate d = next.get();
+
+	    if (d.equals(today)) return new ParticipantStart("today", today);
+	    if (!d.isAfter(today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))))
+	        return new ParticipantStart("week", d);
+	    if (YearMonth.from(d).equals(YearMonth.from(today)))
+	        return new ParticipantStart("month", d);
+	    return new ParticipantStart("planning", d);   // autre mois : la date décide du mois affiché
+	}
 }

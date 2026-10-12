@@ -8,30 +8,17 @@
 			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
 				<h2 class="fs-3 mb-0"><span th:class="text-capitalize" th:text="${#strings.toLowerCase(participantTerme)}"></span></h2>
 				<div class="d-flex align-items-center gap-2">
-					<a class=" contextualHelp" data-bs-toggle="tooltip" title="En vert : session émargée en tant que personne connue
-						En orange : session émargée par erreur ou dans la mauvaise salle.">
-						<i class="fas fa-question-circle"></i>
-					</a>
+					<a th:href="@{/{ctx}/user?tab=history(ctx=${eContext})}" class="btn btn-info" title="Contextes"><i
+							class="fa fa-home fa-lg"></i></a>
 				</div>
 			</div>
-			<dl class="row" th:classappend="${(tc.typeEmargement!=null and !tc.isUnknown? 'bg-success-subtle' : '') +
-								(tc.isUnknown ? 'bg-warning-subtle' : '')}">
-				<dt class="col-sm-2">Date 
-					<th:block th:if="${isuserQrCodeEnabled}"}>
-						<span th:if="${#dates.createToday().equals(tc.sessionEpreuve.dateExamen)
-								or (tc.sessionEpreuve.dateFin!=null and #dates.createToday().equals(tc.sessionEpreuve.dateFin)) 
-								or (tc.sessionEpreuve.dateFin!=null 
-                                and #dates.createToday().after(tc.sessionEpreuve.dateExamen) 
-                                and #dates.createToday().before(tc.sessionEpreuve.dateFin)) 
-							 	and tc.sessionLocationBadged == null }">
-							 <button class="btn btn-sm btn-secondary ms-2 qrCodeUserDisplay" title="qrCode de participation" 
-						data-bs-toggle="modal" th:attr="data-bs-target=${'#qrCodeModal' + tc.id}" >
-						<i class="fas fa-qrcode"></i></button></span>
-					</th:block>
-				</dt>
+			<dl class="row" th:classappend="${((tc.isUnknown and !tc.sessionEpreuve.isSessionLibre) ? 'bg-warning-subtle' : '')}" >
+				<dt class="col-sm-2">Date </dt>
 				<dd class="col-sm-10" >
-					<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span>
-					<span th:text="${#dates.format(tc.sessionEpreuve.dateFin, 'dd-MM-yyyy')}"></span>
+					<span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd/MM/yyyy')}"></span>
+					  <th:block th:if="${tc.sessionEpreuve.dateFin != null and tc.sessionEpreuve.dateFin != tc.sessionEpreuve.dateExamen}">
+					    <br/><span class="text-muted" th:text="${'→ ' + #dates.format(tc.sessionEpreuve.dateFin, 'dd/MM/yyyy')}"></span>
+					  </th:block>
 				</dd>
 	            <dt class="col-sm-2">Type</dt>
 	            <dd class="col-sm-10" th:text="${tc.sessionEpreuve.typeSession.libelle}"></dd>   
@@ -67,28 +54,9 @@
 						<i th:case="'LINK'" class="fas fa-link text-info" title="Lien"></i>
 					</span>
 				</dd>
-	            <dt class="col-sm-2">Convocation</dt>
-	            <dd class="col-sm-10" th:text="${#dates.format(tc.sessionEpreuve.heureConvocation, 'HH:mm')}" ></dd>  
-	            <dt class="col-sm-2">Début</dt>
-	            <dd class="col-sm-10" th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm')}" ></dd>
-	             <dt class="col-sm-2">Fin</dt>
-	            <dd class="col-sm-10" th:text="${#dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm')}" ></dd>
+	            <dt class="col-sm-2">Horaire</dt>
+	            <dd class="col-sm-10"><span th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' + #dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm ')}"></dd>
 			</dl>
-			<div class="modal" th:id="${'qrCodeModal' + tc.id}" tabindex="-1" role="dialog" th:if="${tc.sessionLocationExpected != null}"
-				data-th-attr="data-eppn=${tc.person.eppn}, data-session=${tc.sessionLocationExpected.id}, data-bs-target=${'#qrCodeModal' + tc.id}">
-				<div class="modal-dialog" role="document">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title"><span th:text="${tc.sessionEpreuve.nomSessionEpreuve}"></span>, <span th:text="${#dates.format(tc.sessionEpreuve.dateExamen, 'dd-MM-yyyy')}"></span></h5>
-							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-						</div>
-						<div class="modal-body center">
-							<span class="fw-bold" th:text="${name}"></span>
-							<img th:id="${'imgQrCodeUser' + tc.id}" th:if="${tc.sessionLocationExpected != null and tc.person!=null}" alt="QrcOde" src=""/>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>

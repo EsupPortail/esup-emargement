@@ -14,6 +14,7 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.esupportail.emargement.domain.TagCheck;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -424,4 +425,33 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	        nativeQuery = true)
 	List<TagCheck> findBySessionEpreuveId(
 	        @Param("sessionId") Long sessionId);
+	
+	@Query("select tc "
+		     + "from TagCheck tc "
+		     + "where tc.person.eppn = :eppn "
+		     + "and tc.sessionEpreuve is not null "
+		     + "and ("
+		     + "    (tc.sessionEpreuve.dateFin is null "
+		     + "     and tc.sessionEpreuve.dateExamen between :start and :end) "
+		     + "    or "
+		     + "    (tc.sessionEpreuve.dateFin is not null "
+		     + "     and tc.sessionEpreuve.dateExamen <= :end "
+		     + "     and tc.sessionEpreuve.dateFin >= :start)"
+		     + ") "
+		     + "order by tc.sessionEpreuve.dateExamen, "
+		     + "tc.sessionEpreuve.heureEpreuve")
+		List<TagCheck> findForParticipantCalendar(
+		        @Param("eppn") String eppn,
+		        @Param("start") Date start,
+		        @Param("end") Date end);
+	
+	@Query("select min(tc.sessionEpreuve.dateExamen) from TagCheck tc " +
+		       "where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen >= :from")
+		Optional<Date> findNextEventDate(@Param("eppn") String eppn, @Param("from") Date from);
+	
+	@EntityGraph(attributePaths = {"sessionEpreuve", "sessionEpreuve.typeSession", "sessionEpreuve.campus",
+	        "sessionLocationExpected", "sessionLocationExpected.location", "absence", "absence.motifAbsence"})
+	@Query(value = "select tc from TagCheck tc where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen < :today",
+	       countQuery = "select count(tc) from TagCheck tc where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen < :today")
+	Page<TagCheck> findHistory(@Param("eppn") String eppn, @Param("today") Date today, Pageable pageable);
 }

@@ -1,5 +1,6 @@
 package org.esupportail.emargement.services;
 
+import java.util.Date;
 import java.util.Random;
 
 import org.esupportail.emargement.domain.TagCheck;
@@ -18,12 +19,12 @@ public class UserService {
 	@Autowired	
 	TagCheckRepository tagCheckRepository;
 
-	public Page<TagCheck> getTagChecks( Pageable pageable) {
+	public Page<TagCheck> getTagChecks(Date today, Pageable pageable) {
 		Page<TagCheck> tcs = null;
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppn = auth.getName();
 		if(!eppn.isEmpty()) {
-			tcs = tagCheckRepository.findTagCheckByPersonEppn(eppn, pageable);
+			tcs = tagCheckRepository.findHistory(eppn, today, pageable);
 		}
 		return tcs;
 	}

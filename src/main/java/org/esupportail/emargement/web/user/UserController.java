@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
+import org.esupportail.emargement.annotations.HelpPage;
+import org.esupportail.emargement.beans.ParticipantStart;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
@@ -19,13 +22,14 @@ import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
 import org.esupportail.emargement.services.AppliConfigService;
-import org.esupportail.emargement.services.HelpService;
-import org.esupportail.emargement.services.LdapService;
+import org.esupportail.emargement.services.CalendarService;
 import org.esupportail.emargement.services.LogService;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.UserService;
 import org.esupportail.emargement.utils.ToolUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -50,13 +54,14 @@ import com.google.zxing.WriterException;
 @Controller
 @RequestMapping("/{emargementContext}")
 @PreAuthorize(value="@userAppService.isAdmin() or @userAppService.isManager() or @userAppService.isSupervisor() or  @userAppService.isUser()")
+@HelpPage("user")
 public class UserController {
 	
-	@Autowired
+	@Resource
 	UserService userService;
 	
-	@Autowired
-	HelpService helpService;
+	@Resource
+	CalendarService calendarService;
 	
 	@Resource
 	LogService logService;
@@ -66,9 +71,6 @@ public class UserController {
 	
 	@Autowired
 	ContextRepository contextRepository;
-
-	@Autowired
-	LdapService ldapService;
 
 	@Autowired	
 	TagCheckRepository tagCheckRepository;
@@ -82,7 +84,7 @@ public class UserController {
 	@Autowired
 	ToolUtil toolUtil;
 	
-	private final static String ITEM = "user";
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
     @ModelAttribute("qrcodeChange")
     public Integer qrcodeChange() {
@@ -92,59 +94,64 @@ public class UserController {
 	
 	@ModelAttribute("active")
 	public String getActiveMenu() {
-		return ITEM;
+		return "user";
 	}
 
 	@GetMapping(value = "/user")
 	public String list(@PathVariable String emargementContext, Model model, @PageableDefault(size = 10, direction = Direction.DESC, sort = "sessionEpreuve.dateExamen")  Pageable pageable, 
-			@RequestParam(required = false) String sessionToken, @RequestParam(required = false, defaultValue = "") String scanClass) throws ParseException{
+			@RequestParam(required = false) String sessionToken, @RequestParam(required = false, defaultValue = "") String scanClass,
+			@RequestParam(required = false) String tab) throws ParseException{
+		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	    String eppn = auth.getName();
+	    LocalDate today = LocalDate.now();
+	    ParticipantStart start = calendarService.defaultParticipantStart(eppn, today);
+	    
+	    model.addAttribute("participantView", start.getView());
+	    model.addAttribute("participantDate", start.getDate().toString());   // yyyy-MM-dd
+		LocalTime now = LocalTime.now();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = dateFormat.parse(dateFormat.format(new Date()));
 		if(sessionToken!=null) {
 			boolean isAlreadyBadged = false;
 			boolean isSessionExpired = true;
 			boolean isHourOk = false;
-			if(auth != null) {
-				String eppn = auth.getName();
-				TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
-				model.addAttribute("se", tc.getSessionEpreuve());
-				if(tc.getSessionLocationBadged()!=null) {
-					isAlreadyBadged = true;
-				}
-				LocalTime now = LocalTime.now();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-				Date date = dateFormat.parse(dateFormat.format(new Date()));
-				Long verifySe = null;
-				Long seId = tc.getSessionEpreuve().getId();
-				Date dateFin = tc.getSessionEpreuve().getDateFin();
-				if(appliConfigService.beforeStartEmargerLink()) {
-					if(dateFin != null) {
-						verifySe = sessionEpreuveRepository.checkIsBeforeSessionWithDateFin(eppn, date, date, now, seId);
-					}else {
-						verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now, seId);
-					}
+			TagCheck tc = tagCheckRepository.findTagCheckBysessionTokenEqualsAndPersonEppnEquals(sessionToken, eppn);
+			model.addAttribute("se", tc.getSessionEpreuve());
+			if(tc.getSessionLocationBadged()!=null) {
+				isAlreadyBadged = true;
+			}
+			Long verifySe = null;
+			Long seId = tc.getSessionEpreuve().getId();
+			Date dateFin = tc.getSessionEpreuve().getDateFin();
+			if(appliConfigService.beforeStartEmargerLink()) {
+				if(dateFin != null) {
+					verifySe = sessionEpreuveRepository.checkIsBeforeSessionWithDateFin(eppn, date, date, now, seId);
 				}else {
-					if(dateFin != null) {
-						verifySe = sessionEpreuveRepository.checkIsBeforeFinWithDateFin(eppn, date, date, now, seId);
-					}else {
-						verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now, seId);
-					}
+					verifySe = sessionEpreuveRepository.checkIsBeforeSession(eppn, date, now, seId);
 				}
-				
-				if(verifySe >0) {
-					isSessionExpired = false;
+			}else {
+				if(dateFin != null) {
+					verifySe = sessionEpreuveRepository.checkIsBeforeFinWithDateFin(eppn, date, date, now, seId);
 				}else {
-					Long check = null;
-					if(dateFin != null) {
-						check = sessionEpreuveRepository.checkIsBeforeConvocationWithDateFin(eppn, date, date, now, seId);
-					}else {
-						check = sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now, seId);
-					}
-					if(check > 0) {
-						isHourOk = true;
-						logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
-					}else {
-						logService.log(ACTION.REPORT_LINK_TOO_LATE, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
-					}
+					verifySe = sessionEpreuveRepository.checkIsBeforeFin(eppn, date, now, seId);
+				}
+			}
+			
+			if(verifySe >0) {
+				isSessionExpired = false;
+			}else {
+				Long check = null;
+				if(dateFin != null) {
+					check = sessionEpreuveRepository.checkIsBeforeConvocationWithDateFin(eppn, date, date, now, seId);
+				}else {
+					check = sessionEpreuveRepository.checkIsBeforeConvocation(eppn, date, now, seId);
+				}
+				if(check > 0) {
+					isHourOk = true;
+					logService.log(ACTION.REPORT_LINK_TOO_SOON, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
+				}else {
+					logService.log(ACTION.REPORT_LINK_TOO_LATE, RETCODE.SUCCESS, "Session : " + tc.getSessionEpreuve().getNomSessionEpreuve(), eppn, null, emargementContext, null);
 				}
 			}
 			model.addAttribute("isAlReadybadged", isAlreadyBadged);
@@ -152,12 +159,11 @@ public class UserController {
 			model.addAttribute("isSessionExpired", isSessionExpired);
 			model.addAttribute("isHourOk", isHourOk);
 		}
-		model.addAttribute("help", helpService.getValueOfKey(ITEM));
-		model.addAttribute("tagChecksPage", userService.getTagChecks(pageable));
-		model.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
 		model.addAttribute("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
+		model.addAttribute("tagChecksPage", userService.getTagChecks(date, pageable));
 		model.addAttribute("eppn64", toolUtil.encodeToBase64(auth.getName()));
 		model.addAttribute("scanClass", scanClass);
+		model.addAttribute("currentTab", tab!=null? tab : "calendar");
 		return "user/list";
 	}
 	
@@ -219,7 +225,6 @@ public class UserController {
 	@GetMapping(value = "/user/{id}", produces = "text/html")
     public String show(@PathVariable Long id, Model uiModel) {
         uiModel.addAttribute("tc",  tagCheckRepository.findById(id).get());
-        uiModel.addAttribute("help", helpService.getValueOfKey(ITEM));
         uiModel.addAttribute("isUserQrCodeEnabled", appliConfigService.isUserQrCodeEnabled());
         return "user/show";
     }
@@ -236,5 +241,18 @@ public class UserController {
         response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         String base64Image = toolUtil.getBase64ImgFromInputStream(inputStream);
         return base64Image;
+    }
+	
+    @GetMapping(value="/user/calendar/events", headers = "Accept=application/json; charset=utf-8")
+    @ResponseBody
+    public String searchLdap(@PathVariable String emargementContext, @RequestParam String start, @RequestParam String end, 
+    		@RequestParam(required = false) String view) {
+    	String flexJsonString = "aucune donnée à récupérer";
+		try {
+			flexJsonString = calendarService.getParticipantEvents(start, end);
+		} catch (Exception e) {
+			log.warn("Impossible de récupérer les évènements calendrier du contexte " + emargementContext , e);
+		}
+    	return flexJsonString;
     }
 }

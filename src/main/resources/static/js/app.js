@@ -292,21 +292,169 @@ function displayToast() {
 	});
 }
 
-function getCalendar(calendarEl, urlEvents, editable) {
-	var calendar = new FullCalendar.Calendar(calendarEl, {
-		headerToolbar: {
-			start: 'prev,next today',
-			center: 'title',
-			end: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
-		},
-		navLinks: true, // can click day/week names to navigate views
+function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = false, initialDate = null) {
+	const isMobile = () => window.innerWidth < 768;
+	const fmtDate = d => d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+	const fmtTime = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+	const VIEWS = {
+		dayGridMonth: ['fa-calendar', 'Mois'],
+		timeGridWeek: ['fa-calendar-week', 'Semaine'],
+		timeGridDay:  ['fa-calendar-day', 'Jour'],
+		listMonth:    ['fa-list', 'Planning']
+	};
+	const headerFor = () => ({
+		start: 'prev,next today', center: 'title',
+		end: isMobile() ? '' : Object.keys(VIEWS).join(',')
+	});
+
+	// ---------- QR code du modal ----------
+	let calendarQrInterval = null;
+	const stopCalendarQr = () => { clearInterval(calendarQrInterval); calendarQrInterval = null; };
+	document.getElementById('eventModal')?.addEventListener('hidden.bs.modal', stopCalendarQr);
+
+	// ---------- Modal de détail ----------
+	function showEventModal(event) {
+		const p = event.extendedProps;
+		document.getElementById('eventModalTitle').textContent = event.title;
+
+		let horaire = fmtDate(event.start);
+		horaire += event.allDay
+			? ' · Journée'
+			: ' · ' + fmtTime(event.start) + (event.end ? ' – ' + fmtTime(event.end) : '');
+
+		const rows = [
+			['Horaire', horaire],
+			['Site', p.site],
+			['Salle', p.salle],
+			['Enseignant(s)', p.professeur]
+		].filter(r => r[1]);
+
+		const body = document.getElementById('eventModalBody');
+		body.replaceChildren();
+		rows.forEach(([label, value]) => {
+			const dt = document.createElement('dt');
+			dt.className = 'col-4 text-muted fw-normal';
+			dt.textContent = label;
+			const dd2 = document.createElement('dd');
+			dd2.className = 'col-8 fw-semibold';
+			dd2.textContent = value;
+			body.append(dt, dd2);
+		});
+
+		const qr = document.getElementById('eventModalQr');
+		const img = document.getElementById('eventModalQrImg');
+		stopCalendarQr();
+		img.removeAttribute('src');
+		qr.classList.toggle('d-none', !p.qrCodeAvailable);
+		if (p.qrCodeAvailable) {
+			const url = emargementContextUrl + '/user/qrCode/'
+				+ encodeURIComponent(p.qrEppn) + '/' + encodeURIComponent(p.qrSession);
+			const load = () => getQrCodeSession(url, 'eventModalQrImg');
+			load();
+			calendarQrInterval = setInterval(load, qrcodeChange);
+		}
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('eventModal')).show();
+	}
+
+	// ---------- Dropdown de vues (mobile uniquement) ----------
+	const dd = document.createElement('div');
+	dd.className = 'dropdown d-md-none position-absolute top-0 end-0';
+	dd.innerHTML = `<button class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown"></button>
+		<ul class="dropdown-menu dropdown-menu-end">${Object.entries(VIEWS).map(([v, [i, l]]) =>
+			`<li><button class="dropdown-item" data-view="${v}"><i class="fa-solid ${i} me-2"></i>${l}</button></li>`).join('')}</ul>`;
+	dd.addEventListener('click', e => {
+		const b = e.target.closest('[data-view]');
+		if (b) calendar.changeView(b.dataset.view);
+	});
+
+	// Wrapper créé une seule fois ; si getCalendar est rappelé (changement du select), on nettoie l'ancien
+	if (calendarEl._fc) {
+		calendarEl._fc.destroy();
+		calendarEl._dd.remove();
+	} else {
+		const wrap = document.createElement('div');
+		wrap.className = 'position-relative';
+		calendarEl.before(wrap);
+		wrap.append(calendarEl);
+	}
+	calendarEl.parentElement.append(dd);
+
+	// ---------- Calendrier ----------
+	let wasMobile = isMobile();
+	const calendar = new FullCalendar.Calendar(calendarEl, {
+		height: 'auto',
+		headerToolbar: headerFor(),
+		buttonText: { today: 'Auj.', dayGridMonth: 'Mois', timeGridWeek: 'Semaine', timeGridDay: 'Jour', listMonth: 'Planning' },
+		navLinks: true,
 		editable: editable,
+		allDayText: 'Journée',
 		locale: 'fr',
 		events: urlEvents,
-		contentHeight: 600,
-		themeSystem: 'bootstrap5'
+		initialView: initialView || (isMobile() ? 'timeGridDay' : 'dayGridMonth'),
+		initialDate: initialDate || undefined,
+		themeSystem: 'bootstrap5',
+		slotMinTime: '07:00:00',
+		slotMaxTime: '21:00:00',
+		scrollTime: '08:00:00',
+
+		eventDataTransform: e => { if (useModal) delete e.url; return e; },
+
+		datesSet: info => {
+			const [i, l] = VIEWS[info.view.type] || VIEWS.dayGridMonth;
+			dd.querySelector('.dropdown-toggle').innerHTML = `<i class="fa-solid ${i} me-2"></i>${l}`;
+		},
+
+		// Ne réagit qu'au passage du seuil mobile/desktop, et garde la date affichée
+		windowResize: () => {
+			if (isMobile() === wasMobile) return;
+			wasMobile = isMobile();
+			const d = calendar.getDate();
+			calendar.setOption('headerToolbar', headerFor());
+			calendar.changeView(calendar.view.type, d);
+		},
+
+		eventClick: info => {
+			if (!useModal) return;
+			info.jsEvent.preventDefault();
+			showEventModal(info.event);
+		},
+
+		eventContent: arg => {
+			const view = arg.view.type;
+			const shortType = isMobile() && (view === 'timeGridWeek' || view === 'dayGridMonth');
+			if ((view === 'dayGridMonth' && !shortType) || view.startsWith('list')) return;
+
+			const w = document.createElement('div');
+			w.className = 'fc-event-custom';
+			const title = document.createElement('div');
+			title.className = 'fc-event-title-custom';
+			title.textContent = shortType
+				? (arg.event.extendedProps.typeSession || arg.event.title)
+				: arg.event.title;
+			w.appendChild(title);
+
+			if (!shortType && arg.timeText) {
+				const t = document.createElement('div');
+				t.className = 'fc-event-time-custom';
+				t.textContent = arg.timeText;
+				w.appendChild(t);
+			}
+			const salle = arg.event.extendedProps.salle;
+			if (!useModal && salle) {
+				const d = document.createElement('div');
+				d.className = 'fc-event-details';
+				d.textContent = salle;
+				w.appendChild(d);
+			}
+			return { domNodes: [w] };
+		}
 	});
+
 	calendar.render();
+	calendarEl._fc = calendar;
+	calendarEl._dd = dd;
+	return calendar;
 }
 
 function deleteParam(urlLocation, name) {
@@ -896,32 +1044,37 @@ document.addEventListener('DOMContentLoaded', function() {
 	    $(this).find('.modal-title').text(title);
 	});
 	
-	
+	const VIEW_MAP = { today: 'timeGridDay', week: 'timeGridWeek', month: 'dayGridMonth', planning: 'listMonth' };
 	const setupCalendar = (calendarId, urlPath) => {
 	    const calendarEl = document.getElementById(calendarId);
 	    const viewCalendar = document.getElementById('viewCalendar');
 	
-	    if (calendarEl && viewCalendar) {
-	        const getParam = () => {
-	            if (calendarId === 'calendar') {
-	                return viewCalendar.value === 'mine' ? '?view=mine' : '';
-	            } else if (calendarId === 'calendarAll') {
-	                return viewCalendar.value ? `?view=${viewCalendar.value}` : '';
-	            }
-	            return '';
-	        };
-	
-	        const updateCalendar = () => {
-	            const paramCalendar = getParam();
-	            getCalendar(calendarEl, `${emargementContextUrl}${urlPath}${paramCalendar}`, true);
-	        };
-	        viewCalendar.addEventListener("change", updateCalendar);
-	        updateCalendar();
-	    }
+        if (calendarEl) {
+            if (viewCalendar) {
+                const getParam = () => {
+                    if (calendarId === 'calendar') {
+                        return viewCalendar.value === 'mine' ? '?view=mine' : '';
+                    } else if (calendarId === 'calendarAll') {
+                        return viewCalendar.value ? `?view=${viewCalendar.value}` : '';
+                    }
+                    return '';
+                };
+
+                const updateCalendar = () => {
+                    const paramCalendar = getParam();
+                    getCalendar(calendarEl, `${emargementContextUrl}${urlPath}${paramCalendar}`, true, 'dayGridMonth', false, null);
+                };
+                viewCalendar.addEventListener("change", updateCalendar);
+                updateCalendar();
+            } else {
+                getCalendar(calendarEl, `${emargementContextUrl}${urlPath}`, true, VIEW_MAP[viewCal] || 'listMonth', true, dateCal);
+            }
+        }
 	};
 	setupCalendar('calendar', '/manager/calendar/events');
 	setupCalendar('calendarAll', '/superadmin/calendar/events');
 	setupCalendar('calendarSup', '/supervisor/calendar/events');
+	setupCalendar('userCalendar', '/user/calendar/events');
 
 	//Pagination --->rajout tous
 	if (document.getElementById('pagination') != null) {
@@ -1552,21 +1705,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		getQrCodeSession(url, "imgQrCode");
 		setInterval(function() { getQrCodeSession(url, "imgQrCode") }, qrcodeChange);
 	}
-
-	$('#userPage .modal').on('show.bs.modal', function(event) {
-		var id = this.id.replace("qrCodeModal", "");
-		var dataEppn = this.getAttribute("data-eppn");
-		var dataSession = this.getAttribute("data-session");
-		var url = emargementContextUrl + "/user/qrCode/" + dataEppn + "/" + dataSession;
-		var imgQrCodeUser = "imgQrCodeUser" + id;
-		getQrCodeSession(url, imgQrCodeUser);
-		var interval = setInterval(function() {
-			getQrCodeSession(url, imgQrCodeUser);
-		}, qrcodeChange);
-		$('#userPage .modal').on('hidden.bs.modal', function() {
-			clearInterval(interval);
-		});
-	});
 	
 	//Recherche assiduité
 	$('table.assiduite').DataTable(

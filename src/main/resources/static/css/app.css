@@ -481,23 +481,65 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 }
 
 @media (max-width: 767.98px) {
-
     .dashboard-tabs .tab-label {
         display: none;
     }
-
     .dashboard-tabs .nav-link {
         padding-left: .75rem;
         padding-right: .75rem;
     }
-
+}
+@media (max-width: 767.98px) {
+	.dashboard-session-info {
+	    flex-direction: column;
+	    align-items: flex-start !important;
+	}
+}
+.fc-event-custom {
+    text-align: center;
+    padding: 3px 4px;
+    overflow: hidden;
 }
 
-@media (max-width: 767.98px) {
+.fc-event-title-custom {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
 
-    .dashboard-session-info {
-        flex-direction: column;
-        align-items: flex-start !important;
+.fc-event-time-custom {
+    font-size: 0.85rem;
+    line-height: 1.25;
+    margin-top: 1px;
+}
+
+.fc-event-details {
+    font-size: 0.82rem;
+    line-height: 1.25;
+    margin-top: 1px;
+    opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media (max-width: 768px) {
+  .fc .fc-header-toolbar.fc-toolbar {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: .3rem;
+    padding-right: 7.5rem;   /* place réservée au dropdown */
+  }
+  /* le titre reste au milieu, sur la même ligne */
+  .fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
+    order: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
+  .fc .fc-toolbar-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.1;
     }
-
+  .fc .fc-button { padding: .25rem .5rem; font-size: .8rem; }
 }

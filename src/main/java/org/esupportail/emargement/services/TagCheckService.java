@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -2836,5 +2837,9 @@ public class TagCheckService {
                 tagCheckRepository.save(tc);
             }
         }
+    }
+    
+    public Optional<Date>  findNextEventDate(String eppn, Date from){
+    	return findNextEventDate( eppn, from);
     }
 }
