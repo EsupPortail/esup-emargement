@@ -318,4 +318,8 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 	        @Param("dateFin") Date dateFin,
 	        @Param("contextKey") String contextKey,
 	        @Param("eppn") String eppn);
+
+	@Query(value = "select distinct adevet from session_epreuve "
+			+ "where context_id = :contextId and adevet is not null and adevet != ''", nativeQuery = true)
+	List<String> findDistinctAdeVetsByContextId(Long contextId);
 }

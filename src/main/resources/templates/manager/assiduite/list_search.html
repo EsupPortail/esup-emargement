@@ -63,6 +63,11 @@
 							+ ' ' + #dates.format(se.heureEpreuve, 'HH:mm') + ' ]'}">
 					</option>
 				</select>	
+				<select name="adeVET" class="assiduiteControl slimSelectClass clearable w-auto" th:if="${assiduiteBean.typeIndividu eq 'etu' and !#lists.isEmpty(uniqueAdeVETs)}">
+					<option value="">----VET----</option>
+					<option th:each="vet : ${uniqueAdeVETs}" th:value="${vet}" th:text="${vet}"
+							th:selected="${assiduiteBean.adeVET ne null and vet eq assiduiteBean.adeVET}"></option>
+				</select>
 				<select name="*groupe" class="assiduiteControl slimSelectClass clearable w-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
 					<option value="">--Groupe--</option>
 					<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"

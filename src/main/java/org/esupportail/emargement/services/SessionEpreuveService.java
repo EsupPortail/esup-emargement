@@ -1214,6 +1214,9 @@ public class SessionEpreuveService {
 		} else {
 			sessionSearch.setNomSessionEpreuve(null);
 		}
+		if (sessionSearch.getAdeVET() != null && sessionSearch.getAdeVET().isBlank()) {
+            sessionSearch.setAdeVET(null);
+        }
 		Page<SessionEpreuve> result;
 		if (sessionSearch.getId() != null && sessionEpreuveRepository.findById(sessionSearch.getId()).isPresent()) {
 			SessionEpreuve se = sessionEpreuveRepository.findById(sessionSearch.getId()).get();
@@ -1234,6 +1237,7 @@ public class SessionEpreuveService {
 					.withMatcher("typeSession", ExampleMatcher.GenericPropertyMatchers.exact())
 					.withMatcher("anneeUniv", ExampleMatcher.GenericPropertyMatchers.exact())
 					.withMatcher("campus", ExampleMatcher.GenericPropertyMatchers.exact())
+					.withMatcher("adeVET", ExampleMatcher.GenericPropertyMatchers.exact())
 					.withMatcher("nomSessionEpreuve", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
 			if (isAdeEnabled) {
 				matcher = matcher.withMatcher("adeBranch",

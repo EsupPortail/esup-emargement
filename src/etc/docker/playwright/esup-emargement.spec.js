@@ -144,10 +144,14 @@ async function getRowIdByText(page, tableSelector, rowText) {
 async function addSessionLocation(page, sessionId) {
   await page.goto(`/${CONTEXT_KEY}/manager/sessionLocation?form&sessionEpreuve=${sessionId}`);
   await page.locator('select[name="sessionEpreuve"]').selectOption(sessionId);
+  const capaciteLoaded = page.waitForResponse((r) => r.url().includes('/sessionLocation/searchCapacite'));
   await page.locator('select[name="location"]').selectOption({ label: `${LOCATION_NAME} (10 max)` });
-  await page.locator('input[name="capacite"]').fill('10');
+  await capaciteLoaded;
+  await page.locator('#capacite').fill('10');
+  await expect(page.locator('#capacite')).toHaveValue('10');
   await page.locator('input[name="priorite"]').fill('1');
   await page.locator('input[type="submit"][value="Valider"]').click();
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/sessionLocation/sessionEpreuve/${sessionId}`);
   await expect(page.locator('table tbody tr', { hasText: LOCATION_NAME }).first()).toBeVisible();
 }
 
@@ -193,6 +197,7 @@ async function executeRepartition(page, sessionId) {
 test.describe.configure({ mode: 'serial' });
 
 test('Créer un contexte Playwright complet', async ({ page }) => {
+  test.setTimeout(180000);
   await waitForApplication(page);
   await loginWithCas(page, ADMIN_USERNAME);
 

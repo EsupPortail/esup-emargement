@@ -15,7 +15,7 @@
 					<input name="searchString" class="form-control searchBox" pattern="[0-9.]+"
 						th:hx-get="@{|/${eContext}/supervisor/search/sessionEpreuve|}" hx-trigger="keyup changed"
 						hx-target="#searchResults" hx-indicator=".htmx-indicator" autocomplete="off"
-						placeholder="Recherche sur  nom, site">
+						placeholder="Recherche sur nom, site">
 					<div id="searchResults"></div>
 					<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
 				</div>
@@ -53,6 +53,10 @@
 				<select class="slimSelectClass w-auto" title="Tous les statuts" th:field="*{adeBranch}"  th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">
 					<option value="">-- ADE --</option>
 					<option th:each="ade : ${adeBranches}" th:value="${ade.id}" th:text="${ade.fullPath}"></option>
+				</select>
+				<select class="slimSelectClass w-auto" title="Toutes les VET" th:field="*{adeVET}"  th:if="${isAdeVetDisplayed}">
+					<option value="">-- VET --</option>
+					<option th:each="vet : ${adeVets}" th:value="${vet}" th:text="${vet}"></option>
 				</select>
 				<select th:if="${!years.empty}" th:field="*{anneeUniv}" class="slimSelectClass w-auto">
 					<option th:each="year, iStat : ${years}" th:value="${#strings.substringBefore(year,'/')}" th:text="${year}">

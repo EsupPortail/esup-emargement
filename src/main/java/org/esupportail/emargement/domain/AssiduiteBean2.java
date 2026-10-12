@@ -38,6 +38,8 @@ public class AssiduiteBean2 {
 	
 	Long idAdeBranch;
 
+	String adeVET;
+
     private Long motifAbsenceId;
 
     public Long getMotifAbsenceId() {
@@ -184,4 +186,11 @@ public class AssiduiteBean2 {
 		this.idAdeBranch = idAdeBranch;
 	}
 	
+	public String getAdeVET() {
+		return adeVET;
+	}
+
+	public void setAdeVET(String adeVET) {
+		this.adeVET = adeVET;
+	}
 }

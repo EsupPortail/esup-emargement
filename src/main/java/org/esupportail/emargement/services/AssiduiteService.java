@@ -2,6 +2,7 @@ package org.esupportail.emargement.services;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean2;
 import org.esupportail.emargement.domain.EsupSignature;
+import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.EsupSignatureRepository;
@@ -206,6 +208,13 @@ public class AssiduiteService {
 	            Objects.equals(tc.getSessionEpreuve(), bean.getSessionEpreuve()));
 	    }
 
+		if (bean.getAdeVET() != null && !bean.getAdeVET().isEmpty()) {
+            stream = stream.filter(tc ->
+                tc.getSessionEpreuve() != null
+                && Objects.equals(
+                    tc.getSessionEpreuve().getAdeVET(), bean.getAdeVET()));
+        }
+
 	    if (bean.getIdAdeBranch() != null) {
 	        Long idBranch = bean.getIdAdeBranch();
 	        stream = stream.filter(tc ->
@@ -227,6 +236,20 @@ public class AssiduiteService {
 	                                  List<TagCheck> tcs,
 	                                  Date debut, Date fin,
 	                                  String resolvedRange) {
+
+		List<SessionEpreuve> sessions = sessionEpreuveRepository.getAllSessionEpreuveForAssiduiteByContext(debut, fin, contextService.getcurrentContext().getId());
+		boolean isAdeVETActive = appliConfigService.isAdeVetDisplayed(contextService.getcurrentContext());
+		List<String> uniqueAdeVETs = new ArrayList<>();
+		if (isAdeVETActive && tcs != null) {
+			uniqueAdeVETs = tcs.stream()
+				.map(TagCheck::getSessionEpreuve)
+				.filter(se -> se != null)
+				.map(SessionEpreuve::getAdeVET)
+				.filter(vet -> vet != null && !vet.isEmpty())
+				.distinct()
+				.collect(Collectors.toList());
+		}
+
 	    model.addAttribute("datesRangeSelect",      resolvedRange);
 	    model.addAttribute("isTagCheckerDisplayed", appliConfigService.isTagCheckerDisplayed());
 	    model.addAttribute("absencesPage",          tcs);
@@ -236,9 +259,8 @@ public class AssiduiteService {
 	    model.addAttribute("mapSessions",           tagCheckService.getPersonWithTotalSessionCount(tcs));
 	    model.addAttribute("assiduiteBean",         bean);
 	    model.addAttribute("groupes",               groupeRepository.findAllByOrderByNom());
-	    model.addAttribute("sessions",              sessionEpreuveRepository
-	        .getAllSessionEpreuveForAssiduiteByContext(
-	            debut, fin, contextService.getcurrentContext().getId()));
+		model.addAttribute("sessions",           sessions);
+		model.addAttribute("uniqueAdeVETs",      uniqueAdeVETs);
 	    model.addAttribute("motifAbsences",         motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
 	    model.addAttribute("absence",               new Absence());
 	    model.addAttribute("adeBranches",           sessionEpreuveService.getAdeBranches());
