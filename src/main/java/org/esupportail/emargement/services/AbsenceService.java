@@ -1,6 +1,9 @@
 package org.esupportail.emargement.services;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +23,7 @@ import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
+import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
 import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
@@ -50,7 +54,10 @@ public class AbsenceService {
 	
 	@Autowired
 	StoredFileRepository storedFileRepository;
-	
+
+	@Autowired
+	TagCheckRepository tagCheckRepository;
+
 	@Resource
 	LogService logService;
 	
@@ -118,6 +125,39 @@ public class AbsenceService {
 	@Transactional
 	public void deleteAbsence(Absence absence) {
 		absenceRepository.delete(absence);
+	}
+
+	// L'absence doit déjà être enregistrée, avec sa personne, son contexte, ses dates et ses heures renseignés.
+	@Transactional
+	public void rattacherAbsence(Absence absence) {
+		DateFormat df = new SimpleDateFormat("HH:mm");
+		String eppn = absence.getPerson().getEppn();
+		LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
+		LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
+		List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
+		List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(absence.getPerson(), absence.getDateDebut(), absence.getDateFin(),
+				absence.getHeureDebut(), absence.getHeureFin(), absence.getContext());
+		overlapsList.remove(absence);
+		if(!tcs.isEmpty()) {
+			for(TagCheck tc : tcs) {
+				if(absenceCouvreSession(absence, tc.getSessionEpreuve())) {
+					tc.setAbsence(absence);
+					tagCheckRepository.save(tc);
+				}
+			}
+		}
+		if(!overlapsList.isEmpty()) {
+			for(Absence abs : overlapsList) {
+				List<TagCheck> tagChecks = tagCheckRepository.findByAbsence(abs);
+				for(TagCheck tagCheck : tagChecks) {
+					tagCheck.setAbsence(null);
+					tagCheckRepository.save(tagCheck);
+				}
+				storedFileService.deleteAllStoredFiles(abs);
+				absenceRepository.delete(abs);
+			}
+			log.info("Les absences de " + eppn + " ont été remplacées.");
+		}
 	}
 	
 	public boolean absenceCouvreSession(Absence absence, SessionEpreuve session) {

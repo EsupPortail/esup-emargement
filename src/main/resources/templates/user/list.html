@@ -8,6 +8,7 @@
 			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
 				<h2 class="fs-3 mb-0"><span th:class="text-capitalize" th:text="${#strings.toLowerCase(participantTerme)}"></span></h2>
 				<div class="d-flex align-items-center gap-2">
+					<button th:if="${isAbsenceEtudiantEnabled}" type="button" class="btn btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#modalDeclareAbsence">Déclarer une absence</button>
 					<button  th:if="${isSessionQrCodeEnabled}" title="Activer/Désactiver visuel Webcam" class="btn btn-secondary active mb-1" type="button"
 						data-bs-toggle="offcanvas" data-bs-target="#offcanvasWebcam" aria-controls="offcanvasScrolling"> SCAN QR
 						Code</button>
@@ -55,6 +56,8 @@
 			</div>
 			<div class="alert alert-success"  th:if="${#ctx.containsVariable('msgTokenOk')}">Participation enregistrée!</div>
 			<div class="alert alert-danger"  th:if="${#ctx.containsVariable('msgTokenNotOk')}">Participation non enregistrée!</div>
+			<div class="alert alert-success"  th:if="${#ctx.containsVariable('absenceDeclared')}">Votre déclaration d'absence a été enregistrée. Elle sera examinée par un gestionnaire.</div>
+			<div class="alert alert-danger"  th:if="${#ctx.containsVariable('absenceDeclareError')}" th:text="${absenceDeclareError}"></div>
 			<th:block th:if="${isSessionQrCodeEnabled}">
 				<div class="offcanvas offcanvas-end" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1"
 					id="offcanvasWebcam" aria-labelledby="offcanvasScrollingLabel">
@@ -107,6 +110,7 @@
 								<th scope="col" class="d-none d-xl-table-cell"><a class="sorted" sd:pagination-sort="sessionLocationExpected.location.nom">Lieu</a></th>
 								<th scope="col" class="hiddenBlock"><a class="sorted" sd:pagination-sort="typeEmargement">Emargement</a></th>
 								<th scope="col" class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell">Horaire</th>
+								<th scope="col" class="center" th:if="${isAbsenceEtudiantEnabled}">Absence</th>
 								<th scope="col" class="center">Voir</th>
 							</tr>
 						</thead>
@@ -147,6 +151,12 @@
 									</span>
 								</td>
 								<td class="d-none d-sm-table-cell d-md-table-cell d-lg-table-cell d-xl-table-cell"><span th:text="${#dates.format(tc.sessionEpreuve.heureEpreuve, 'HH:mm') + ' - ' + #dates.format(tc.sessionEpreuve.finEpreuve, 'HH:mm ')}"></td>
+								<td class="center" th:if="${isAbsenceEtudiantEnabled}">
+								<th:block th:with="declaration=${absenceDeclarations != null ? absenceDeclarations.get(tc.id) : null}">
+									<span th:if="${declaration != null and declaration.statutValidation.name() == 'EN_ATTENTE'}" class="badge bg-warning text-dark">Déclaration en attente</span>
+									<span th:if="${declaration != null and declaration.statutValidation.name() == 'REFUSEE'}" class="badge bg-danger" th:title="${declaration.motifRefus}">Déclaration refusée</span>
+								</th:block>
+							</td>
 								<td class="center"><a th:href="@{/{ctx}/user/{id}(id=${tc.id},ctx=${eContext})}"><i class="fa fa-eye text-primary"></i></a></td>
 							</tr>
 						</tbody>
@@ -154,6 +164,82 @@
 				</div>
 				<nav th:replace="fragments/pagination :: pagination"></nav>
 			</th:block>
+			<div class="mt-4" th:if="${isAbsenceEtudiantEnabled and mesDeclarations != null and not #lists.isEmpty(mesDeclarations)}">
+				<h3 class="fs-5">Mes déclarations d'absence</h3>
+				<table class="table table-hover table-striped table-bordered">
+					<thead class="center">
+						<tr>
+							<th scope="col">Période</th>
+							<th scope="col">Motif</th>
+							<th scope="col">État</th>
+							<th scope="col">Traitée le</th>
+						</tr>
+					</thead>
+					<tbody class="center">
+						<tr th:each="declaration : ${mesDeclarations}">
+							<td th:text="${#dates.format(declaration.dateDebut, 'dd-MM-yyyy') + ' au ' + #dates.format(declaration.dateFin, 'dd-MM-yyyy')}"></td>
+							<td th:text="${declaration.motifAbsence != null ? declaration.motifAbsence.libelle : ''}"></td>
+							<td>
+								<span th:if="${declaration.statutValidation.name() == 'EN_ATTENTE'}" class="badge bg-warning text-dark">En attente</span>
+								<span th:if="${declaration.statutValidation.name() == 'VALIDEE'}" class="badge bg-success">Validée</span>
+								<span th:if="${declaration.statutValidation.name() == 'REFUSEE'}" class="badge bg-danger">Refusée</span>
+								<div th:if="${declaration.statutValidation.name() == 'REFUSEE' and declaration.motifRefus != null}" class="small" th:text="${declaration.motifRefus}"></div>
+							</td>
+							<td th:text="${#dates.format(declaration.dateTraitement, 'dd-MM-yyyy')}"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal fade" id="modalDeclareAbsence" tabindex="-1" th:if="${isAbsenceEtudiantEnabled}">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<form method="post" enctype="multipart/form-data" th:action="@{/{ctx}/user/absence(ctx=${eContext})}">
+							<div class="modal-header">
+								<h5 class="modal-title">Déclarer une absence</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								
+								<div class="alert alert-warning" th:if="${#lists.isEmpty(motifsAbsenceEtudiant)}">
+									Aucun motif n'est disponible pour une déclaration en ligne. Veuillez vous adresser à la scolarité.
+								</div>
+								<div class="mb-3">
+									<label for="motifAbsenceId" class="form-label">Motif</label>
+									<select name="motifAbsenceId" id="motifAbsenceId" class="form-select" required="required">
+										<option value="">----Choisir----</option>
+										<option th:each="motif : ${motifsAbsenceEtudiant}" th:value="${motif.id}" th:text="${motif.libelle}"></option>
+									</select>
+								</div>
+								<div class="row">
+									<div class="col-md-6 mb-3">
+										<label for="absenceDateDebut" class="form-label">Du</label>
+										<input type="date" name="dateDebut" id="absenceDateDebut" class="form-control" required="required" />
+									</div>
+									<div class="col-md-6 mb-3">
+										<label for="absenceDateFin" class="form-label">Au (inclus)</label>
+										<input type="date" name="dateFin" id="absenceDateFin" class="form-control" required="required" th:min="${absenceDateMinFin}" />
+									</div>
+								</div>
+								<div class="form-text mb-3">Votre absence couvre des journées entières. Elle sera rattachée aux sessions de cette période une fois validée par un gestionnaire.</div>
+								<div class="mb-3">
+									<label for="absenceCommentaire" class="form-label">Commentaire</label>
+									<textarea name="commentaire" id="absenceCommentaire" class="form-control" rows="3"></textarea>
+								</div>
+								<div class="mb-3">
+									<label for="absenceFiles" class="form-label">Justificatif</label>
+									<input type="file" name="files" id="absenceFiles" class="form-control" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+										th:required="${absenceJustificatifObligatoire}" />
+									<div class="form-text">PDF, JPEG ou PNG.</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+								<button type="submit" class="btn btn-success" th:disabled="${#lists.isEmpty(motifsAbsenceEtudiant)}">Envoyer</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 		<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalTitle" aria-hidden="true">
@@ -176,5 +262,13 @@
 		    </div>
 		  </div>
 		</div>
+		<script th:if="${isAbsenceEtudiantEnabled}">
+			var dateDebut = document.getElementById('absenceDateDebut');
+				var dateFin = document.getElementById('absenceDateFin');
+				var dateMinFin = dateFin.min;
+				dateDebut.addEventListener('change', function () {
+					dateFin.min = dateDebut.value > dateMinFin ? dateDebut.value : dateMinFin;
+				});
+		</script>
 	</body>
 </html>

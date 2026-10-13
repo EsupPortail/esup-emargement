@@ -72,6 +72,17 @@ public class MotifAbsence {
         this.isMalus = isMalus;
     }
 
+    @Column(name = "is_etudiant_visible", columnDefinition = "boolean default false")
+    private Boolean isEtudiantVisible = false;
+
+    public Boolean getIsEtudiantVisible() {
+        return isEtudiantVisible;
+    }
+
+    public void setIsEtudiantVisible(Boolean isEtudiantVisible) {
+        this.isEtudiantVisible = isEtudiantVisible;
+    }
+
 	public Long getId() {
 		return id;
 	}

@@ -5,10 +5,14 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import org.hibernate.annotations.Filter;
@@ -23,7 +27,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @FilterDef(name = "contextFilter", parameters = {@ParamDef(name = "context", type = "long")})
 @Filter(name = "contextFilter", condition = "context_id= :context")
 public class Absence {
-	
+
+	public static enum OrigineAbsence {
+	       GESTIONNAIRE, ETUDIANT
+	}
+
+	public static enum StatutValidation {
+	       EN_ATTENTE, VALIDEE, REFUSEE
+	}
+
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -58,7 +70,25 @@ public class Absence {
 	
 	private @DateTimeFormat(pattern = "HH:mm")
 	Date heureFin;
-	
+
+	@Enumerated(EnumType.STRING)
+	@Column(columnDefinition = "varchar(255) default 'GESTIONNAIRE'")
+	private OrigineAbsence origine = OrigineAbsence.GESTIONNAIRE;
+
+	@Enumerated(EnumType.STRING)
+	@Column(columnDefinition = "varchar(255) default 'VALIDEE'")
+	private StatutValidation statutValidation = StatutValidation.VALIDEE;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@DateTimeFormat(pattern = "dd/MM/yyyy HH:mm")
+	private Date dateTraitement;
+
+	@ManyToOne
+	private UserApp traitePar;
+
+	@Column(columnDefinition = "TEXT")
+	private String motifRefus;
+
     @Transient
     @JsonIgnore
     private List<MultipartFile> files;
@@ -168,5 +198,45 @@ public class Absence {
 
 	public void setMotifAbsence(MotifAbsence motifAbsence) {
 		this.motifAbsence = motifAbsence;
+	}
+
+	public OrigineAbsence getOrigine() {
+		return origine;
+	}
+
+	public void setOrigine(OrigineAbsence origine) {
+		this.origine = origine;
+	}
+
+	public StatutValidation getStatutValidation() {
+		return statutValidation;
+	}
+
+	public void setStatutValidation(StatutValidation statutValidation) {
+		this.statutValidation = statutValidation;
+	}
+
+	public Date getDateTraitement() {
+		return dateTraitement;
+	}
+
+	public void setDateTraitement(Date dateTraitement) {
+		this.dateTraitement = dateTraitement;
+	}
+
+	public UserApp getTraitePar() {
+		return traitePar;
+	}
+
+	public void setTraitePar(UserApp traitePar) {
+		this.traitePar = traitePar;
+	}
+
+	public String getMotifRefus() {
+		return motifRefus;
+	}
+
+	public void setMotifRefus(String motifRefus) {
+		this.motifRefus = motifRefus;
 	}
 }

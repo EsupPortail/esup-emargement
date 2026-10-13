@@ -18,9 +18,11 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.TagCheck.TypeEmargement;
 import org.esupportail.emargement.domain.TagChecker;
 import org.esupportail.emargement.repositories.ContextRepository;
+import org.esupportail.emargement.repositories.MotifAbsenceRepository;
 import org.esupportail.emargement.repositories.SessionEpreuveRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.TagCheckerRepository;
+import org.esupportail.emargement.services.AbsenceEtudiantService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.CalendarService;
 import org.esupportail.emargement.services.LogService;
@@ -31,6 +33,7 @@ import org.esupportail.emargement.utils.ToolUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -83,7 +86,13 @@ public class UserController {
 	
 	@Autowired
 	ToolUtil toolUtil;
-	
+
+	@Autowired
+	AbsenceEtudiantService absenceEtudiantService;
+
+	@Autowired
+	MotifAbsenceRepository motifAbsenceRepository;
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
     @ModelAttribute("qrcodeChange")
@@ -160,7 +169,18 @@ public class UserController {
 			model.addAttribute("isHourOk", isHourOk);
 		}
 		model.addAttribute("isSessionQrCodeEnabled", appliConfigService.isSessionQrCodeEnabled());
-		model.addAttribute("tagChecksPage", userService.getTagChecks(date, pageable));
+		Page<TagCheck> tagChecksPage = userService.getTagChecks(date, pageable);
+		model.addAttribute("tagChecksPage", tagChecksPage);
+		Context ctx = contextRepository.findByKey(emargementContext);
+		if(absenceEtudiantService.isEnabled(ctx)) {
+			if(tagChecksPage != null) {
+				model.addAttribute("absenceDeclarations", absenceEtudiantService.getDeclarationsEnCours(ctx, auth.getName(), tagChecksPage.getContent()));
+			}
+			model.addAttribute("mesDeclarations", absenceEtudiantService.getDeclarationsEtudiant(ctx, auth.getName()));
+			model.addAttribute("absenceDateMinFin", absenceEtudiantService.getDateMinFin(ctx));
+			model.addAttribute("absenceJustificatifObligatoire", appliConfigService.isAbsenceEtudiantJustificatifObligatoire(ctx));
+			model.addAttribute("motifsAbsenceEtudiant", motifAbsenceRepository.findByIsActifTrueAndIsEtudiantVisibleTrueOrderByLibelle());
+		}
 		model.addAttribute("eppn64", toolUtil.encodeToBase64(auth.getName()));
 		model.addAttribute("scanClass", scanClass);
 		model.addAttribute("currentTab", tab!=null? tab : "calendar");

@@ -10,6 +10,7 @@ import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.Help;
 import org.esupportail.emargement.repositories.ContextRepository;
 import org.esupportail.emargement.security.ContextHelper;
+import org.esupportail.emargement.services.AbsenceEtudiantService;
 import org.esupportail.emargement.services.AppliConfigService;
 import org.esupportail.emargement.services.HelpService;
 import org.slf4j.Logger;
@@ -30,6 +31,9 @@ public class WebInterceptor implements HandlerInterceptor {
 
 	@Resource
 	AppliConfigService appliConfigService;
+
+	@Resource
+	AbsenceEtudiantService absenceEtudiantService;
 
 	@Autowired
 	HelpService helpService;
@@ -76,6 +80,11 @@ public class WebInterceptor implements HandlerInterceptor {
 			modelAndView.addObject("isSwitchUser", WebUtils.isSwitchUser());
 			modelAndView.addObject("isAdeCampusEnabled", appliConfigService.isAdeCampusEnabled());
 			modelAndView.addObject("isEsupSignatureEnabled", appliConfigService.isEsupSignatureEnabled());
+			boolean isAbsenceEtudiantEnabled = configContext != null && appliConfigService.isAbsenceEtudiantEnabled(configContext);
+			modelAndView.addObject("isAbsenceEtudiantEnabled", isAbsenceEtudiantEnabled);
+			if(isAbsenceEtudiantEnabled && (WebUtils.isAdmin() || WebUtils.isManager())) {
+				modelAndView.addObject("absenceEtudiantEnAttente", absenceEtudiantService.countEnAttente(configContext));
+			}
 			modelAndView.addObject("isAdeCampusSurveillantEnabled", appliConfigService.isAdeCampusSurveillantEnabled());
 			modelAndView.addObject("isCalendarEnabled", appliConfigService.isCalendarDisplayed());
 			modelAndView.addObject("isImportExportEnabled", appliConfigService.isImportExportDisplayed());

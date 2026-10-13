@@ -3,11 +3,11 @@
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
-		<div class="container-fluid px-3 px-md-4 my-2">
+		<div class="container-fluid px-3 px-md-4 my-2" th:with="declaration=${absence.origine.name() == 'ETUDIANT' and absence.statutValidation.name() != 'VALIDEE'}">
 			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
 				<h2 class="fs-3 mb-0">Modifier une absence<</h2>
 				<div class="d-flex align-items-center gap-2">
-					<a th:href="@{/{ctx}/manager/absence(ctx=${eContext})}" class="btn btn-info" title="Motifs d'absence"><i
+					<a th:href="${declaration} ? @{/{ctx}/manager/absence/declarations(ctx=${eContext},statut=${absence.statutValidation.name()})} : @{/{ctx}/manager/absence(ctx=${eContext})}" class="btn btn-info" title="Motifs d'absence"><i
 							class="fa-solid fa-home fa-lg"></i></a>
 				</div>				
 			</div>	
@@ -74,7 +74,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mt-5">
-                        <input type="submit" class="btn btn-success" value="Valider">
+                        <input type="submit" class="btn btn-success" value="Valider" th:value="${declaration} ? 'Enregistrer les modifications' : 'Valider'">
                     </div>
                 </div>
             </form>
