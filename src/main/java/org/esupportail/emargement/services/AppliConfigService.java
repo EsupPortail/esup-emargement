@@ -317,8 +317,8 @@ public class AppliConfigService {
 		return appliConfig!=null && "true".equalsIgnoreCase(appliConfig.getValue());	
 	}
 	
-	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getProjetAde'")
-	public  String getProjetAde() {
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getProjetAde' + #emargementContext")
+	public  String getProjetAde(String emargementContext) {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_PROJET);
 		return appliConfig==null ? "" : appliConfig.getValue();
 	}

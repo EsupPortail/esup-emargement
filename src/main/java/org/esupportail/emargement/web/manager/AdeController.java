@@ -145,7 +145,7 @@ public class AdeController {
 			Context ctx = contextRepository.findByKey(emargementContext);
 			String fomrAde = appliConfigService.getFormationAde();
 			String formationCat = (fomrAde != null && !fomrAde.isEmpty()) ? fomrAde : null;
-			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty() ? false : true);
+			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde(emargementContext).isEmpty() ? false : true);
 			uiModel.addAttribute("values", adeService.getPrefByContext(adeService.ADE_STORED_COMPOSANTE + idProject));
 			uiModel.addAttribute("valuesFormation", adeService.getPrefByContext(ADE_STORED_FORMATION + idProject));
 			uiModel.addAttribute("existingSe", true);
@@ -209,7 +209,7 @@ public class AdeController {
 		uiModel.addAttribute("mapFormations", mapFormations);
 		uiModel.addAttribute("mapSalles", adeService.getClassroomsList(sessionId));
 		uiModel.addAttribute("idProject", idProject);
-		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty() ? false : true);
+		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde(emargementContext).isEmpty() ? false : true);
 		uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 		uiModel.addAttribute("prefComp",
 				!prefsRepository.findByNom(adeComposantes).isEmpty() ? prefsRepository.findByNom(adeComposantes).get(0)
@@ -232,7 +232,7 @@ public class AdeController {
 		// sinon on utilise idProjet et on l'enregistre en tant que projet en cours
 		String idProject = adeService.getCurrentProject(idProjet, auth.getName(), emargementContext);
 		String sessionId = adeService.getSessionIdByProjectId(idProject, emargementContext);
-		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty() ? false : true);
+		uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde(emargementContext).isEmpty() ? false : true);
 		uiModel.addAttribute("valuesSalles", adeService.getPrefByContext(ADE_STORED_SALLE + idProject));
 		uiModel.addAttribute("listeSalles",
 				codeSalle != null && !codeSalle.isEmpty() ? adeService.getListClassrooms2(sessionId, codeSalle, null)
@@ -389,7 +389,7 @@ public class AdeController {
 			uiModel.addAttribute("cronExpression", toolUtil.getCronExpression(cronAde));
 			uiModel.addAttribute("projects", adeService.getProjectLists(sessionId));
 			uiModel.addAttribute("idProject", idProject);
-			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde().isEmpty() ? false : true);
+			uiModel.addAttribute("isAdeConfigOk", appliConfigService.getProjetAde(emargementContext).isEmpty() ? false : true);
 			uiModel.addAttribute("isActif", isActif);
 			uiModel.addAttribute("valuePlanification", adeService.getPrefByContext(ADE_PLANIFICATION + idProject));
 		} catch (Exception e) {
