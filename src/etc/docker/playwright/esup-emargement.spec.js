@@ -75,7 +75,7 @@ async function createContextAdmin(page) {
 }
 
 async function unactivateAde(page) {
-  await page.goto('/testPlaywright/admin/appliConfig');
+  await page.goto('/testPlaywright/admin/appliConfig?cat=ADE');
   // désactivation d'ADE
   await page.locator('table tbody tr').filter({ hasText: 'ADE_ENABLED' }).first().locator('td.center .dropdown-toggle').click();
   await page.locator('table tbody tr').filter({ hasText: 'ADE_ENABLED' }).first().locator('td.center a.dropdown-item', { hasText: 'Modifier' }).click();
