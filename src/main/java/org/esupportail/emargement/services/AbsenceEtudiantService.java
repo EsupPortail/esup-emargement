@@ -33,15 +33,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AbsenceEtudiantService {
+
+	private static final long MEGA_OCTET = 1024 * 1024;
 
 	private static final List<String> CONTENT_TYPES_AUTORISES = Arrays.asList("application/pdf", "image/jpeg", "image/png");
 
@@ -69,6 +73,9 @@ public class AbsenceEtudiantService {
 	@Autowired
 	MessageSource messageSource;
 
+	@Autowired
+	MultipartProperties multipartProperties;
+
 	@Value("${app.url}")
 	private String appUrl;
 
@@ -76,6 +83,20 @@ public class AbsenceEtudiantService {
 
 	public boolean isEnabled(Context ctx) {
 		return ctx != null && Boolean.TRUE.equals(appliConfigService.isAbsenceEtudiantEnabled(ctx));
+	}
+
+	// Retourne -1 si la taille des fichiers n'est pas limitée.
+	public long getTailleMaxFichier() {
+		DataSize taille = multipartProperties.getMaxFileSize();
+		return taille == null ? -1 : taille.toBytes();
+	}
+
+	public String getTailleMaxFichierLibelle() {
+		long taille = getTailleMaxFichier();
+		if(taille < 0) {
+			return "";
+		}
+		return taille % MEGA_OCTET == 0 ? (taille / MEGA_OCTET) + " Mo" : (taille / 1024) + " Ko";
 	}
 
 	// Date la plus ancienne que peut avoir la fin d'une absence déclarée, au format yyyy-MM-dd.

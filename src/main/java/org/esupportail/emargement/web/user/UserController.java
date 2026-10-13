@@ -179,6 +179,8 @@ public class UserController {
 			model.addAttribute("mesDeclarations", absenceEtudiantService.getDeclarationsEtudiant(ctx, auth.getName()));
 			model.addAttribute("absenceDateMinFin", absenceEtudiantService.getDateMinFin(ctx));
 			model.addAttribute("absenceJustificatifObligatoire", appliConfigService.isAbsenceEtudiantJustificatifObligatoire(ctx));
+			model.addAttribute("absenceMaxFileBytes", absenceEtudiantService.getTailleMaxFichier());
+			model.addAttribute("absenceMaxFileLabel", absenceEtudiantService.getTailleMaxFichierLibelle());
 			model.addAttribute("motifsAbsenceEtudiant", motifAbsenceRepository.findByIsActifTrueAndIsEtudiantVisibleTrueOrderByLibelle());
 		}
 		model.addAttribute("eppn64", toolUtil.encodeToBase64(auth.getName()));

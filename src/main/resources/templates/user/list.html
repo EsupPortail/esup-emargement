@@ -228,8 +228,8 @@
 								<div class="mb-3">
 									<label for="absenceFiles" class="form-label">Justificatif</label>
 									<input type="file" name="files" id="absenceFiles" class="form-control" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-										th:required="${absenceJustificatifObligatoire}" />
-									<div class="form-text">PDF, JPEG ou PNG.</div>
+										th:required="${absenceJustificatifObligatoire}" th:data-max-bytes="${absenceMaxFileBytes}" th:data-max-label="${absenceMaxFileLabel}" />
+									<div class="form-text">PDF, JPEG ou PNG<span th:if="${absenceMaxFileLabel != null and absenceMaxFileLabel != ''}" th:text="${', ' + absenceMaxFileLabel + ' maximum par fichier'}"></span>.</div>
 								</div>
 							</div>
 							<div class="modal-footer">
@@ -263,6 +263,15 @@
 		  </div>
 		</div>
 		<script th:if="${isAbsenceEtudiantEnabled}">
+			var fileInput = document.getElementById('absenceFiles');
+			fileInput.addEventListener('change', function () {
+				var max = parseInt(fileInput.dataset.maxBytes, 10);
+				var tooBig = max > 0 && Array.prototype.some.call(fileInput.files, function (file) { return file.size > max; });
+				fileInput.setCustomValidity(tooBig ? 'Chaque justificatif doit faire ' + fileInput.dataset.maxLabel + ' au maximum.' : '');
+				if (tooBig) {
+					fileInput.reportValidity();
+				}
+			});
 			var dateDebut = document.getElementById('absenceDateDebut');
 				var dateFin = document.getElementById('absenceDateFin');
 				var dateMinFin = dateFin.min;
