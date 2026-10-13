@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.Absence.OrigineAbsence;
 import org.esupportail.emargement.domain.Absence.StatutValidation;
 import org.esupportail.emargement.domain.Context;
+import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.StoredFile;
@@ -27,9 +29,15 @@ import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.repositories.AbsenceRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -51,6 +59,20 @@ public class AbsenceEtudiantService {
 
 	@Autowired
 	StoredFileService storedFileService;
+
+	@Autowired
+	EmailService emailService;
+
+	@Autowired
+	LdapService ldapService;
+
+	@Autowired
+	MessageSource messageSource;
+
+	@Value("${app.url}")
+	private String appUrl;
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public boolean isEnabled(Context ctx) {
 		return ctx != null && Boolean.TRUE.equals(appliConfigService.isAbsenceEtudiantEnabled(ctx));
@@ -189,6 +211,7 @@ public class AbsenceEtudiantService {
 		marquerTraitee(absence, traitePar, StatutValidation.VALIDEE);
 		absenceRepository.save(absence);
 		absenceService.rattacherAbsence(absence);
+		notifierTraitement(absence);
 	}
 
 	@Transactional
@@ -196,6 +219,62 @@ public class AbsenceEtudiantService {
 		marquerTraitee(absence, traitePar, StatutValidation.REFUSEE);
 		absence.setMotifRefus(StringUtils.trimToNull(motifRefus));
 		absenceRepository.save(absence);
+		notifierTraitement(absence);
+	}
+
+	public void notifierDeclaration(Absence absence, Context ctx) {
+		if(!Boolean.TRUE.equals(appliConfigService.isAbsenceEtudiantNotifGestionnaire(ctx))) {
+			return;
+		}
+		List<String> destinataires = appliConfigService.getListeGestionnaires(ctx);
+		if(destinataires.isEmpty()) {
+			return;
+		}
+		String nom = ldapService.getPrenomNom(absence.getPerson().getEppn());
+		Object[] args = {nom, formatDate(absence.getDateDebut()), formatDate(absence.getDateFin()), absence.getMotifAbsence().getLibelle(),
+				String.valueOf(storedFileRepository.countByAbsence(absence)), appUrl + "/" + ctx.getKey() + "/manager/absence/declarations"};
+		envoyerApresCommit(destinataires, getMessage("absenceetudiant.mail.declaration.sujet", args), getMessage("absenceetudiant.mail.declaration.corps", args));
+	}
+
+	private void notifierTraitement(Absence absence) {
+		List<LdapUser> ldapUsers = ldapService.getUsers(absence.getPerson().getEppn());
+		if(ldapUsers.isEmpty() || StringUtils.isBlank(ldapUsers.get(0).getEmail())) {
+			log.info("Pas de notification de traitement : adresse email introuvable pour " + absence.getPerson().getEppn());
+			return;
+		}
+		LdapUser user = ldapUsers.get(0);
+		boolean validee = StatutValidation.VALIDEE.equals(absence.getStatutValidation());
+		String prefixe = validee ? "absenceetudiant.mail.validee" : "absenceetudiant.mail.refusee";
+		String motifRefus = StringUtils.isBlank(absence.getMotifRefus()) ? "" : getMessage("absenceetudiant.mail.refusee.motif", absence.getMotifRefus());
+		Object[] args = {user.getPrenomNom(), formatDate(absence.getDateDebut()), formatDate(absence.getDateFin()), absence.getMotifAbsence().getLibelle(), motifRefus};
+		envoyerApresCommit(Collections.singletonList(user.getEmail()), getMessage(prefixe + ".sujet", args), getMessage(prefixe + ".corps", args));
+	}
+
+	private void envoyerApresCommit(List<String> destinataires, String sujet, String corps) {
+		Runnable envoi = () -> {
+			for(String destinataire : destinataires) {
+				try {
+					log.info("Notification d'absence à " + destinataire + " : " + sujet);
+					emailService.sendSimpleMessage(destinataire, sujet, corps, new String[0]);
+				} catch (Exception e) {
+					log.warn("Echec de l'envoi de la notification d'absence à " + destinataire, e);
+				}
+			}
+		};
+		if(TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					envoi.run();
+				}
+			});
+		} else {
+			envoi.run();
+		}
+	}
+
+	private String getMessage(String code, Object... args) {
+		return messageSource.getMessage(code, args, null);
 	}
 
 	private String formatDate(Date date) {

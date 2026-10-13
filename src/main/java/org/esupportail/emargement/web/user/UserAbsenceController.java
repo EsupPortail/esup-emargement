@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.MotifAbsence;
 import org.esupportail.emargement.domain.Person;
@@ -75,7 +76,8 @@ public class UserAbsenceController {
 			erreur = absenceEtudiantService.verifierDeclaration(person, ctx, motif, debut, fin, files);
 		}
 		if(erreur == null) {
-			absenceEtudiantService.declarer(person, ctx, motif, commentaire, debut, fin, files);
+			Absence absence = absenceEtudiantService.declarer(person, ctx, motif, commentaire, debut, fin, files);
+			absenceEtudiantService.notifierDeclaration(absence, ctx);
 			logService.log(ACTION.DECLARE_ABSENCE, RETCODE.SUCCESS, "Période : " + dateDebut + " - " + dateFin, eppn, null, emargementContext, null);
 			redirectAttributes.addFlashAttribute("absenceDeclared", "absenceDeclared");
 		} else {

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.AppliConfig.TypeConfig;
 import org.esupportail.emargement.domain.Context;
@@ -82,7 +83,7 @@ public class AppliConfigService {
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
 		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION,
 		ADE_INSTRUCTOR_MANAGER, PARTICIPANT_TERM, ADE_CHECK_ORPHANS, DISPLAY_SESSION_GROUPS, DISPLAY_TAGCHECKERS_LIST, ENABLE_TROMBIVIEW,
-		ABSENCEETUDIANT_ENABLED, ABSENCEETUDIANT_DELAI_JOURS, ABSENCEETUDIANT_JUSTIFICATIF_OBLIGATOIRE
+		ABSENCEETUDIANT_ENABLED, ABSENCEETUDIANT_DELAI_JOURS, ABSENCEETUDIANT_JUSTIFICATIF_OBLIGATOIRE, ABSENCEETUDIANT_NOTIF_GESTIONNAIRE
 	}
 	
 	public List<String> getTypes() {
@@ -147,6 +148,15 @@ public class AppliConfigService {
 	public  List<String> getListeGestionnaires() {
 		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.LISTE_GESTIONNAIRES);
 		return splitConfigValues(appliConfig);
+	}
+
+	public List<String> getListeGestionnaires(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.LISTE_GESTIONNAIRES, ctx);
+		if(appliConfig == null || StringUtils.isBlank(appliConfig.getValue())) {
+			return new ArrayList<>();
+		}
+		return Arrays.stream(appliConfig.getValue().split(DELIMITER_MULTIPLE_VALUES))
+				.map(String::trim).filter(StringUtils::isNotEmpty).collect(Collectors.toList());
 	}
 
 	public Boolean getAutoCloseSession() {
@@ -500,6 +510,12 @@ public class AppliConfigService {
 	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAbsenceEtudiantJustificatifObligatoire:' + (#ctx == null ? 'null' : #ctx.key)")
 	public Boolean isAbsenceEtudiantJustificatifObligatoire(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ABSENCEETUDIANT_JUSTIFICATIF_OBLIGATOIRE, ctx);
+		return appliConfig==null || "true".equalsIgnoreCase(appliConfig.getValue());
+	}
+
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'isAbsenceEtudiantNotifGestionnaire:' + (#ctx == null ? 'null' : #ctx.key)")
+	public Boolean isAbsenceEtudiantNotifGestionnaire(Context ctx) {
+		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ABSENCEETUDIANT_NOTIF_GESTIONNAIRE, ctx);
 		return appliConfig==null || "true".equalsIgnoreCase(appliConfig.getValue());
 	}
 
