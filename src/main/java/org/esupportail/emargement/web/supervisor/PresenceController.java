@@ -18,6 +18,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.esupportail.emargement.beans.ExportResult;
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
@@ -432,13 +433,25 @@ public class PresenceController {
 			@RequestParam(value = "sessionLocation", required = false) Long sessionLocationId) throws Exception {
 		Document document = new Document();
 		presenceService.getPdfPresence(document, response, sessionLocationId, emargementContext, null);
-		document.close();
+		if (document.isOpen()) {
+			document.close();
+		}
 	}
 
 	@GetMapping("/supervisor/exportCsv/{id}")
-	public void exportTagChecks(@PathVariable String emargementContext, @PathVariable Long id,
-			HttpServletResponse response) {
-		tagCheckService.exportTagChecks("CSV", id, emargementContext, null);
+	public ResponseEntity<byte[]> exportTagChecks(@PathVariable String emargementContext, @PathVariable Long id) {
+		ExportResult result = tagCheckService.exportTagChecks("CSV", id, emargementContext, null);
+
+		// UTF-8 BOM pour Excel
+		byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+		byte[] csv = result.getBytes();
+		byte[] body = new byte[bom.length + csv.length];
+		System.arraycopy(bom, 0, body, 0, bom.length);
+		System.arraycopy(csv, 0, body, bom.length, csv.length);
+
+		return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+				.header(HttpHeaders.CONTENT_DISPOSITION, tagCheckService.buildContentDisposition(result.getFilename()))
+				.body(body);
 	}
 
 	@GetMapping("/supervisor/{eppn}/photo")

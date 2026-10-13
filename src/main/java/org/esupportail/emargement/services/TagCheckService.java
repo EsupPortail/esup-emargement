@@ -1662,7 +1662,7 @@ public class TagCheckService {
                                 }
 
                                 if (isGroupesRepresentesValueRequired) {
-                                    if ((tc.getGuest().getGroupes() != null) && (tc.getPerson().getGroupes().size() > 0)) {
+                                	if ((tc.getGuest().getGroupes() != null) && (tc.getGuest().getGroupes().size() > 0)) {
                                         List<String> groupes = tc.getGuest().getGroupes().stream().map(x -> x.getNom()).collect(Collectors.toList());
                                         groupesRepresentes = Stream.concat(groupesRepresentes.stream(), groupes.stream()).distinct().collect(Collectors.toList());
                                     } else {
