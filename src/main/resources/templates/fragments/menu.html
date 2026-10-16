@@ -43,7 +43,7 @@
 				        						or active == 'sessionEpreuve' or active == 'sessionLocation' or active == 'individu' 
 				        						or active == 'extraction' or active == 'person' or active == 'esupsignature' 
 				        						or active == 'groupe' or active == 'adeCampus' or active == 'assiduite'
-				        						or active == 'absence' or active == 'file' or active == 'motifAbsence'
+				        						or active == 'absence' or active == 'absenceEtudiant' or active == 'file' or active == 'motifAbsence'
 												or active == 'fcaManager'} ? 'active font-weight-bold' : ''" 
 				        		href="#" id="navbarDropdown" role="button" 
 				        		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
@@ -56,6 +56,8 @@
 				          <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'assiduite'} ? 'active' : ''" th:href="@{/{ctx}/manager/assiduite(ctx=${eContext})}">Assiduité</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'absence'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence(ctx=${eContext})}">Absences</a></li>
+						  <li th:if="${isAbsenceEtudiantEnabled}"><a class="dropdown-item" th:classappend="${active == 'absenceEtudiant'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence/declarations(ctx=${eContext})}">Déclarations étudiantes
+						  	<span class="badge bg-warning text-dark" th:if="${absenceEtudiantEnAttente != null and absenceEtudiantEnAttente > 0}" th:text="${absenceEtudiantEnAttente}"></span></a></li>
 						  <li><a class="dropdown-item" th:classappend="${active == 'motifAbsence'} ? 'active' : ''" th:href="@{/{ctx}/manager/motifAbsence(ctx=${eContext})}">Motifs absence</a></li>
 						  <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Recherche</a></li>

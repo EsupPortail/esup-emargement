@@ -20,6 +20,7 @@
 						<th scope="col">Type</th>
 						<th scope="col">Statut</th>
 						<th class ="text-center" scope="col" th:text="${surveillantTerme}"></th>
+						<th class ="text-center" scope="col" th:if="${isAbsenceEtudiantEnabled}">Étudiant</th>
 						<th class ="text-center" scope="col">Actif</th>
 						<th scope="col">Couleur</th>
                         <th class="d-none d-lg-table-cell d-xl-table-cell" scope="col">Malus</th>
@@ -35,6 +36,9 @@
 						<td th:text="${motif.statutAbsence}"></td>
 						<td class ="text-center">
 							<i th:class="${motif.isTagCheckerVisible != null and motif.isTagCheckerVisible} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
+						</td>
+						<td class ="text-center" th:if="${isAbsenceEtudiantEnabled}">
+							<i th:class="${motif.isEtudiantVisible != null and motif.isEtudiantVisible} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>
 						</td>
 						<td class ="text-center">
 							<i th:class="${motif.isActif != null and motif.isActif} ? 'fa fa-check text-success' :'fa fa-times text-danger'"></i>

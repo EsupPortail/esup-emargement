@@ -17,7 +17,9 @@ public interface MotifAbsenceRepository extends JpaRepository<MotifAbsence, Long
 	List<MotifAbsence> findByContextKey(String key);
 	
 	List<MotifAbsence> findByIsActifTrueOrderByLibelle();
-	
+
+	List<MotifAbsence> findByIsActifTrueAndIsEtudiantVisibleTrueOrderByLibelle();
+
 	List<MotifAbsence> findByIsActifTrueAndIsTagCheckerVisibleTrueOrderByLibelle();
 	
 	List<MotifAbsence> findByIsActifTrueAndStatutAbsenceAndTypeAbsenceOrderByLibelle(StatutAbsence statut, TypeAbsence type);

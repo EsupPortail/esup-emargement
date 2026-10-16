@@ -6,7 +6,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -14,6 +16,8 @@ import javax.validation.Valid;
 
 import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.domain.Absence;
+import org.esupportail.emargement.domain.Absence.OrigineAbsence;
+import org.esupportail.emargement.domain.Absence.StatutValidation;
 import org.esupportail.emargement.domain.LdapUser;
 import org.esupportail.emargement.domain.MotifAbsence.StatutAbsence;
 import org.esupportail.emargement.domain.MotifAbsence.TypeAbsence;
@@ -27,6 +31,7 @@ import org.esupportail.emargement.repositories.PersonRepository;
 import org.esupportail.emargement.repositories.StoredFileRepository;
 import org.esupportail.emargement.repositories.TagCheckRepository;
 import org.esupportail.emargement.repositories.UserAppRepository;
+import org.esupportail.emargement.services.AbsenceEtudiantService;
 import org.esupportail.emargement.services.AbsenceService;
 import org.esupportail.emargement.services.ContextService;
 import org.esupportail.emargement.services.LdapService;
@@ -102,6 +107,9 @@ public class AbsenceController {
 	@Resource
 	AbsenceService absenceService;
 
+	@Autowired
+	AbsenceEtudiantService absenceEtudiantService;
+
 	private final Logger log = LoggerFactory.getLogger(getClass());
     
 	@ModelAttribute("active")
@@ -111,8 +119,8 @@ public class AbsenceController {
 	
 	@GetMapping(value = "/manager/absence")
 	public String list(Model uiModel) {
-		List<Absence> absences = absenceRepository.findAll();
-		List<Person> persons = absenceRepository.findAll().stream().map(abs -> abs.getPerson())
+		List<Absence> absences = absenceRepository.findByStatutValidation(StatutValidation.VALIDEE);
+		List<Person> persons = absences.stream().map(abs -> abs.getPerson())
 				.collect(Collectors.toList());
 		personService.setNomPrenom(persons);
 		for (Absence abs : absences) {
@@ -120,6 +128,47 @@ public class AbsenceController {
 		}
 		uiModel.addAttribute("absences", absences);
 		return "manager/absence/list";
+	}
+
+	@GetMapping(value = "/manager/absence/declarations")
+	public String declarations(@RequestParam(required = false, defaultValue = "EN_ATTENTE") String statut, Model uiModel) {
+		StatutValidation statutValidation = StatutValidation.REFUSEE.name().equals(statut) ? StatutValidation.REFUSEE : StatutValidation.EN_ATTENTE;
+		List<Absence> absences = absenceEtudiantService.getDeclarations(contexteService.getcurrentContext(), statutValidation);
+		personService.setNomPrenom(absences.stream().map(abs -> abs.getPerson()).collect(Collectors.toList()));
+		Map<Long, List<Absence>> remplacees = new HashMap<>();
+		for (Absence abs : absences) {
+			abs.setNbStoredFiles(storedFileRepository.countByAbsence(abs));
+			if(StatutValidation.EN_ATTENTE.equals(statutValidation)) {
+				remplacees.put(abs.getId(), absenceEtudiantService.getAbsencesRemplacees(abs));
+			}
+		}
+		uiModel.addAttribute("remplacees", remplacees);
+		uiModel.addAttribute("active", "absenceEtudiant");
+		uiModel.addAttribute("statut", statutValidation.name());
+		uiModel.addAttribute("absences", absences);
+		return "manager/absence/declarations";
+	}
+
+	@Transactional
+	@PostMapping("/manager/absence/{id}/valider")
+	public String valider(@PathVariable String emargementContext, @PathVariable("id") Absence absence) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(absenceEtudiantService.isTraitable(absence, contexteService.getcurrentContext())) {
+			absenceEtudiantService.valider(absence, userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext));
+			logService.log(ACTION.VALIDATE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
+		}
+		return String.format("redirect:/%s/manager/absence/declarations", emargementContext);
+	}
+
+	@Transactional
+	@PostMapping("/manager/absence/{id}/refuser")
+	public String refuser(@PathVariable String emargementContext, @PathVariable("id") Absence absence, @RequestParam(required = false) String motifRefus) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if(absenceEtudiantService.isTraitable(absence, contexteService.getcurrentContext())) {
+			absenceEtudiantService.refuser(absence, userAppRepository.findByEppnAndContextKey(auth.getName(), emargementContext), motifRefus);
+			logService.log(ACTION.REFUSE_ABSENCE, RETCODE.SUCCESS, absence.getPerson().getEppn(), auth.getName(), null, emargementContext, null);
+		}
+		return String.format("redirect:/%s/manager/absence/declarations", emargementContext);
 	}
 	
     @GetMapping(value = "/manager/absence", params = "form", produces = "text/html")
@@ -161,7 +210,6 @@ public class AbsenceController {
             }
         }
 
-        DateFormat df = new SimpleDateFormat("HH:mm");
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (bindingResult.hasErrors()) {
             uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
@@ -186,31 +234,7 @@ public class AbsenceController {
         	 absence.setPerson(p);
         	 absenceRepository.save(absence);
         	 log.info("Nouvelle absence pour " + p.getEppn());
-        	 LocalTime heureDebut = LocalTime.parse(df.format(absence.getHeureDebut()));
-        	 LocalTime heureFin = LocalTime.parse(df.format(absence.getHeureFin()));
-        	 List<TagCheck> tcs = tagCheckRepository.findByDates(eppn, absence.getDateDebut(), absence.getDateFin(), heureDebut, heureFin);
-        	 List<Absence> overlapsList = absenceRepository.findOverlappingAbsences(p, absence.getDateDebut(), absence.getDateFin(), 
-        			 absence.getHeureDebut(),absence.getHeureFin(), absence.getContext());
-        	 overlapsList.remove(absence);
-        	 if(!tcs.isEmpty()) {
-        		 for(TagCheck tc : tcs) {
-        			 if(absenceService.absenceCouvreSession(absence, tc.getSessionEpreuve())) {
-            			 tc.setAbsence(absence);
-            			 tagCheckRepository.save(tc);
-        			 }
-        		 }
-        	 }
-        	 if(!overlapsList.isEmpty()) {
-        		 for(Absence abs : overlapsList) {
-        			 List <TagCheck> tagChecks = tagCheckRepository.findByAbsence(abs);
-        			 for(TagCheck tagCheck : tagChecks) {
-        				 tagCheck.setAbsence(null);
-        				 tagCheckRepository.save(tagCheck);
-        			 }
-        			 absenceRepository.delete(abs);
-        		 }
-        		 log.info("Les absences de " + p.getEppn() + " ont été remplacées.");
-        	 }
+        	 absenceService.rattacherAbsence(absence);
         }else {
         	List<LdapUser> ldapUsers = ldapUserRepository.findByEppnEquals(eppn);
         	if(!ldapUsers.isEmpty()) {
@@ -261,9 +285,12 @@ public class AbsenceController {
 				}
 			}
 		}
+    	if(OrigineAbsence.ETUDIANT.equals(absense_orig.getOrigine()) && !StatutValidation.VALIDEE.equals(absense_orig.getStatutValidation())) {
+    		return String.format("redirect:/%s/manager/absence/declarations?statut=%s", emargementContext, absense_orig.getStatutValidation().name());
+    	}
     	return String.format("redirect:/%s/manager/absence", emargementContext);
     }
-    
+
     @Transactional
     @PostMapping(value = "/manager/absence/{id}")
     public String delete(@PathVariable String emargementContext, @PathVariable("id") Absence absence) {

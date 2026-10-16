@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags" xmlns:sd="http://www.thymeleaf.org/spring-data">
+	<head th:replace="fragments/head :: head"></head>
+	<body>
+		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-0">Déclarations d'absence des étudiants</h2>
+				<div class="d-flex align-items-center gap-2">
+					<a th:href="@{/{ctx}/manager/absence(ctx=${eContext})}" class="btn btn-info" title="Absences"><i class="fa fa-home fa-lg"></i></a>
+				</div>
+			</div>
+			<ul class="nav nav-tabs mb-3">
+				<li class="nav-item">
+					<a class="nav-link" th:classappend="${statut == 'EN_ATTENTE'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence/declarations(ctx=${eContext},statut='EN_ATTENTE')}">En attente</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" th:classappend="${statut == 'REFUSEE'} ? 'active' : ''" th:href="@{/{ctx}/manager/absence/declarations(ctx=${eContext},statut='REFUSEE')}">Refusées</a>
+				</li>
+			</ul>
+			<table class="table table-hover table-striped table-bordered tableCleanup">
+				<thead class ="center sticky-top">
+					<tr>
+						<th scope="col">Nom</th>
+						<th scope="col">Prénom</th>
+						<th scope="col">Code</th>
+						<th scope="col">Motif</th>
+						<th scope="col" class="dateItem">Début</th>
+						<th scope="col" class="dateItem">Fin</th>
+						<th scope="col">début</th>
+						<th scope="col">fin</th>
+						<th scope="col">PJ</th>
+						<th scope="col">Déclaré le</th>
+						<th scope="col">Commentaire</th>
+						<th scope="col" th:if="${statut == 'REFUSEE'}">Motif du refus</th>
+						<th scope="col" th:if="${statut == 'REFUSEE'}">Traité par</th>
+						<th scope="col" class="no-sort">Actions</th>
+					</tr>
+				</thead>
+				<tbody class ="center">
+					<tr th:each="absence : ${absences}" th:with="ind=${absence.person}">
+						<td th:text="${ind.nom}"></td>
+						<td th:text="${ind.prenom}"></td>
+						<td th:text="${ind.numIdentifiant}"></td>
+						<td>
+							<th:block th:if="${absence.motifAbsence != null and absence.motifAbsence.color ne null}">
+								<input class="colorBox" type="color" th:value="${absence.motifAbsence.color}" disabled>
+							</th:block>
+							<span th:if="${absence.motifAbsence != null}" th:text="${absence.motifAbsence.libelle}" class="align-middle ms-0"></span>
+						</td>
+						<td th:text="${#dates.format(absence.dateDebut, 'dd/MM/yy')}"></td>
+						<td th:text="${#dates.format(absence.dateFin, 'dd/MM/yy')}"></td>
+						<td th:text="${#dates.format(absence.heureDebut, 'HH:mm')}"></td>
+						<td th:text="${#dates.format(absence.heureFin, 'HH:mm')}"></td>
+						<td th:text="${absence.nbStoredFiles}"></td>
+						<td th:text="${#dates.format(absence.dateModification, 'dd/MM/yy HH:mm')}"></td>
+						<td th:text="${absence.commentaire}"></td>
+						<td th:if="${statut == 'REFUSEE'}" th:text="${absence.motifRefus}"></td>
+						<td th:if="${statut == 'REFUSEE'}" th:text="${absence.traitePar ne null ? absence.traitePar.eppn : ''}"></td>
+						<td>
+							<div class="dropdown">
+								<button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+									<i class="fa-solid fa-ellipsis-vertical"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><a class="dropdown-item" th:href="@{/{ctx}/manager/absence/{id}?form(id=${absence.id},ctx=${eContext})}">Consulter</a></li>
+									<th:block th:if="${statut == 'EN_ATTENTE'}">
+										<li><a href="#" class="dropdown-item" data-bs-toggle="modal" th:attr="data-bs-target='#modal-valider'+${absence.id}">Valider</a></li>
+										<li><a href="#" class="dropdown-item" data-bs-toggle="modal" th:attr="data-bs-target='#modal-refuser'+${absence.id}">Refuser</a></li>
+									</th:block>
+								</ul>
+							</div>
+							<th:block th:if="${statut == 'EN_ATTENTE'}">
+								<div class="modal fade" th:id="'modal-valider'+${absence.id}" tabindex="-1">
+									<div class="modal-dialog">
+										<div class="modal-content">
+											<form th:action="@{/{ctx}/manager/absence/{id}/valider(id=${absence.id},ctx=${eContext})}" method="POST">
+												<div class="modal-header">
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+													<div class="alert alert-info text-center">
+														Valider l'absence de <span class="fw-bold" th:text="${ind.prenom + ' ' + ind.nom}"></span> ?<br />
+														Elle sera rattachée aux sessions concernées.
+													</div>
+													<div class="alert alert-warning" th:if="${remplacees != null and remplacees.get(absence.id) != null and not #lists.isEmpty(remplacees.get(absence.id))}">
+														Cette validation <strong>remplacera</strong> (suppression, justificatifs compris) les absences validées suivantes :
+														<ul class="mb-0">
+															<li th:each="existante : ${remplacees.get(absence.id)}"
+																th:text="${'du ' + #dates.format(existante.dateDebut, 'dd/MM/yyyy') + ' au ' + #dates.format(existante.dateFin, 'dd/MM/yyyy') + (existante.motifAbsence != null ? ' (' + existante.motifAbsence.libelle + ')' : '')}"></li>
+														</ul>
+													</div>
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+													<button type="submit" class="btn btn-outline pull-left btn-success">Valider</button>
+												</div>
+											</form>
+										</div>
+									</div>
+								</div>
+								<div class="modal fade" th:id="'modal-refuser'+${absence.id}" tabindex="-1">
+									<div class="modal-dialog">
+										<div class="modal-content">
+											<form th:action="@{/{ctx}/manager/absence/{id}/refuser(id=${absence.id},ctx=${eContext})}" method="POST">
+												<div class="modal-header">
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+													<div class="alert alert-danger text-center">
+														Refuser la déclaration de <span class="fw-bold" th:text="${ind.prenom + ' ' + ind.nom}"></span> ?
+													</div>
+													<label class="form-label" th:for="'motifRefus'+${absence.id}">Motif du refus (visible par l'étudiant)</label>
+													<textarea class="form-control" name="motifRefus" th:id="'motifRefus'+${absence.id}" rows="3"></textarea>
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+													<button type="submit" class="btn btn-outline pull-left btn-danger">Refuser</button>
+												</div>
+											</form>
+										</div>
+									</div>
+								</div>
+							</th:block>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<footer th:replace="fragments/footer :: footer"></footer>
+	</body>
+</html>
