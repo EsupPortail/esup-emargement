@@ -63,14 +63,6 @@ public interface TagCheckerRepository extends JpaRepository<TagChecker, Long>{
 	List<TagChecker> findBySessionLocationSessionEpreuveIn(List<SessionEpreuve> ses);
 	
 	//STATS
-	@Query(value = "select user_app.eppn, count(*) from tag_checker, user_app, session_location, statut_session, session_epreuve "
-			+ "where tag_checker.user_app_id = user_app.id "
-			+ "AND session_location.session_epreuve_id = session_epreuve.id " 
-			+ "AND session_epreuve.statut_session_id = statut_session.id " 
-			+ "AND tag_checker.session_location_id=session_location.id  and session_epreuve_id in (select id from session_epreuve "
-			+ "where statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv) "
-			+ "AND tag_checker.context_id = :context group by user_app.eppn order by count desc", nativeQuery = true)
-	List<Object[]> countTagCheckersByContext(Long context, String anneeUniv);
 	
 	@Query(value = "SELECT tc.* "
 	        + "FROM tag_checker tc "

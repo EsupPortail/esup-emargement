@@ -225,17 +225,29 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv GROUP BY month", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByYearMonth(Long context, String anneeUniv);
 	
-	@Query(value = "select statut_session.key as session_key, " +
-            "       CASE WHEN statut_session.key IN ('CLOSED', 'ENDED') THEN 'Fermée' ELSE 'Ouverte' END AS statut, " +
-            "       count(*) as cnt " +
-            "from session_epreuve, context, statut_session " +
-            "where session_epreuve.context_id = context.id " +
-            "and session_epreuve.statut_session_id = statut_session.id " +
-            "and annee_univ = :anneeUniv " +
-            "group by statut_session.key, statut " +
-            "order by statut_session.key, statut, cnt",
-    nativeQuery = true)
-	List<Object[]> countAllSessionEpreuvesByContext(String anneeUniv);
+	@Query(value =
+		    "select c.key as context_key, ss.key as session_key, count(*) as cnt " +
+		    "from session_epreuve se " +
+		    "join context c on se.context_id = c.id " +
+		    "join statut_session ss on se.statut_session_id = ss.id " +
+		    "where se.annee_univ = :anneeUniv " +
+		    "group by c.id, c.key, ss.id, ss.key " +
+		    "order by c.key, ss.key",
+		    nativeQuery = true)
+	List<Object[]> countSessionEpreuvesParStatutByContext(@Param("anneeUniv") String anneeUniv);
+		
+	@Query(value =
+		    "select c.key as ctx, " +
+		    "       extract(year from se.date_examen) as annee, " +
+		    "       extract(month from se.date_examen) as mois, " +
+		    "       count(*) as cnt " +
+		    "from session_epreuve se " +
+		    "join context c on se.context_id = c.id " +
+		    "where se.annee_univ = :anneeUniv " +
+		    "group by c.id, c.key, extract(year from se.date_examen), extract(month from se.date_examen) " +
+		    "order by c.key, annee, mois",
+		    nativeQuery = true)
+	List<Object[]> countSessionsParMoisByContext(@Param("anneeUniv") String anneeUniv);
 	
 	@Query(value = "select type_session.key, count(*) from session_epreuve, type_session, statut_session "
 			+ "where session_epreuve.type_session_id = type_session.id "
@@ -244,11 +256,18 @@ public interface SessionEpreuveRepository extends JpaRepository<SessionEpreuve, 
 			+ "and annee_univ = :anneeUniv group by type_session.key", nativeQuery = true)
 	List<Object[]> countSessionEpreuveByType(Long context, String anneeUniv);
 	
-	@Query(value = "select context.key as ctx, type_session.key as type, count(*) from session_epreuve, context, type_session, statut_session "
-			+ "where session_epreuve.type_session_id = type_session.id and "
-			+ "session_epreuve.statut_session_id = statut_session.id and "
-			+ "session_epreuve.context_id=context.id and statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by context.key, type_session.key order by ctx, type, count;", nativeQuery = true)
-	List<Object[]> countSessionEpreuveByTypeByContext(String anneeUniv);
+	@Query(value =
+		    "select c.key as ctx, ts.key as type, count(*) as cnt " +
+		    "from session_epreuve se " +
+		    "join context c on se.context_id = c.id " +
+		    "join type_session ts on se.type_session_id = ts.id " +
+		    "join statut_session ss on se.statut_session_id = ss.id " +
+		    "where ss.key in ('CLOSED', 'ENDED') " +
+		    "and se.annee_univ = :anneeUniv " +
+		    "group by c.id, c.key, ts.id, ts.key " +
+		    "order by c.key, ts.key",
+		    nativeQuery = true)
+	List<Object[]> countSessionEpreuveByTypeByContext(@Param("anneeUniv") String anneeUniv);
 	
 	List<SessionEpreuve> findByContextOrderByDateExamenDescHeureEpreuveAscFinEpreuveAsc(Context ctx);
 

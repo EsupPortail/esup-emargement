@@ -557,12 +557,12 @@ function createSunEditor(id) {
 }
 
 //STATS
-const MANAGER_IDS = ['sessionEpreuvesByCampus', 'sessionLocationByLocation', 'tagCheckersByContext',
+const MANAGER_IDS = ['sessionEpreuvesByCampus',
     'presenceByContext', 'sessionEpreuveByYearMonth', 'countTagCheckByYearMonth',
-    'countTagChecksByTypeBadgeage', 'countTagCheckBySessionLocationBadgedAndPerson', 'countSessionEpreuveByType'];
+    'countTagChecksByTypeBadgeage', 'countSessionEpreuveByType'];
 
-const SUPERADMIN_IDS = ['sessionEpreuvesByContext', 'countTagChecksByContext', 'countLocationsByContext',
-    'countUserAppsByContext', 'countCampusesByContext', 'countSessionEpreuveByTypeByContext'];
+const SUPERADMIN_IDS = ['sessionEpreuvesByContext', 'countTagChecksByContext', 'countSessionsParMoisByContext',
+    'countBadgeagesParMoisByContext', 'countSessionEpreuveByTypeByContext', 'countTagChecksByTypeEmargementByContext'];
 
 const year = document.getElementById('anneeUnivSelect')?.value;
 async function renderChart(canvasId, baseUrl, { year, param } = {}) {
