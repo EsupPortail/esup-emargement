@@ -419,36 +419,43 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
 			info.jsEvent.preventDefault();
 			showEventModal(info.event);
 		},
-
 		eventContent: arg => {
-			const view = arg.view.type;
-			const shortType = isMobile() && (view === 'timeGridWeek' || view === 'dayGridMonth');
-			if ((view === 'dayGridMonth' && !shortType) || view.startsWith('list')) return;
+		    const view = arg.view.type;
 
-			const w = document.createElement('div');
-			w.className = 'fc-event-custom';
-			const title = document.createElement('div');
-			title.className = 'fc-event-title-custom';
-			title.textContent = shortType
-				? (arg.event.extendedProps.typeSession || arg.event.title)
-				: arg.event.title;
-			w.appendChild(title);
+		    // Vue mois et planning : rendu natif FullCalendar
+		    if (view === 'dayGridMonth' || view.startsWith('list')) {
+		        return true;
+		    }
 
-			if (!shortType && arg.timeText) {
-				const t = document.createElement('div');
-				t.className = 'fc-event-time-custom';
-				t.textContent = arg.timeText;
-				w.appendChild(t);
-			}
-			const salle = arg.event.extendedProps.salle;
-			if (!useModal && salle) {
-				const d = document.createElement('div');
-				d.className = 'fc-event-details';
-				d.textContent = salle;
-				w.appendChild(d);
-			}
-			return { domNodes: [w] };
-		}
+		    const shortType = isMobile() && view === 'timeGridWeek';
+
+		    const w = document.createElement('div');
+		    w.className = 'fc-event-custom';
+
+		    const title = document.createElement('div');
+		    title.className = 'fc-event-title-custom';
+		    title.textContent = shortType
+		        ? (arg.event.extendedProps.typeSession || arg.event.title)
+		        : arg.event.title;
+		    w.appendChild(title);
+
+		    if (!shortType && arg.timeText) {
+		        const t = document.createElement('div');
+		        t.className = 'fc-event-time-custom';
+		        t.textContent = arg.timeText;
+		        w.appendChild(t);
+		    }
+
+		    const salle = arg.event.extendedProps.salle;
+		    if (!useModal && salle) {
+		        const d = document.createElement('div');
+		        d.className = 'fc-event-details';
+		        d.textContent = salle;
+		        w.appendChild(d);
+		    }
+
+		    return { domNodes: [w] };
+		},
 	});
 
 	calendar.render();
@@ -623,67 +630,84 @@ function getQrCodeSession(url, idImg) {
 	});
 }
 
-function initTablePresence(sortDate){
-	var table = new DataTable("#tablePresence", {
-		responsive: true,
-		ordering: true,
-		paging: false,
-		searching: true,
-		info: false,
-		language: {
-			url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-		}, order: [
-			sortDate // Adjust the column index if needed
-		],
-		columnDefs: [
-		    {
-		        targets: 'dateItem',
-		        type: 'datetime-moment',
-		        render: function(data, type, row) {
-		            if (!data) {
-		                return ''; 
-		            }
-		            const formats = ['DD/MM/YY HH:mm:ss', 'DD/MM/YY HH:mm', 'HH:mm'];
-		            const parsedDate = moment(data, formats, true);
-		            if (!parsedDate.isValid()) {
-		                return data;
-		            }
-		            if (type === 'sort' || type === 'type') {
-		                return parsedDate.unix(); 
-		            }
-		            return parsedDate.format('DD/MM/YY HH:mm:ss');
-		        }
-		    }
-		],
-		drawCallback: function(settings) {
-            // Check if there's data in the table
+function initTablePresence(sortDate) {
+    var table = new DataTable("#tablePresence", {
+        responsive: true,
+        ordering: true,
+        paging: false,
+        searching: true,
+        info: false,
+        language: {
+            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
+        },
+        order: [sortDate],
+        columnDefs: [
+            {
+                targets: 'dateItem',
+                render: function(data, type, row) {
+                    if (!data) {
+                        return '';
+                    }
+                    var formats = [
+                        'DD/MM/YY HH:mm:ss',
+                        'DD/MM/YY HH:mm',
+                        'HH:mm'
+                    ];
+                    var parsedDate = moment(data, formats, true);
+                    if (!parsedDate.isValid()) {
+                        return data;
+                    }
+                    if (type === 'sort' || type === 'type') {
+                        return parsedDate.valueOf();
+                    }
+                    return parsedDate.format('DD/MM/YY HH:mm:ss');
+                }
+            }
+        ],
+        drawCallback: function(settings) {
             var api = this.api();
-            var hasData = api.data().any();
+            var hasData = api.rows().count() > 0;
 
-            // Show or hide search bar based on data presence
-            $('.dataTables_filter').css('display', hasData ? 'block' : 'none');
+            $('#tablePresence_wrapper .dt-search')
+                .toggle(hasData);
         }
-	});
-	
-table.on('draw', function() {
-    // Find rows with the "priority" class
-    var priorityRows = $('#tablePresence tbody tr.priority');
+    });
 
-    // Get current sort order (asc/desc)
-    var currentOrder = table.order()[0][1]; // 'asc' or 'desc'
-    
-    // Sort the priority rows manually in the same order as the table
-    priorityRows.sort(function(a, b) {
-        var dateA = moment($(a).find('td:eq(4)').text(), 'DD/MM/YY hh:mm:ss').unix();
-        var dateB = moment($(b).find('td:eq(4)').text(), 'DD/MM/YY hh:mm:ss').unix();
-
-        if (currentOrder === 'asc') {
-            return dateA - dateB; // Ascending sort
-        } else {
-            return dateB - dateA; // Descending sort
+    table.on('draw.dt', function() {
+        var priorityRows = $('#tablePresence tbody tr.priority');
+        if (priorityRows.length === 0) {
+            return;
         }
-    }).prependTo('#tablePresence tbody'); // Move sorted priority rows to the top
-});
+        var currentOrder = table.order()[0];
+        // Conserver le tri chronologique actuel des lignes prioritaires.
+        var direction = currentOrder ? currentOrder[1] : 'asc';
+        priorityRows.sort(function(a, b) {
+            var dateA = moment(
+                $(a).find('td:eq(4)').text(),
+                [
+                    'DD/MM/YY HH:mm:ss',
+                    'DD/MM/YY HH:mm',
+                    'HH:mm'
+                ],
+                true
+            );
+            var dateB = moment(
+                $(b).find('td:eq(4)').text(),
+                [
+                    'DD/MM/YY HH:mm:ss',
+                    'DD/MM/YY HH:mm',
+                    'HH:mm'
+                ],
+                true
+            );
+            var valueA = dateA.isValid() ? dateA.valueOf() : 0;
+            var valueB = dateB.isValid() ? dateB.valueOf() : 0;
+            return direction === 'asc'
+                ? valueA - valueB
+                : valueB - valueA;
+        });
+        priorityRows.prependTo('#tablePresence tbody');
+    });
 }
 
 function displayEvents(url, table){

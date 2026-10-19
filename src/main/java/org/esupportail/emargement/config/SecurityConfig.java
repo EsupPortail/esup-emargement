@@ -72,7 +72,7 @@ public class SecurityConfig {
                     .regexMatchers("/[^/]*/supervisor(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR")
                     .regexMatchers("/[^/]*/user(/.*|/?)").hasAnyRole("ADMIN", "MANAGER", "SUPERVISOR", "USER")
                     .regexMatchers("/wsrest/.*").access(createHasIpRangeExpression())
-                    .regexMatchers("/webjars/.*", "/resources/.*", "/js/.*", "/css/.*", "/images/.*", "/favicon.ico").permitAll()
+                    .regexMatchers("/mvnpm/.*", "/webjars/.*", "/resources/.*", "/js/.*", "/css/.*", "/images/.*", "/favicon.ico").permitAll()
             .and()
                 .logout()
                     .logoutSuccessUrl("/logout")
