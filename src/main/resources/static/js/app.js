@@ -10,6 +10,7 @@
  *   9. Écouteurs HTMX
  * ========================================================================== */
 
+
 /* ==========================================================================
  * 1. Variables partagées et utilitaires
  * ========================================================================== */
@@ -1731,406 +1732,262 @@ function initAffinage() {
  * 7. DataTables
  * ========================================================================== */
 /* ===== DATATABLES:START ===== */
-function buildDataTableOptions(customOrder) {
-    return {
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
-        info: false,
+// DataTables 3.x : plus de plugins de dates (datetime-moment / date-eu), `dom` remplacé par `layout`,
+// options communes factorisées. Helpers préfixés "dt" pour éviter les collisions de noms globaux.
 
-        // 👇 ordre dynamique
-        order: customOrder || [
-            [4, 'desc'],
-            [7, 'asc']
-        ],
+const DT_LANG_URL = '/webjars/datatables-plugins/i18n/fr-FR.json';
 
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        },
-        columnDefs: [
-            {
-                targets: 'dateItem',
-                type: 'datetime-moment',
-                render: function(data, type, row) {
-                    if (!data) return '';
-                    if (type === 'sort' || type === 'type') {
-                        return moment(data, 'DD/MM/YY').unix();
-                    }
-                    return moment(data, 'DD/MM/YY').format('DD/MM/YY');
-                }
-            }
-        ],
-        pageLength: 100,
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, 'All']
-        ],
-        dom: '<"top d-flex justify-content-between"fB>rt<"bottom"flp><"clear">',
-        buttons: [
-            {
-                extend: 'csv',
-                className: 'btn btn-success btn-sm ms-2',
-                exportOptions: {
-                    orthogonal: 'filter',
-                    columns: ':not(.exclude)'
-                },
-                title: function() { return 'assiduite'; }
-            }
-        ]
+const DT_DATE_SHORT = 'DD/MM/YY';
+const DT_DATE_LONG = 'DD/MM/YYYY';
+const DT_DATETIME_SHORT = 'DD/MM/YY HH:mm:ss';
+const DT_PRESENCE_FORMATS = [DT_DATETIME_SHORT, 'DD/MM/YY HH:mm', 'HH:mm'];
+// Remplace l'ancien type de tri "date-eu" (plugin supprimé) ; adaptez si vos dates ont un autre format
+const DT_EU_DATE_FORMATS = [
+    'DD/MM/YYYY HH:mm:ss', 'DD/MM/YYYY HH:mm', DT_DATE_LONG,
+    DT_DATETIME_SHORT, 'DD/MM/YY HH:mm', DT_DATE_SHORT
+];
+const DT_PRESENCE_DATE_COLUMN = 4;
+
+const DT_BASE_OPTIONS = {
+    responsive: true,
+    info: false,
+    language: { url: DT_LANG_URL }
+};
+
+const DT_NO_SORT_COLUMN = { targets: 'no-sort', orderable: false };
+
+/** Initialise toutes les tables correspondant au sélecteur ; renvoie la première (ou null si aucune). */
+function dtInitTable(selector, options = {}) {
+    const instances = [...document.querySelectorAll(selector)]
+        .map(el => new DataTable(el, { ...DT_BASE_OPTIONS, ...options }));
+    return instances[0] ?? null;
+}
+
+/**
+ * Rendu de colonne date via moment :
+ * - tri/type : timestamp numérique
+ * - autres : date reformatée avec `output` (ou valeur d'origine si `output` est omis)
+ */
+function dtMomentRender(formats, { output = null, strict = false } = {}) {
+    return function(data, type) {
+        if (!data) return '';
+        const date = moment(String(data).trim(), formats, strict);
+        if (type === 'sort' || type === 'type') {
+            return date.isValid() ? date.valueOf() : 0;
+        }
+        return date.isValid() && output ? date.format(output) : data;
     };
 }
 
+const dtDateColumn = (formats, options) => ({
+    targets: 'dateItem',
+    render: dtMomentRender(formats, options)
+});
+
+const dtEscapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+/** Colonne de cases à cocher dont la valeur provient de la colonne `valueIndex`. */
+const dtCheckboxColumn = (target, valueIndex) => ({
+    targets: target,
+    orderable: false,
+    className: 'select-checkbox',
+    render: (data, type, row) => type === 'display'
+        ? `<input type="checkbox" class="data-checkbox" name="btSelectItem" value="${dtEscapeHtml(row[valueIndex])}">`
+        : ''
+});
+
+// ---------- Options communes aux tables d'assiduité ----------
+function buildDataTableOptions(customOrder) {
+    return {
+        order: customOrder ?? [[4, 'desc'], [7, 'asc']],
+        columnDefs: [dtDateColumn(DT_DATE_SHORT, { output: DT_DATE_SHORT })],
+        pageLength: 100,
+        lengthMenu: [10, 25, 50, 100, { label: 'Tous', value: -1 }],
+        layout: {
+            topStart: 'search',
+            topEnd: {
+                buttons: [{
+                    extend: 'csv',
+                    className: 'btn btn-success btn-sm ms-2',
+                    title: 'assiduite',
+                    exportOptions: {
+                        orthogonal: 'filter',
+                        columns: ':not(.exclude)'
+                    }
+                }]
+            },
+            bottomStart: 'pageLength',
+            bottomEnd: 'paging'
+        }
+    };
+}
+
+// ---------- Table de présence ----------
 function initTablePresence(sortDate) {
-    var table = new DataTable("#tablePresence", {
-        responsive: true,
-        ordering: true,
+    const table = dtInitTable('#tablePresence', {
         paging: false,
-        searching: true,
-        info: false,
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        },
         order: [sortDate],
-        columnDefs: [
-            {
-                targets: 'dateItem',
-                render: function(data, type, row) {
-                    if (!data) {
-                        return '';
-                    }
-                    var formats = [
-                        'DD/MM/YY HH:mm:ss',
-                        'DD/MM/YY HH:mm',
-                        'HH:mm'
-                    ];
-                    var parsedDate = moment(data, formats, true);
-                    if (!parsedDate.isValid()) {
-                        return data;
-                    }
-                    if (type === 'sort' || type === 'type') {
-                        return parsedDate.valueOf();
-                    }
-                    return parsedDate.format('DD/MM/YY HH:mm:ss');
-                }
-            }
-        ],
-        drawCallback: function(settings) {
-            var api = this.api();
-            var hasData = api.rows().count() > 0;
-
-            $('#tablePresence_wrapper .dt-search')
-                .toggle(hasData);
+        columnDefs: [dtDateColumn(DT_PRESENCE_FORMATS, { output: DT_DATETIME_SHORT, strict: true })],
+        drawCallback() {
+            const hasData = this.api().rows().count() > 0;
+            const search = document.querySelector('#tablePresence_wrapper .dt-search');
+            if (search) search.style.display = hasData ? '' : 'none';
         }
     });
+    if (!table) return;
 
-    table.on('draw.dt', function() {
-        var priorityRows = $('#tablePresence tbody tr.priority');
-        if (priorityRows.length === 0) {
-            return;
-        }
-        var currentOrder = table.order()[0];
-        // Conserver le tri chronologique actuel des lignes prioritaires.
-        var direction = currentOrder ? currentOrder[1] : 'asc';
-        priorityRows.sort(function(a, b) {
-            var dateA = moment(
-                $(a).find('td:eq(4)').text(),
-                [
-                    'DD/MM/YY HH:mm:ss',
-                    'DD/MM/YY HH:mm',
-                    'HH:mm'
-                ],
-                true
-            );
-            var dateB = moment(
-                $(b).find('td:eq(4)').text(),
-                [
-                    'DD/MM/YY HH:mm:ss',
-                    'DD/MM/YY HH:mm',
-                    'HH:mm'
-                ],
-                true
-            );
-            var valueA = dateA.isValid() ? dateA.valueOf() : 0;
-            var valueB = dateB.isValid() ? dateB.valueOf() : 0;
-            return direction === 'asc'
-                ? valueA - valueB
-                : valueB - valueA;
-        });
-        priorityRows.prependTo('#tablePresence tbody');
+    // Les lignes prioritaires restent en haut, triées chronologiquement.
+    table.on('draw.dt', () => {
+        const body = document.querySelector('#tablePresence tbody');
+        const rows = [...body.querySelectorAll('tr.priority')];
+        if (!rows.length) return;
+
+        const sign = (table.order()[0]?.[1] ?? 'asc') === 'asc' ? 1 : -1;
+        const timeOf = row => {
+            const text = (row.cells[DT_PRESENCE_DATE_COLUMN]?.textContent ?? '').trim();
+            const date = moment(text, DT_PRESENCE_FORMATS, true);
+            return date.isValid() ? date.valueOf() : 0;
+        };
+
+        const sorted = rows
+            .map(row => ({ row, time: timeOf(row) }))
+            .sort((a, b) => sign * (a.time - b.time))
+            .map(({ row }) => row);
+
+        body.prepend(...sorted);
     });
 }
 
-function displayEvents(url, table) {
-    $('#displayEvents').submit(function(e) {
-        e.preventDefault();
-        var formData = $(this).serialize();
-        $.ajax({
-            type: 'GET',
-            url: url,
-            data: formData,
-            success: function(response) {
-                if (table != null) {
-                    table.destroy();
-                }
-                $("#tableEvents").html(response);
-                $("#spinnerLoad").addClass("d-none");
-                table = $('.tableFoo').DataTable({
-                    columnDefs: [
-                        {
-                            targets: 1, // Column index for the checkbox column
-                            orderable: false, // Disable sorting on this column
-                            className: 'select-checkbox', // Add a class for the checkbox column
-                            render: function(data, type, row, meta) {
-                                return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[2] + '">';
-                            }
-                        },
-                        { type: 'date-eu', targets: 'dateItem' },
-                        {
-                            className: 'dtr-control ',
-                            orderable: false,
-                            targets: 0
-                        }
-                    ],
-                    select: {
-                        style: 'multi', // Set the selection style (you can use 'single' or 'os' as well)
-                    },
-                    order: [[6, 'desc']], // Set the default sorting column and order
-                    responsive: {
-                        details: {
-                            type: 'column'
-                        }
-                    },
-                    ordering: true,
-                    paging: true,
-                    searching: true,
-                    info: false,
-                    language: {
-                        url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-                    }
-                });
-                $('#checkAll').off('click.events').on('click.events', function() {
-                    var checked = this.checked;
-                    $('.tableFoo').find('.data-checkbox').prop('checked', checked);
-                });
-                $('.tableFoo').off('click.events', 'tbody .data-checkbox').on('click.events', 'tbody .data-checkbox', function() {
-                    var total = $('.tableFoo').find('.data-checkbox').length;
-                    var nb = $('.tableFoo').find('.data-checkbox:checked').length;
-                    $('#checkAll').prop('checked', total > 0 && total === nb);
-                });
-            },
-            error: function(error) {
-                console.log('Error: ' + error);
-            }
-        });
+// ---------- Liste des événements (chargée en AJAX) ----------
+const dtEventsTableOptions = () => ({
+    columnDefs: [
+        dtCheckboxColumn(1, 2),
+        dtDateColumn(DT_EU_DATE_FORMATS),
+        { targets: 0, className: 'dtr-control', orderable: false }
+    ],
+    select: { style: 'multi' },
+    order: [[6, 'desc']],
+    responsive: { details: { type: 'column' } }
+});
+
+function displayEvents(url, table = null) {
+    let eventsTable = table;
+
+    // Écouteur jQuery (et non addEventListener) : importEvents() déclenche `$('#displayEvents').submit()`,
+    // qui n'appelle que les écouteurs jQuery.
+    $('#displayEvents').off('submit.events').on('submit.events', async function(event) {
+        event.preventDefault();
+        const params = new URLSearchParams(new FormData(this));
+        const target = url + (url.includes('?') ? '&' : '?') + params;
+
+        try {
+            const response = await fetch(target);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+
+            eventsTable?.destroy();
+            document.getElementById('tableEvents').innerHTML = html;
+            eventsTable = dtInitTable('.tableFoo', dtEventsTableOptions());
+        } catch (error) {
+            console.error('Erreur de chargement des événements :', error);
+        } finally {
+            document.getElementById('spinnerLoad')?.classList.add('d-none');
+        }
     });
 }
 
-// Initialise toutes les tables de la page ; renvoie la table des salles
+// ---------- Filtres déroulants de la table des absences ----------
+const DT_ABSENCE_FILTERS = [
+    { column: 3 },
+    { column: 4 },
+    { column: 5, exact: true } // correspondance stricte : "JUSTIFIE" ≠ "INJUSTIFIE"
+];
+
+function dtSetupAbsenceFilters() {
+    const api = this.api();
+    const searchBox = api.table().container().querySelector('.dt-search');
+    if (!searchBox) return;
+    const searchInput = searchBox.querySelector('input');
+
+    const filters = document.createElement('div');
+    filters.className = 'd-flex gap-2';
+
+    DT_ABSENCE_FILTERS.forEach(({ column: index, exact }) => {
+        const column = api.column(index);
+        const select = document.createElement('select');
+        select.className = 'form-control form-select w-auto';
+        select.add(new Option(column.header().textContent.trim(), ''));
+
+        const values = new Set(column.data().toArray().map(d => stripHTMLTagsUsingDOM(d)));
+        [...values].sort().forEach(value => select.add(new Option(value)));
+
+        select.addEventListener('change', () => {
+            const value = DataTable.util.escapeRegex(select.value);
+            column.search(value && exact ? `^${value}$` : value, true, false).draw();
+        });
+        filters.appendChild(select);
+    });
+
+    const searchWrapper = document.createElement('div');
+    searchWrapper.className = 'ms-auto';
+    if (searchInput) searchWrapper.appendChild(searchInput);
+
+    searchBox.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'w-100');
+    searchBox.replaceChildren(filters, searchWrapper);
+}
+
+// ---------- Initialisation des tables de la page ; renvoie la table des salles (ou null) ----------
 function initDataTables() {
-    var tableSalles = $('.tableSalles').DataTable({
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
-        info: false,
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        },
-        columnDefs: [
-            {
-                targets: 0,
-                orderable: false,
-                className: 'select-checkbox',
-                render: function(data, type, row, meta) {
-                    return '<input type="checkbox"  class="data-checkbox" name="btSelectItem" value="' + row[1] + '">';
-                }
-            },
-            { type: 'date-eu', targets: 'dateItem' }
-        ]
+    // Assiduité
+    dtInitTable('table.assiduite', buildDataTableOptions([[4, 'desc'], [6, 'asc']]));
+    dtInitTable('table.assiduite2', buildDataTableOptions([[4, 'desc'], [7, 'asc']]));
+    dtInitTable('table.assiduite3', buildDataTableOptions([[0, 'asc'], [1, 'asc']]));
+
+    // Tâches / nettoyage / sessions HTTP
+    dtInitTable('.tableTasks', {
+        columnDefs: [dtDateColumn(DT_DATE_LONG, { output: DT_DATE_LONG }), DT_NO_SORT_COLUMN]
+    });
+    dtInitTable('.tableCleanup', {
+        columnDefs: [dtDateColumn(DT_DATE_SHORT, { output: DT_DATE_SHORT }), DT_NO_SORT_COLUMN]
+    });
+    dtInitTable('#tableSessionsHttp', {
+        columnDefs: [dtDateColumn(DT_DATETIME_SHORT, { output: DT_DATETIME_SHORT }), DT_NO_SORT_COLUMN]
     });
 
-    //Recherche assiduité
-    $('table.assiduite').DataTable(
-        buildDataTableOptions([[4, 'desc'], [6, 'asc']])
-    );
-    $('table.assiduite2').DataTable(
-        buildDataTableOptions([[4, 'desc'], [7, 'asc']])
-    );
-    $('table.assiduite3').DataTable(
-        buildDataTableOptions([[0, 'asc'], [1, 'asc']])
-    );
-
-    $('.tableTasks').DataTable({
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
-        info: false,
-        dom: 'frtilp',
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        }, columnDefs: [
-            {
-                targets: 'dateItem',
-                type: 'datetime-moment',
-                render: function(data, type, row) {
-                    if (!data) {
-                        return '';
-                    }
-                    if (type === 'sort' || type === 'type') {
-                        return moment(data, 'DD/MM/YYYY').unix();
-                    }
-                    return moment(data, 'DD/MM/YYYY').format('DD/MM/YYYY');
-                }
-            },
-            { targets: 'no-sort', orderable: false }
-        ]
-    });
-
-    $('.tableCleanup').DataTable({
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
-        info: false,
-        dom: 'frtilp',
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        }, columnDefs: [
-            {
-                targets: 'dateItem',
-                type: 'datetime-moment',
-                render: function(data, type, row) {
-                    if (!data) {
-                        return '';
-                    }
-                    if (type === 'sort' || type === 'type') {
-                        return moment(data, 'DD/MM/YY').unix();
-                    }
-                    return moment(data, 'DD/MM/YY').format('DD/MM/YY');
-                }
-            },
-            { targets: 'no-sort', orderable: false }
-        ]
-    });
-
-    $('.tableAbsence').DataTable({
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
+    // Absences
+    dtInitTable('.tableAbsence', {
         info: true,
-        dom: 'frtilp',
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        }, columnDefs: [
-            {
-                targets: 'dateItem',
-                type: 'datetime-moment',
-                render: function(data, type, row) {
-                    if (!data) {
-                        return '';
-                    }
-                    if (type === 'sort' || type === 'type') {
-                        return moment(data, 'DD/MM/YY').unix();
-                    }
-                    return moment(data, 'DD/MM/YY').format('DD/MM/YY');
-                }
-            },
-            { targets: 'no-sort', orderable: false }
-        ],
-        initComplete: function() {
-            let api = this.api();
-            let searchContainer = document.querySelector('.dataTables_filter');
-            if (!searchContainer) return;
-            searchContainer.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'w-100');
-            let filterWrapper = document.createElement('div');
-            filterWrapper.classList.add('d-flex', 'gap-2');
-            [3, 4, 5].forEach(function(index) {
-                let column = api.column(index);
-                let columnName = column.header().textContent.trim();
-                let select = document.createElement('select');
-                select.classList.add('form-control', 'form-select', 'w-auto'); // Bootstrap styling
-                select.innerHTML = '<option value="">' + columnName + '</option>'; // default option
-                column
-                    .data()
-                    .unique()
-                    .sort()
-                    .each(function(d) {
-                        select.add(new Option(stripHTMLTagsUsingDOM(d)));
-                    });
-                select.addEventListener('change', function() {
-                    var val = $.fn.dataTable.util.escapeRegex(select.value);
-
-                    // Par défaut, on cherche juste si le mot est "contenu" (pour Motif qui a des balises HTML)
-                    var searchVal = val;
-
-                    // MAIS pour le Statut (index 5), on force la recherche STRICTE
-                    // pour éviter que "JUSTIFIE" ne ressorte "INJUSTIFIE"
-                    if (index === 5) {
-                        searchVal = val ? '^' + val + '$' : '';
-                    }
-
-                    column.search(searchVal, true, false).draw();
-                });
-                filterWrapper.appendChild(select);
-            });
-            let searchWrapper = document.createElement('div');
-            searchWrapper.classList.add('ms-auto');
-            let searchInput = searchContainer.querySelector('input');
-            if (searchInput) {
-                searchWrapper.appendChild(searchInput);
-            }
-            searchContainer.innerHTML = '';
-            searchContainer.appendChild(filterWrapper);
-            searchContainer.appendChild(searchWrapper);
-        }
+        columnDefs: [dtDateColumn(DT_DATE_SHORT, { output: DT_DATE_SHORT }), DT_NO_SORT_COLUMN],
+        initComplete: dtSetupAbsenceFilters
     });
 
-    $('#tableSessionsHttp').DataTable({
-        responsive: true,
-        ordering: true,
-        paging: true,
-        searching: true,
-        info: false,
-        dom: 'frtilp',
-        language: {
-            url: "/webjars/datatables-plugins/i18n/fr-FR.json"
-        }, columnDefs: [
-            {
-                targets: 'dateItem',
-                type: 'datetime-moment', // Use the datetime-moment plugin
-                render: function(data, type, row) {
-                    if (!data) { // Check if data is empty
-                        return ''; // Return empty string if data is empty
-                    }
-                    if (type === 'sort' || type === 'type') {
-                        return moment(data, 'DD/MM/YY HH:mm:ss').unix();
-                    }
-                    return moment(data, 'DD/MM/YY HH:mm:ss').format('DD/MM/YY HH:mm:ss');
-                }
-            },
-            { targets: 'no-sort', orderable: false }
-        ]
+    // Salles
+    return dtInitTable('.tableSalles', {
+        columnDefs: [dtCheckboxColumn(0, 1), dtDateColumn(DT_EU_DATE_FORMATS)]
     });
-
-    return tableSalles;
 }
 
-// Sélection "tout cocher" / case individuelle pour la table des salles
-function initCheckboxSelection() {
-    // Clic sur le "Tout sélectionner"
-    $('#checkAll').on('click', function() {
-        var checked = this.checked;
-        $('.tableSalles').find('.data-checkbox').prop('checked', checked);
-    });
+// ---------- Cases à cocher des tables Salles et Événements ----------
+// Une seule délégation pour toute la page : les tables .tableFoo sont recréées à chaque recherche.
+const DT_CHECKBOX_TABLES = '.tableSalles, .tableFoo';
 
-    // Clic sur une case individuelle (délégation d'événement via tbody)
-    $('.tableSalles tbody').on('click', '.data-checkbox', function() {
-        var totalCheckboxes = $('.tableSalles').find('.data-checkbox').length;
-        var checkedCheckboxes = $('.tableSalles').find('.data-checkbox:checked').length;
-        $('#checkAll').prop('checked', totalCheckboxes === checkedCheckboxes);
+function initCheckboxSelection() {
+    document.addEventListener('change', event => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+
+        if (target.id === 'checkAll') {
+            document.querySelectorAll(DT_CHECKBOX_TABLES.split(',').map(s => `${s.trim()} .data-checkbox`).join(','))
+                .forEach(box => { box.checked = target.checked; });
+        } else if (target.classList.contains('data-checkbox')) {
+            const table = target.closest(DT_CHECKBOX_TABLES);
+            const checkAll = document.getElementById('checkAll');
+            if (table && checkAll) {
+                checkAll.checked = [...table.querySelectorAll('.data-checkbox')].every(box => box.checked);
+            }
+        }
     });
 }
 /* ===== DATATABLES:END ===== */
