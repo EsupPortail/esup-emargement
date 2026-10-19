@@ -481,6 +481,6 @@ public interface TagCheckRepository extends JpaRepository<TagCheck, Long>{
 	@EntityGraph(attributePaths = {"sessionEpreuve", "sessionEpreuve.typeSession", "sessionEpreuve.campus",
 	        "sessionLocationExpected", "sessionLocationExpected.location", "absence", "absence.motifAbsence"})
 	@Query(value = "select tc from TagCheck tc where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen <= :today",
-	       countQuery = "select count(tc) from TagCheck tc where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen = :today")
+	       countQuery = "select count(tc) from TagCheck tc where tc.person.eppn = :eppn and tc.sessionEpreuve.dateExamen <= :today")
 	Page<TagCheck> findHistory(@Param("eppn") String eppn, @Param("today") Date today, Pageable pageable);
 }
