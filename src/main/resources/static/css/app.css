@@ -1,455 +1,463 @@
-body{
+/* ==========================================================================
+   1. Base et mise en page
+   2. Navbar
+   3. Utilitaires
+   4. Tableaux ( DataTables)
+   5. Formulaires, Awesomplete, SlimSelect
+   6. Composants (progress, badges, dropdowns...)
+   7. Plugins : daterangepicker, jstree
+   8. Scan QR code
+   9. Trombinoscope
+  10. Aide (offcanvas)
+  11. Tableau de bord
+  12. FullCalendar
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Base et mise en page
+   ========================================================================== */
+body {
 	padding-bottom: 50px;
 }
-form label{
-	font-weight: 700;
-}
+
 #footer {
 	text-align: center;
 	background-color: #343A40;
 	color: #FFF;
 	padding: 10px;
-	margin-top:50px;
+	margin-top: 50px;
 	position: fixed;
-	bottom: 0px;
+	bottom: 0;
 	width: 100%;
 	z-index: 5000;
 }
-.center{
+
+.sticky-md-top {
+	top: 140px;
+	z-index: 999;
+}
+
+.alertmsg {
+	position: absolute;
+}
+
+.custom-alert {
+	background-color: #00C0EF !important;
+}
+
+dl dd:after {
+	content: "\200b";
+}
+
+/* ==========================================================================
+   2. Navbar
+   ========================================================================== */
+.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark {
+	padding-bottom: 0;
+}
+
+.titleNav {
+	color: #13e894;
+	display: block;
+	width: 150px;
+}
+
+.nav-link.active {
+	font-weight: bold;
+}
+
+.navbar-brand img {
+	height: 60px;
+}
+
+@media (max-width: 992px) {
+	.navbar-brand img {
+		height: 40px;
+	}
+}
+
+@media (max-width: 768px) {
+	.navbar-brand img {
+		height: 30px;
+	}
+}
+
+@media (max-width: 576px) {
+	.navbar-brand img {
+		height: 20px;
+	}
+}
+
+
+/* ==========================================================================
+   3. Utilitaires
+   ========================================================================== */
+.center {
 	text-align: center;
 }
 
-.awesomplete{
-	display: block!important;
+.greenCustom {
+	color: #13e894;
+	border-color: #13e894;
 }
-a.page-link.active{
-	color: white;
-	background-color: #007BFF;
+
+.redCustom {
+	color: #ff6969;
+	border-color: #ff6969;
 }
-.alertmsg{
-	position: absolute;
+
+.size08 {
+	font-size: .9em; /* NB : le nom (08) ne correspond pas à la valeur (.9em) */
 }
-.slimSelectClass{
+
+.minusSize {
+	font-size: .8em;
+}
+
+.badge-size {
+	font-size: .6em;
+}
+
+.mt-n10 {
+	margin-top: -6rem !important;
+}
+
+.mt-n8 {
+	margin-top: -5rem !important;
+}
+
+.mt-10 {
+	margin-top: 5.5rem !important;
+}
+
+.no-data {
+	display: none;
+	text-align: center;
+}
+
+.zindexDropdown {
+	z-index: 100000000;
+}
+
+.colorBox {
+	height: 20px;
+	width: 20px;
+	border: none;
+	vertical-align: middle;
+}
+
+
+/* ==========================================================================
+   4. Tableaux (bootstrap-table / DataTables)
+   ========================================================================== */
+table thead.sticky-top {
+	top: 116px;
+	z-index: 1000;
+	background-color: white;
+}
+
+.sorted-desc::after,
+.sorted-asc::after {
+	float: right;
+}
+
+.sorted-desc::after {
+	content: "\25BC";
+}
+
+.sorted-asc::after {
+	content: "\25B2";
+}
+
+.centerTd a,
+.centerTd form {
+	display: inline-block;
+	margin: 0 5px;
+	vertical-align: middle;
+}
+
+@media screen and (max-width: 1530px) {
+	th.hiddenBlock,
+	td.hiddenBlock {
+		display: none;
+	}
+}
+
+/* ==========================================================================
+   5. Formulaires, Awesomplete, SlimSelect
+   ========================================================================== */
+form label {
+	font-weight: 700;
+}
+
+/* ---- Awesomplete ---- */
+.awesomplete {
+	display: block !important;
+}
+
+.awesomplete > ul {
+	max-height: 410px;
+	overflow-y: auto;
+}
+
+#awesomplete_list_1,
+#awesomplete_list_2 {
+	z-index: 500000;
+}
+
+/* ---- Import LDAP ---- */
+#usersGroupLdap {
+	display: block !important;
+}
+
+#importUsersLdapform .dropdown {
+	display: none;
+}
+
+/* ---- SlimSelect : champ ---- */
+.slimSelectClass {
 	font-weight: bold;
 }
-/* Conteneur principal SlimSelect */
+
 .ss-main {
-    height: calc(1.5em + .75rem + 2px) !important; /* même hauteur que .form-select */
-    min-height: calc(1.5em + .75rem + 2px) !important;
-    padding: .375rem .75rem !important;
-    border-radius: .375rem !important;
-    border: 1px solid #ced4da !important;
-    display: flex !important;
-    align-items: center !important;
-    background-color: #fff !important;
+	color: black;
+	height: calc(1.5em + .75rem + 2px) !important; /* même hauteur que .form-select */
+	min-height: calc(1.5em + .75rem + 2px) !important;
+	padding: .375rem .75rem !important;
+	border-radius: .375rem !important;
+	border: 1px solid #ced4da !important;
+	display: flex !important;
+	align-items: center !important;
+	background-color: #fff !important;
+}
+
+.ss-main:focus-within {
+	box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 /* Texte sélectionné */
 .ss-single-selected {
-    padding: 0 !important;
-    margin: 0 !important;
-    display: flex;
-    align-items: center;
+	padding: 0 !important;
+	margin: 0 !important;
+	display: flex;
+	align-items: center;
 }
 
 /* Flèche à droite */
 .ss-arrow {
-    margin-left: auto;
+	margin-left: auto;
 }
 
-.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark{
-	padding-bottom: 0;;
-}
-.titleNav{
-	color : #13e894;
-	display:block;
-    width:150px;
-}
-.greenCustom{
-	color : #13e894;
-    border-color: #13e894;
-}
-.redCustom{
-	color : #ff6969;
-    border-color: #ff6969;
-}
-.sorted-desc::after, .sorted-asc::after {
-    float: right;
+.ss-main .ss-single-selected .placeholder .ss-disabled {
+	color: red !important;
 }
 
-.sorted-desc::after{
-    content:"\25BC";
+.placeholder {
+	background-color: transparent;
+	opacity: .8 !important;
 }
 
-.sorted-asc::after{
-    content: "\25B2";
+/* ---- SlimSelect : éléments sélectionnés dans un multiple ---- */
+.ss-main .ss-values .ss-value {
+	font-size: 0.95rem;
+	font-weight: 600;
+	padding: 5px 9px;
+	border-radius: 5px;
+	margin: 3px;
+	background-color: #0d6efd;
 }
-.badge-size{
-	font-size: .6em;
+
+.ss-main .ss-values .ss-value .ss-value-text {
+	color: #fff;
 }
-.mt-n10{
-	margin-top: -6rem !important;
+
+.ss-main .ss-values .ss-value .ss-value-delete {
+	border-left: 1px solid rgba(255, 255, 255, 0.5);
+	padding-left: 7px;
+	margin-left: 7px;
+	color: #fff;
 }
-.mt-n8{
-	margin-top: -5rem !important;
+
+/* ---- SlimSelect : liste déroulante ---- */
+.ss-content.ss-open {
+	z-index: 5000;
 }
-.mt-10{
-	margin-top: 5.5rem !important;
+
+.ss-optgroup-label-text {
+	color: red !important;
 }
-.progress{
+
+/* ==========================================================================
+   6. Composants
+   ========================================================================== */
+
+/* ---- Dropdowns : suppression du caret (Bootstrap) ---- */
+.dropdown-toggle::after,
+.dropdown-toggle-no-caret::after {
+	display: none;
+}
+
+/* ---- Pagination ---- */
+a.page-link.active {
+	color: white;
+	background-color: #007BFF;
+}
+
+/* ---- Barre de progression ---- */
+.progress {
 	height: 25px;
 	font-size: 1em;
 }
-.nav-link.active{
-	font-weight: bold;
-}
-.minusSize{
-	font-size: .8em;
-}
-.no-data{
-  display: none;
-  text-align: center;
-}
-.box-header > .fa, .box-header > .glyphicon, .box-header > .ion, .box-header .box-title {
-	display: inline-block;
-	font-size: 18px;
-	margin: 0;
-	line-height: 1;
-}
-.btn-box-tool {
-	padding: 5px;
-	font-size: 12px;
-	background: transparent;
-	color: #97a0b3;
-}
-.box-body {
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 3px;
-	border-bottom-left-radius: 3px;
-	padding: 10px;
-}
-.btn-separator:after {
-    content: ' ';
-    display: block;
-    float: left;
-    background: #ADADAD;
-    margin: 0 10px;
-    height: 34px;
-    width: 1px;
+
+.bg-aqua,
+.callout.callout-info,
+.modal-info .modal-body {
+	background-color: #00c0ef !important;
 }
 
-@media screen and (max-width: 1530px) {
-  th.hiddenBlock, td.hiddenBlock {
-    display:none;
-  }
+
+/* ==========================================================================
+   7. Plugins : daterangepicker, jstree
+   ========================================================================== */
+.jstree-anchor {
+	white-space: break-spaces !important;
+	height: auto !important;
 }
-.ss-main .ss-single-selected, .ss-main .ss-multi-selected{
-	height: calc(1.5em + .75rem + 2px)!important;
+
+.daterangepicker,
+.daterangepicker .ranges ul li,
+.daterangepicker .drp-buttons .btn,
+.daterangepicker .calendar-table {
+	font-size: 15px;
 }
-.ss-main {
-    color: black;
-}
-.info-box {
-	display: block;
-	min-height: 90px;
-	background: #fff;
-	width: 100%;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-	border-radius: 2px;
-	margin-bottom: 15px;
-}
-.bg-aqua, .callout.callout-info, .modal-info .modal-body {
-    background-color: 
-    #00c0ef !important;
-}
-.info-box-content {
-    padding: 5px 10px;
-    margin-left: 90px;
-}
-.info-box-icon {
-    border-top-left-radius: 2px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 2px;
-    display: block;
-    float: left;
-    height: 90px;
-    width: 90px;
-    text-align: center;
-    font-size: 45px;
-    line-height: 90px;
-    background: 
-    rgba(0,0,0,0.2);
-        background-color: rgba(0, 0, 0, 0.2);
-}
-info-box-text {
-    display: block;
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.info-box-number {
-	display: block;
-	font-weight: bold;
-}
-.custom-alert{
-	background-color: #00C0EF!important;
-}
-.bg-custom{
-	background-color: #dfdfdf;
-}
-.awesomplete > ul {
-    max-height: 410px;
-    overflow-y: auto;
-}
-table thead.sticky-top {
-	top: 116px;
-	z-index: 1000;
-    background-color: white;
-}
-.ss-main .ss-single-selected .placeholder .ss-disabled {
-    color: red!important;
-}
-.big{
-	font-size: 1em
-}
-#awesomplete_list_1, #awesomplete_list_2{
-	z-index: 500000;
-}
+
+
+/* ==========================================================================
+   8. Scan QR code
+   ========================================================================== */
 #qrCodeCam {
-  position:relative;
+	position: relative;
 }
+
 #loadingMessage {
-  position:absolute;
-  top: 0px;
-  left: 0px;
-  text-align: center;
-  padding: 40px;
-  background-color: #eee;
+	position: absolute;
+	top: 0;
+	left: 0;
+	text-align: center;
+	padding: 40px;
+	background-color: #eee;
 }
+
 #qrCodeScanOk,
 #qrCodeScanUnknown {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  text-align: center;
-  width: 100%;
-  font-weight: bold;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+	text-align: center;
+	width: 100%;
+	font-weight: bold;
 }
 
 #qrCodeScanOk {
-  background-color: lightgreen;
-  border: 2px solid green;
+	background-color: lightgreen;
+	border: 2px solid green;
 }
 
 #qrCodeScanUnknown {
-  background-color: rgb(249, 240, 107);
-  border: 2px solid yellow;
+	background-color: rgb(249, 240, 107);
+	border: 2px solid yellow;
 }
+
 #canvas {
-  position:absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
 }
 
-    #output {
-      margin-top: 20px;
-      background: #eee;
-      padding: 10px;
-      padding-bottom: 0;
-    }
-
-    #output div {
-      padding-bottom: 10px;
-      word-wrap: break-word;
-    }
-
-    #noQRFound {
-      text-align: center;
-    }
-    
-    fieldset.scheduler-border {
-    border: 1px groove #ddd !important;
-    padding: 0 1.4em 1.4em 1.4em !important;
-    margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
+#noQRFound {
+	text-align: center;
 }
 
-legend.scheduler-border {
-    font-size: 1.2em !important;
-    font-weight: bold !important;
-    text-align: left !important;
+
+/* ==========================================================================
+   9. Trombinoscope
+   ========================================================================== */
+.silhouette,
+.real-photo {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
 }
-dl dd:after {
-  content: "\200b";
+
+.real-photo {
+	opacity: 0;
+	transform: scale(0.85);
+	transition: opacity .35s ease, transform .35s ease;
 }
-.placeholder {
-    background-color: transparent;
-    opacity : .8 !important;
+
+.check-badge {
+	opacity: 0;
+	transform: scale(0.5) translate(50%, -50%);
+	transition: opacity .25s ease, transform .25s ease;
 }
-#gridEvents .bootstrap-table.bootstrap5, #gridSalles .bootstrap-table.bootstrap5{
-	margin-top: -2em!important;
+
+.trombi-grid .card[role="button"] {
+	cursor: pointer;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
-#usersGroupLdap{
-	display: block!important;
+
+/* Hover et focus clavier : uniquement si pas encore émargé */
+.trombi-grid .card[role="button"]:not(.emarge):hover {
+	border-color: #0d6efd;
+	box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+	transform: translateY(-2px);
 }
-#importUsersLdapform .dropdown{
+
+.trombi-grid .card[role="button"]:not(.emarge):focus-visible {
+	outline: none;
+	border-color: #0d6efd;
+	box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+/* État émargé */
+.card.emarge .real-photo {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.card.emarge .silhouette {
 	display: none;
 }
-.sticky-md-top{
-	top: 140px;
-	z-index: 999;
-}
-.ss-content.ss-open{
-	z-index : 5000;
-}
-.jstree-anchor {
-    white-space: break-spaces !important;
-    height: auto !important;
-}
-/* Increase font size for the entire date range picker */
-.daterangepicker {
-    font-size: 15px; /* Adjust the size as needed */
-}
 
-/* Optional: Increase the size of specific buttons if needed */
-.daterangepicker .ranges ul li, /* Range list items */
-.daterangepicker .drp-buttons .btn { /* Apply/Cancel buttons */
-    font-size: 15px; /* Adjust the size as needed */
-}
-
-/* Increase font size for the calendar inside the date picker */
-.daterangepicker .calendar-table {
-    font-size: 15px; /* Adjust the size as needed */
-}
-
-/* Style for the main button and the dropdown toggle */
-.dt-button-split-drop {
-	line-height: 0.8em;
-	margin:0!important;
-    padding: 0.2rem 0.4rem!important; /* Adjust padding for a smaller size */
-}
-
-.navbar-brand img {
-	height: 60px; /* Default height for large screens */
-}
-@media (max-width: 992px) {
-  .navbar-brand img {
-    height: 40px;
-  }
-}
-
-@media (max-width: 768px) {
-  .navbar-brand img {
-    height: 30px;
-  }
-}
-
-@media (max-width: 576px) {
-  .navbar-brand img {
-    height: 20px;
-  }
-}
-.size08{
-	font-size: .9em;
-}
-.colorBox{
-	height: 20px; 
-	width: 20px; 
-	border: none; 
-	vertical-align: middle;
-}
-table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::before{
-	left: 20px!important;
-}
-.btn-xs{
-	--bs-btn-padding-y: .25rem;
-	--bs-btn-padding-x: .5rem;
-	--bs-btn-font-size: .75rem;
-}
-
-.centerTd a, .centerTd form {
-    display: inline-block; /* Ensures inline elements behave properly */
-    margin: 0 5px; /* Adds spacing between buttons */
-    vertical-align: middle; /* Aligns them to the middle */
-}
-.zindexDropdown{
-	z-index: 100000000;
-}
-.bg-brown {
-  background-color: brown !important;
-  color: white; /* Optional: ensure text is readable */
-}
-.dropdown-toggle-no-caret::after {
-    display: none;
-}
-.dropdown-toggle::after {
-    display: none;
-}
-.ss-optgroup-label-text{
-	color : red!important
-}
-.silhouette, .real-photo {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-}
-.real-photo {
-    opacity: 0;
-    transform: scale(0.85);
-    transition: opacity .35s ease, transform .35s ease;
-}
-.card.emarge .real-photo { opacity: 1; transform: scale(1); }
-.card.emarge .silhouette { display: none; }
-.check-badge {
-    opacity: 0;
-    transform: scale(0.5) translate(50%, -50%);
-    transition: opacity .25s ease, transform .25s ease;
-}
 .card.emarge .check-badge {
-    opacity: 1;
-    transform: scale(1) translate(50%, -50%);
-}
-.trombi-grid .card[role="button"] {
-    cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+	opacity: 1;
+	transform: scale(1) translate(50%, -50%);
 }
 
-/* Effet hover uniquement si pas encore émargé */
-.trombi-grid .card[role="button"]:not(.emarge):hover {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-    transform: translateY(-2px);
-}
-
-/* Une fois émargé, on désactive visuellement le pointeur/hover */
 .trombi-grid .card.emarge {
-    cursor: default;
+	cursor: default;
 }
 
-/* Accessibilité clavier : même effet au focus qu'au hover */
-.trombi-grid .card[role="button"]:not(.emarge):focus-visible {
-    outline: none;
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-}
 @media (min-width: 1200px) {
-    .row-cols-xl-8 > * {
-        flex: 0 0 auto;
-        width: 12.5%; /* 100% / 8 */
-    }
+	.row-cols-xl-8 > * {
+		flex: 0 0 auto;
+		width: 12.5%; /* 100% / 8 */
+	}
 }
+
+
+/* ==========================================================================
+   10. Aide (offcanvas)
+   ========================================================================== */
 .help-content {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    font-weight: 500;
+	font-size: 1.05rem;
+	line-height: 1.6;
+	font-weight: 500;
 }
+
 #offcanvasHelp {
 	--bs-offcanvas-width: 560px;
 }
@@ -458,66 +466,82 @@ table.dataTable.dtr-inline.collapsed.compact > tbody > tr > td.dtr-control::befo
 	padding: .9rem 1.5rem;
 }
 
+
+/* ==========================================================================
+   11. Tableau de bord
+   ========================================================================== */
 @media (max-width: 767.98px) {
-    .dashboard-tabs .tab-label {
-        display: none;
-    }
-    .dashboard-tabs .nav-link {
-        padding-left: .75rem;
-        padding-right: .75rem;
-    }
-}
-@media (max-width: 767.98px) {
+	.dashboard-tabs .tab-label {
+		display: none;
+	}
+
+	.dashboard-tabs .nav-link {
+		padding-left: .75rem;
+		padding-right: .75rem;
+	}
+
 	.dashboard-session-info {
-	    flex-direction: column;
-	    align-items: flex-start !important;
+		flex-direction: column;
+		align-items: flex-start !important;
 	}
 }
-.fc-event-custom {
-    text-align: center;
-    padding: 3px 4px;
-    overflow: hidden;
-}
 
-.fc-event-title-custom {
-    font-size: 0.95rem;
-    font-weight: 600;
-    line-height: 1.25;
-}
 
-.fc-event-time-custom {
-    font-size: 0.85rem;
-    line-height: 1.25;
-    margin-top: 1px;
-}
+/* ==========================================================================
+   12. FullCalendar
+   ========================================================================== */
+   .fc-event-custom {
+   	text-align: center;
+   	padding: 3px 4px;
+   	overflow: hidden;
+   }
 
-.fc-event-details {
-    font-size: 0.82rem;
-    line-height: 1.25;
-    margin-top: 1px;
-    opacity: 0.9;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+   .fc-event-title-custom {
+   	font-size: 0.95rem;
+   	font-weight: 600;
+   	line-height: 1.25;
+   }
+
+   .fc-event-time-custom {
+   	font-size: 0.85rem;
+   	line-height: 1.25;
+   	margin-top: 1px;
+   }
+
+   .fc-event-details {
+   	font-size: 0.82rem;
+   	line-height: 1.25;
+   	margin-top: 1px;
+   	opacity: 0.9;
+   	white-space: nowrap;
+   	overflow: hidden;
+   	text-overflow: ellipsis;
+   }
+   
 @media (max-width: 768px) {
-  .fc .fc-header-toolbar.fc-toolbar {
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: .3rem;
-    padding-right: 7.5rem;   /* place réservée au dropdown */
-  }
-  /* le titre reste au milieu, sur la même ligne */
-  .fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
-    order: 0;
-    flex: 1 1 auto;
-    min-width: 0;
-    text-align: center;
-  }
-  .fc .fc-toolbar-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-  .fc .fc-button { padding: .25rem .5rem; font-size: .8rem; }
+	.fc .fc-header-toolbar.fc-toolbar {
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: .3rem;
+		padding-right: 7.5rem; /* place réservée au dropdown */
+	}
+
+	/* le titre reste au milieu, sur la même ligne */
+	.fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
+		order: 0;
+		flex: 1 1 auto;
+		min-width: 0;
+		text-align: center;
+	}
+
+	.fc .fc-toolbar-title {
+		font-size: 1.05rem;
+		font-weight: 700;
+		line-height: 1.1;
+	}
+
+	.fc .fc-button {
+		padding: .25rem .5rem;
+		font-size: .8rem;
+	}
 }
