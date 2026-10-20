@@ -51,7 +51,16 @@
                 <div class="row mb-3">
                     <label for="color" class="col-lg-2 form-label">Couleur</label>
                     <div class="col-lg-10">
-                    	<input type="text" th:field="*{color}" class="form-control demo" required>
+						<div class="d-flex align-items-center gap-2">
+						    <input type="color" id="colorPicker"
+						           class="form-control form-control-color"
+						           th:value="*{color}" title="Choisir une couleur">
+
+						    <input type="text" th:field="*{color}" id="colorHex"
+						           class="form-control font-monospace"
+						           pattern="#[0-9a-fA-F]{6}"
+						           maxlength="7" required style="max-width: 110px">
+						</div>				
                     </div>
                 </div>
                 <div class="form-group row">

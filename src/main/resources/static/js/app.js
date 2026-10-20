@@ -159,7 +159,7 @@ function initPageSlimSelects() {
         }
     });
 
-    //Groupes
+	//Groupes
     if (document.getElementById('addMembersGroupe') != null) {
         ['sessionEpreuveGroupes', 'groupes', 'groupes2'].forEach(function(id) {
             if (document.getElementById(id) != null) {
@@ -241,19 +241,6 @@ function initCommunicationPdf() {
 }
 
 // ---------- Plugins divers ----------
-function initSelectCheckBoxes(id, searchplaceholder) {
-    $('#' + id).searchableOptionList({
-        maxHeight: '250px',
-        showSelectAll: true,
-        texts: {
-            noItemsAvailable: 'Aucun résultat',
-            selectAll: 'Tout sélectionner',
-            selectNone: 'Tout effacer',
-            searchplaceholder: searchplaceholder
-        }
-    });
-}
-
 function setupModal(modalId, fields) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -276,13 +263,20 @@ function setupModal(modalId, fields) {
 
 function initBootstrapAndPlugins() {
     //Couleur motif absence
-    $('.demo').minicolors({
-        theme: 'bootstrap',  // Use Bootstrap theme
-        position: 'bottom left',
-        format: 'hex',
-        opacity: false
-    });
+	const picker = document.getElementById('colorPicker');
+	const hex = document.getElementById('colorHex');
 
+	if (picker !== null && hex !== null) {
+	    picker.addEventListener('input', function () {
+	        hex.value = this.value;
+	    });
+
+	    hex.addEventListener('input', function () {
+	        if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
+	            picker.value = this.value;
+	        }
+	    });
+	}
     //enable tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -307,6 +301,7 @@ function showInitialModals() {
 
 // ---------- Fichiers (bootstrap-fileinput) ----------
 function initializeFileInput(fileInput) {
+	if (!document.querySelector('#files')) return;
     if (seId === "") {
         $("#files").fileinput({
             theme: "fas",
@@ -440,6 +435,7 @@ function initCaseSelection() {
 // "Tout sélectionner" des éléments non utilisés
 function initNotUsedSelection() {
     $("#selectAll").click(function() {
+		if ($('.notUsed').length === 0) return; 
         $('.notUsed').find("input[type=checkbox]").prop('checked', $(this).prop('checked'));
     });
 
@@ -1167,12 +1163,20 @@ function initQrCodeDisplay() {
     }
 }
 
+// Une seule connexion SSE par page, partagée entre la page de présence et le compteur d'imports ADE
+let sseSource = null;
+function getEventSource() {
+    if (sseSource == null) {
+        sseSource = new EventSource(emargementContextUrl + `/supervisor/register/${ID()}`);
+    }
+    return sseSource;
+}
+
 // Page de présence : abonnement SSE et rechargement des blocs
 function initPresencePage() {
     if (document.getElementById('presencePage') == null && document.getElementById('unknownPage') == null) return;
 
-    const uuid = ID();
-    const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
+ 	const eventSource = getEventSource();
     sortDate = (triBadgeage == 'true') ? [0, 'asc'] : [4, 'desc'];
     initTablePresence(sortDate);
 
@@ -1278,8 +1282,8 @@ function initPresencePage() {
 
 // Compteur d'imports ADE (SSE)
 function initImportSessionCounter() {
-    const uuid = ID();
-    const eventSource = new EventSource(emargementContextUrl + `/supervisor/register/${uuid}`);
+    if (document.getElementById('nbImportSession') == null) return;
+    const eventSource = getEventSource();
     eventSource.addEventListener('nbImportSession', response => {
         var total = response.data;
         $("#nbImportSession").text("Imports ADE : " + total);
@@ -2076,9 +2080,6 @@ function initAssiduite() {
         document.getElementById("searchUrl").value = window.location.search;
         document.getElementById("searchUrl2").value = window.location.search;
     }
-
-    initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
-    initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
 }
 
 // Formulaires de recherche de sessions
@@ -2192,10 +2193,6 @@ document.addEventListener('htmx:afterSwap', function(event) {
             }
         }
     }
-    if (document.getElementById("modal-step3")) {
-        initSelectCheckBoxes('my-select', 'Rechercher dans tous les agents');
-        initSelectCheckBoxes('my-select2', 'Rechercher dans ceux déjà utilisés');
-    }
     if (event.target.querySelector('select.slimSelectClass')) {
         initSlimSelects();
     }
@@ -2215,13 +2212,6 @@ document.addEventListener('htmx:afterSwap', function(event) {
 
             el.classList.toggle('active', isMatch);
         });
-});
-
-document.addEventListener('htmx:afterSettle', function(evt) {
-    if (document.getElementById("modal-step3")) {
-        $('#my-select').hide();
-        $('#my-select2').hide();
-    }
 });
 
 document.addEventListener("htmx:afterRequest", function(event) {
