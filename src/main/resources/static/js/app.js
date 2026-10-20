@@ -147,7 +147,8 @@ function initPageSlimSelects() {
         { id: 'sessionLocationExpected', placeholder: 'Rechercher Lieu' },
         { id: 'sessionLocationExpected2', placeholder: 'Rechercher Lieu' },
         { id: 'blackListGroupe', placeholder: 'Rechercher Groupe' },
-        { id: 'motifAbsence' }
+        { id: 'motifAbsence' },
+		{ id: 'my-select'}
     ];
     slimSelectConfigs.forEach(config => {
         if (document.getElementById(config.id)) {
