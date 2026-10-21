@@ -16,165 +16,75 @@
 				</div>				
 			</div>			
 			<div id="statsCharts" class="mt-3">
-				<div class="row">
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + sessionEpreuvesByCampus}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse1">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+				<div class="row gx-4 gy-3">
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + presenceByContext}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse1">
-								<div class="chart">
-									<canvas id="sessionEpreuvesByCampus" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="presenceByContext"></canvas>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + sessionLocationByLocation}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse2">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + sessionEpreuveByYearMonth}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse2">
-								<div class="chart">
-									<canvas id="sessionLocationByLocation" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="sessionEpreuveByYearMonth"></canvas>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + tagCheckersByContext(${surveillantTerme + 's'})}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse3">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + countTagCheckByYearMonth}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse3">
-								<div class="chart">
-									<canvas id="tagCheckersByContext" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
-								</div>
-							</div>
-						</div>
-					</div>	
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + presenceByContext}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse4">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
-							</div>
-							<div class="box-body collapse show" id="collapse4">
-								<div class="chart">
-									<canvas id="presenceByContext" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="countTagCheckByYearMonth"></canvas>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + sessionEpreuveByYearMonth}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse5">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + countSessionEpreuveByType}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse5">
-								<div class="chart">
-									<canvas id="sessionEpreuveByYearMonth" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  ></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="countSessionEpreuveByType"></canvas>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countTagCheckByYearMonth}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse6">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + countTagChecksByTypeBadgeage}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse6">
-								<div class="chart">
-									<canvas id="countTagCheckByYearMonth" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;" ></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="countTagChecksByTypeBadgeage"></canvas>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countTagChecksByTypeBadgeage}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse7">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 border-0 border-top border-3 border-secondary shadow-sm rounded-3">
+							<div class="card-header bg-body-tertiary">
+								<h3 class="h6 fw-semibold mb-0 text-secondary-emphasis" th:text="${#strings.capitalize('__#{'stats.' + sessionEpreuvesByCampus}__')}"></h3>
 							</div>
-							<div class="box-body collapse show" id="collapse7">
-								<div class="chart">
-									<canvas id="countTagChecksByTypeBadgeage" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countTagCheckBySessionLocationBadgedAndPerson}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse8">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
-							</div>
-							<div class="box-body collapse show" id="collapse8">
-								<div class="chart">
-									<canvas id="countTagCheckBySessionLocationBadgedAndPerson" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-lg-3 col-md-6">
-						<div class="box box-primary">
-							<div class="box-header with-border">
-								<h3 class="box-title" th:text="${#strings.capitalize('__#{'stats.' + countSessionEpreuveByType}__')}"></h3>
-								<div class="box-tools float-right">
-									<button type="button" class="btn btn-box-tool"
-										data-bs-toggle="collapse"  data-bs-target="#collapse9">
-										<i class="fa fa-minus"></i>
-									</button>
-								</div>
-							</div>
-							<div class="box-body collapse show" id="collapse9">
-								<div class="chart">
-									<canvas id="countSessionEpreuveByType" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;"  width="764" height="250"></canvas>
+							<div class="card-body">
+								<div class="position-relative d-flex justify-content-center align-items-center" style="height: 260px;">
+									<canvas id="sessionEpreuvesByCampus"></canvas>
 								</div>
 							</div>
 						</div>

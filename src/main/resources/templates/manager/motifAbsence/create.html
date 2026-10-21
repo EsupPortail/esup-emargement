@@ -51,8 +51,16 @@
                 <div class="row mb-3">
                     <label for="color" class="col-lg-2 form-label">Couleur</label>
                     <div class="col-lg-10">
-                    	<input type="text" name="color" class="form-control demo" value="#ff6161" required>
-                    </div>
+						<div class="d-flex align-items-center gap-2">
+						    <input type="color" id="colorPicker"
+						           class="form-control form-control-color"
+						           value="#ff6161" title="Choisir une couleur">
+						    <input type="text" id="colorHex" name="color"
+						           class="form-control font-monospace"
+						           value="#ff6161" pattern="#[0-9a-fA-F]{6}"
+						           maxlength="7" required style="max-width: 110px">
+						</div>
+					</div>
                 </div>
                 <div class="form-group row">
                     <label for="isMalus" class="col-lg-2 col-form-label">Comptabilisation (Malus)</label>

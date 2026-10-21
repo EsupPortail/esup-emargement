@@ -10,7 +10,6 @@ import org.esupportail.emargement.domain.SessionLocation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -46,14 +45,5 @@ public interface SessionLocationRepository extends JpaRepository<SessionLocation
 
 	SessionLocation findBySessionEpreuveAndLocationAndContext(SessionEpreuve sessionEpreuve, Location location,
 			Context context);
-	
-	//STATS
-	@Query(value = "select nom, count(*) from session_location, location, session_epreuve, statut_session "
-			+ "where session_location.location_id=location.id "
-			+ "AND session_location.session_epreuve_id = session_epreuve.id "
-			+ "AND session_epreuve.statut_session_id = statut_session.id "
-			+ "AND session_location.context_id=:context "
-			+ "AND statut_session.key IN ('CLOSED', 'ENDED') and annee_univ = :anneeUniv group by nom order by count desc", nativeQuery = true)
-	List<Object[]> countSessionLocationByLocation(Long context, String anneeUniv);
 	
 }

@@ -47,7 +47,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -131,8 +130,7 @@ public class TagCheckerController {
     }
 	
     @GetMapping(value = "/manager/tagChecker", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id,
-    		@RequestParam(required = false) String modal) {
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = false) Long id) {
     	TagChecker tagChecker = new TagChecker();
     	if(id !=null) {
     		populateCreateForm(uiModel, id);
@@ -145,11 +143,7 @@ public class TagCheckerController {
     		uiModel.addAttribute("allList", userIds);
     	}
     	populateEditForm(uiModel, tagChecker, id);
-    	
-	    if(modal != null){
-	    	uiModel.addAttribute("sessionEpreuve", id);
-        	return "manager/tagChecker/create-modal :: modal-step3";
-        }    	
+  	
         return "manager/tagChecker/create";
     }
     
@@ -161,20 +155,6 @@ public class TagCheckerController {
 		allUserApps = userAppService.setNomPrenom(allUserApps, false);
 		allUserApps.sort(Comparator.comparing(UserApp::getNom));
 		uiModel.addAttribute("allUserApps", allUserApps);
-		
-		List<TagChecker> tcs = tagCheckerRepository.findAll();
-		List<TagChecker> distinctTagCheckers = tcs.stream()
-			    .filter(tc -> tc.getUserApp() != null && tc.getUserApp().getEppn() != null)
-			    .collect(Collectors.toMap(
-			        tc -> tc.getUserApp().getEppn(),
-			        tc -> tc,
-			        (existing, replacement) -> existing
-			    ))
-			    .values()
-			    .stream()
-			    .sorted(Comparator.comparing(tc -> tc.getUserApp().getEppn())) // Sort by eppn
-			    .collect(Collectors.toList());
-		uiModel.addAttribute("tcs", distinctTagCheckers);
     }
     
     @GetMapping("/manager/tagChecker/usedTagCheckers")
@@ -199,16 +179,15 @@ public class TagCheckerController {
     
     @PostMapping("/manager/tagChecker/create")
     public String create(@PathVariable String emargementContext, @Valid TagChecker tagChecker, @RequestParam(required = false) List<Long> users, 
-    		@RequestParam Long sessionEpreuve, @RequestParam(required = false) String allLocations, BindingResult bindingResult, Model uiModel,
-    		@RequestHeader(value = "HX-Request", required = false) String hxRequest) {
+    		@RequestParam Long sessionEpreuve, @RequestParam(required = false) String allLocations, BindingResult bindingResult, Model uiModel) {
         if (bindingResult.hasErrors()) {
             populateEditForm(uiModel, tagChecker, tagChecker.getSessionLocation().getSessionEpreuve().getId());
             return "manager/tagChecker/create";
         }
         uiModel.asMap().clear();
-        if(users != null && !users.isEmpty()){
-        	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuve).get();
-        	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+    	SessionEpreuve se = sessionEpreuveRepository.findById(sessionEpreuve).get();
+    	List<SessionLocation> sls = sessionLocationRepository.findSessionLocationBySessionEpreuve(se);
+        if(users != null && !users.isEmpty()) {
         	for(Long id : users) {
         		UserApp userApp = userAppRepository.findById(id).get();
         		if(userApp!=null) {
@@ -242,13 +221,6 @@ public class TagCheckerController {
         		}
         	}
         }
-	    if (hxRequest != null) {
-	    	uiModel.addAttribute("sessionEpreuve", sessionEpreuve);
-	    	populateCreateForm(uiModel, sessionEpreuve);
-	    	populateEditForm(uiModel, tagChecker, sessionEpreuve);
-	    	uiModel.addAttribute("success", "success");
-	    	return "manager/tagChecker/create-modal :: modal-step3";
-	    }
         return String.format("redirect:/%s/manager/tagChecker/sessionEpreuve/" + tagChecker.getSessionEpreuve().getId().toString(), emargementContext);
     }
     

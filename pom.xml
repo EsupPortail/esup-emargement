@@ -92,12 +92,12 @@
 		<dependency>
 		    <groupId>com.opencsv</groupId>
 		    <artifactId>opencsv</artifactId>
-		    <version>5.9</version>
+		    <version>5.12.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-csv</artifactId>
-		    <version>1.10.0</version>
+		    <version>1.14.1</version>
 		</dependency>
 		<!-- Optional, for bootstrap -->
 		<dependency>
@@ -118,17 +118,17 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 		    <artifactId>momentjs</artifactId>
-		    <version>2.29.4</version>
+		    <version>2.31.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>
 		    <artifactId>chartjs</artifactId>
-		    <version>4.4.3</version>
+		    <version>4.5.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
 		    <artifactId>fullcalendar</artifactId>
-		    <version>5.11.3</version>
+		    <version>6.1.10</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -143,7 +143,7 @@
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>slim-select</artifactId>
-		    <version>2.12.1</version>
+		    <version>4.5.0</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
@@ -188,12 +188,7 @@
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
 		  <artifactId>bootstrap5-tags</artifactId>
-		  <version>1.7.5</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>bootstrap-datepicker</artifactId>
-		    <version>1.10.0</version>
+		  <version>1.7.16</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -203,28 +198,23 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>datatables</artifactId>
-			<version>1.13.5</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>datatables-responsive</artifactId>
-		    <version>2.2.7</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>datatables-buttons</artifactId>
-		    <version>2.4.1</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>datatables-plugins</artifactId>
-		    <version>1.13.6</version>
-		    <scope>runtime</scope>
+			<version>3.0.4</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
-		    <artifactId>datatables.net-datetime</artifactId>
-		    <version>1.5.0</version>
+		    <artifactId>datatables.net-buttons</artifactId>
+		    <version>4.0.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.mvnpm</groupId>
+		    <artifactId>datatables.net-responsive-bs5</artifactId>
+		    <version>4.0.0</version>
+		    <scope>runtime</scope>
+		</dependency>		
+		<dependency>
+		    <groupId>org.webjars</groupId>
+		    <artifactId>datatables-plugins</artifactId>
+		    <version>2.3.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars.bower</groupId>
@@ -239,7 +229,7 @@
  		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>bootstrap-icons</artifactId>
-		    <version>1.13.1</version>
+		    <version>1.13.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -265,11 +255,6 @@
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>flatpickr</artifactId>
 		    <version>4.6.13</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.webjars.bowergithub.claviska</groupId>
-		    <artifactId>jquery-minicolors</artifactId>
-		    <version>2.3.6</version>
 		</dependency>
 	    <dependency>
 	        <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -306,7 +291,7 @@
 		<dependency>
 		    <groupId>com.itextpdf</groupId>
 		    <artifactId>itextpdf</artifactId>
-		    <version>5.5.13.3</version>
+		    <version>5.5.13.6</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.jpenren</groupId>
@@ -333,29 +318,24 @@
 	      <version>1.1.9</version>
     	</dependency>
 		<dependency>
-		    <groupId>org.mnode.ical4j</groupId>
-		    <artifactId>ical4j</artifactId>
-		    <version>3.2.14</version>
-		</dependency>
-		<dependency>
 		   <groupId>org.blazingcache</groupId>
 		   <artifactId>blazingcache-jcache</artifactId>
-		   <version>3.3.0</version>
+		   <version>3.7.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
 		    <artifactId>core</artifactId>
-		    <version>3.5.3</version>
+		    <version>3.5.4</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.zxing</groupId>
 		    <artifactId>javase</artifactId>
-		    <version>3.5.3</version>
+		    <version>3.5.4</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.cronutils</groupId>
 		    <artifactId>cron-utils</artifactId>
-		    <version>9.2.0</version>
+		    <version>9.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>software.xdev</groupId>

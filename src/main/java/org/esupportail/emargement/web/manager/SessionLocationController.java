@@ -114,17 +114,12 @@ public class SessionLocationController {
     }
 	
     @GetMapping(value = "/manager/sessionLocation", params = "form", produces = "text/html")
-    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = true) Long id,
-    		@RequestParam(required = false) String modal) {
+    public String createForm(Model uiModel, @RequestParam(value = "sessionEpreuve", required = true) Long id) {
     	SessionLocation sessionLocation = new SessionLocation();
 	    populateEditForm(uiModel, sessionLocation, id);
 	    List<Integer> priorityList = sessionLocationService.getPriorityList(sessionEpreuveRepository.findById(id).get());
 	    int priority = (priorityList.isEmpty())? 1 : Collections.max(priorityList)+1;
 	    sessionLocation.setPriorite(priority);
-	    if(modal != null){
-	    	uiModel.addAttribute("sessionEpreuve", id);
-        	return "manager/sessionLocation/create-modal :: modal-step2";
-        }
         return "manager/sessionLocation/create";
     }
     
