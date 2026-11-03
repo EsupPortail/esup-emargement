@@ -301,7 +301,10 @@
 								<div class="row mb-3">
 			                    	<label for="sessionEpreuve" class="col-lg-2 form-label">Fichier</label>
 			                    	<div class="col-lg-10">	
-										<input  type="file" id="files" name="files" class="file" multiple="multiple">
+										<input type="file" class="filepond" id="inputFilePond" name="files" multiple data-allow-reorder="true"
+											data-max-file-size="3MB" data-max-files="3" data-accepted-file-types="text/csv,application/vnd.ms-excel"
+											data-file-validate-type-label-expected-types="Seuls les fichiers .csv sont acceptés"
+											       data-label-file-type-not-allowed="Type de fichier invalide">
 									</div>
 								</div>
 								<div class="row mb-3">    				

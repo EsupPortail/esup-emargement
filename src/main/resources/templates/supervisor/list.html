@@ -202,6 +202,18 @@
 			   	<strong>Message envoyé avec succès.</strong>
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			</div>
+			<div th:if="${successMessage}"
+			     class="alert alert-success alert-dismissible fade show"
+			     role="alert">
+			    <span>La pièce jointe a bien été supprimée.</span>
+			    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+			</div>
+			<div th:if="${addPj}"
+			     class="alert alert-success alert-dismissible fade show"
+			     role="alert">
+			    <span>La pièce jointe a bien été ajoutée.</span>
+			    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+			</div>
 			<div th:if="${duplicate != null}"  class="alert alert-warning alert-dismissible fade show">
 			   	<strong>Cette absence est déjà associée à une autre session/période pour cette même personne. Veuillez la gérer dans l"interface dédiée.</strong>
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

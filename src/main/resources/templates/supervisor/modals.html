@@ -110,13 +110,71 @@
 								data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
+							<div class="mb-3" th:if="${attachments != null and !attachments.isEmpty()}">
+								<label class="form-label">Pièces jointes existantes</label>
+								<div class="list-group">
+									<div th:each="pj : ${attachments}" class="list-group-item d-flex align-items-center gap-3">
+										<!-- Icône selon le type -->
+										<i class="fa-solid fs-3" th:classappend="${
+										       pj.contentType == 'application/pdf'
+										           ? ' fa-file-pdf text-danger'
+										       : #strings.startsWith(pj.contentType, 'image/')
+										           ? ' fa-file-image text-success'
+										       : pj.contentType == 'application/msword'
+										           or pj.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+										           ? ' fa-file-word text-primary'
+										       : pj.contentType == 'application/vnd.ms-excel'
+										           or pj.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+										           ? ' fa-file-excel text-success'
+											   : pj.contentType == 'text/csv'
+											             or pj.contentType == 'application/csv'
+											             ? ' fa-file-csv text-success'
+										       : pj.contentType == 'text/plain'
+										           ? ' fa-file-lines text-secondary'
+										       : ' fa-file text-secondary'
+										   }" aria-hidden="true">
+										</i>
+										<!-- Nom et taille -->
+										<div class="flex-grow-1 min-width-0">
+											<a th:href="@{/pieces-jointes/{id}(id=${pj.id})}" th:text="${pj.filename}"
+												class="text-decoration-none text-break">
+											</a>
+											<div class="small text-secondary"
+											     th:text="${pj.fileSize < 1048576
+											         ? #numbers.formatDecimal(pj.fileSize / 1024.0, 1, 1) + ' Ko'
+											         : #numbers.formatDecimal(pj.fileSize / 1048576.0, 1, 1) + ' Mo'}">
+											</div>
+										</div>
+										<!-- Télécharger -->
+										<a th:href="@{/{ctx}/supervisor/storedFile/{id}/photo(id=${pj.id},ctx=${eContext})}"
+											class="btn btn-outline-secondary btn-sm" title="Télécharger" target="_blank" aria-label="Télécharger">
+											<i class="fa-solid fa-download"></i>
+										</a>
+										<button type="submit"
+										      th:formaction="@{/{ctx}/supervisor/presence/storedFile/delete/{slId}/{id}(ctx=${eContext},
+											  slId=${sessionLocation.id},id=${pj.id})}"
+										      formmethod="post"
+										      formnovalidate
+										      class="btn btn-outline-danger btn-sm"
+										      title="Supprimer la pièce jointe"
+										      aria-label="Supprimer la pièce jointe"
+										      onclick="return confirm('Supprimer cette pièce jointe ?');">
+										  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+										</button>
+									</div>
+								</div>
+							</div>
 							<input type="hidden" id="sessionId" name="sessionLocationId"
 							th:value="${sessionLocation.id}" />
 							<input type="hidden" id="sessionEpreuveId" name="sessionEpreuve"
 							th:value="${sessionEpreuve.id}"/>
-		                    <div class="file-loading">
-			 					<input type="file" class="form-control-file" id="files" name="files" multiple>
-			 				</div>
+							<input type="file" 
+							    class="filepond"
+							    id="inputFilePond" name="files"
+							    multiple 
+							    data-allow-reorder="true"
+							    data-max-file-size="3MB"
+							    data-max-files="3">
 						</div>
 						<div class="modal-footer">
 							<button type="submit" class="btn btn-success">Enregistrer</button>

@@ -159,7 +159,7 @@ function initPageSlimSelects() {
         }
     });
 
-	//Groupes
+    //Groupes
     if (document.getElementById('addMembersGroupe') != null) {
         ['sessionEpreuveGroupes', 'groupes', 'groupes2'].forEach(function(id) {
             if (document.getElementById(id) != null) {
@@ -299,59 +299,19 @@ function showInitialModals() {
     });
 }
 
-// ---------- Fichiers (bootstrap-fileinput) ----------
+// ---------- Fichiers (filepond) ----------
 function initializeFileInput(fileInput) {
-	if (!document.querySelector('#files')) return;
-    if (seId === "") {
-        $("#files").fileinput({
-            theme: "fas",
-            language: "fr",
-            maxFileSize: 1000,
-            maxFileCount: 10,
-            mainClass: "input-group-lg",
-            dropZoneEnabled: false
-        });
-    } else {
-        let rootUrlSe = `${emargementContextUrl}/supervisor/storedFile/`;
-        let deleteUrl = `${emargementContextUrl}/supervisor/storedFile/delete`;
-
-        fetch(`${rootUrlSe}${typePj}/${seId}`)
-            .then(response => response.json())
-            .then(data => {
-                let urls = [];
-                let configsArray = [];
-
-                data.forEach(value => {
-                    urls.push(`${rootUrlSe}${value.id}/photo`);
-                    configsArray.push({
-                        type: value.contentType.includes("pdf") ? "pdf" : "image",
-                        filetype: value.contentType,
-                        caption: value.filename,
-                        downloadUrl: `${rootUrlSe}${value.id}/photo`,
-                        size: value.fileSize,
-                        key: value.id
-                    });
-                });
-
-                $("#files").fileinput({
-                    theme: "fas",
-                    initialPreview: urls,
-                    initialPreviewAsData: true,
-                    initialPreviewConfig: configsArray,
-                    deleteUrl: deleteUrl,
-                    overwriteInitial: false,
-                    language: "fr",
-                    maxFileSize: 1000,
-                    maxFileCount: 10,
-                    mainClass: "input-group-lg",
-                    allowedPreviewTypes: ['image', 'html', 'text', 'video', 'audio', 'flash', 'object', 'pdf']
-                });
-            })
-            .catch(error => console.error("Error loading files:", error));
-    }
-    $("#files").on("filepredelete", function(event, key, jqXHR, data) {
-        return !confirm("Êtes-vous sûr de vouloir supprimer ce fichier ?");
-    });
+	const images = document.getElementById('inputFilePond');
+	if(images !=null){
+		FilePond.create(document.getElementById('inputFilePond'), {
+		    allowMultiple: true,
+		    storeAsFile: true,
+			labelIdle:
+		        'Glissez plusieurs images ici ou <span class="filepond--label-action">parcourir</span>',
+		    labelFileRemove: 'Supprimer',
+		    credits: false
+		});
+	}
 }
 
 // ---------- Cases à cocher ----------

@@ -158,6 +158,8 @@ https://listes.esup-portail.org/sympa/info/esup-utilisateurs
 Copyright (C) 2020 Esup Portail http://www.esup-portail.org
 @Author (C) 2020 Jean-Pierre Tran <Jean-Pierre.Tran@univ-rouen.fr>
 @Contributor (C) 2020 Vincent Bonamy <Vincent.Bonamy@univ-rouen.fr>
+@Contributor (C) 2026 Franck Bordinat - Institut National Universitaire Champollion
+@Contributor (C) 2026 Clément Markwitz - Université de Lille
 @Contributor (C) 2026 Nathan MUFUTA  - Aix Marseille Université
 @Contributor (C) 2025 Damien Heute - Le Mans Université
 @Contributor (C) 2025 Stéphane Magnies - Université de Lille

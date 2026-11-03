@@ -40,9 +40,8 @@
 							<label for="comment" class="form-label mt-2">Commentaire</label>
 							<textarea th:field="*{commentaire}" class="form-control"></textarea>
 		                    <label for="file" class="form-label mt-2">Pièces jointes</label>
-		                    <div class="file-loading">
-			 					<input type="file" class="form-control-file" id="files" name="files[]" multiple>
-			 				</div>
+							<input type="file" class="filepond" id="inputFilePond" name="files" multiple data-allow-reorder="true"
+								data-max-file-size="3MB" data-max-files="3">
 							<input type="hidden" name="idListAbsences" id="checkedValues" />
 							<input type="hidden" name="searchUrl" id="searchUrl" />
 					</div>

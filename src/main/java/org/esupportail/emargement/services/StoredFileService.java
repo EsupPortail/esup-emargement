@@ -87,6 +87,10 @@ public class StoredFileService {
 		return flexJsonString;
     }
 	
+	public void deleteStoredfile2(StoredFile storedFile){
+		storedFileRepository.delete(storedFile);
+    }
+	
     public List<StoredFile> getStoredfiles(String type, Long id){
     	HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Type", "application/json; charset=utf-8");

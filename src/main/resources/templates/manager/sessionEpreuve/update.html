@@ -11,8 +11,14 @@
 					<a th:href="@{/{ctx}/manager/sessionEpreuve(ctx=${eContext})}" class="btn btn-info" title="Contextes"><i
 							class="fa fa-home fa-lg"></i></a>
 				</div>
-			</div>			
-	    	<div  class="alert alert-danger" th:if="${error}">Une session avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
+			</div>
+			<div th:if="${successMessage}"
+			     class="alert alert-success alert-dismissible fade show"
+			     role="alert">
+			    <span>La pièce jointe a bien été supprimée.</span>
+			    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+			</div>	    	
+			<div  class="alert alert-danger" th:if="${error}">Une session avec le nom  <strong><span th:text="${nom}"></span></strong> existe déjà!!</div>
 	    	<div  class="alert alert-danger font-weight-bold" th:if="${compareEpreuve}">L'heure de fin doit être postérieure à l'heure de début</div>
 	    	<div  class="alert alert-danger font-weight-bold" th:if="${compareConvoc}">L'heure de convocation doit être antérieure à l'heure de début</div>
 	    	<div  class="alert alert-success font-weight-bold" th:if="${#ctx.containsVariable('duplicate')}">La Session a été dupliquée avec succès.</div>
@@ -135,11 +141,66 @@
 								</fieldset>
 								<div class="row mb-3">
 									<label for="file" class="col-lg-2 form-label">Pièces jointes</label>
-									<div class="col-lg-10">
-										<div class="file-loading">-->
-											<input type="file" class="form-control-file" id="files" name="files[]"
-												multiple>
-										</div>
+									<div  class="col-lg-10">
+										<th:block th:if="${attachments != null and !attachments.isEmpty()}">
+											<div class="list-group mb-3">
+												<div th:each="pj : ${attachments}" class="list-group-item d-flex align-items-center gap-3" th:id="'pj-' + ${pj.id}">
+													<!-- Icône selon le type -->
+													<i class="fa-solid fs-3" th:classappend="${
+													       pj.contentType == 'application/pdf'
+													           ? ' fa-file-pdf text-danger'
+													       : #strings.startsWith(pj.contentType, 'image/')
+													           ? ' fa-file-image text-success'
+													       : pj.contentType == 'application/msword'
+													           or pj.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+													           ? ' fa-file-word text-primary'
+													       : pj.contentType == 'application/vnd.ms-excel'
+													           or pj.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+													           ? ' fa-file-excel text-success'
+														   : pj.contentType == 'text/csv'
+														             or pj.contentType == 'application/csv'
+														             ? ' fa-file-csv text-success'
+													       : pj.contentType == 'text/plain'
+													           ? ' fa-file-lines text-secondary'
+													       : ' fa-file text-secondary'
+													   }" aria-hidden="true">
+													</i>
+													<!-- Nom et taille -->
+													<div class="flex-grow-1 min-width-0">
+														<a th:href="@{/pieces-jointes/{id}(id=${pj.id})}" th:text="${pj.filename}"
+															class="text-decoration-none text-break">
+														</a>
+														<div class="small text-secondary"
+														     th:text="${pj.fileSize < 1048576
+														         ? #numbers.formatDecimal(pj.fileSize / 1024.0, 1, 1) + ' Ko'
+														         : #numbers.formatDecimal(pj.fileSize / 1048576.0, 1, 1) + ' Mo'}">
+														</div>
+													</div>
+													<!-- Télécharger -->
+													<a th:href="@{/{ctx}/supervisor/storedFile/{id}/photo(id=${pj.id},ctx=${eContext})}"
+														class="btn btn-outline-secondary btn-sm" title="Télécharger" target="_blank" aria-label="Télécharger">
+														<i class="fa-solid fa-download"></i>
+													</a>
+													<button type="submit"
+													      th:formaction="@{/{ctx}/manager/sessionEpreuve/storedFile/delete/{id}(ctx=${eContext}, id=${pj.id})}"
+													      formmethod="post"
+													      formnovalidate
+													      class="btn btn-outline-danger btn-sm"
+													      title="Supprimer la pièce jointe"
+													      aria-label="Supprimer la pièce jointe"
+													      onclick="return confirm('Supprimer cette pièce jointe ?');">
+													  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+													</button>											
+												</div>
+											</div>
+										</th:block>
+										<input type="file" 
+									    class="filepond"
+									    id="inputFilePond"  name="files[]"
+									    multiple 
+									    data-allow-reorder="true"
+									    data-max-file-size="3MB"
+									    data-max-files="3">								
 									</div>
 								</div>
 								<div class="row mb-3">

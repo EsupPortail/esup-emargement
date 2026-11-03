@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/{emargementContext}")
@@ -187,6 +188,7 @@ public class AbsenceController {
     	uiModel.addAttribute("seId", absence.getId());
     	uiModel.addAttribute("typePj", "absence");
     	uiModel.addAttribute("motifAbsences", motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
+    	uiModel.addAttribute("attachments", absenceService.getPiecesJointesAbsence(absence));
         return "manager/absence/update";
     }
     
@@ -326,5 +328,21 @@ public class AbsenceController {
     	return "manager/absence/selectMotifs";
     	
     }
+    
+	@Transactional
+	@PostMapping("/manager/absence/storedFile/delete/{id}")
+	public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") Long storedFileId,
+			final RedirectAttributes redirectAttributes) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		StoredFile storedFile = storedFileRepository.findById(storedFileId).get();
+		Absence absence = storedFile.getAbsence();
+		storedFileRepository.delete(storedFile);
+		logService.log(ACTION.DELETE_STOREDFILE, RETCODE.SUCCESS, storedFile.getFilename(), auth.getName(), null,
+					emargementContext, null);
+		redirectAttributes.addFlashAttribute("successMessage", true);
+		return String.format("redirect:/%s/manager/absence/%s?form", emargementContext,
+				absence.getId());
+	}
 }
 

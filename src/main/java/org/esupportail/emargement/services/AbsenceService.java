@@ -82,6 +82,7 @@ public class AbsenceService {
 				motifAbsence.setIsActif(true);
 				motifAbsence.setStatutAbsence(StatutAbsence.valueOf(messageSource.getMessage("motifAbsence." + i + ".statut", null, null)));
 				motifAbsence.setTypeAbsence(TypeAbsence.valueOf(messageSource.getMessage("motifAbsence." + i + ".type", null, null)));
+				motifAbsence.setIsEtudiantVisible(false);
 				motifAbsenceRepository.save(motifAbsence);
 				nb++;
 			}
@@ -198,4 +199,8 @@ public class AbsenceService {
 
         return calDate.getTime();
     }
+    
+    public List<StoredFile>  getPiecesJointesAbsence(Absence absence) {
+		return storedFileRepository.findByAbsence(absence);
+	}
 }

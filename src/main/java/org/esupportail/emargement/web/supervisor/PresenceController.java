@@ -267,6 +267,9 @@ public class PresenceController {
     	        viewMode = pref.getValue();
     	    }
     	}
+    	if(sessionEpreuve.getId() != null) {
+    		uiModel.addObject("attachments", storedFileRepository.findBySessionEpreuve(sessionEpreuve));
+    	}
     	uiModel.addObject("viewMode", viewMode);
     	uiModel.addObject("scrollTop", appliConfigService.isScrollTopEnabled());
     	if(update!=null) {
@@ -753,9 +756,11 @@ public class PresenceController {
 	@Transactional
 	@PostMapping("/supervisor/saveAttachment")
 	public String saveAttachment(@PathVariable String emargementContext, @RequestParam SessionEpreuve sessionEpreuve,
-			@RequestParam Long sessionLocationId, @RequestParam List<MultipartFile> files) throws IOException {
+			@RequestParam Long sessionLocationId, @RequestParam List<MultipartFile> files, 
+			final RedirectAttributes redirectAttributes) throws IOException {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		sessionEpreuveService.save(sessionEpreuve, emargementContext, files);
+		redirectAttributes.addFlashAttribute("addPj", true);
 		logService.log(ACTION.UPDATE_SESSION_EPREUVE, RETCODE.SUCCESS,
 				"Ajout PJ : " + sessionEpreuve.getNomSessionEpreuve(), auth.getName(), null, emargementContext, null);
 		return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s", emargementContext,
@@ -779,6 +784,22 @@ public class PresenceController {
 	@ResponseBody
 	public List<StoredFile> getStoredfiles(@PathVariable String type, @PathVariable Long id) {
 		return storedFileService.getStoredfiles(type, id);
+	}
+	
+	@Transactional
+	@PostMapping("/supervisor/presence/storedFile/delete/{slId}/{id}")
+	public String deleteAbsence(@PathVariable String emargementContext, @PathVariable Long slId, @PathVariable("id") Long storedFileId,
+			final RedirectAttributes redirectAttributes) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		StoredFile storedFile = storedFileRepository.findById(storedFileId).get();
+		SessionEpreuve se = storedFile.getSessionEpreuve();
+		storedFileRepository.delete(storedFile);
+		logService.log(ACTION.DELETE_STOREDFILE, RETCODE.SUCCESS, storedFile.getFilename(), auth.getName(), null,
+					emargementContext, null);
+		redirectAttributes.addFlashAttribute("successMessage", true);
+		return String.format("redirect:/%s/supervisor/presence?sessionEpreuve=%s&location=%s#pjModal", emargementContext,
+				se.getId(), slId);
 	}
 
 	@GetMapping(value = "/supervisor/absence/motifs", produces = "text/html")

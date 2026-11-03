@@ -129,10 +129,13 @@
 							<div class="row mb-3">
 								<label for="file" class="col-lg-2 form-label">Pièces jointes</label>
 								<div class="col-lg-10">
-									<div class="file-loading">-->
-										<input type="file" class="form-control-file" id="files" name="files[]"
-											multiple>
-									</div>
+									<input type="file" 
+								    class="filepond"
+								    id="inputFilePond"  name="files[]"
+								    multiple 
+								    data-allow-reorder="true"
+								    data-max-file-size="3MB"
+								    data-max-files="3">
 								</div>
 							</div>
 							<div class="row mb-3">

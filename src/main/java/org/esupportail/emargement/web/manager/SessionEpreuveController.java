@@ -20,11 +20,13 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.esupportail.emargement.annotations.HelpPage;
 import org.esupportail.emargement.beans.SessionEpreuveResult;
+import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AppliConfig;
 import org.esupportail.emargement.domain.Context;
 import org.esupportail.emargement.domain.PropertiesForm;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.SessionEpreuve.TypeBadgeage;
+import org.esupportail.emargement.domain.StoredFile;
 import org.esupportail.emargement.domain.TagCheck;
 import org.esupportail.emargement.domain.UserApp;
 import org.esupportail.emargement.exceptions.AdeApiRequestException;
@@ -49,6 +51,7 @@ import org.esupportail.emargement.services.LogService.ACTION;
 import org.esupportail.emargement.services.LogService.RETCODE;
 import org.esupportail.emargement.services.SessionEpreuveService;
 import org.esupportail.emargement.services.SessionLocationService;
+import org.esupportail.emargement.services.StoredFileService;
 import org.esupportail.emargement.services.TagCheckService;
 import org.esupportail.emargement.services.UserAppService;
 import org.esupportail.emargement.utils.ToolUtil;
@@ -60,6 +63,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,6 +77,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.xml.sax.SAXException;
@@ -130,6 +135,9 @@ public class SessionEpreuveController {
 	
 	@Resource
 	ContextService contexteService;
+	
+	@Resource
+	StoredFileService storedFileService;
 
 	@Resource
 	UserAppService userAppService;
@@ -310,6 +318,7 @@ public class SessionEpreuveController {
     	uiModel.addAttribute("typePj", "session");
     	uiModel.addAttribute("strDateExamen", sessionEpreuve.getDateExamen());
     	uiModel.addAttribute("strDateFin", sessionEpreuve.getDateFin());
+    	uiModel.addAttribute("attachments", storedFileRepository.findBySessionEpreuve(sessionEpreuve));
         return "manager/sessionEpreuve/update";
     }
     
@@ -606,5 +615,21 @@ public class SessionEpreuveController {
 		model.addAttribute("activeSessionId", activeSessionId);
 		model.addAttribute("search", search);
 		return "manager/sessionEpreuve/session-list :: list(type='" + type + "')";
+	}
+	
+	@Transactional
+	@PostMapping("/manager/sessionEpreuve/storedFile/delete/{id}")
+	public String deleteAbsence(@PathVariable String emargementContext, @PathVariable("id") Long storedFileId, 
+			final RedirectAttributes redirectAttributes) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		StoredFile storedFile = storedFileRepository.findById(storedFileId).get();
+		SessionEpreuve se = storedFile.getSessionEpreuve();
+		storedFileRepository.delete(storedFile);
+		logService.log(ACTION.DELETE_STOREDFILE, RETCODE.SUCCESS, storedFile.getFilename(), auth.getName(), null,
+					emargementContext, null);
+		redirectAttributes.addFlashAttribute("successMessage", true);
+		return String.format("redirect:/%s/manager/sessionEpreuve/%s?form", emargementContext,
+				se.getId());
 	}
 }
