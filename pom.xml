@@ -162,9 +162,9 @@
 		  <version>1.7.16</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.webjars</groupId>
-		    <artifactId>jstree</artifactId>
-		    <version>3.3.16</version>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>quercus.js</artifactId>
+		    <version>0.4.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars</groupId>

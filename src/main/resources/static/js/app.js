@@ -1412,10 +1412,103 @@ function initStatsSessionModal() {
     });
 }
 
-
 /* ==========================================================================
- * 6. ADE (jsTree, import d'événements, affinage)
+ * 6. ADE (arbre Quercus.js, import d'événements, affinage)
+ *    Remplace jsTree : le contrôleur /manager/adeCampus/json renvoie toujours
+ *    le JSON plat {id, parent, text, state}, converti ici en arbre imbriqué.
+ *    Version sans jQuery.
  * ========================================================================== */
+
+var adeTree = null; // instance Quercus Treeview (#frmt)
+
+/**
+ * Convertit le JSON plat jsTree [{id, parent ("#" = racine), text, state}]
+ * en arbre imbriqué Quercus [{id, name, children}].
+ * - l'ordre du JSON n'est pas garanti (un enfant peut précéder son parent) : on indexe d'abord
+ * - tri alphabétique par niveau (équivalent du plugin "sort" de jsTree)
+ * - chaque nœud embarque son chemin (_pathIds / _pathNames) pour éviter de recalculer
+ */
+function adeToTreeData(flat) {
+    var byId = new Map();
+    flat.forEach(function(n) {
+        byId.set(String(n.id), {
+            id: String(n.id),
+            name: n.text,
+            children: [],
+            _parent: String(n.parent),
+            _opened: !!(n.state && n.state.opened)
+        });
+    });
+
+    var roots = [];
+    byId.forEach(function(node) {
+        if (node._parent === "#") {
+            roots.push(node);
+        } else {
+            var parent = byId.get(node._parent);
+            if (parent) {
+                parent.children.push(node);
+            } else {
+                console.warn("Noeud ADE orphelin ignoré :", node.id, node.name);
+            }
+        }
+    });
+
+    var collator = new Intl.Collator('fr', { numeric: true, sensitivity: 'base' });
+
+    (function finalize(list, ancestorIds, ancestorNames) {
+        list.sort(function(a, b) { return collator.compare(a.name, b.name); });
+        list.forEach(function(node) {
+            node._pathIds = ancestorIds.concat(node.id);
+            node._pathNames = ancestorNames.concat(node.name);
+            if (node.children.length > 0) {
+                finalize(node.children, node._pathIds, node._pathNames);
+            } else {
+                delete node.children; // feuille : pas d'expander
+            }
+        });
+    })(roots, [], []);
+
+    return roots;
+}
+
+function setFieldValue(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = value;
+}
+
+/**
+ * Alimente les champs cachés à partir des nœuds sélectionnés.
+ * Règle conservée de la version jsTree (cascade "up") : un nœud est écarté
+ * dès qu'un de ses descendants est sélectionné.
+ */
+function applyAdeSelection(selectedNodes) {
+    var ancestorIds = new Set();
+    selectedNodes.forEach(function(n) {
+        n._pathIds.slice(0, -1).forEach(function(id) { ancestorIds.add(id); });
+    });
+    var finalNodes = selectedNodes.filter(function(n) { return !ancestorIds.has(n.id); });
+
+    var r = [];               // IDs des nœuds finaux sélectionnés
+    var allLibelles = [];     // libellés complets (racine>...>nœud)
+    var firstLevelIds = [];   // premier niveau après la racine
+
+    finalNodes.forEach(function(n) {
+        r.push(n.id);
+        allLibelles.push(n._pathNames.join(">"));
+        // [root, b, c, d] => b ; si le nœud est la racine elle-même => root
+        firstLevelIds.push(n._pathIds.length > 1 ? n._pathIds[1] : n._pathIds[0]);
+    });
+
+    var uniqueFirstLevel = Array.from(new Set(firstLevelIds));
+
+    setFieldValue("idList", r.join(','));
+    setFieldValue("idListImport", r.join(','));
+    setFieldValue("idListTask", r.join(','));
+    setFieldValue("textListTask", allLibelles.join(','));
+    setFieldValue("firstLevelIds", uniqueFirstLevel.join(','));
+}
+
 function updateJsTree(selectedData, category, idProject) {
     var selectedUrl = emargementContextUrl + "/manager/adeCampus/json?idProject=" + idProject + "&category=" + category + "&fatherId=" + selectedData;
     var request = new XMLHttpRequest();
@@ -1423,108 +1516,75 @@ function updateJsTree(selectedData, category, idProject) {
     request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
             const data = JSON.parse(request.responseText);
-            $('#frmt').jstree(true).settings.core.data = data;
-            $('#frmt').jstree(true).refresh();
-            $('#frmt').removeClass("d-none");
-            $("#spinnerComps").addClass("d-none");
+            const treeData = adeToTreeData(data);
+
+            document.getElementById("frmt").classList.remove("d-none");
+            adeTree.setData(treeData);   // remet la sélection à zéro
+            applyAdeSelection([]);       // ...et donc les champs cachés aussi
+
+            // équivalent de state.opened:true de jsTree : on déplie la racine
+            if (treeData.length > 0 && treeData[0]._opened) {
+                var expander = document.querySelector('#frmt .treeview-expander');
+                if (expander) expander.click();
+            }
+            document.getElementById("spinnerComps").classList.add("d-none");
         }
     };
     request.send();
 }
 
 function initJsTree() {
-    $('#frmt').on('changed.jstree', function(e, data) {
-        var checkedNodes = data.selected.slice(); // copie pour sécurité
-        var nodesToRemove = [];
+	if(!document.getElementById("frmt")) return;
+    adeTree = new Treeview({
+        containerId: 'frmt',
+        data: [],
+        searchEnabled: true,
+        searchPlaceholder: 'Rechercher...',
+        initiallyExpanded: false,
+        multiSelectEnabled: true,
+        checkboxSelectionEnabled: true,
+        cascadeSelectChildren: false,
+        onRenderNode: function(nodeData, wrapper) {
+            wrapper.innerHTML = ''; // indispensable avec setData
+            var isFolder = nodeData.children && nodeData.children.length > 0;
 
-        // Supprimer les nœuds parents si leurs enfants sont sélectionnés
-        checkedNodes.forEach(function(nodeId) {
-            var node = data.instance.get_node(nodeId);
-            if (node.children.length > 0) {
-                node.children.forEach(function(childId) {
-                    if (checkedNodes.includes(childId)) {
-                        nodesToRemove.push(nodeId);
-                    }
-                });
-            }
-        });
-        nodesToRemove.forEach(function(nodeId) {
-            var index = checkedNodes.indexOf(nodeId);
-            if (index > -1) checkedNodes.splice(index, 1);
-        });
+            var icon = document.createElement('i');
+            icon.className = (isFolder ? 'fas fa-folder text-warning' : 'far fa-file text-secondary') + ' me-1';
+            wrapper.appendChild(icon);
 
-        var r = [];               // IDs des nœuds finaux sélectionnés
-        var text = [];
-        var allLibelles = [];     // libellés texte complets
-        var firstLevelIds = [];   // premiers niveaux après la racine
-
-        checkedNodes.forEach(function(nodeId) {
-            var node = data.instance.get_node(nodeId);
-            text.push(node.text);
-            r.push(node.id);
-
-            // Texte du chemin complet
-            let hierarchy = [];
-            node.parents.slice().reverse().forEach(function(parentId) {
-                if (parentId !== "#") {
-                    var parentNode = data.instance.get_node(parentId);
-                    hierarchy.push(parentNode.text);
-                }
-            });
-            hierarchy.push(node.text);
-            allLibelles.push(hierarchy.join(">"));
-
-            // Chemin en IDs de la racine au nœud (node.parents va de l'enfant vers '#')
-            var pathFromRoot = node.parents.slice().reverse().filter(function(p) { return p !== "#"; });
-            pathFromRoot.push(node.id);
-
-            // Premier élément sous la racine (ex. [root, b, c, d] => b)
-            var firstAfterRoot = pathFromRoot.length > 1 ? pathFromRoot[1] : pathFromRoot[0];
-            firstLevelIds.push(firstAfterRoot);
-        });
-
-        // dédupliquer (plusieurs descendants de la même branche peuvent être cochés)
-        var uniqueFirstLevel = Array.from(new Set(firstLevelIds));
-
-        $("#idList").val(r.join(','));
-        $("#idListImport").val(r.join(','));
-        $("#idListTask").val(r.join(','));
-        $("#textListTask").val(allLibelles.join(','));
-        $("#firstLevelIds").val(uniqueFirstLevel.join(','));
-
-    }).jstree({
-        "checkbox": {
-            "keep_selected_style": false,
-            "three_state": false,
-            "cascade": "up"
+            var label = document.createElement('span');
+            label.classList.add('treeview-node-text'); // nécessaire pour la recherche
+            label.textContent = nodeData.name;
+            wrapper.appendChild(label);
         },
-        "plugins": ["checkbox", "sort", "state"],
-        'core': {
-            'data': []
-        }
+        onSelectionChange: applyAdeSelection
     });
 }
 
 function importEvents(url) {
-    $("#importBtn").off('click').on('click', function(event) {
+    var btn = document.getElementById("importBtn");
+    if (!btn) return;
+    // onclick (et non addEventListener) : remplace l'éventuel handler précédent, comme off('click') avant
+    btn.onclick = function(event) {
         event.preventDefault();
-        const $form = $("#displayEventsImport");
-        $("#spinnerLoad").removeClass("d-none");
-        $.ajax({
-            url: url,
-            type: "POST",
-            data: $form.serialize(),
-            success: function() {
-                $('#displayEvents').submit();
-            },
-            error: function(error) {
-                console.log("Error:", error);
-            },
-            complete: function() {
-                $("#spinnerLoad").addClass("d-none");
-            }
+        var form = document.getElementById("displayEventsImport");
+        var spinner = document.getElementById("spinnerLoad");
+        spinner.classList.remove("d-none");
+
+        fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            body: new URLSearchParams(new FormData(form)) // application/x-www-form-urlencoded, comme serialize()
+        }).then(function(response) {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            document.getElementById("displayEvents").requestSubmit();
+        }).catch(function(error) {
+            console.log("Error:", error);
+        }).finally(function() {
+            spinner.classList.add("d-none");
         });
-    });
+    };
 }
 
 // Page ADE : sélection de salles / événements
