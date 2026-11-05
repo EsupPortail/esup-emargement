@@ -212,7 +212,7 @@
 									th:attr="data-bs-tcid=${tagCheck.id}, data-bs-comment=${tagCheck.comment}, data-bs-nom=${tagCheck.person != null ? 
 								    (tagCheck.person.nom != null ? tagCheck.person.nom + ' ' + tagCheck.person.prenom : tagCheck.person.eppn) : 
 								    (tagCheck.guest.nom != null ? tagCheck.guest.nom + ' ' + tagCheck.guest.prenom : tagCheck.guest.email)}"
-									>Ajpute un commentaire
+									>Ajouter un commentaire
 								</a>
 							</li>
 							<th:block th:if="${tagCheck.absence eq null}">
