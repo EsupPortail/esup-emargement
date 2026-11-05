@@ -42,7 +42,6 @@
 	<script th:src="@{/webjars/jsqr/dist/jsQR.js}"></script>
 	
 	<script th:src="@{/webjars/filepond/dist/filepond.min.js}"></script>
-	<script th:src="@{/webjars/bootstrap-input-spinner/src/bootstrap-input-spinner.js}"></script>
 	
 	<script th:src="@{/webjars/datatables/js/dataTables.min.js}"></script>
 	<script th:src="@{/webjars/datatables/js/dataTables.bootstrap5.min.js}"></script>
@@ -67,9 +66,12 @@
  	Tags.init(".initTags");
 	</script>
 	<script th:src="@{/webjars/suneditor/dist/suneditor.min.js}"></script>
-	<script th:src="@{/webjars/bootstrap-daterangepicker/js/bootstrap-daterangepicker.js}"></script>
 	<script th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
-
+	<script type="module">
+	    import { InputSpinner } from "/webjars/bootstrap-input-spinner/src/InputSpinner.js";
+	    window.InputSpinner = InputSpinner;
+	</script>
+	<script th:src="@{/resources/js/vanilla-datetimerange-picker.js}"></script>
 	<script th:src="@{/resources/js/app.js}"></script>
 	
 	<link th:href="@{/webjars/awesomplete/awesomplete.css}" rel="stylesheet">
@@ -84,9 +86,8 @@
 	<link th:href="@{/webjars/jstree/themes/default/style.min.css}" rel="stylesheet">
 	<link th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.css}" rel="stylesheet">
 	<link th:href="@{/webjars/suneditor/dist/css/suneditor.min.css}" rel="stylesheet">
-	<link th:href="@{/webjars/bootstrap-daterangepicker/css/bootstrap-daterangepicker.css}" rel="stylesheet">
 	<link th:href="@{/webjars/flatpickr/dist/flatpickr.min.css}" rel="stylesheet">
-	
+	<link th:href="@{/resources/css/vanilla-datetimerange-picker.css}" rel="stylesheet">
 	<link th:href="@{/resources/css/app.css}" rel="stylesheet">
 	<title th:text="#{${'title.' + active}(${title},${surveillantTerme})}">Application Emargement</title>
 </head>

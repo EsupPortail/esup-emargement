@@ -287,6 +287,45 @@ form label {
 	color: red !important;
 }
 
+/* Filtres assiduité */
+#formSearch .filter-item { flex: 0 1 auto; min-width: 0; }
+#formSearch .filter-item.ss-main,
+#formSearch .ss-main.filter-item { min-width: 130px; max-width: 190px; }
+
+@media (max-width: 991.98px) {
+  #formSearch .filter-item,
+  #formSearch .ss-main { width: 100% !important; max-width: none; }
+}
+
+/* Filtres assiduité */
+#formSearch .input-group {
+  flex-wrap: nowrap;   /* label + champ restent sur la même ligne */
+}
+
+#formSearch > .input-group {
+  width: auto;         /* le groupe date ne prend plus 100 % */
+}
+
+/* Le groupe de recherche remplit son conteneur (qui, lui, flex-grow) */
+#formSearch .filter-item > .input-group {
+  width: 100%;
+}
+
+#formSearch .input-group > .form-control {
+  min-width: 0;        /* permet au champ de rétrécir au lieu de wrapper */
+}
+
+#formSearch .input-group-text {
+  white-space: nowrap;
+}
+
+/* Mobile : tout en colonne, pleine largeur */
+@media (max-width: 991.98px) {
+  #formSearch > .input-group {
+    width: 100%;
+  }
+}
+
 /* ==========================================================================
    6. Composants
    ========================================================================== */

@@ -1,83 +1,112 @@
 <div class="col" th:fragment="search">
-	<!-- 🔹 Bouton visible uniquement sur mobile -->
+
+	<!-- Bouton visible uniquement sur mobile -->
 	<div class="d-lg-none mb-2">
-		<button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-			data-bs-target="#searchCollapse" aria-expanded="false">
-			<i class="fa-solid fa-filter me-1"></i>
-			Filtres
+		<button class="btn btn-outline-primary w-100" type="button"
+			data-bs-toggle="collapse" data-bs-target="#searchCollapse"
+			aria-expanded="false" aria-controls="searchCollapse">
+			<i class="fa-solid fa-filter me-1"></i> Filtres
 		</button>
 	</div>
+
 	<div id="searchCollapse" class="collapse d-lg-block">
-		<div class="d-flex align-items-center gap-2 flex-wrap border-bottom pb-2 mb-2">
-			<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch" th:object="${assiduiteBean}" class="row gx-2 gy-2 align-items-center justify-content-end">
-				<div class="w-auto">
-					<div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc; width: 100%">
-					    <i class="fa fa-calendar"></i>&nbsp;
-					    <span></span> <i class="fa fa-caret-down"></i>
-					</div>
-				</div>
-				<input type="hidden" id="datesRange" name="datesRange" th:value="${datesRangeSelect}" class="clearable">
-				<select class="w-auto assiduiteControl slimSelectClass" th:field="*{typeIndividu}" th:if="${isTagCheckerDisplayed}">
-					<option value="etu">Etudiant</option>
-					<option value="surv">Surveillant</option>
-				</select>
-				<select class="slimSelectClass assiduiteControl w-auto" th:field="*{situation}">
-					<option value="all">Tout</option>
-					<option value="absence" th:if="${assiduiteBean.typeIndividu eq 'etu'}">Absence</option>
-					<option value="presence">Présence</option>
-					<option value="nonEmarg">Non émargé</option>
-				</select>
-				<select class="slimSelectClass assiduiteControl w-auto  clearable" title="Tous les statuts" th:field="*{idAdeBranch}" 
-					th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}">
-					<option value="">-- ADE --</option>
-					<option th:each="ade : ${adeBranches}" th:value="${ade.id}" th:text="${ade.fullPath}"></option>
-				</select>
-				<select class="slimSelectClass assiduiteControl w-auto clearable" th:field="*{motifType}" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
-					<option value="">----Type Motif----</option>
+		<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch"
+			th:object="${assiduiteBean}"
+			class="d-flex flex-column flex-lg-row flex-lg-wrap flex-xxl-nowrap gap-2 align-items-lg-center border-bottom pb-2 mb-2">
+			<div class="input-group input-group-sm w-auto flex-shrink-0">
+				<span class="input-group-text"><i class="fa fa-calendar"></i></span>
+				<input type="text" id="reportrange" class="form-control"
+					style="min-width: 190px; cursor: pointer;" readonly aria-label="Période">
+				<label for="reportrange" class="input-group-text" style="cursor: pointer;">
+					<i class="fa fa-caret-down"></i>
+				</label>
+			</div>
+			<input type="hidden" id="datesRange" name="datesRange"
+				th:value="${datesRangeSelect}" class="clearable">
+
+			<select class="filter-item assiduiteControl slimSelectClass" th:field="*{typeIndividu}"
+				th:if="${isTagCheckerDisplayed}" aria-label="Type d'individu">
+				<option value="etu">Étudiant</option>
+				<option value="surv">Surveillant</option>
+			</select>
+
+			<select class="filter-item slimSelectClass assiduiteControl" th:field="*{situation}"
+				aria-label="Situation">
+				<option value="all">Tout</option>
+				<option value="absence" th:if="${assiduiteBean.typeIndividu eq 'etu'}">Absence</option>
+				<option value="presence">Présence</option>
+				<option value="nonEmarg">Non émargé</option>
+			</select>
+
+			<select class="filter-item slimSelectClass assiduiteControl clearable" th:field="*{idAdeBranch}"
+				th:if="${isAdeCampusEnabled and #lists.size(adeBranches) > 0}" aria-label="Branche ADE">
+				<option value="">ADE</option>
+				<option th:each="ade : ${adeBranches}" th:value="${ade.id}" th:text="${ade.fullPath}"></option>
+			</select>
+
+			<th:block th:if="${assiduiteBean.typeIndividu eq 'etu'}">
+
+				<select class="filter-item slimSelectClass assiduiteControl clearable" th:field="*{motifType}"
+					aria-label="Type de motif">
+					<option value="">Type motif</option>
 					<option th:each="type : ${T(org.esupportail.emargement.domain.MotifAbsence.TypeAbsence).values()}"
 						th:value="${type}" th:text="${type}"></option>
 				</select>
-				<select class="w-auto slimSelectClass assiduiteControl clearable" th:field="*{motifStatut}" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
-					<option value="">----Statut Motif----</option>
+
+				<select class="filter-item slimSelectClass assiduiteControl clearable" th:field="*{motifStatut}"
+					aria-label="Statut du motif">
+					<option value="">Statut motif</option>
 					<option th:each="statut : ${T(org.esupportail.emargement.domain.MotifAbsence.StatutAbsence).values()}"
 						th:value="${statut}" th:text="${statut}"></option>
-				</select>	
-				<div class="w-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
-					<div class="input-group">
-						<span class="input-group-text clearable">Nom / Code</span> <input name="searchString" class="form-control searchBox assiduiteControl clearable" 
-						th:hx-get="@{|/${eContext}/supervisor/search/ldap|}" 
-							type="search" hx-trigger="keyup changed" hx-target="#searchResults" hx-indicator=".htmx-indicator" th:value="${assiduiteBean.searchField}"
+				</select>
+
+				<!-- Recherche : prend l'espace restant, résultats en overlay -->
+				<div class="filter-item flex-grow-1 position-relative" style="min-width: 220px;">
+					<div class="input-group input-group-sm">
+						<span class="input-group-text">Nom / Code</span>
+						<input name="searchString" class="form-control searchBox assiduiteControl clearable"
+							th:hx-get="@{|/${eContext}/supervisor/search/ldap|}"
+							type="search" hx-trigger="keyup changed" hx-target="#searchResults"
+							hx-indicator=".htmx-indicator" th:value="${assiduiteBean.searchField}"
 							autocomplete="off" placeholder="Recherche obligatoire">
-							<input type="hidden" th:field="*{searchField}" class="clearable"/>
-							<input type="hidden" th:field="*{searchValue}" class="clearable"/>
+						<input type="hidden" th:field="*{searchField}" class="clearable"/>
+						<input type="hidden" th:field="*{searchValue}" class="clearable"/>
 					</div>
-					<div id="searchResults"></div>
-						<div class="htmx-indicator"><span class="visually-hidden">Loading...</span></div>
+					<div id="searchResults" class="position-absolute top-100 start-0 w-100 bg-white shadow-sm" style="z-index: 1050;"></div>
+					<div class="htmx-indicator position-absolute top-50 end-0 translate-middle-y me-2">
+						<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+						<span class="visually-hidden">Chargement…</span>
+					</div>
 				</div>
-				<select class="slimSelectClass assiduiteControl  w-auto clearable"  name="sessionEpreuve" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
-					<option value="">----Session----</option>
-					<option th:each="se : ${sessions}"
-					        th:value="${se.id}"
-							th:selected="${assiduiteBean.sessionEpreuve ne null and se.id eq assiduiteBean.sessionEpreuve.id}"
-					        th:text="${se.nomSessionEpreuve + ' [ ' + #dates.format(se.dateExamen, 'dd/MM/yy') 
-							+ ' ' + #dates.format(se.heureEpreuve, 'HH:mm') + ' ]'}">
+
+				<select class="filter-item slimSelectClass assiduiteControl clearable" name="sessionEpreuve"
+					aria-label="Session">
+					<option value="">Session</option>
+					<option th:each="se : ${sessions}" th:value="${se.id}"
+						th:selected="${assiduiteBean.sessionEpreuve ne null and se.id eq assiduiteBean.sessionEpreuve.id}"
+						th:text="${se.nomSessionEpreuve + ' [ ' + #dates.format(se.dateExamen, 'dd/MM/yy') + ' ' + #dates.format(se.heureEpreuve, 'HH:mm') + ' ]'}">
 					</option>
-				</select>	
-				<select name="adeVET" class="assiduiteControl slimSelectClass clearable w-auto" th:if="${assiduiteBean.typeIndividu eq 'etu' and !#lists.isEmpty(uniqueAdeVETs)}">
-					<option value="">----VET----</option>
+				</select>
+
+				<select class="filter-item slimSelectClass assiduiteControl clearable" name="adeVET"
+					th:if="${!#lists.isEmpty(uniqueAdeVETs)}" aria-label="VET">
+					<option value="">VET</option>
 					<option th:each="vet : ${uniqueAdeVETs}" th:value="${vet}" th:text="${vet}"
-							th:selected="${assiduiteBean.adeVET ne null and vet eq assiduiteBean.adeVET}"></option>
+						th:selected="${assiduiteBean.adeVET ne null and vet eq assiduiteBean.adeVET}"></option>
 				</select>
-				<select name="*groupe" class="assiduiteControl slimSelectClass clearable w-auto" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
-					<option value="">--Groupe--</option>
+
+				<select class="filter-item slimSelectClass assiduiteControl clearable" name="groupe"
+					aria-label="Groupe">
+					<option value="">Groupe</option>
 					<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"
-						th:selected="${assiduiteBean.groupe ne null and groupe.id eq assiduiteBean.groupe.id}"</option>
+						th:selected="${assiduiteBean.groupe ne null and groupe.id eq assiduiteBean.groupe.id}"></option>
 				</select>
-				<div class="col-auto">
-					<a class="btn btn-danger btn-sm me-5"
-						id="clearFilters"><i class="fas fa-undo"></i></a>
-				</div>
-			</form>
-		</div>
+			</th:block>
+
+			<button type="button" id="clearFilters" class="btn btn-danger btn-sm ms-lg-auto"
+				title="Réinitialiser les filtres" aria-label="Réinitialiser les filtres">
+				<i class="fas fa-undo"></i>
+			</button>
+		</form>
 	</div>
 </div>

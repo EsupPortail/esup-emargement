@@ -1593,105 +1593,94 @@ function initAdeCampus(tableSalles) {
     importEvents(emargementContextUrl + (userEvents ? "/supervisor/events/adeCampus/importEvents" : "/manager/adeCampus/importEvents"));
 }
 
-//affinage repartition
-function displayAffinage(classes, isTiers) {
-    var total = 0;
-    classes.forEach(function(item) {
-        var number = parseInt(item.value.replace(/\s/g, ''));
-        total = (total + number);
-    });
-    var affinageId = null;
-    var tempCapacite = null;
-    var currentCapacite = null;
-    if (isTiers) {
-        affinageId = $("#affinageTiersTemps");
-        tempCapacite = $("#tempCapaciteTiers");
-        currentCapacite = $("#currentCapaciteTiers");
-    } else {
-        affinageId = $("#affinageNotTiersTemps");
-        tempCapacite = $("#tempCapaciteNotTiers");
-        currentCapacite = $("#currentCapaciteNotTiers");
+const STATE_CLASSES = ["bg-light", "bg-success", "bg-danger", "text-white", "text-dark"];
+
+// Affinage répartition
+function displayAffinage(inputs, isTiers) {
+    const suffix = isTiers ? "Tiers" : "NotTiers";
+    const affinage = document.getElementById(`affinage${suffix}Temps`);
+    const tempCapacite = document.getElementById(`tempCapacite${suffix}`);
+    const currentCapacite = document.getElementById(`currentCapacite${suffix}`);
+    const submitButton = document.getElementById("affinerButton");
+
+    if (!affinage || !currentCapacite) {
+        console.warn("Affinage : éléments introuvables pour", suffix, { affinage, currentCapacite });
+        return;
     }
-    affinageId.removeClass("bg-light");
-    affinageId.removeClass("bg-success");
-    affinageId.removeClass("bg-danger");
-    affinageId.removeClass("text-white");
-    affinageId.removeClass("text-dark");
-    var realTotal = total / 2;
-    if (realTotal == currentCapacite[0].textContent) {
-        affinageId.addClass("bg-success text-white");
-        $("#affinerButton").removeAttr("disabled");
-    } else {
-        affinageId.addClass("bg-danger text-white");
-        $("#affinerButton").prop("disabled", "disabled");
+
+    const total = Array.from(inputs).reduce(
+        (sum, input) => sum + (parseInt(input.value.replace(/\s/g, ""), 10) || 0),
+        0
+    );
+    const realTotal = total / 2;
+    const isValid = realTotal === parseInt(currentCapacite.textContent.trim(), 10);
+
+    affinage.classList.remove(...STATE_CLASSES);
+    affinage.classList.add(isValid ? "bg-success" : "bg-danger", "text-white");
+    if (submitButton) submitButton.disabled = !isValid;
+
+    if (tempCapacite) tempCapacite.textContent = realTotal;
+}
+
+function updateAffinage() {
+    const notTiers = document.querySelectorAll('[id^="spinner_false"]');
+    if (notTiers.length > 0) displayAffinage(notTiers, false);
+
+    const tiers = document.querySelectorAll('[id^="spinner_true"]');
+    if (tiers.length > 0) displayAffinage(tiers, true);
+}
+
+function onSpinnerInput(event) {
+    const input = event.currentTarget;
+    const max = parseInt(input.max, 10);
+    const current = parseInt(input.value, 10);
+
+    const percentEl = input.closest("span")?.nextElementSibling;
+    if (percentEl) {
+        percentEl.textContent = `${Math.round((current * 100) / max)} %`;
     }
-    tempCapacite.text(realTotal);
+
+    input.classList.toggle("is-valid", current <= max);
+    input.classList.toggle("is-invalid", current > max);
+
+    updateAffinage();
+}
+
+function onSubmitAffinage() {
+    const form = document.getElementById("formAffinage");
+    const selectedRadio = document.querySelector('input[name="tagCheckOrder"]:checked');
+
+    if (selectedRadio) {
+        // Remplace d'éventuels anciens hidden par la valeur sélectionnée
+        form.querySelectorAll('input[type="hidden"][name="tagCheckOrder"]').forEach(el => el.remove());
+
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "tagCheckOrder";
+        hidden.value = selectedRadio.value;
+        form.appendChild(hidden);
+    }
+    form.submit();
 }
 
 function initAffinage() {
-    $(".affinage").inputSpinner();
-
-    $(".affinage").on("input", function(event) {
-        var max = parseInt($(this).prop("max"));
-        var current = parseInt($(this).val());
-        var newPercent = $(this)[0].closest("span").nextElementSibling;
-        var percentVal = (current * 100) / max;
-        newPercent.textContent = Math.round(percentVal) + ' %';
-        $(this).removeClass('is-valid');
-        $(this).removeClass('is-invalid');
-        if (current <= max) {
-            $(this).addClass('is-valid');
-        } else {
-            $(this).addClass('is-invalid');
-        }
-
-        //Not tiers
-        var notTiers = document.querySelectorAll('[id^="spinner_false"]');
-        if (notTiers.length > 0) {
-            displayAffinage(notTiers, false);
-        }
-
-        //Tiers
-        var isTiers = document.querySelectorAll('[id^="spinner_true"]');
-        if (isTiers.length > 0) {
-            displayAffinage(isTiers, true);
-        }
+    document.querySelectorAll(".affinage").forEach(el => {
+        new InputSpinner(el);
+        el.addEventListener("input", onSpinnerInput);
     });
 
-    // Enregistré une seule fois (il l'était à chaque saisie dans un champ)
-    var submitAffinage = document.getElementById("affinerButton");
-    if (submitAffinage != null) {
-        submitAffinage.addEventListener('click', function(e) {
-            var formAffinage = document.getElementById("formAffinage");
+    document.getElementById("affinerButton")?.addEventListener("click", onSubmitAffinage);
 
-            // Récupère le bouton radio sélectionné
-            var selectedRadio = document.querySelector('input[name="tagCheckOrder"]:checked');
-
-            if (selectedRadio) {
-                // Supprime les anciens inputs "tagCheckOrder" du formulaire
-                var oldInputs = formAffinage.querySelectorAll('input[name="tagCheckOrder"]');
-                oldInputs.forEach(el => el.remove());
-
-                // Crée un hidden input pour transmettre la valeur
-                var hiddenInput = document.createElement("input");
-                hiddenInput.type = "hidden";
-                hiddenInput.name = "tagCheckOrder";
-                hiddenInput.value = selectedRadio.value;
-
-                formAffinage.appendChild(hiddenInput);
-            }
-
-            formAffinage.submit();
+    document.querySelectorAll('input[type="radio"][name="tagCheckOrder"]').forEach(radio => {
+        radio.addEventListener("change", event => {
+            const value = event.currentTarget.value;
+            document.getElementById("alphaOrderAffinage").value = value;
+            document.getElementById("alphaOrderRepartition").value = value;
         });
-    }
-
-    $('input[type=radio][name=tagCheckOrder]').on("change", function(event) {
-        var tagCheckOrder = $(this).val();
-        $("#alphaOrderAffinage").val(tagCheckOrder);
-        $("#alphaOrderRepartition").val(tagCheckOrder);
     });
 }
 
+window.initAffinage = initAffinage;
 
 /* ==========================================================================
  * 7. DataTables
@@ -1964,81 +1953,154 @@ function initCheckboxSelection() {
 
 // Assiduité : filtres, période, recherche
 function initAssiduite() {
-    $(".searchEtu").on('click', function() {
-        $("#searchField").val(this.text);
+
+    // Recherche étudiant
+    document.querySelectorAll('.searchEtu').forEach(el => {
+        el.addEventListener('click', function () {
+            document.getElementById('searchField').value =
+                this.textContent.trim();
+        });
     });
 
-    //Select sessionEpreuve
+    // Sélection des sessions
     checkAll();
 
-    //Assiduité dateRange
-    var start = moment();
-    var end = moment();
-    if (datesRangeSelect != '') {
-        var splitRange = datesRangeSelect.split("@");
-        start = moment(splitRange[0], "YYYY-MM-DD");
-        end = moment(splitRange[1], "YYYY-MM-DD");
+    // Sélecteur de période
+    const rangeInput = document.getElementById('reportrange');
+    const datesRange = document.getElementById('datesRange');
+
+    if (rangeInput && datesRange) {
+
+        const dates = datesRange.value
+            ? datesRange.value.split('@')
+            : [];
+
+        const start = dates.length === 2
+            ? moment(dates[0], 'YYYY-MM-DD')
+            : moment();
+
+        const end = dates.length === 2
+            ? moment(dates[1], 'YYYY-MM-DD')
+            : moment();
+
+        // Format affiché dans le champ
+        const formatDisplay = (start, end) =>
+            start.format('DD/MM/YY') + ' - ' +
+            end.format('DD/MM/YY');
+
+        // Affichage initial
+        rangeInput.value = formatDisplay(start, end);
+
+        new DateRangePicker(rangeInput, {
+
+            startDate: start,
+            endDate: end,
+
+            autoUpdateInput: false,
+            linkedCalendars: true,
+            opens: 'left',
+            drops: 'down',
+
+            ranges: {
+                "Aujourd'hui": [
+                    moment(),
+                    moment()
+                ],
+                "Hier": [
+                    moment().subtract(1, 'days'),
+                    moment().subtract(1, 'days')
+                ],
+                "Cette semaine": [
+                    moment().startOf('isoWeek'),
+                    moment().endOf('isoWeek')
+                ],
+                "Mois courant": [
+                    moment().startOf('month'),
+                    moment().endOf('month')
+                ],
+                "Mois dernier": [
+                    moment().subtract(1, 'month').startOf('month'),
+                    moment().subtract(1, 'month').endOf('month')
+                ],
+                "Année universitaire": [
+                    moment().month(8).startOf('month')
+                        .subtract(moment().month() < 8 ? 1 : 0, 'year'),
+                    moment().month(7).endOf('month')
+                        .add(moment().month() >= 8 ? 1 : 0, 'year')
+                ]
+            },
+
+            locale: {
+                format: 'DD-MM-YYYY',
+                separator: ' - ',
+                applyLabel: 'Valider',
+                cancelLabel: 'Annuler',
+                customRangeLabel: 'Dates personnalisées',
+                daysOfWeek: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+                monthNames: [
+                    'Janvier', 'Février', 'Mars', 'Avril',
+                    'Mai', 'Juin', 'Juillet', 'Août',
+                    'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                ],
+                firstDay: 1
+            }
+
+        }, function (start, end) {
+
+            // Mise à jour de l'affichage
+            rangeInput.value = formatDisplay(start, end);
+
+            // Format transmis au contrôleur Spring
+            datesRange.value =
+                start.format('YYYY-MM-DD') + '@' +
+                end.format('YYYY-MM-DD');
+
+            document.getElementById('formSearch').requestSubmit();
+        });
     }
 
-    function cb(start, end) {
-        if (start && end) {
-            $('#reportrange span').html(start.format('DD-MM-YYYY') + ' - ' + end.format('DD-MM-YYYY'));
-        }
-    }
-
-    $('#reportrange').daterangepicker({
-        startDate: start,
-        endDate: end,
-        ranges: {
-            "Aujourd'hui": [moment(), moment()],
-            "Hier": [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Cette semaine': [
-                moment().startOf('isoWeek'),  // Monday of the current week
-                moment().endOf('isoWeek')     // Sunday of the current week
-            ],
-            'Mois courant': [moment().startOf('month'), moment().endOf('month')],
-            'Mois dernier': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-            'Année universitaire': [
-                // If current month is January-August, show the range of the previous September to this August
-                moment().month(8).startOf('month').subtract(moment().month() < 8 ? 1 : 0, 'year').startOf('day'),
-                moment().month(7).endOf('month').add(moment().month() >= 8 ? 1 : 0, 'year').endOf('day')
-            ]
-        },
-        locale: {
-            customRangeLabel: 'Dates personnalisées',
-            applyLabel: 'Valider',
-            cancelLabel: 'Annuler'
-        }
-    }, cb);
-
-    cb(start, end);
-
-    $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
-        $("#datesRange").val(picker.startDate.format('YYYY-MM-DD') + "@" + picker.endDate.format('YYYY-MM-DD'));
-        $("#formSearch").submit();
+    // Soumission automatique des filtres
+    document.querySelectorAll('.assiduiteControl').forEach(el => {
+        el.addEventListener('change', function () {
+            document.getElementById('formSearch').requestSubmit();
+        });
     });
 
-    $(".assiduiteControl").on("change", function(event) {
-        $("#formSearch").submit();
-    });
+    // Réinitialisation de la recherche
+    const searchInput = document.getElementById('searchAssiduite');
 
-    $('#searchAssiduite').focus(function() {
-        if ($(this).val() !== '') {
-            $(this).val('');
-            $("#searchField").val("");
-            $("#searchValue").val("");
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener('focus', function () {
+            if (this.value !== '') {
+                this.value = '';
 
-    //assiduité page
-    if (document.getElementById("assiduitePage")) {
-        ['groupe', 'sessionEpreuve'].forEach(id => {
-            if (document.getElementById(id)) {
-                new SlimSelect({ select: `#${id}` });
+                document.getElementById('searchField').value = '';
+                document.getElementById('searchValue').value = '';
             }
         });
-        document.getElementById("searchUrl").value = window.location.search;
-        document.getElementById("searchUrl2").value = window.location.search;
+    }
+
+    // Page assiduité
+    if (document.getElementById('assiduitePage')) {
+
+        ['groupe', 'sessionEpreuve'].forEach(id => {
+            const select = document.getElementById(id);
+
+            if (select) {
+                new SlimSelect({ select: select });
+            }
+        });
+
+        const searchUrl = document.getElementById('searchUrl');
+        const searchUrl2 = document.getElementById('searchUrl2');
+
+        if (searchUrl) {
+            searchUrl.value = window.location.search;
+        }
+
+        if (searchUrl2) {
+            searchUrl2.value = window.location.search;
+        }
     }
 }
 
