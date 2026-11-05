@@ -34,8 +34,7 @@
 	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
 	<script th:src="@{/webjars/chartjs/dist/chart.umd.js}"></script>
 	<script th:src="@{/webjars/fullcalendar/index.global.min.js}"></script>
-	<!--script th:src="@{/webjars/fullcalendar__bootstrap5/index.global.min.js}"></script-->
-	<script th:src="@{/resources/js/fullcalendar__bootstrap5/index.global.min.js}"></script>
+	<script th:src="@{/webjars/fullcalendar__bootstrap5/index.global.min.js}"></script>
 	
 	<script th:src="@{/webjars/momentjs/moment-with-locales.min.js}"></script>
 	<script th:src="@{/webjars/slim-select/dist/slimselect.js}"></script>
@@ -56,7 +55,9 @@
 	<script th:src="@{/webjars/pdfmake/build/vfs_fonts.js}"></script>
 	<script th:src="@{/webjars/datatables.net-buttons/js/dataTables.buttons.min.js}"></script>
 	
-	<script th:src="@{/webjars/quercus.js/src/treeview.js}"></script>
+	
+
+
 	<script th:src="@{/webjars/flatpickr/dist/flatpickr.min.js}"></script>
 	<script th:src="@{/webjars/flatpickr/dist/l10n/fr.js}"></script>
 
@@ -72,6 +73,7 @@
 	    window.InputSpinner = InputSpinner;
 	</script>
 	<script th:src="@{/resources/js/vanilla-datetimerange-picker.js}"></script>
+	<script th:src="@{/webjars/quercus.js/src/treeview.js}"></script>
 	<script th:src="@{/resources/js/app.js}"></script>
 	
 	<link th:href="@{/webjars/awesomplete/awesomplete.css}" rel="stylesheet">
@@ -82,11 +84,10 @@
 	<link th:href="@{/webjars/datatables/css/dataTables.bootstrap5.min.css}" rel="stylesheet">
 	
 	<link th:href="@{/mvnpm/datatables.net-responsive-bs5/4.0.0/css/responsive.bootstrap5.min.css}" rel="stylesheet">
-	
-	<link th:href="@{/webjars/quercus.js/src/treeview.css}" rel="stylesheet">
 	<link th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.css}" rel="stylesheet">
 	<link th:href="@{/webjars/suneditor/dist/css/suneditor.min.css}" rel="stylesheet">
 	<link th:href="@{/webjars/flatpickr/dist/flatpickr.min.css}" rel="stylesheet">
+	<link th:href="@{/webjars/quercus.js/src/treeview.css}" rel="stylesheet">
 	<link th:href="@{/resources/css/vanilla-datetimerange-picker.css}" rel="stylesheet">
 	<link th:href="@{/resources/css/app.css}" rel="stylesheet">
 	<title th:text="#{${'title.' + active}(${title},${surveillantTerme})}">Application Emargement</title>
