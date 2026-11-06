@@ -83,7 +83,7 @@ public class UserAbsenceController {
 		} else {
 			redirectAttributes.addFlashAttribute("absenceDeclareError", erreur);
 		}
-		return String.format("redirect:/%s/user", emargementContext);
+		return String.format("redirect:/%s/user?tab=absence", emargementContext);
 	}
 
 	private Date parseDate(String date) throws ParseException {

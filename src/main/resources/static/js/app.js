@@ -801,6 +801,32 @@ function initCreateTagCheckForm() {
     }
 }
 
+// ---------- Absence étudiant (vue user) ----------
+function initAbsenceEtudiantForm() {
+    const fileInput = document.getElementById('absenceFiles');
+    const dateDebut = document.getElementById('absenceDateDebut');
+    const dateFin = document.getElementById('absenceDateFin');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            const max = parseInt(fileInput.dataset.maxBytes, 10);
+            const tooBig = max > 0 && Array.from(fileInput.files).some(file => file.size > max);
+            fileInput.setCustomValidity(
+                tooBig ? 'Chaque justificatif doit faire ' + fileInput.dataset.maxLabel + ' au maximum.' : ''
+            );
+            if (tooBig) {
+                fileInput.reportValidity();
+            }
+        });
+    }
+
+    if (dateDebut && dateFin) {
+        const dateMinFin = dateFin.min;
+        dateDebut.addEventListener('change', function () {
+            dateFin.min = dateDebut.value > dateMinFin ? dateDebut.value : dateMinFin;
+        });
+    }
+}
 
 /* ==========================================================================
  * 3. Calendrier (FullCalendar)
@@ -2197,6 +2223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initHelpForm();
     initCommunicationPdf();
     initCreateTagCheckForm();
+	initAbsenceEtudiantForm();
     initDuplicateSessions();
     initIncludeLogo();
     initSessionSearch();
