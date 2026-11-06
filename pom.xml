@@ -158,11 +158,6 @@
 		</dependency>
 		<!-- lancer mvn dependency:tree -->
 		<dependency>
-		    <groupId>org.webjars.npm</groupId>
-		    <artifactId>bootstrap-input-spinner</artifactId>
-		    <version>4.0.1</version> 
-		</dependency>
-		<dependency>
 		  <groupId>org.webjars.npm</groupId>
 		  <artifactId>bootstrap5-tags</artifactId>
 		  <version>1.7.16</version>

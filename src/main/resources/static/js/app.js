@@ -1750,10 +1750,11 @@ function onSubmitAffinage() {
 }
 
 function initAffinage() {
-    document.querySelectorAll(".affinage").forEach(el => {
-        new InputSpinner(el);
-        el.addEventListener("input", onSpinnerInput);
-    });
+	document.querySelectorAll(".affinage").forEach(el => {
+	    if (el["bootstrap-input-spinner"]) return; // déjà initialisé
+	    new InputSpinner(el);
+	    el.addEventListener("input", onSpinnerInput);
+	});
 
     document.getElementById("affinerButton")?.addEventListener("click", onSubmitAffinage);
 
