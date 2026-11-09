@@ -130,6 +130,16 @@
 		    <artifactId>fullcalendar__bootstrap5</artifactId>
 		    <version>6.1.10</version>
 		    <scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>vanilla-datetimerange-picker</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>bootstrap-input-spinner</artifactId>
+			<version>5.1.2</version>
 		</dependency>		
 		<dependency>
 		    <groupId>org.webjars</groupId>
@@ -241,7 +251,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
         </dependency>
-     <!-- flying saucer pdf -->  
+		<!-- flying saucer pdf -->  
         <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
