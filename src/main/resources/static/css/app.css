@@ -556,31 +556,45 @@ a.page-link.active {
    	overflow: hidden;
    	text-overflow: ellipsis;
    }
-   
-@media (max-width: 768px) {
-	.fc .fc-header-toolbar.fc-toolbar {
-		flex-wrap: nowrap;
-		align-items: center;
-		gap: .3rem;
-		padding-right: 7.5rem; /* place réservée au dropdown */
-	}
 
-	/* le titre reste au milieu, sur la même ligne */
-	.fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
+   @media (max-width: 767.98px) {
+   	.my-header-toolbar {
+   		flex-wrap: nowrap;
+   		align-items: center;
+   		gap: .3rem;
+   		padding-right: 7.5rem; /* place réservée au dropdown */
+   	}
+
+   	/* le titre reste au milieu, sur la même ligne */
+   	.my-toolbar-section:nth-child(2) {
+   		order: 0;
+   		flex: 1 1 auto;
+   		min-width: 0;
+   		text-align: center;
+   	}
+
+   	.my-toolbar-title {
+   		font-size: 1.05rem;
+   		font-weight: 700;
+   		line-height: 1.1;
+   	}
+
+   	.my-toolbar-button {
+   		padding: .25rem .5rem;
+   		font-size: .8rem;
+   	}
+	
+	/* les boutons de vues sont remplacés par le dropdown */
+	.my-toolbar-section:nth-child(3) {
+		display: none;
+	}
+	
+	.my-toolbar-section:nth-child(2) {
 		order: 0;
 		flex: 1 1 auto;
 		min-width: 0;
+		display: flex;
+		justify-content: center;
 		text-align: center;
 	}
-
-	.fc .fc-toolbar-title {
-		font-size: 1.05rem;
-		font-weight: 700;
-		line-height: 1.1;
-	}
-
-	.fc .fc-button {
-		padding: .25rem .5rem;
-		font-size: .8rem;
-	}
-}
+   }

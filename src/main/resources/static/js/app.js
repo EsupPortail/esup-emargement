@@ -936,11 +936,11 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
         timeGridDay:  ['fa-calendar-day', 'Jour'],
         listMonth:    ['fa-list', 'Planning']
     };
-    const headerFor = () => ({
-        start: 'prev,next today', center: 'title',
-        end: isMobile() ? '' : Object.keys(VIEWS).join(',')
-    });
-
+	const headerFor = () => ({
+	    start: 'prev,next today', center: 'title',
+	    end: Object.keys(VIEWS).join(',')
+	});
+	
     // ---------- QR code du modal ----------
     let calendarQrInterval = null;
     const stopCalendarQr = () => { clearInterval(calendarQrInterval); calendarQrInterval = null; };
@@ -1018,7 +1018,11 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
     const calendar = new FullCalendar.Calendar(calendarEl, {
         height: 'auto',
         headerToolbar: headerFor(),
-        buttonText: { today: 'Auj.', dayGridMonth: 'Mois', timeGridWeek: 'Semaine', timeGridDay: 'Jour', listMonth: 'Planning' },
+		headerToolbarClass: 'my-header-toolbar',
+		toolbarSectionClass: 'my-toolbar-section',
+		toolbarTitleClass: 'my-toolbar-title',
+		buttonClass: 'my-toolbar-button',
+        buttons: { today: 'Auj.', dayGridMonth: 'Mois', timeGridWeek: 'Semaine', timeGridDay: 'Jour', listMonth: 'Planning' },
         navLinks: true,
         editable: editable,
         allDayText: 'Journée',
@@ -1026,7 +1030,6 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
         events: urlEvents,
         initialView: initialView || (isMobile() ? 'timeGridDay' : 'dayGridMonth'),
         initialDate: initialDate || undefined,
-        themeSystem: 'bootstrap5',
         slotMinTime: '07:00:00',
         slotMaxTime: '21:00:00',
         scrollTime: '08:00:00',
@@ -1036,15 +1039,6 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
         datesSet: info => {
             const [i, l] = VIEWS[info.view.type] || VIEWS.dayGridMonth;
             dd.querySelector('.dropdown-toggle').innerHTML = `<i class="fa-solid ${i} me-2"></i>${l}`;
-        },
-
-        // Ne réagit qu'au passage du seuil mobile/desktop, et garde la date affichée
-        windowResize: () => {
-            if (isMobile() === wasMobile) return;
-            wasMobile = isMobile();
-            const d = calendar.getDate();
-            calendar.setOption('headerToolbar', headerFor());
-            calendar.changeView(calendar.view.type, d);
         },
 
         eventClick: info => {
@@ -1094,6 +1088,15 @@ function getCalendar(calendarEl, urlEvents, editable, initialView, useModal = fa
     calendar.render();
     calendarEl._fc = calendar;
     calendarEl._dd = dd;
+	
+	if (calendarEl._ro) calendarEl._ro.disconnect();
+	calendarEl._ro = new ResizeObserver(() => {
+		if (isMobile() === wasMobile) return;
+		wasMobile = isMobile();
+		calendar.changeView(calendar.view.type, calendar.getDate());
+	});
+	calendarEl._ro.observe(calendarEl);
+	
     return calendar;
 }
 
