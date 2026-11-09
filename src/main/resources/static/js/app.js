@@ -4,10 +4,12 @@
  *   3. Calendrier (FullCalendar)
  *   4. Présence / QR code / SSE
  *   5. Statistiques
- *   6. ADE (jsTree, import d'événements, affinage)
+ *   6. ADE (Quercus Treeview, import d'événements, affinage)
  *   7. DataTables
  *   8. Initialisation par page (DOMContentLoaded)
  *   9. Écouteurs HTMX
+ *
+ *   Version sans jQuery : DOM natif, fetch, Bootstrap 5 (API JavaScript).
  * ========================================================================== */
 
 
@@ -45,6 +47,54 @@ function stripHTMLTagsUsingDOM(html) {
     return tempDiv.textContent || tempDiv.innerText || "";
 }
 
+// ---------- Petits utilitaires DOM (remplacent les raccourcis jQuery) ----------
+function setFieldValue(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = value;
+}
+
+function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function hideAll(selector) {
+    document.querySelectorAll(selector).forEach(function(el) { el.style.display = 'none'; });
+}
+
+function showAll(selector) {
+    document.querySelectorAll(selector).forEach(function(el) { el.style.display = ''; });
+}
+
+function onId(id, eventName, handler) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(eventName, handler);
+}
+
+// En-têtes CSRF Spring Security si les balises <meta name="_csrf"> / "_csrf_header" sont présentes
+function csrfHeaders() {
+    var token = document.querySelector('meta[name="_csrf"]');
+    var header = document.querySelector('meta[name="_csrf_header"]');
+    var headers = { "X-Requested-With": "XMLHttpRequest" };
+    if (token && header) {
+        headers[header.content] = token.content;
+    }
+    return headers;
+}
+
+// Équivalent de $(el).load(url) : charge un fragment HTML dans l'élément.
+// Renvoie false si l'élément n'existe pas. Attention : les <script> du fragment ne sont pas exécutés.
+async function loadInto(el, url) {
+    if (!el) return false;
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    el.innerHTML = await response.text();
+    return true;
+}
+
 //Récupération des paramètres GET
 function $_GET(param) {
     var vars = {};
@@ -72,8 +122,9 @@ function confirmSubmission() {
 }
 
 function updateHidden() {
-    let isChecked = $('#includeLogo').is(':checked');
-    $('#hiddenIncludeLogo').val(isChecked ? 'true' : 'false');
+    var includeLogo = document.getElementById('includeLogo');
+    var isChecked = includeLogo != null && includeLogo.checked;
+    setFieldValue('hiddenIncludeLogo', isChecked ? 'true' : 'false');
 }
 
 function copySelectedIds(targetFieldId, formId) {
@@ -148,7 +199,7 @@ function initPageSlimSelects() {
         { id: 'sessionLocationExpected2', placeholder: 'Rechercher Lieu' },
         { id: 'blackListGroupe', placeholder: 'Rechercher Groupe' },
         { id: 'motifAbsence' },
-		{ id: 'my-select'}
+        { id: 'my-select' }
     ];
     slimSelectConfigs.forEach(config => {
         if (document.getElementById(config.id)) {
@@ -240,6 +291,33 @@ function initCommunicationPdf() {
     }
 }
 
+// ---------- Absence étudiant (vue user) ----------
+function initAbsenceEtudiantForm() {
+    const fileInput = document.getElementById('absenceFiles');
+    const dateDebut = document.getElementById('absenceDateDebut');
+    const dateFin = document.getElementById('absenceDateFin');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const max = parseInt(fileInput.dataset.maxBytes, 10);
+            const tooBig = max > 0 && Array.from(fileInput.files).some(file => file.size > max);
+            fileInput.setCustomValidity(
+                tooBig ? 'Chaque justificatif doit faire ' + fileInput.dataset.maxLabel + ' au maximum.' : ''
+            );
+            if (tooBig) {
+                fileInput.reportValidity();
+            }
+        });
+    }
+
+    if (dateDebut && dateFin) {
+        const dateMinFin = dateFin.min;
+        dateDebut.addEventListener('change', function() {
+            dateFin.min = dateDebut.value > dateMinFin ? dateDebut.value : dateMinFin;
+        });
+    }
+}
+
 // ---------- Plugins divers ----------
 function setupModal(modalId, fields) {
     const modal = document.getElementById(modalId);
@@ -263,27 +341,29 @@ function setupModal(modalId, fields) {
 
 function initBootstrapAndPlugins() {
     //Couleur motif absence
-	const picker = document.getElementById('colorPicker');
-	const hex = document.getElementById('colorHex');
+    const picker = document.getElementById('colorPicker');
+    const hex = document.getElementById('colorHex');
 
-	if (picker !== null && hex !== null) {
-	    picker.addEventListener('input', function () {
-	        hex.value = this.value;
-	    });
+    if (picker !== null && hex !== null) {
+        picker.addEventListener('input', function() {
+            hex.value = this.value;
+        });
 
-	    hex.addEventListener('input', function () {
-	        if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
-	            picker.value = this.value;
-	        }
-	    });
-	}
+        hex.addEventListener('input', function() {
+            if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
+                picker.value = this.value;
+            }
+        });
+    }
     //enable tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    $(".contextualHelp").on("mouseover", function(event) {
-        $(this).tooltip("show");
-        $(this).prop("title", "");
+    document.querySelectorAll('.contextualHelp').forEach(function(el) {
+        el.addEventListener('mouseover', function() {
+            bootstrap.Tooltip.getOrCreateInstance(this).show();
+            this.title = '';
+        });
     });
 }
 
@@ -294,24 +374,27 @@ function showInitialModals() {
         ['#modalUser', '#modalUser']
     ].forEach(function(pair) {
         if (document.querySelector(pair[0]) != null) {
-            $(pair[1]).modal('show');
+            var modalEl = document.querySelector(pair[1]);
+            if (modalEl != null) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
         }
     });
 }
 
 // ---------- Fichiers (filepond) ----------
 function initializeFileInput(fileInput) {
-	const images = document.getElementById('inputFilePond');
-	if(images !=null){
-		FilePond.create(document.getElementById('inputFilePond'), {
-		    allowMultiple: true,
-		    storeAsFile: true,
-			labelIdle:
-		        'Glissez plusieurs images ici ou <span class="filepond--label-action">parcourir</span>',
-		    labelFileRemove: 'Supprimer',
-		    credits: false
-		});
-	}
+    const images = document.getElementById('inputFilePond');
+    if (images != null) {
+        FilePond.create(document.getElementById('inputFilePond'), {
+            allowMultiple: true,
+            storeAsFile: true,
+            labelIdle:
+                'Glissez plusieurs images ici ou <span class="filepond--label-action">parcourir</span>',
+            labelFileRemove: 'Supprimer',
+            credits: false
+        });
+    }
 }
 
 // ---------- Cases à cocher ----------
@@ -394,15 +477,22 @@ function initCaseSelection() {
 
 // "Tout sélectionner" des éléments non utilisés
 function initNotUsedSelection() {
-    $("#selectAll").click(function() {
-		if ($('.notUsed').length === 0) return; 
-        $('.notUsed').find("input[type=checkbox]").prop('checked', $(this).prop('checked'));
-    });
+    const selectAllBox = document.getElementById('selectAll');
+    const notUsedBoxes = () => document.querySelectorAll('.notUsed input[type=checkbox]');
 
-    $('.notUsed').find("input[type=checkbox]").click(function() {
-        if (!$(this).prop("checked")) {
-            $("#selectAll").prop("checked", false);
-        }
+    if (selectAllBox) {
+        selectAllBox.addEventListener('click', function() {
+            if (document.querySelectorAll('.notUsed').length === 0) return;
+            notUsedBoxes().forEach(box => { box.checked = this.checked; });
+        });
+    }
+
+    notUsedBoxes().forEach(function(box) {
+        box.addEventListener('click', function() {
+            if (!this.checked && selectAllBox) {
+                selectAllBox.checked = false;
+            }
+        });
     });
 }
 
@@ -469,17 +559,21 @@ function initImportForms() {
     var submitExport = document.getElementById('submitExport');
     var importBtn;
     var nbSelected;
+    var isChecked = function(id) {
+        var el = document.getElementById(id);
+        return el != null && el.checked;
+    };
 
     if (submitExport) {
         importBtn = document.getElementById('import');
-        $(".statusExport").hide();
+        hideAll(".statusExport");
         importBtn.addEventListener('click', function(e) {
             var sessionEpreuve = document.getElementById('sessionEpreuve');
             if (sessionEpreuve.value == "") {
                 e.preventDefault();
                 alert("Vous devez choisir une Session!");
             } else {
-                $(".statusExport").show();
+                showAll(".statusExport");
                 submitExport.submit();
             }
         });
@@ -488,17 +582,17 @@ function initImportForms() {
     var importUsersLdapform = document.getElementById('importUsersLdapform');
     if (importUsersLdapform != null) {
         importBtn = document.getElementById('importLdap');
-        nbSelected = $("#usersGroupLdap option:selected").length;
-        $(".statusExportLdap").hide();
+        nbSelected = document.querySelectorAll("#usersGroupLdap option:checked").length;
+        hideAll(".statusExportLdap");
         importBtn.addEventListener('click', function(e) {
-            var importAgents = $("#importTagchecker").prop('checked') ? true : false;
+            var importAgents = isChecked("importTagchecker");
             var sessionEpreuveLdap = document.getElementById('sessionEpreuveLdap');
             if (sessionEpreuveLdap.value == "" && !importAgents) {
                 e.preventDefault();
                 alert("Vous devez choisr une Session!");
             } else {
                 if (nbSelected > 0) {
-                    $(".statusExportLdap").show();
+                    showAll(".statusExportLdap");
                     importUsersLdapform.submit();
                 }
             }
@@ -506,7 +600,7 @@ function initImportForms() {
     }
 
     var importGroupe = document.getElementById('importGroupe');
-    $(".statusExportGroupe").hide();
+    hideAll(".statusExportGroupe");
     if (importGroupe != null) {
         importGroupe.addEventListener('click', function(e) {
             var sessionEpreuve = document.getElementById('sessionEpreuveGroupe');
@@ -514,43 +608,46 @@ function initImportForms() {
                 e.preventDefault();
                 alert("Vous devez choisr une Session!");
             } else {
-                $(".statusExportGroupe").show();
+                showAll(".statusExportGroupe");
                 submitExport.submit();
             }
         });
     }
 
     var importCsv = document.getElementById('importCsv');
-    $(".statusExportCsv").hide();
+    hideAll(".statusExportCsv");
     if (importCsv != null) {
         importCsv.addEventListener('click', function(e) {
-            var importAgents = $("#importTagchecker").prop('checked') ? true : false;
+            var importAgents = isChecked("importTagchecker");
             var sessionEpreuve = document.getElementById('sessionEpreuveCsv');
             if (sessionEpreuve.value == "" && !importAgents) {
                 e.preventDefault();
                 alert("Vous devez choisr une Session!");
             } else {
-                $(".statusExportCsv").show();
+                showAll(".statusExportCsv");
                 submitExport.submit();
             }
         });
     }
 
-    $('#selectAll').on("click", function() {
+    onId('selectAll', 'click', function() {
         var selectedItems = 0;
-        var nbSelected = $("#usersGroupLdap option:selected").length;
-        $('#usersGroupLdap option').each(function() {
-            if (!this.disabled && this.value != '') {
-                $(this).prop('selected', (nbSelected == 0) ? true : false);
-                selectedItems = $(this).prop('selected') ? $("#ldapMembersSize").text() : 0;
+        var nbSelected = document.querySelectorAll("#usersGroupLdap option:checked").length;
+        document.querySelectorAll('#usersGroupLdap option').forEach(function(option) {
+            if (!option.disabled && option.value != '') {
+                option.selected = (nbSelected == 0);
+                var sizeEl = document.getElementById("ldapMembersSize");
+                selectedItems = option.selected ? (sizeEl ? sizeEl.textContent : '') : 0;
             }
         });
-        $("#selectedUsers").text(selectedItems);
+        setText("selectedUsers", selectedItems);
     });
 
-    $('#usersGroupLdap option').on("click", function() {
-        nbSelected = $("#usersGroupLdap option:selected").length;
-        $("#selectedUsers").text(nbSelected);
+    document.querySelectorAll('#usersGroupLdap option').forEach(function(option) {
+        option.addEventListener('click', function() {
+            nbSelected = document.querySelectorAll("#usersGroupLdap option:checked").length;
+            setText("selectedUsers", nbSelected);
+        });
     });
 }
 
@@ -560,7 +657,8 @@ function initNavigationSelects() {
     var selectContext = document.getElementById('selectContext');
     if (selectContext != null) {
         selectContext.addEventListener("change", function() {
-            var text = $(this).find("option:selected").text();
+            var selected = this.options[this.selectedIndex];
+            var text = selected ? selected.textContent.trim() : "";
             if (text == "Ordre") {
                 window.location.href = this.value;
             } else {
@@ -570,26 +668,27 @@ function initNavigationSelects() {
     }
 
     //Changement année univ
-    $("#anneeUnivSelect").on("change", function(e) {
+    onId("anneeUnivSelect", "change", function() {
         var annee = this.value;
         window.location.href = window.location.pathname + "?anneeUniv=" + annee;
     });
 
     //ADE : changement de projet
     [['projetParam', 'params'], ['projetTasks', 'tasks'], ['projetSalles', 'salles']].forEach(function(pair) {
-        $("#" + pair[0]).on("change", function(event) {
+        onId(pair[0], "change", function() {
             window.location.href = emargementContextUrl + "/manager/adeCampus/" + pair[1] + "?idProjet=" + this.value;
         });
     });
 
-    $("#clearFilters").on("click", function(event) {
+    onId("clearFilters", "click", function() {
         window.location.href = window.location.origin + window.location.pathname;
     });
 }
 
 // ---------- Pagination : option "Tous" ----------
 function initPaginationAll() {
-    if (document.getElementById('pagination') == null) return;
+    var pagination = document.getElementById('pagination');
+    if (pagination == null) return;
 
     if (allSelect != null && allSelect > 10) {
         var loc = window.location;
@@ -604,29 +703,45 @@ function initPaginationAll() {
             url.search = search_params;
             allSelectUrl = url.pathname + url.search;
         }
-        $("#pagination select").prepend("<option value='" + allSelect + "' data-page-size-url='" + allSelectUrl + "'>Tous</option>");
+        pagination.querySelectorAll('select').forEach(function(select) {
+            var option = new Option('Tous', allSelect);
+            option.dataset.pageSizeUrl = allSelectUrl;
+            select.prepend(option);
+        });
     }
-    $("#pagination option:selected").removeProp("selected");
+
     var sizeSelected = ($_GET("size") != null) ? $_GET("size") : allSelect;
-    $("#pagination option[value='" + sizeSelected + "']").attr('selected', 'selected');
+    pagination.querySelectorAll('option').forEach(function(option) {
+        if (option.value == sizeSelected) {
+            option.setAttribute('selected', 'selected');
+            option.selected = true;
+        }
+    });
 }
 
 // ---------- Procuration ----------
 function initProxy() {
-    $(document).on('click', '.proxyPersonCheck', function(e) {
+    function selectSubstitute(value) {
+        var option = document.querySelector("#substituteId option[value=\"" + CSS.escape(value) + "\"]");
+        if (option) option.selected = true;
+    }
+
+    document.addEventListener('click', function(e) {
+        var trigger = e.target.closest('.proxyPersonCheck');
+        if (!trigger) return;
         e.preventDefault();
         var splitProxy = null;
 
-        if (typeof $(this).attr("data-whatever") == "undefined") {
-            splitProxy = this.value.split(",");
-            $("#substituteId option[value='']").prop("selected", "selected");
+        if (trigger.getAttribute("data-whatever") === null) {
+            splitProxy = trigger.value.split(",");
+            selectSubstitute('');
         } else {
-            splitProxy = $(this).attr("data-whatever").split(",");
-            $("#substituteId option[value='" + splitProxy[2] + "']").prop("selected", "selected");
+            splitProxy = trigger.getAttribute("data-whatever").split(",");
+            selectSubstitute(splitProxy[2]);
         }
 
-        $("#procurationPerson").text(splitProxy[1]);
-        $("#tcId").val(splitProxy[0]);
+        setText("procurationPerson", splitProxy[1]);
+        setFieldValue("tcId", splitProxy[0]);
 
         const offcanvasElementList = document.getElementById('offcanvasExample');
         const offcanvasList = new bootstrap.Offcanvas(offcanvasElementList);
@@ -642,21 +757,26 @@ function initProxy() {
 
 // ---------- Suppression d'un tagCheck ----------
 function initDeleteTagCheck() {
-    $(document).on("click", ".btn-delete", function(e) {
+    document.addEventListener("click", function(e) {
+        var button = e.target.closest(".btn-delete");
+        if (!button) return;
         e.preventDefault();
         if (!confirm("Confirmez-vous la suppression ?")) {
             return;
         }
-        const id = $(this).closest("tr").attr("id");
-        $.ajax({
-            url: emargementContextUrl + "/supervisor/tagCheck/" + id,
-            type: "POST",
-            success: function() {
-                $("#" + id).remove();
-            },
-            error: function() {
-                alert("Erreur lors de la suppression");
-            }
+        var row = button.closest("tr");
+        if (!row) return;
+        var id = row.id;
+        fetch(emargementContextUrl + "/supervisor/tagCheck/" + id, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: csrfHeaders()
+        }).then(function(response) {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            var el = document.getElementById(id);
+            if (el) el.remove();
+        }).catch(function() {
+            alert("Erreur lors de la suppression");
         });
     });
 }
@@ -763,22 +883,22 @@ function initAutocomplete() {
             if (document.querySelector("#createSuperAdminPage, #createTagCheckPage, #createUserApp, #createAbsence, #addMembersPage")) {
                 this.value = splitResult[0].toString().trim();
                 if (document.querySelector("#createTagCheckPage, #createUserApp, #createAbsence")) {
-                    $("#eppn").val(splitResult[0].toString().trim());
+                    setFieldValue("eppn", splitResult[0].toString().trim());
                 }
                 if (document.getElementById("resultEppn")) {
-                    $("#resultEppn").html(splitResult[1] + " " + splitResult[2]);
+                    setText("resultEppn", splitResult[1] + " " + splitResult[2]);
                 }
                 if (document.getElementById("tcIdentity")) {
-                    $("#tcIdentity").html(splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
+                    setText("tcIdentity", splitResult[2].toString().trim() + ' ' + splitResult[1].toString().trim());
                 }
             } else {
                 if (document.getElementById("searchField")) {
                     var split3 = (splitResult[3] == undefined) ? '' : " // " + splitResult[3];
                     this.value = splitResult[1] + " " + splitResult[2] + split3;
-                    $("#searchField").val(splitResult[1] + " " + splitResult[2] + split3);
-                    $("#searchValue").val(splitResult[0]);
+                    setFieldValue("searchField", splitResult[1] + " " + splitResult[2] + split3);
+                    setFieldValue("searchValue", splitResult[0]);
                 } else if (document.getElementById("tagChecksListPage")) {
-                    $("#eppn").val(splitResult[0].toString().trim());
+                    setFieldValue("eppn", splitResult[0].toString().trim());
                 }
                 formSearch.submit();
             }
@@ -801,32 +921,6 @@ function initCreateTagCheckForm() {
     }
 }
 
-// ---------- Absence étudiant (vue user) ----------
-function initAbsenceEtudiantForm() {
-    const fileInput = document.getElementById('absenceFiles');
-    const dateDebut = document.getElementById('absenceDateDebut');
-    const dateFin = document.getElementById('absenceDateFin');
-
-    if (fileInput) {
-        fileInput.addEventListener('change', function () {
-            const max = parseInt(fileInput.dataset.maxBytes, 10);
-            const tooBig = max > 0 && Array.from(fileInput.files).some(file => file.size > max);
-            fileInput.setCustomValidity(
-                tooBig ? 'Chaque justificatif doit faire ' + fileInput.dataset.maxLabel + ' au maximum.' : ''
-            );
-            if (tooBig) {
-                fileInput.reportValidity();
-            }
-        });
-    }
-
-    if (dateDebut && dateFin) {
-        const dateMinFin = dateFin.min;
-        dateDebut.addEventListener('change', function () {
-            dateFin.min = dateDebut.value > dateMinFin ? dateDebut.value : dateMinFin;
-        });
-    }
-}
 
 /* ==========================================================================
  * 3. Calendrier (FullCalendar)
@@ -1059,11 +1153,12 @@ function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
                         var tagDate = moment(tc.tagDate).format('DD-MM-YYYY HH:mm:ss');
                         var info = moment(tc.sessionEpreuve.dateExamen).format('DD-MM-YYYY') + " // " +
                             tc.sessionEpreuve.nomSessionEpreuve + " // ";
-                        $("#norole").addClass("d-none");
-                        $("#newbie").removeClass("d-none");
-                        $("#tagDate").text(tagDate);
-                        $("#sessionNewbie").text(info);
-                        $("#accordionNewbie").hide();
+                        document.getElementById("norole")?.classList.add("d-none");
+                        document.getElementById("newbie")?.classList.remove("d-none");
+                        setText("tagDate", tagDate);
+                        setText("sessionNewbie", info);
+                        var accordionNewbie = document.getElementById("accordionNewbie");
+                        if (accordionNewbie) accordionNewbie.style.display = "none";
                     }
 
                     if (data.length > 0) {
@@ -1086,7 +1181,7 @@ function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
             }
             deleteParam(window.location.href, "tc");
             setTimeout(function() {
-                $("#displayedIdentity").addClass("d-none");
+                document.getElementById("displayedIdentity")?.classList.add("d-none");
             }, 2000);
         } else {
             if (null != qrCodeCam) {
@@ -1098,45 +1193,59 @@ function updatePresence(url, numEtu, currentLocation, qrCodeCam = null) {
     request.send();
 }
 
+// Affiche le toast d'identité au clic sur ".userToast".
+// Délégation unique sur document : fonctionne aussi pour les blocs rechargés, sans empiler d'écouteurs.
+let userToastBound = false;
 function displayToast() {
-    // off() : évite d'empiler les écouteurs à chaque rechargement d'un bloc de présence
-    $(".userToast").off("click.userToast").on("click.userToast", function(event) {
+    if (userToastBound) return;
+    userToastBound = true;
+
+    document.addEventListener("click", function(event) {
+        const trigger = event.target.closest(".userToast");
+        if (!trigger) return;
+
         const toastLiveExample = document.getElementById('liveToast');
-        if (toastLiveExample != null) {
-            const toast = new bootstrap.Toast(toastLiveExample);
-            var splitField = this.getAttribute("data-whatever").split("//");
-            $("#photoPresent").prop("src", emargementContextUrl + "/supervisor/" + splitField[0] + "/photo");
-            var nom = "";
-            var prenom = "";
-            if (splitField[1] != "null") {
-                nom = splitField[1];
-                prenom = splitField[2];
-            }
-            $("#photoPresent").prop("alt", "Photo " + prenom + " " + nom);
-            $("#nomPresence").text(nom);
-            $("#prenomPresence").text(prenom);
-            if (splitField[3] != "null") {
-                $("#numIdentifiantPresence").text(splitField[3]);
-            }
-            if (splitField[4] != "null") {
-                $("#codeEtape").text(splitField[4]);
-            }
-            toast.show();
+        if (toastLiveExample == null) return;
+
+        const toast = bootstrap.Toast.getOrCreateInstance(toastLiveExample);
+        var splitField = trigger.getAttribute("data-whatever").split("//");
+
+        const photo = document.getElementById("photoPresent");
+        var nom = "";
+        var prenom = "";
+        if (splitField[1] != "null") {
+            nom = splitField[1];
+            prenom = splitField[2];
         }
+        if (photo) {
+            photo.src = emargementContextUrl + "/supervisor/" + splitField[0] + "/photo";
+            photo.alt = "Photo " + prenom + " " + nom;
+        }
+        setText("nomPresence", nom);
+        setText("prenomPresence", prenom);
+        if (splitField[3] != "null") {
+            setText("numIdentifiantPresence", splitField[3]);
+        }
+        if (splitField[4] != "null") {
+            setText("codeEtape", splitField[4]);
+        }
+        toast.show();
     });
 }
 
 function getQrCodeSession(url, idImg) {
-    $.ajax({
-        url: url,
-        method: 'GET',
-        success: function(response) {
-            $("#" + idImg).attr("src", "data:image/png;base64, " + response);
-        },
-        error: function(xhr, status, error) {
+    fetch(url, { credentials: "same-origin" })
+        .then(function(response) {
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            return response.text();
+        })
+        .then(function(text) {
+            var img = document.getElementById(idImg);
+            if (img) img.setAttribute("src", "data:image/png;base64, " + text);
+        })
+        .catch(function(error) {
             console.error('Error:', error);
-        }
-    });
+        });
 }
 
 // QR code affiché pour la session courante (rafraîchi périodiquement)
@@ -1162,7 +1271,7 @@ function getEventSource() {
 function initPresencePage() {
     if (document.getElementById('presencePage') == null && document.getElementById('unknownPage') == null) return;
 
- 	const eventSource = getEventSource();
+    const eventSource = getEventSource();
     sortDate = (triBadgeage == 'true') ? [0, 'asc'] : [4, 'desc'];
     initTablePresence(sortDate);
 
@@ -1182,7 +1291,7 @@ function initPresencePage() {
                 identifiant = guest.email;
                 varUrl = "inconnu";
             }
-            var url = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
+            var photoUrl = emargementContextUrl + "/supervisor/" + varUrl + "/photo";
             var nom = "";
             var prenom = "";
             if (person != null && person.nom != null) {
@@ -1195,59 +1304,76 @@ function initPresencePage() {
             if (sessionLocationExpected != null) {
                 if (tagCheck.tagChecker != null && tagCheck.tagChecker.userApp.eppn == eppnAuth) {
                     var displayedIdentity = sessionLocationExpected + "_displayedIdentity2";
-                    var displayedIdentity2 = $("#" + displayedIdentity);
-                    displayedIdentity2.removeClass("d-none");
-                    displayedIdentity2.find("img").prop("src", url);
-                    displayedIdentity2.find("img").prop("alt", identifiant);
-                    displayedIdentity2.find('#prenomPresence3').text(prenom);
-                    displayedIdentity2.find('#nomPresence3').text(nom);
-                    if (person != null && person.numIdentifiant != null) {
-                        displayedIdentity2.find('#numIdentifiantPresence2').text('N° ' + person.numIdentifiant);
+                    var displayedIdentity2 = document.getElementById(displayedIdentity);
+                    if (displayedIdentity2) {
+                        displayedIdentity2.classList.remove("d-none");
+                        var photo = displayedIdentity2.querySelector("img");
+                        if (photo) {
+                            photo.src = photoUrl;
+                            photo.alt = identifiant;
+                        }
+                        var prenomEl = displayedIdentity2.querySelector('#prenomPresence3');
+                        if (prenomEl) prenomEl.textContent = prenom;
+                        var nomEl = displayedIdentity2.querySelector('#nomPresence3');
+                        if (nomEl) nomEl.textContent = nom;
+                        if (person != null && person.numIdentifiant != null) {
+                            var numEl = displayedIdentity2.querySelector('#numIdentifiantPresence2');
+                            if (numEl) numEl.textContent = 'N° ' + person.numIdentifiant;
+                        }
+                        const toast = new bootstrap.Toast(displayedIdentity2, { 'delay': 2000 });
+                        toast.show();
                     }
-                    const toastLiveExample = document.getElementById(displayedIdentity);
-                    const toast = new bootstrap.Toast(toastLiveExample, { 'delay': 2000 });
-                    toast.show();
                 }
             }
             var urlLocation = (sessionLocationExpected != null) ? sessionLocationExpected : $_GET("location");
-            var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
+            var presenceUrl = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
                 "&location=" + urlLocation + "&update=" + tagCheck.id;
             var idBlock = tagCheck.isUnknown ? tagCheck.sessionLocationBadged.id : sessionLocationExpected;
-            $("#resultsBlock" + idBlock).load(url, function(responseText, textStatus, XMLHttpRequest) {
+            loadInto(document.getElementById("resultsBlock" + idBlock), presenceUrl).then(function(loaded) {
+                if (!loaded) return;
                 backToTop();
                 if (tagCheck.tagChecker != null && tagCheck.tagChecker.userApp.eppn == eppnAuth) {
                     displayToast();
                 }
                 initTablePresence(sortDate);
+            }).catch(function(error) {
+                console.error("Erreur de chargement du bloc de présence :", error);
             });
         }
     }, false);
 
     eventSource.addEventListener('sl', response => {
         var sl = JSON.parse(response.data);
-        $("#sl" + sl.id).html(sl.nbPresentsSessionLocation);
+        setText("sl" + sl.id, sl.nbPresentsSessionLocation);
     }, false);
 
     eventSource.addEventListener('message', function(e) {
         var splitData = e.data.split("@@");
         var percent = parseFloat(splitData[1]).toFixed(2);
-        $("#progressBar" + splitData[0]).css("width", percent + '%');
-        $("#progressBar" + splitData[0]).text(percent + '%');
+        var bar = document.getElementById("progressBar" + splitData[0]);
+        if (bar) {
+            bar.style.width = percent + '%';
+            bar.textContent = percent + '%';
+        }
     });
 
     eventSource.addEventListener('total', response => {
         var total = response.data;
         var splitData1 = total.split("@@");
-        $("#totalPresent" + splitData1[0]).text(splitData1[1]);
+        setText("totalPresent" + splitData1[0], splitData1[1]);
     }, false);
 
     eventSource.addEventListener('customMsg', response => {
         var customMsg = response.data;
         if (customMsg != "") {
-            $("#customMsg").removeClass("d-none").addClass("show");
-            setTimeout(function() {
-                $("#customMsg").addClass("d-none");
-            }, 2000);
+            var msg = document.getElementById("customMsg");
+            if (msg) {
+                msg.classList.remove("d-none");
+                msg.classList.add("show");
+                setTimeout(function() {
+                    msg.classList.add("d-none");
+                }, 2000);
+            }
         }
     }, false);
 
@@ -1257,11 +1383,14 @@ function initPresencePage() {
         var urlLocation = $_GET("location");
         var url = emargementContextUrl + "/supervisor/presence?sessionEpreuve=" + sessionId +
             "&location=" + urlLocation + "&tcer=true&update=" + tagChecker.id;
-        $("#resultsBlock" + tagChecker.sessionLocation.id).load(url, function(responseText, textStatus, XMLHttpRequest) {
+        loadInto(document.getElementById("resultsBlock" + tagChecker.sessionLocation.id), url).then(function(loaded) {
+            if (!loaded) return;
             backToTop();
             displayToast();
             sortDate = (triBadgeage == 'true') ? [0, 'asc'] : [4, 'desc'];
             initTablePresence(sortDate);
+        }).catch(function(error) {
+            console.error("Erreur de chargement du bloc de présence :", error);
         });
     }, false);
 }
@@ -1272,7 +1401,7 @@ function initImportSessionCounter() {
     const eventSource = getEventSource();
     eventSource.addEventListener('nbImportSession', response => {
         var total = response.data;
-        $("#nbImportSession").text("Imports ADE : " + total);
+        setText("nbImportSession", "Imports ADE : " + total);
     }, false);
 }
 
@@ -1431,10 +1560,13 @@ function initStatsSessionModal() {
         renderChart('countTagChecksByTimeBadgeage', 'manager', { param: sessionId });
     });
 
-    $('#modal-chart').on('shown.bs.modal', function(event) {
-        var button = $(event.relatedTarget);
-        var title = button.data('whatever');
-        $(this).find('.modal-title').text(title);
+    document.getElementById('modal-chart')?.addEventListener('shown.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const title = button ? button.dataset.whatever : null;
+        const modalTitle = this.querySelector('.modal-title');
+        if (modalTitle && title != null) {
+            modalTitle.textContent = title;
+        }
     });
 }
 
@@ -1442,7 +1574,6 @@ function initStatsSessionModal() {
  * 6. ADE (arbre Quercus.js, import d'événements, affinage)
  *    Remplace jsTree : le contrôleur /manager/adeCampus/json renvoie toujours
  *    le JSON plat {id, parent, text, state}, converti ici en arbre imbriqué.
- *    Version sans jQuery.
  * ========================================================================== */
 
 var adeTree = null; // instance Quercus Treeview (#frmt)
@@ -1496,11 +1627,6 @@ function adeToTreeData(flat) {
     })(roots, [], []);
 
     return roots;
-}
-
-function setFieldValue(id, value) {
-    var el = document.getElementById(id);
-    if (el) el.value = value;
 }
 
 /**
@@ -1560,7 +1686,7 @@ function updateJsTree(selectedData, category, idProject) {
 }
 
 function initJsTree() {
-	if(!document.getElementById("frmt")) return;
+    if (!document.getElementById("frmt")) return;
     adeTree = new Treeview({
         containerId: 'frmt',
         data: [],
@@ -1590,7 +1716,7 @@ function initJsTree() {
 function importEvents(url) {
     var btn = document.getElementById("importBtn");
     if (!btn) return;
-    // onclick (et non addEventListener) : remplace l'éventuel handler précédent, comme off('click') avant
+    // onclick (et non addEventListener) : remplace l'éventuel handler précédent
     btn.onclick = function(event) {
         event.preventDefault();
         var form = document.getElementById("displayEventsImport");
@@ -1600,8 +1726,8 @@ function importEvents(url) {
         fetch(url, {
             method: "POST",
             credentials: "same-origin",
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-            body: new URLSearchParams(new FormData(form)) // application/x-www-form-urlencoded, comme serialize()
+            headers: csrfHeaders(),
+            body: new URLSearchParams(new FormData(form)) // application/x-www-form-urlencoded
         }).then(function(response) {
             if (!response.ok) throw new Error("HTTP " + response.status);
             document.getElementById("displayEvents").requestSubmit();
@@ -1617,61 +1743,70 @@ function importEvents(url) {
 function initAdeCampus(tableSalles) {
     initJsTree();
 
-    $("#codeSalleSelect").on("change", function(event) {
+    onId("codeSalleSelect", "change", function() {
         document.getElementById("displaySalles").submit();
     });
 
-    $("#displayEvents").on("submit", function(event) {
-        $("#spinnerLoad").removeClass("d-none");
+    onId("displayEvents", "submit", function() {
+        document.getElementById("spinnerLoad")?.classList.remove("d-none");
     });
 
-    $("#strDateMin").on("change", function() {
-        var strDateMin = $("#strDateMin").val();
-        $("#strDateMinImport").val(strDateMin);
-        if ($("#strDateMax").val() == "") {
-            $("#strDateMax").val(strDateMin);
-            $("#strDateMaxImport").val(strDateMin);
+    onId("strDateMin", "change", function() {
+        var strDateMin = this.value;
+        setFieldValue("strDateMinImport", strDateMin);
+        var strDateMax = document.getElementById("strDateMax");
+        if (strDateMax && strDateMax.value == "") {
+            strDateMax.value = strDateMin;
+            setFieldValue("strDateMaxImport", strDateMin);
         }
     });
-    $("#strDateMax").on("change", function() {
-        $("#strDateMaxImport").val($("#strDateMax").val());
+    onId("strDateMax", "change", function() {
+        setFieldValue("strDateMaxImport", this.value);
     });
 
-    $("#codeComposante1").on("change", function(event) {
-        const selectedData = $(this).val();
-        $("#codeFormation").val($(this).val());
-        $("input[id^=hiddenCodeComposante]").val(selectedData);
+    const setHiddenComposantes = value => {
+        document.querySelectorAll("input[id^=hiddenCodeComposante]").forEach(input => { input.value = value; });
+    };
+    const clearSalles = () => { if (tableSalles) tableSalles.clear().draw(); };
+    const projectId = () => document.getElementById("idProject")?.value;
+
+    onId("codeComposante1", "change", function() {
+        const selectedData = this.value;
+        setFieldValue("codeFormation", this.value);
+        setHiddenComposantes(selectedData);
         if (selectedData == "myEvents") {
-            $('#frmt').addClass("d-none");
+            document.getElementById("frmt")?.classList.add("d-none");
         } else {
             if (selectedData != "") {
-                $("#spinnerComps").removeClass("d-none");
-                updateJsTree(selectedData, "trainee", $("#idProject").val());
+                document.getElementById("spinnerComps")?.classList.remove("d-none");
+                updateJsTree(selectedData, "trainee", projectId());
             }
         }
-        if (tableSalles) tableSalles.clear().draw();
+        clearSalles();
     });
-    $("#codeFormation").on("change", function(event) {
-        const selectedData = $(this).val();
-        $("#codeComposante1").val("");
-        $("input[id^=hiddenCodeComposante]").val(selectedData);
+    onId("codeFormation", "change", function() {
+        const selectedData = this.value;
+        setFieldValue("codeComposante1", "");
+        setHiddenComposantes(selectedData);
         if (selectedData == "myEvents") {
-            $('#frmt').addClass("d-none");
+            document.getElementById("frmt")?.classList.add("d-none");
         } else {
             if (selectedData != "") {
-                $("#spinnerComps").removeClass("d-none");
-                updateJsTree(selectedData, category6, $("#idProject").val());
+                document.getElementById("spinnerComps")?.classList.remove("d-none");
+                updateJsTree(selectedData, category6, projectId());
             }
         }
-        if (tableSalles) tableSalles.clear().draw();
+        clearSalles();
     });
 
     //Prevention de la soumission vide
-    $("form[action*='/manager/adeCampus/importClassrooms']").on("submit", function(event) {
-        if ($('.tableSalles').find('.data-checkbox:checked').length === 0) {
-            event.preventDefault(); // Bloque l'envoi
-            alert("Veuillez sélectionner au moins une salle à importer.");
-        }
+    document.querySelectorAll("form[action*='/manager/adeCampus/importClassrooms']").forEach(function(form) {
+        form.addEventListener("submit", function(event) {
+            if (document.querySelectorAll('.tableSalles .data-checkbox:checked').length === 0) {
+                event.preventDefault(); // Bloque l'envoi
+                alert("Veuillez sélectionner au moins une salle à importer.");
+            }
+        });
     });
 
     var userEvents = document.getElementById("userEvents") != null;
@@ -1915,10 +2050,11 @@ const dtEventsTableOptions = () => ({
 
 function displayEvents(url, table = null) {
     let eventsTable = table;
+    const form = document.getElementById('displayEvents');
+    if (!form) return;
 
-    // Écouteur jQuery (et non addEventListener) : importEvents() déclenche `$('#displayEvents').submit()`,
-    // qui n'appelle que les écouteurs jQuery.
-    $('#displayEvents').off('submit.events').on('submit.events', async function(event) {
+    // Écouteur natif : importEvents() déclenche form.requestSubmit(), qui émet bien l'événement `submit`.
+    form.addEventListener('submit', async function(event) {
         event.preventDefault();
         const params = new URLSearchParams(new FormData(this));
         const target = url + (url.includes('?') ? '&' : '?') + params;
@@ -2043,7 +2179,7 @@ function initAssiduite() {
 
     // Recherche étudiant
     document.querySelectorAll('.searchEtu').forEach(el => {
-        el.addEventListener('click', function () {
+        el.addEventListener('click', function() {
             document.getElementById('searchField').value =
                 this.textContent.trim();
         });
@@ -2132,7 +2268,7 @@ function initAssiduite() {
                 firstDay: 1
             }
 
-        }, function (start, end) {
+        }, function(start, end) {
 
             // Mise à jour de l'affichage
             rangeInput.value = formatDisplay(start, end);
@@ -2148,7 +2284,7 @@ function initAssiduite() {
 
     // Soumission automatique des filtres
     document.querySelectorAll('.assiduiteControl').forEach(el => {
-        el.addEventListener('change', function () {
+        el.addEventListener('change', function() {
             document.getElementById('formSearch').requestSubmit();
         });
     });
@@ -2157,7 +2293,7 @@ function initAssiduite() {
     const searchInput = document.getElementById('searchAssiduite');
 
     if (searchInput) {
-        searchInput.addEventListener('focus', function () {
+        searchInput.addEventListener('focus', function() {
             if (this.value !== '') {
                 this.value = '';
 
@@ -2194,9 +2330,11 @@ function initAssiduite() {
 // Formulaires de recherche de sessions
 function initSessionSearch() {
     if (document.getElementById("sessionSearch") != null) {
-        $("#formSearch select").on("change", function(event) {
-            $("#searchBox").val(null);
-            document.getElementById("formSearch").submit();
+        document.querySelectorAll("#formSearch select").forEach(function(select) {
+            select.addEventListener("change", function() {
+                setFieldValue("searchBox", "");
+                document.getElementById("formSearch").submit();
+            });
         });
     }
 }
@@ -2204,9 +2342,7 @@ function initSessionSearch() {
 // Option "inclure le logo"
 function initIncludeLogo() {
     updateHidden();
-    $('#includeLogo').on('change', function() {
-        updateHidden();
-    });
+    onId('includeLogo', 'change', updateHidden);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2224,7 +2360,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initHelpForm();
     initCommunicationPdf();
     initCreateTagCheckForm();
-	initAbsenceEtudiantForm();
+    initAbsenceEtudiantForm();
     initDuplicateSessions();
     initIncludeLogo();
     initSessionSearch();
@@ -2272,7 +2408,6 @@ document.addEventListener('DOMContentLoaded', function() {
     ]);
     initAutocomplete();
 });
-
 
 /* ==========================================================================
  * 9. Écouteurs HTMX
