@@ -3,6 +3,7 @@ package org.esupportail.emargement.services;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -190,6 +191,7 @@ public class PresenceService {
 			    		String type = (user.getNumEtudiant() == null)? "staff" : "student";
 			    		p.setType(type);
 			    		p.setNumIdentifiant(user.getNumEtudiant());
+			    		p.setCreatedAt(LocalDateTime.now());
 			    		personRepository.save(p);
 			    	}
 			    	TagCheck tc = new TagCheck();

@@ -17,6 +17,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Year;
 import java.time.ZoneId;
@@ -424,6 +425,7 @@ public class TagCheckService {
                                                 person.setContext(contexteService.getcurrentContext());
                                                 person.setEppn(eppn);
                                                 person.setType("student");
+                                                person.setCreatedAt(LocalDateTime.now());
                                                 personRepository.save(person);
                                             }
                                         }
@@ -458,6 +460,7 @@ public class TagCheckService {
 
                                                 person.setContext(contexteService.getcurrentContext());
                                                 person.setEppn(eppn);
+                                                person.setCreatedAt(LocalDateTime.now());
                                                 personRepository.save(person);
                                             }
                                         } else if (line.contains("@".concat(nomDomaine))) {
@@ -1110,6 +1113,7 @@ public class TagCheckService {
                 p = new Person();
                 p.setContext(ctx);
                 p.setEppn(eppn);
+                p.setCreatedAt(LocalDateTime.now());
                 personRepository.save(p);
             } else {
                 p = persons.get(0);
@@ -2491,6 +2495,7 @@ public class TagCheckService {
                 p = new Person();
                 p.setEppn(anonymousEppn);
                 p.setContext(ctx);
+                p.setCreatedAt(LocalDateTime.now());
                 personRepository.save(p);
             }
             for (TagCheck tc : list) {

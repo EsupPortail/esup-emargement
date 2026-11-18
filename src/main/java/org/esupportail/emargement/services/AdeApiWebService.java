@@ -541,23 +541,33 @@ public class AdeApiWebService implements AdeApiService {
 	            String adeAttribute = appliConfigService.getAdeMemberAttribute(ctx);
 	            if (adeAttribute.equals(target)) {
 	                NodeList resourceNodes = (NodeList) xpath.evaluate(
-	                    "//resource[@category='" + categoryFilter + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
+	                    "//resource[@category='" + categoryFilter + "']", doc, XPathConstants.NODESET);
 	                for (int i = 0; i < resourceNodes.getLength(); i++) {
-	                    String code = resourceNodes.item(i).getNodeValue();
-	                    if ("email".equals(adeAttribute)) {
-	                        code = code.split(";")[0];
-	                    }
-	                    listMembers.add(code);
+						Element resourceElement = (Element) resourceNodes.item(i);
+        
+						String code = resourceElement.getAttribute(adeAttribute);
+						if ("email".equals(adeAttribute) && !code.isEmpty()) {
+							code = code.split(";")[0];
+						}
+						
+						String state = resourceElement.getAttribute("state");
+						
+						listMembers.add(code + "|" + state);
 	                }
 	                if(!adeSuperGroupe.isEmpty()){
 	                	NodeList resourceNodes1 = (NodeList) xpath.evaluate(
-	    	                    "//resource[@category='" + adeSuperGroupe + "']/@" + adeAttribute, doc, XPathConstants.NODESET);
-    	                for (int i = 0; i < resourceNodes1.getLength(); i++) {
-    	                    String code = resourceNodes1.item(i).getNodeValue();
-    	                    if ("email".equals(adeAttribute)) {
-    	                        code = code.split(";")[0];
-    	                    }
-    	                    listMembers.add(code);
+	    	                   "//resource[@category='" + adeSuperGroupe + "']", doc, XPathConstants.NODESET);
+	                for (int i = 0; i < resourceNodes1.getLength(); i++) {
+						Element resourceElement = (Element) resourceNodes1.item(i);
+        
+						String code = resourceElement.getAttribute(adeAttribute);
+						if ("email".equals(adeAttribute) && !code.isEmpty()) {
+							code = code.split(";")[0];
+						}
+						
+						String state = resourceElement.getAttribute("state");
+						
+						listMembers.add(code + "|" + state);
     	                }
 	                }
 	            }
