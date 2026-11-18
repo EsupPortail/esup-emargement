@@ -17,6 +17,7 @@ import javax.annotation.Resource;
 
 import org.esupportail.emargement.domain.Absence;
 import org.esupportail.emargement.domain.AssiduiteBean2;
+import org.esupportail.emargement.domain.Person;
 import org.esupportail.emargement.domain.EsupSignature;
 import org.esupportail.emargement.domain.SessionEpreuve;
 import org.esupportail.emargement.domain.TagCheck;
@@ -66,6 +67,10 @@ public class AssiduiteService {
 	
 	@Resource
 	AppliConfigService appliConfigService;
+
+	@Resource
+	PersonService personService;
+
 	
 	// ----------------------------------------------------------------
 	// Utilitaire date
@@ -113,6 +118,7 @@ public class AssiduiteService {
 	    }
 
 	    List<TagCheck> tcs = loadTagChecks(bean, debut, fin);
+	    model.addAttribute("formationTypes", personService.getRegimeChoices(contextService.getcurrentContext().getKey(), contextService.getcurrentContext()));
 
 	    if (!"absence".equalsIgnoreCase(bean.getSituation())) {
 	        populateEsupSignatureMap(model, tcs);
@@ -224,6 +230,30 @@ public class AssiduiteService {
 	                tc.getSessionEpreuve().getAdeBranch().getId(), idBranch));
 	    }
 
+	    if (bean.getFormationType() != null && !bean.getFormationType().isEmpty()) {
+	        String regime = bean.getFormationType();
+	        stream = stream.filter(tc -> {
+	            Person person = tc.getPerson();
+	            return person != null && regime.equals(person.getFormationType());
+	        });
+	    }
+
+	    if (bean.isBoursier()) {
+	        stream = stream.filter(tc -> tc.getPerson() != null && tc.getPerson().getIsBoursier());
+	    }
+
+	    if (bean.isRse()) {
+	        stream = stream.filter(tc -> tc.getPerson() != null && tc.getPerson().getIsRSE());
+	    }
+
+	    if (bean.isTiersTemps()) {
+	        stream = stream.filter(tc -> tc.getPerson() != null && tc.getPerson().getHasTierTempory());
+	    }
+
+	    if (bean.isFormaSup()) {
+	        stream = stream.filter(tc -> tc.getPerson() != null && tc.getPerson().getFormasupLinked());
+	    }
+
 	    return stream.collect(Collectors.toList());
 	}
 
@@ -263,7 +293,8 @@ public class AssiduiteService {
 		model.addAttribute("uniqueAdeVETs",      uniqueAdeVETs);
 	    model.addAttribute("motifAbsences",         motifAbsenceRepository.findByIsActifTrueOrderByLibelle());
 	    model.addAttribute("absence",               new Absence());
-	    model.addAttribute("adeBranches",           sessionEpreuveService.getAdeBranches());
+	   model.addAttribute("adeBranches",           sessionEpreuveService.getAdeBranches());
+		model.addAttribute("formationTypes", personService.getRegimeChoices(contextService.getcurrentContext().getKey(), contextService.getcurrentContext()));
 	}
 
 }

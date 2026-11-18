@@ -9,9 +9,9 @@
 					<th>Date</th>
 					<th>Début</th>
 					<th>Fin</th>
-					<th>Civilité</th>
-					<th>Nom</th>
-					<th>Prénom</th>
+					<th>Nom Prénom</th>
+					<th>Régime</th>
+					<th>Statuts</th>
 					<th>Num Etu</th>
 					<th>Email</th>
 					<th>Groupe</th>
@@ -35,11 +35,13 @@
 					<td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
 					<td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
 					<td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
-					<td th:text="${individu.civilite}"></td>
 					<td>
-						<a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+						<a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}">
+							<span th:replace="~{manager/assiduite/list_table :: identite(${tc.person}, ${individu})}"></span>
+						</a>
 					</td>
-					<td th:text="${individu.prenom}"></td>
+					<td th:replace="~{manager/assiduite/list_table :: regimeCell(${tc.person})}"></td>
+					<td th:replace="~{manager/assiduite/list_table :: statutsCell(${tc.person})}"></td>
 					<td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
 					<td th:text="${tc.email}"></td>
 					<td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
@@ -69,8 +71,9 @@
 		<table class="table table-hover table-striped table-bordered assiduite2" style="width:100%">
 			<thead class="sticky-top">
 				<tr>
-					<th scope="col">Nom</th>
-					<th scope="col">Prénom</th>
+					<th scope="col">Nom Prénom</th>
+					<th scope="col">Régime</th>
+					<th scope="col">Statuts</th>
 					<th scope="col">Session</th>
 					<th scope="col">Type</th>
 					<th scope="col">Groupe</th>
@@ -89,9 +92,12 @@
 						(tagCheck.isUnknown and !tagCheck.sessionEpreuve.isSessionLibre? 'table-warning' : '')}"
 					th:with="individu=${(tagCheck.person != null) ? tagCheck.person : tagCheck.guest}, sessionEpreuve=${tagCheck.sessionEpreuve}">
 					<td>
-						<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+						<a th:href="@{/{ctx}/manager/individu?eppnTagCheck={eppn}(eppn=${individu.eppn}, ctx=${eContext})}">
+							<span th:replace="~{manager/assiduite/list_table :: identite(${tagCheck.person}, ${individu})}"></span>
+						</a>
 					</td>
-					<td th:text="${individu.prenom}"></td>
+					<td th:replace="~{manager/assiduite/list_table :: regimeCell(${tagCheck.person})}"></td>
+					<td th:replace="~{manager/assiduite/list_table :: statutsCell(${tagCheck.person})}"></td>
 					<td> 
 						<a th:href="@{/{ctx}/manager/individu?sessionEpreuve={id}(id=${sessionEpreuve.id},ctx=${eContext})}" th:text="${sessionEpreuve.nomSessionEpreuve}"></a>
 					</td>
@@ -184,8 +190,9 @@
                     <th>Date</th>
                     <th>Début</th>
                     <th>Fin</th>
-                    <th>Nom</th>
-                    <th>Prénom</th>
+                    <th>Nom Prénom</th>
+                    <th>Régime</th>
+                    <th>Statuts</th>
                     <th>Num Etu</th>
                     <th>Email</th>
                     <th>Groupe</th>
@@ -209,9 +216,12 @@
                     <td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
                     <td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
                     <td>
-                        <a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+                        <a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}">
+                            <span th:replace="~{manager/assiduite/list_table :: identite(${tc.person}, ${individu})}"></span>
+                        </a>
                     </td>
-                    <td th:text="${individu.prenom}"></td>
+                    <td th:replace="~{manager/assiduite/list_table :: regimeCell(${tc.person})}"></td>
+                    <td th:replace="~{manager/assiduite/list_table :: statutsCell(${tc.person})}"></td>
                     <td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
                     <td th:text="${tc.email}"></td>
                     <td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
@@ -244,9 +254,9 @@
                     <th>Date</th>
                     <th>Début</th>
                     <th>Fin</th>
-                    <th>Civilité</th>
-                    <th>Nom</th>
-                    <th>Prénom</th>
+                    <th>Nom Prénom</th>
+                    <th>Régime</th>
+                    <th>Statuts</th>
                     <th>Num Etu</th>
                     <th>Email</th>
                     <th>Groupe</th>
@@ -268,11 +278,13 @@
                     <td th:text="${#dates.format(sessionEpreuve.dateExamen, 'dd/MM/yy')}"></td>
                     <td th:text="${#dates.format(sessionEpreuve.heureEpreuve, 'HH:mm')}"></td>
                     <td th:text="${#dates.format(sessionEpreuve.finEpreuve, 'HH:mm')}"></td>
-                    <td th:text="${individu.civilite}"></td>
                     <td>
-                        <a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}"><span th:text="${individu.nom}"></span></a>
+                        <a th:href="@{/{ctx}/manager/individu?typeSearch=tagCheck&searchString={eppn}(eppn=${individu.eppn}, ctx=${eContext})}">
+                            <span th:replace="~{manager/assiduite/list_table :: identite(${tc.person}, ${individu})}"></span>
+                        </a>
                     </td>
-                    <td th:text="${individu.prenom}"></td>
+                    <td th:replace="~{manager/assiduite/list_table :: regimeCell(${tc.person})}"></td>
+                    <td th:replace="~{manager/assiduite/list_table :: statutsCell(${tc.person})}"></td>
                     <td th:text="${(tc.person ne null)? tc.person.numIdentifiant : tc.guest.email}"></td>
                     <td th:text="${tc.email}"></td>
                     <td th:text="${#strings.listJoin(individu.groupes.![nom], ',')}"></td>
@@ -283,4 +295,18 @@
             </tbody>
         </table>
     </th:block>
+	<th:block th:if="${false}">
+		<span th:fragment="identite(person, individu)">
+			<th:block th:if="${person != null and !#strings.isEmpty(person.civilite)}" th:text="${person.civilite + ' '}"></th:block><th:block th:text="${#strings.trim((individu.nom != null ? individu.nom : '') + ' ' + (individu.prenom != null ? individu.prenom : ''))}"></th:block>
+		</span>
+		<td th:fragment="regimeCell(person)" th:text="${person != null ? person.formationType : ''}"></td>
+		<td th:fragment="statutsCell(person)" class="text-nowrap">
+			<th:block th:if="${person != null}">
+				<span th:if="${person.isBoursier}" class="badge rounded-pill bg-warning text-dark" title="Boursier">B</span>
+				<span th:if="${person.isRSE}" class="badge rounded-pill bg-info text-dark" title="Aménagement RSE">RSE</span>
+				<span th:if="${person.hasTierTempory}" class="badge rounded-pill bg-primary" title="Tiers temps">TT</span>
+				<span th:if="${person.formasupLinked}" class="badge rounded-pill bg-success" title="FormaSup">FS</span>
+			</th:block>
+		</td>
+	</th:block>
 </div>
