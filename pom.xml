@@ -158,7 +158,7 @@
 		<dependency>
 		    <groupId>org.webjars.npm</groupId>
 		    <artifactId>slim-select</artifactId>
-		    <version>4.5.0</version>
+		    <version>4.6.2</version>
 		</dependency>
 		<dependency>
 		  <groupId>org.webjars.npm</groupId>
