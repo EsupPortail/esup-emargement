@@ -26,11 +26,18 @@ public class PhotoService {
 	
 	@Value("${emargement.wsrest.photo.suffixe}")
 	private String photoSuffixe;
+	
+    /** Source des photos : "sgc" (defaut, esup-sgc) ou "pegase". */
+    @Value("${emargement.photo.source:sgc}")
+    private String photoSource;
 
     private byte[] defaultPhoto;
+    
+    private final PegasePhotoService pegasePhotoService;
 
-    public PhotoService(RestTemplate restTemplate) {
+    public PhotoService(RestTemplate restTemplate, PegasePhotoService pegasePhotoService) {
         this.restTemplate = restTemplate;
+        this.pegasePhotoService = pegasePhotoService;
     }
 
     @PostConstruct
@@ -44,9 +51,13 @@ public class PhotoService {
             return defaultPhoto;
         }
 
-        String uri = photoPrefixe.concat(eppn).concat(photoSuffixe);
         try {
-            byte[] photo = restTemplate.getForObject(uri, byte[].class);
+			byte[] photo;
+			if ("pegase".equalsIgnoreCase(photoSource)) {
+				photo = pegasePhotoService.getPhoto(eppn);
+			} else {
+				photo = restTemplate.getForObject(photoPrefixe.concat(eppn).concat(photoSuffixe), byte[].class);
+			}
             return (photo != null) ? photo : defaultPhoto;
         } catch (RestClientException e) {
             log.warn("Erreur récupération photo pour eppn={}, photo par défaut non mise en cache", eppn, e);
