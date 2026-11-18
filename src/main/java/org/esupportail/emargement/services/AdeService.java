@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -77,6 +78,8 @@ public class AdeService {
 	private final static String ADE_STORED_PROJET = "adeStoredProjet";
 
 	public final static String ADE_STORED_COMPOSANTE = "adeStoredComposante";
+	
+	private static final int ADE_MEMBERS_CHUNK_SIZE = 25;
 	
 	@Resource
 	private AdeApiService adeApiService;
@@ -516,7 +519,16 @@ public class AdeService {
 
         // Reprise de la liste des participants "trainee" telle que déclarée dans ADE
 		List<Map<Long, String>> listAdeTrainees = ade.getTrainees();
-        if (listAdeTrainees != null && !listAdeTrainees.isEmpty()) {
+		// Groupes d'une catégorie hors "trainee" pouvant contenir des membres (paramètre ADE_SUPERGROUPE)
+		List<Map<Long, String>> listAdeSuperGroupes = ade.getSuperGroupe();
+		boolean hasTrainees = listAdeTrainees != null && !listAdeTrainees.isEmpty();
+		boolean hasSuperGroupes = listAdeSuperGroupes != null && !listAdeSuperGroupes.isEmpty();
+		if (!hasTrainees) {
+			listAdeTrainees = Collections.emptyList();
+		}		
+        // Il suffit qu'un évènement ADE porte soit une ressource "trainee", soit un "supergroupe"
+        // (ADE_SUPERGROUPE) pour que l'on cherche ses membres
+        if (hasTrainees || hasSuperGroupes) {
             // Chaque élément de listAdeTrainees représente un groupe d'étudiants
             // Reste a récupérer la liste des étudiants qui composent le groupe
             // Plusieurs options possibles (Cf. configuration du contexte):
@@ -525,7 +537,6 @@ public class AdeService {
             //   qui contient la liste des étudiants (source = esup-emargement)
             switch (appliConfigService.getAdeImportSourceParticipants(ctx)) {
                 case "ade":
-					List<Map<Long, String>> listAdeSuperGroupes = ade.getSuperGroupe();
 					Set<String> membersSet = new HashSet<>();
 					List<String> allMembers1 = new ArrayList<>();
 					List<String> allMembers2 = new ArrayList<>();
@@ -533,12 +544,14 @@ public class AdeService {
 					String adeAttribute = appliConfigService.getAdeMemberAttribute(ctx);
 					boolean isAdeCampusLimitQueriesEnabled = appliConfigService.isAdeCampusLimitQueriesEnabled(ctx);
 					    if (isAdeCampusLimitQueriesEnabled) {
-					    	String ids = listAdeTrainees.stream()
-					    		    .flatMap(map -> map.keySet().stream())
-					    		    .map(Object::toString)
-					    		    .collect(Collectors.joining("|"));
-					    	allMembers1 = adeApiService.getMembersOfEvent(sessionId, ids, "members", ctx);
-					    	if(listAdeSuperGroupes != null && !listAdeSuperGroupes.isEmpty()) {
+					    	if (hasTrainees) {
+						    	String ids = listAdeTrainees.stream()
+						    		    .flatMap(map -> map.keySet().stream())
+						    		    .map(Object::toString)
+						    		    .collect(Collectors.joining("|"));
+						    	allMembers1 = adeApiService.getMembersOfEvent(sessionId, ids, "members", ctx);
+					    	}
+					    	if(hasSuperGroupes) {
 						    	String ids2 = listAdeSuperGroupes.stream()
 						    		    .flatMap(map -> map.keySet().stream())
 						    		    .map(Object::toString)
@@ -552,7 +565,7 @@ public class AdeService {
 					    		    .filter(list -> !list.isEmpty())
 					    		    .flatMap(List::stream)
 					    		    .collect(Collectors.toList());
-					    	if(listAdeSuperGroupes != null && !listAdeSuperGroupes.isEmpty()) {
+					    	if(hasSuperGroupes) {
 								allMembers2 = listAdeSuperGroupes.stream()
 						    		    .flatMap(map -> map.keySet().stream())
 						    		    .map(key -> adeApiService.getMembersOfEvent(sessionId, key.toString(), "members", ctx))
@@ -566,6 +579,16 @@ public class AdeService {
 					    	membersSet.addAll(allMembers2);
 					    }
 					    List<String> allMembers = new ArrayList<>(membersSet);
+						if (!allMembers.isEmpty()) {
+							if (isAdeCampusLimitQueriesEnabled) {
+								allCodes.addAll(getMembersByChunks(sessionId, allMembers, adeAttribute, ctx));
+							} else {
+								allCodes = allMembers.stream()
+										.map(id -> adeApiService.getMembersOfEvent(sessionId, id, adeAttribute, ctx))
+										.filter(list -> !list.isEmpty()).map(list -> list.get(0))
+										.collect(Collectors.toList());
+							}
+						}
 					    if (!allMembers.isEmpty()) {
 					    	int chunkSize = 100; // nombre d'id passés dans l'url
 					        Map<Integer, List<String>> chunkedMap = new HashMap<>();
@@ -634,7 +657,6 @@ public class AdeService {
 										List<Absence> absences = absenceRepository.findOverlappingAbsences(person,
 			                                    se.getDateExamen(), endDate, se.getHeureEpreuve(), se.getFinEpreuve(), ctx);
 										if(!absences.isEmpty()) {
-											nbStudents++;
 						    				tc.setAbsence(absences.get(0));
 						    			}
 										tc.setContext(ctx);
@@ -651,6 +673,10 @@ public class AdeService {
 						}
                     break;
                 case "esup-emargement":
+					if (!hasTrainees) {
+						log.warn("Mode esup-emargement : l'évènement ADE " + ade.getEventId()
+								+ " ne porte aucune ressource trainee (les super-groupes ne sont pas utilisés dans ce mode), aucun participant importé");
+					}             	
 					// Import des étudiants depuis les groupes esup-emargement portant les
 					// même nom que les ressources (hors dossier) ADE
 					// Cas d'usage: 1 ressource "trainee" ADE (feuille) = 1 formation
@@ -705,7 +731,7 @@ public class AdeService {
 								}
 							} catch (Exception e) {
 								// Pb avec les appels à ADE ?
-								e.printStackTrace();
+								log.error("Erreur lors de la récupération des ressources ADE pour l'import depuis les groupes esup-emargement (ressource " + traineeResourceId + ")", e);
 							}
 						}
 					}
@@ -735,6 +761,33 @@ public class AdeService {
         } // listAdeTrainees not empty test
 
 		return nbStudents;
+	}
+	
+	// Nombre maximum d'identifiants ADE passés dans une même requête (séparés par '|') quand ADE_LIMIT_QUERIES est actif.
+	// Une requête trop volumineuse (detail=13 sur beaucoup de ressources) peut provoquer une erreur HTTP 500 côté ADE.
+	
+
+	/**
+	 * Récupère les membres (ou un attribut) d'une liste de ressources ADE en regroupant les identifiants par lots.
+	 * Si une requête groupée ne retourne rien (erreur ADE type HTTP 500, loguée par getMembersOfEvent),
+	 * on se replie sur des requêtes unitaires pour ce lot.
+	 */
+	private List<String> getMembersByChunks(String sessionId, List<String> ids, String target, Context ctx) {
+		Set<String> result = new LinkedHashSet<>();
+		for (int i = 0; i < ids.size(); i += ADE_MEMBERS_CHUNK_SIZE) {
+			List<String> chunk = ids.subList(i, Math.min(i + ADE_MEMBERS_CHUNK_SIZE, ids.size()));
+			List<String> found = adeApiService.getMembersOfEvent(sessionId, String.join("|", chunk), target, ctx);
+			if (found.isEmpty() && chunk.size() > 1) {
+				log.warn("Requête ADE groupée sans résultat pour " + chunk.size() + " ressources (cible : " + target
+					+ "), repli sur des requêtes unitaires");
+				for (String id : chunk) {
+					result.addAll(adeApiService.getMembersOfEvent(sessionId, id, target, ctx));
+				}
+			} else {
+				result.addAll(found);
+			}
+		}
+		return new ArrayList<>(result);
 	}
 	
 	@Transactional
