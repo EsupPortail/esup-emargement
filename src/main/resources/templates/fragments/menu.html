@@ -61,6 +61,7 @@
 						  <li><a class="dropdown-item" th:classappend="${active == 'motifAbsence'} ? 'active' : ''" th:href="@{/{ctx}/manager/motifAbsence(ctx=${eContext})}">Motifs absence</a></li>
 						  <li><hr class="dropdown-divider"></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'individu'} ? 'active' : ''" th:href="@{/{ctx}/manager/individu(ctx=${eContext})}">Recherche</a></li>
+				          <li><a class="dropdown-item" th:classappend="${active == 'person'} ? 'active' : ''" th:href="@{/{ctx}/manager/person(ctx=${eContext})}">Inscrits</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'groupe'} ? 'active' : ''" th:href="@{/{ctx}/manager/groupe(ctx=${eContext})}">Groupes</a></li>
 				          <li><a class="dropdown-item" th:classappend="${active == 'calendrier'} ? 'active' : ''" th:href="@{/{ctx}/manager/calendar(ctx=${eContext})}">Calendrier</a></li>
 				          <li><hr class="dropdown-divider"></li>

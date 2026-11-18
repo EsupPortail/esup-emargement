@@ -1,63 +1,154 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sd="http://www.thymeleaf.org/spring-data">
-	<head th:replace="fragments/head :: head"></head>
-	<body>
-		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
-		<div class="container-fluid">
-		<div  class="alert alert-primary font-weight-bold text-dark mt-2">
-			Liste de toutes les personnes inscrites aux sessions</div>
-         	<div class="card">
-  				<div class="card-body">
-		    		<div class="card-header"><h2>Personnes <a th:href="@{/{ctx}/manager/person?form(ctx=${eContext})}" class="btn btn-primary btn-sm float-right"><i class="fa fa-plus fa-lg"></i></a></h2></div>
-						<table class="table table-hover table-striped table-bordered">
-							<thead>
-								<tr>
-									<th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
-									<th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="numIdentifiant">Identifiant</a></th>
-									<th scope="col">Nom</th>
-									<th scope="col">Prénom</th>
-									<th class ="show" scope="col">Voir</th>
-									<th class ="edit" scope="col">Modifier</th>
-									<th class ="delete" scope="col">Supprimer</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr th:each="person : ${personPage}">
-									<td th:text="${person.eppn}"></td>
-									<td th:text="${person.numIdentifiant}"></td>
-									<td th:text="${person.nom}"></td>
-									<td th:text="${person.prenom}"></td>
-									<td class ="show"><a th:href="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" class="show"><i class="fa fa-eye text-primary"></i></a></td>
-									<td class ="edit"><a th:href="@{/{ctx}/manager/person/{id}?form(id=${person.id},ctx=${eContext})}" class="edit"><i class="fa fa-pencil text-warning"></i></a></td>
-									<td class ="delete"><a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${person.id }"><i class="fa fa-trash text-danger"></i></a>
-										<div class="modal modal-warning fade in" th:id="modal-warning+${person.id}" >
-										    <div class="modal-dialog">
-										        <div class="modal-content">
-										        	<form id="command" th:action="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" method="POST">
-											        	<input type="hidden" name="_method" value="delete" />
-											            <div class="modal-header">
-											                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-											            </div>
-											            <div class="modal-body">
-											                <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette personne : <br />
-											                	 <span th:text="${person.eppn}" class="font-weight-bold"></span> ?</div>
-											            </div>
-											            <div class="modal-footer">
-											                <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
-											                <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
-											            </div>
-										            </form>
-										        </div>
-										    </div>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-						<nav th:replace="fragments/pagination :: pagination"></nav>						
-					</div>
-				</div>
-			</div>
-		<footer th:replace="fragments/footer :: footer"></footer>
-	</body>
+    <head th:replace="fragments/head :: head"></head>
+    <body>
+        <nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+        <div th:replace="fragments/help :: help"></div>
+        <div class="container-fluid">
+            <div class="alert alert-primary font-weight-bold text-dark mt-2">
+                Liste de toutes les personnes inscrites aux sessions
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    
+                    <div class="card-header">
+                        <h2>Personnes inscrites
+                            <a th:href="@{/{ctx}/manager/person?form(ctx=${eContext})}" class="btn btn-primary btn-sm ml-2">
+                                <i class="fa fa-plus fa-lg"></i>
+                            </a>
+                        </h2>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3 align-items-center border rounded p-2 mt-3 bg-light">
+                        <span class="fw-bold"><i class="fa fa-info-circle"></i> Légende :</span>
+                        <span><span class="badge rounded-pill bg-warning text-dark">B</span> Boursier</span>
+                        <span><span class="badge rounded-pill bg-info text-dark">RSE</span> Aménagement RSE</span>
+                        <span><span class="badge rounded-pill bg-primary">TT</span> Tiers temps</span>
+                        <span><span class="badge rounded-pill bg-success">FS</span> FormaSup</span>
+                    </div>
+
+                    <form class="border rounded p-3 mt-3 mb-3 bg-light"
+                          method="get"
+                          th:action="@{/{ctx}/manager/person(ctx=${eContext})}"
+                          th:attr="hx-get=@{/{ctx}/manager/person(ctx=${eContext})}"
+                          hx-target="#table-container"
+                          hx-swap="outerHTML"
+                          hx-push-url="true"
+                          hx-trigger="submit, change, keyup[target.value.length >= 3 || target.value.length == 0] changed delay:300ms from:input[name='search']">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-lg-4">
+                                <input type="text"
+                                       name="search"
+                                       class="form-control"
+                                       placeholder="Rechercher par eppn ou num (3 lettres min)..."
+                                       th:value="${search}" />
+                            </div>
+                            <div class="col-lg-3">
+                                <select name="regime" class="form-select" aria-label="Régime">
+                                    <option value="" th:selected="${regime == null or #strings.isEmpty(regime)}">Tous les régimes</option>
+                                    <option th:each="type : ${formationTypes}"
+                                            th:if="${type != null and !#strings.isEmpty(type)}"
+                                            th:value="${type}"
+                                            th:text="${type}"
+                                            th:selected="${regime != null and #strings.equals(regime, type)}"></option>
+                                </select>
+                            </div>
+                            <div class="col-lg-5 d-flex flex-wrap gap-3">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="boursier" id="filterBoursier" value="true" th:checked="${boursier}">
+                                    <label class="form-check-label" for="filterBoursier">Boursier</label>
+                                </div>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="rse" id="filterRse" value="true" th:checked="${rse}">
+                                    <label class="form-check-label" for="filterRse">RSE</label>
+                                </div>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="tiersTemps" id="filterTiersTemps" value="true" th:checked="${tiersTemps}">
+                                    <label class="form-check-label" for="filterTiersTemps">Tiers temps</label>
+                                </div>
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="formaSup" id="filterFormaSup" value="true" th:checked="${formaSup}">
+                                    <label class="form-check-label" for="filterFormaSup">FormaSup</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="table-container" th:fragment="table-fragment">
+                        <table class="table table-hover table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="eppn">Eppn</a></th>
+                                    <th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="numIdentifiant">Identifiant</a></th>
+                                    <th scope="col">Nom Prénom</th>
+                                    <th scope="col" class="sorted"><a class="sorted" sd:pagination-sort="formationType">Régime</a></th>
+                                    <th scope="col">Statuts</th>
+                                    <th scope="col">Synchronisation</th>
+                                    <th class="center" scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="person : ${personPage}">
+                                    <td th:text="${person.eppn}"></td>
+                                    <td th:text="${person.numIdentifiant}"></td>
+                                    <td th:text="${#strings.trim((person.nom != null ? person.nom : '') + ' ' + (person.prenom != null ? person.prenom : ''))}"></td>
+                                    <td th:text="${person.formationType}"></td>
+                                    <td>
+                                        <span th:if="${person.isBoursier}" class="badge rounded-pill bg-warning text-dark" title="Boursier">B</span>
+                                        <span th:if="${person.isRSE}" class="badge rounded-pill bg-info text-dark" title="Aménagement RSE">RSE</span>
+                                        <span th:if="${person.hasTierTempory}" class="badge rounded-pill bg-primary" title="Tiers temps">TT</span>
+                                        <span th:if="${person.formasupLinked}" class="badge rounded-pill bg-success" title="FormaSup">FS</span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <span class="me-2">
+                                            LDAP
+                                            <span class="badge rounded-pill"
+                                                  th:classappend="${person.lockSyncLdap} ? 'bg-success' : 'bg-secondary'"
+                                                  th:text="${person.lockSyncLdap} ? 'Oui' : 'Non'"
+                                                  th:title="${person.lockSyncLdap} ? 'Synchronisation LDAP active' : 'Synchronisation LDAP inactive'"></span>
+                                        </span>
+                                        <span>
+                                            ADE
+                                            <span class="badge rounded-pill"
+                                                  th:classappend="${person.lockSyncAde} ? 'bg-success' : 'bg-secondary'"
+                                                  th:text="${person.lockSyncAde} ? 'Oui' : 'Non'"
+                                                  th:title="${person.lockSyncAde} ? 'Synchronisation ADE active' : 'Synchronisation ADE inactive'"></span>
+                                        </span>
+                                    </td>
+                                    <td class="center text-nowrap">
+                                        <a th:href="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" class="show me-2" title="Voir"><i class="fa fa-eye text-primary"></i></a>
+                                        <a th:href="@{/{ctx}/manager/person/{id}?form(id=${person.id},ctx=${eContext})}" class="edit me-2" title="Modifier"><i class="fa fa-pencil text-warning"></i></a>
+                                        <a data-bs-toggle="modal" data-bs-target="#modal-warning" th:attr="data-bs-target='#modal-warning'+${person.id }" title="Supprimer"><i class="fa fa-trash text-danger"></i></a>
+                                        <div class="modal modal-warning fade in" th:id="modal-warning+${person.id}" >
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form id="command" th:action="@{/{ctx}/manager/person/{id}(id=${person.id},ctx=${eContext})}" method="POST">
+                                                        <input type="hidden" name="_method" value="delete" />
+                                                        <div class="modal-header">
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="alert alert-danger text-center">Confirmez-vous la suppression de cette personne : <br />
+                                                                 <span th:text="${person.eppn}" class="font-weight-bold"></span> ?
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline pull-left" data-bs-dismiss="modal">Fermer</button>
+                                                            <button type="submit" class="btn btn-outline pull-left btn-danger">Valider</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>         
+                        <nav th:replace="fragments/pagination :: pagination"></nav>                     
+                    </div>        
+                </div>
+            </div>
+        </div>
+        <footer th:replace="fragments/footer :: footer"></footer>
+    </body>
 </html>

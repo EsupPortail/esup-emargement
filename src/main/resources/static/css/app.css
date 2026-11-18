@@ -306,6 +306,16 @@ form label {
   width: auto;         /* le groupe date ne prend plus 100 % */
 }
 
+#assiduitePage .assiduite-toolbar {
+	position: sticky;
+	top: 116px;
+	z-index: 1010;
+	background-color: #fff;
+}
+#assiduitePage table thead.sticky-top {
+	top: 180px;
+}
+
 /* Le groupe de recherche remplit son conteneur (qui, lui, flex-grow) */
 #formSearch .filter-item > .input-group {
   width: 100%;
@@ -324,6 +334,11 @@ form label {
   #formSearch > .input-group {
     width: 100%;
   }
+}
+
+.form-control.identifiant-locked {
+	background-color: #e9ecef;
+	color: #6c757d;
 }
 
 /* ==========================================================================
@@ -353,7 +368,6 @@ a.page-link.active {
 .modal-info .modal-body {
 	background-color: #00c0ef !important;
 }
-
 
 /* ==========================================================================
    7. Plugins : daterangepicker, jstree

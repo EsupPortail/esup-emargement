@@ -1,7 +1,9 @@
 package org.esupportail.emargement.domain;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -42,7 +44,40 @@ public class Person implements ContextSupport {
 
     @Transient
     private String prenom;
+
+	@Column(name = "is_boursier", columnDefinition = "boolean default false")
+	private boolean isBoursier = false;
+
+	@Column(name = "is_rse", columnDefinition = "boolean default false")
+	private boolean isRSE = false;
+
+	@Column(name = "formation_type")
+	private String formationType;
+
+	@Column(name = "has_tier_tempory", columnDefinition = "boolean default false")
+	private boolean hasTierTempory = false;
+
+	@Column(name = "lock_sync_ade", columnDefinition = "boolean default true")
+	private boolean lockSyncAde = true;
     
+	@Column(name = "lock_sync_ldap", columnDefinition = "boolean default true")
+	private boolean lockSyncLdap = true;
+
+	@Column(name = "formasup_linked", columnDefinition = "boolean default false")
+	private boolean formasupLinked = false;
+
+	@Column(name = "user_app_updated_at", columnDefinition = "timestamp default null")
+	private LocalDateTime UserAppUpdatedAt;
+
+	@Column(name = "sync_ade_updated_at", columnDefinition = "timestamp default null")
+	private LocalDateTime syncUpdatedAt;
+	
+	@Column(name = "created_at", columnDefinition = "timestamp default current_timestamp")
+	private LocalDateTime createdAt;
+
+	@ManyToOne
+	private UserApp userModif;
+
     @ManyToMany(mappedBy = "persons")
     @JsonIgnoreProperties("persons")
     private Set<Groupe> groupes = new HashSet<>();
@@ -112,6 +147,94 @@ public class Person implements ContextSupport {
 
 	public void setCivilite(String civilite) {
 		this.civilite = civilite;
+	}
+
+	public boolean getIsBoursier() {
+		return isBoursier;
+	}
+
+	public void setIsBoursier(boolean isBoursier) {
+		this.isBoursier = isBoursier;
+	}
+
+	public boolean getIsRSE() {
+		return isRSE;
+	}
+
+	public void setIsRSE(boolean isRSE) {
+		this.isRSE = isRSE;
+	}
+
+	public String getFormationType() {
+		return formationType;
+	}
+
+	public void setFormationType(String formationType) {
+		this.formationType = formationType;
+	}
+
+	public boolean getHasTierTempory() {
+		return hasTierTempory;
+	}
+
+	public void setHasTierTempory(boolean hasTierTempory) {
+		this.hasTierTempory = hasTierTempory;
+	}
+
+	public boolean getLockSyncAde() {
+		return lockSyncAde;
+	}
+
+	public void setLockSyncAde(boolean lockSyncAde) {
+		this.lockSyncAde = lockSyncAde;
+	}
+
+	public boolean getLockSyncLdap() {
+		return lockSyncLdap;
+	}
+
+	public void setLockSyncLdap(boolean lockSyncLdap) {
+		this.lockSyncLdap = lockSyncLdap;
+	}
+
+	public boolean getFormasupLinked() {
+		return formasupLinked;
+	}
+
+	public void setFormasupLinked(boolean formasupLinked) {
+		this.formasupLinked = formasupLinked;
+	}
+
+	public LocalDateTime getUserAppUpdatedAt() {
+		return UserAppUpdatedAt;
+	}
+
+	public void setUserAppUpdatedAt(LocalDateTime UserAppUpdatedAt) {
+		this.UserAppUpdatedAt = UserAppUpdatedAt;
+	}
+
+	public LocalDateTime getSyncUpdatedAt() {
+		return syncUpdatedAt;
+	}
+
+	public void setSyncUpdatedAt(LocalDateTime syncUpdatedAt) {
+		this.syncUpdatedAt = syncUpdatedAt;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public UserApp getUserModif() {
+		return userModif;
+	}
+
+	public void setUserModif(UserApp userModif) {
+		this.userModif = userModif;
 	}
 
 }

@@ -3,15 +3,74 @@
 	<head th:replace="fragments/head :: head"></head>
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
+		<div th:replace="fragments/help :: help"></div>
 		<div class="container-fluid">
-	        <div class="card">
-		    	<div class="card-header"><h2 >Lieu</h2></div>
-	 				<div class="card-body">
-					<dl class="row" th:each="person :  ${persons}">
-			            <dt class="col-sm-2">Eppn</dt>
-			            <dd class="col-sm-10" th:text="${person.eppn}"></dd>
-			            <dt class="col-sm-2">Numéro d'dentifiant</dt>
-			            <dd class="col-sm-10" th:text="${person.numIdentifiant}"></dd>
+			<div class="card">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<h2 class="mb-0">Personne</h2>
+					<a th:href="@{/{ctx}/manager/person(ctx=${eContext})}" class="btn btn-info btn-sm" title="Retour à la liste">
+						<i class="fa fa-home fa-lg"></i>
+					</a>
+				</div>
+				<div class="card-body">
+					<h3 class="h5">Identité</h3>
+					<dl class="row">
+						<dt class="col-sm-3">Civilité</dt>
+						<dd class="col-sm-9" th:text="${person.civilite != null and !#strings.isEmpty(person.civilite) ? person.civilite : '—'}"></dd>
+						<dt class="col-sm-3">Nom</dt>
+						<dd class="col-sm-9" th:text="${person.nom != null and !#strings.isEmpty(person.nom) ? person.nom : '—'}"></dd>
+						<dt class="col-sm-3">Prénom</dt>
+						<dd class="col-sm-9" th:text="${person.prenom != null and !#strings.isEmpty(person.prenom) ? person.prenom : '—'}"></dd>
+						<dt class="col-sm-3">Eppn</dt>
+						<dd class="col-sm-9" th:text="${person.eppn != null and !#strings.isEmpty(person.eppn) ? person.eppn : '—'}"></dd>
+						<dt class="col-sm-3">Numéro d'identifiant</dt>
+						<dd class="col-sm-9" th:text="${person.numIdentifiant != null and !#strings.isEmpty(person.numIdentifiant) ? person.numIdentifiant : '—'}"></dd>
+						<dt class="col-sm-3">Type</dt>
+						<dd class="col-sm-9" th:text="${person.type != null and !#strings.isEmpty(person.type) ? person.type : '—'}"></dd>
+					</dl>
+
+					<h3 class="h5 mt-4">Synchronisation</h3>
+					<dl class="row">
+						<dt class="col-sm-3">Synchroniser avec LDAP</dt>
+						<dd class="col-sm-9" th:text="${person.lockSyncLdap} ? 'Oui' : 'Non'"></dd>
+						<dt class="col-sm-3">Synchroniser avec ADE</dt>
+						<dd class="col-sm-9" th:text="${person.lockSyncAde} ? 'Oui' : 'Non'"></dd>
+					</dl>
+
+					<h3 class="h5 mt-4">Statuts</h3>
+					<dl class="row">
+						<dt class="col-sm-3">Régime</dt>
+						<dd class="col-sm-9" th:text="${person.formationType != null and !#strings.isEmpty(person.formationType) ? person.formationType : '—'}"></dd>
+						<dt class="col-sm-3">Boursier</dt>
+						<dd class="col-sm-9" th:text="${person.isBoursier} ? 'Oui' : 'Non'"></dd>
+						<dt class="col-sm-3">Aménagement tiers temps</dt>
+						<dd class="col-sm-9" th:text="${person.hasTierTempory} ? 'Oui' : 'Non'"></dd>
+						<dt class="col-sm-3">Aménagement RSE</dt>
+						<dd class="col-sm-9" th:text="${person.isRSE} ? 'Oui' : 'Non'"></dd>
+						<dt class="col-sm-3">Liaison FormaSup</dt>
+						<dd class="col-sm-9" th:text="${person.formasupLinked} ? 'Oui' : 'Non'"></dd>
+					</dl>
+
+					<h3 class="h5 mt-4">Suivi</h3>
+					<dl class="row">
+						<dt class="col-sm-3">Créée le</dt>
+						<dd class="col-sm-9" th:text="${person.createdAt != null ? #temporals.format(person.createdAt, 'dd/MM/yyyy HH:mm') : '—'}"></dd>
+						<dt class="col-sm-3">Modifiée dans l'application le</dt>
+						<dd class="col-sm-9" th:text="${person.userAppUpdatedAt != null ? #temporals.format(person.userAppUpdatedAt, 'dd/MM/yyyy HH:mm') : '—'}"></dd>
+						<dt class="col-sm-3">Modifiée par</dt>
+						<dd class="col-sm-9" th:text="${person.userModif != null ? person.userModif.eppn : '—'}"></dd>
+						<dt class="col-sm-3">Synchronisée ADE le</dt>
+						<dd class="col-sm-9" th:text="${person.syncUpdatedAt != null ? #temporals.format(person.syncUpdatedAt, 'dd/MM/yyyy HH:mm') : '—'}"></dd>
+					</dl>
+
+					<h3 class="h5 mt-4">Groupes</h3>
+					<dl class="row">
+						<dt class="col-sm-3">Groupes</dt>
+						<dd class="col-sm-9">
+							<span th:if="${person.groupes == null or person.groupes.isEmpty()}">—</span>
+							<span th:each="groupe, stat : ${person.groupes}"
+								th:text="${groupe.nom + (!stat.last ? ', ' : '')}"></span>
+						</dd>
 					</dl>
 				</div>
 			</div>
