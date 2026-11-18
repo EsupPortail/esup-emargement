@@ -82,22 +82,22 @@ public class ImportExportService {
 	}
 	public ExtractionType getDisplayType(ExtractionType type) {
 		if (type == null) {
-			String searchChars = "ALCG";
-			Character firstMatch = appliConfigService.getListImportExport().chars()
-					.mapToObj(c -> (char) c)
-					.filter(c -> searchChars.indexOf(c) != -1)
-					.findFirst() 
-					.orElse(null); 
-			if (firstMatch != null) {
-				if (firstMatch == 'A' && apogeeService != null) {
-					type = ExtractionType.apogee;
-				} else if (firstMatch == 'L') {
-					type = ExtractionType.ldap;
-				} else if (firstMatch == 'C') {
-					type = ExtractionType.csv;
-				} else if (firstMatch == 'G') {
-					type = ExtractionType.groupes;
-				} 
+			// Premier onglet disponible selon LIST_IMPORTEXPORT (A, L, C, G).
+			// L'onglet Apogée est ignoré si Apogée n'est pas configuré : on passe alors à l'onglet suivant
+			// au lieu de renvoyer null (ce qui provoquait un NullPointerException dans ExtractionController).
+			String listTabs = appliConfigService.getListImportExport();
+			if (listTabs != null) {
+				for (char c : listTabs.toCharArray()) {
+					if (c == 'A' && apogeeService != null) {
+						return ExtractionType.apogee;
+					} else if (c == 'L') {
+						return ExtractionType.ldap;
+					} else if (c == 'C') {
+						return ExtractionType.csv;
+					} else if (c == 'G') {
+						return ExtractionType.groupes;
+					}
+				}
 			}
 		}
 		return type;
