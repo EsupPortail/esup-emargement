@@ -12,7 +12,7 @@
 	<div id="searchCollapse" class="collapse d-lg-block">
 		<form th:action="@{|/${eContext}/manager/assiduite|}" id="formSearch"
 			th:object="${assiduiteBean}"
-			class="d-flex flex-column flex-lg-row flex-lg-wrap flex-xxl-nowrap gap-2 align-items-lg-center border-bottom pb-2 mb-2">
+			class="d-flex flex-column flex-lg-row flex-lg-wrap gap-2 align-items-lg-center border-bottom pb-2 mb-2">
 			<div class="input-group input-group-sm w-auto flex-shrink-0">
 				<span class="input-group-text"><i class="fa fa-calendar"></i></span>
 				<input type="text" id="reportrange" class="form-control"
@@ -101,6 +101,31 @@
 					<option th:each="groupe : ${groupes}" th:value="${groupe.id}" th:text="${groupe.nom}"
 						th:selected="${assiduiteBean.groupe ne null and groupe.id eq assiduiteBean.groupe.id}"></option>
 				</select>
+				<div class="w-100 d-none d-lg-block" style="height: 0;"></div>
+				<select class="slimSelectClass assiduiteControl w-auto clearable" th:field="*{formationType}" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
+					<option value="">----Régime----</option>
+					<option th:each="type : ${formationTypes}"
+							th:if="${type != null and !#strings.isEmpty(type)}"
+							th:value="${type}" th:text="${type}"></option>
+				</select>
+				<div class="w-auto d-flex flex-wrap gap-3 align-items-center" th:if="${assiduiteBean.typeIndividu eq 'etu'}">
+					<div class="form-check form-switch mb-0">
+						<input class="form-check-input assiduiteControl" type="checkbox" th:field="*{boursier}">
+						<label class="form-check-label" th:for="${#ids.prev('boursier')}">Boursier</label>
+					</div>
+					<div class="form-check form-switch mb-0">
+						<input class="form-check-input assiduiteControl" type="checkbox" th:field="*{rse}">
+						<label class="form-check-label" th:for="${#ids.prev('rse')}">RSE</label>
+					</div>
+					<div class="form-check form-switch mb-0">
+						<input class="form-check-input assiduiteControl" type="checkbox" th:field="*{tiersTemps}">
+						<label class="form-check-label" th:for="${#ids.prev('tiersTemps')}">Tiers temps</label>
+					</div>
+					<div class="form-check form-switch mb-0">
+						<input class="form-check-input assiduiteControl" type="checkbox" th:field="*{formaSup}">
+						<label class="form-check-label" th:for="${#ids.prev('formaSup')}">FormaSup</label>
+					</div>
+				</div>
 			</th:block>
 
 			<button type="button" id="clearFilters" class="btn btn-danger btn-sm ms-lg-auto"

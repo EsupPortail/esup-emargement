@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.HashMap;
@@ -249,6 +250,7 @@ public class AbsenceController {
             	}else {
             		person.setType("staff");
             	}
+            	person.setCreatedAt(LocalDateTime.now());
             	personRepository.save(person);
             	absence.setPerson(person);
             	absenceRepository.save(absence);

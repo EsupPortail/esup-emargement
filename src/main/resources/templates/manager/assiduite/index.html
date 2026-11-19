@@ -4,20 +4,29 @@
 	<body>
         <nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
         <div th:replace="fragments/help :: help"></div>
-        <div class="container-fluid px-3 px-md-4 my-2" id="assiduitePage">
-            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+        <div class="container-fluid px-3 px-md-4 mb-2" id="assiduitePage">
+            <div class="assiduite-toolbar d-flex flex-wrap align-items-center justify-content-between gap-3 pt-2 mb-3 border-bottom pb-2">
                 <h2 class="fs-3 mb-0">Assiduité</h2>
-                <div class="col">
-                    <a th:if="${assiduiteBean.getSituation() eq 'absence' or assiduiteBean.getSituation() eq 'all'}" 
-                       class="btn btn-danger float-end" 
-                       title="Supprimer des absences" 
-                       data-bs-toggle="modal" 
-                       data-bs-target="#absenceAssiduiteModal2">Supprimer des absences</a>
-                    <a th:if="${assiduiteBean.getSituation() eq 'all' or assiduiteBean.getSituation() eq 'nonEmarg'}" 
-                       class="btn btn-primary float-end me-2" 
-                       title="Ajouter des absences" 
-                       data-bs-toggle="modal" 
-                       data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
+                <div class="d-flex flex-wrap align-items-center gap-3 ms-lg-auto">
+                    <div th:if="${assiduiteBean.typeIndividu eq 'etu'}" class="d-flex flex-wrap gap-3 align-items-center border rounded px-2 py-1 bg-light">
+                        <span class="fw-bold"><i class="fa fa-info-circle"></i> Légende :</span>
+                        <span><span class="badge rounded-pill bg-warning text-dark">B</span> Boursier</span>
+                        <span><span class="badge rounded-pill bg-info text-dark">RSE</span> Aménagement RSE</span>
+                        <span><span class="badge rounded-pill bg-primary">TT</span> Tiers temps</span>
+                        <span><span class="badge rounded-pill bg-success">FS</span> FormaSup</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:if="${assiduiteBean.getSituation() eq 'all' or assiduiteBean.getSituation() eq 'nonEmarg'}"
+                           class="btn btn-primary"
+                           title="Ajouter des absences"
+                           data-bs-toggle="modal"
+                           data-bs-target="#absenceAssiduiteModal">Ajouter des absences</a>
+                        <a th:if="${assiduiteBean.getSituation() eq 'absence' or assiduiteBean.getSituation() eq 'all'}"
+                           class="btn btn-danger"
+                           title="Supprimer des absences"
+                           data-bs-toggle="modal"
+                           data-bs-target="#absenceAssiduiteModal2">Supprimer des absences</a>
+                    </div>
                 </div>
             </div>
             <div th:replace="~{manager/assiduite/list_search :: search}"></div>

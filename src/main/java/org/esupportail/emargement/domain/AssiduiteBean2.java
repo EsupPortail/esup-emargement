@@ -40,6 +40,16 @@ public class AssiduiteBean2 {
 
 	String adeVET;
 
+	String formationType;
+
+	boolean boursier;
+
+	boolean rse;
+
+	boolean tiersTemps;
+
+	boolean formaSup;
+
     private Long motifAbsenceId;
 
     public Long getMotifAbsenceId() {
@@ -192,5 +202,45 @@ public class AssiduiteBean2 {
 
 	public void setAdeVET(String adeVET) {
 		this.adeVET = adeVET;
+	}
+
+	public String getFormationType() {
+		return formationType;
+	}
+
+	public void setFormationType(String formationType) {
+		this.formationType = formationType;
+	}
+
+	public boolean isBoursier() {
+		return boursier;
+	}
+
+	public void setBoursier(boolean boursier) {
+		this.boursier = boursier;
+	}
+
+	public boolean isRse() {
+		return rse;
+	}
+
+	public void setRse(boolean rse) {
+		this.rse = rse;
+	}
+
+	public boolean isTiersTemps() {
+		return tiersTemps;
+	}
+
+	public void setTiersTemps(boolean tiersTemps) {
+		this.tiersTemps = tiersTemps;
+	}
+
+	public boolean isFormaSup() {
+		return formaSup;
+	}
+
+	public void setFormaSup(boolean formaSup) {
+		this.formaSup = formaSup;
 	}
 }

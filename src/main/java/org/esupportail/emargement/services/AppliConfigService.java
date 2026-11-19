@@ -30,6 +30,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.commons.lang3.StringUtils;
 
 @Service
 public class AppliConfigService {
@@ -83,7 +84,7 @@ public class AppliConfigService {
 		ATTESTATION_TEXTE, TRI_BADGEAGE_ALPHA, QRCODE_CHANGE, DISPLAY_TAGCHECKER, SCROLL_TOP, DISPLAY_CALENDAR, ADE_MEMBER_ATTRIBUTE, DISPLAY_IMPORTEXPORT,
 		LIST_IMPORTEXPORT, SURVEILLANT_TERM, ENABLE_PARTICIPANT, ENABLE_COMMUNICATION, ADE_UPDATE_CAPACITE_SALLE, ADE_LIMIT_QUERIES, ADE_SUPERGROUPE,ADE_FORMATION,
 		ADE_INSTRUCTOR_MANAGER, PARTICIPANT_TERM, ADE_CHECK_ORPHANS, DISPLAY_SESSION_GROUPS, DISPLAY_TAGCHECKERS_LIST, ENABLE_TROMBIVIEW,
-		ABSENCEETUDIANT_ENABLED, ABSENCEETUDIANT_DELAI_JOURS, ABSENCEETUDIANT_JUSTIFICATIF_OBLIGATOIRE, ABSENCEETUDIANT_NOTIF_GESTIONNAIRE
+		ABSENCEETUDIANT_ENABLED, ABSENCEETUDIANT_DELAI_JOURS, ABSENCEETUDIANT_JUSTIFICATIF_OBLIGATOIRE, ABSENCEETUDIANT_NOTIF_GESTIONNAIRE, ADE_REGIME_CHOICE
 	}
 	
 	public List<String> getTypes() {
@@ -517,6 +518,19 @@ public class AppliConfigService {
 	public Boolean isAbsenceEtudiantNotifGestionnaire(Context ctx) {
 		AppliConfig appliConfig = getAppliConfigByKeyAndContext(AppliConfigKey.ABSENCEETUDIANT_NOTIF_GESTIONNAIRE, ctx);
 		return appliConfig==null || "true".equalsIgnoreCase(appliConfig.getValue());
+	}
+
+	@Cacheable(value = APPLI_CONFIG_CACHE, key = "'getAdeRegimeChoice:' + #emargementContext")
+	public ArrayList<String> getAdeRegimeChoice(String emargementContext) {
+		AppliConfig appliConfig = getAppliConfigByKey(AppliConfigKey.ADE_REGIME_CHOICE);
+		String value = appliConfig==null ? "" : appliConfig.getValue();
+		if(StringUtils.isNotBlank(value)) {
+			return Arrays.stream(value.split("[,;]"))
+					.map(String::trim)
+					.filter(StringUtils::isNotBlank)
+					.collect(Collectors.toCollection(ArrayList::new));
+		}
+		return new ArrayList<>();
 	}
 
 	public List <AppliConfigKey> checkAppliconfig(Context context) {

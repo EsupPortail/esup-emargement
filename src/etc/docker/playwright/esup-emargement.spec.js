@@ -12,6 +12,7 @@ const JACK = 'jack@example.org';
 const WILLIAM = 'william@example.org';
 const AVERELL = 'averell@example.org';
 const MA = 'ma@example.org';
+const LUCKY = 'lucky@example.org';
 
 // La date de session est calée sur aujourd'hui pour que le badgeage NFC fonctionne
 // (checkIsTagable compare date_examen avec la date du jour)
@@ -170,13 +171,9 @@ async function addTagCheckers(page, sessionId, userIds) {
   });
   expect(firstSessionLocationValue).toBeTruthy();
   await sessionLocationSelect.selectOption(firstSessionLocationValue);
-  for (const userId of userIds) {
-    const checkbox = page.locator(`input.sol-checkbox[value="${userId}"]`);
-    await checkbox.evaluate((el) => {
-      el.checked = true;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-  }
+  const usersSelect = page.locator('select#my-select[name="users"]');
+  await usersSelect.selectOption(userIds, { force: true });
+  await expect(usersSelect).toHaveValues(userIds);
   await page.locator('input[type="submit"][value="Valider"]').click();
 }
 
@@ -187,6 +184,22 @@ async function getSessionLocationId(page, sessionId) {
   const href = await row.locator('a').first().getAttribute('href');
   // href = /{ctx}/manager/sessionLocation/{id}
   return href.split('/').pop();
+}
+
+function personRow(page, eppn) {
+  return page.locator('#table-container table tbody tr', { hasText: eppn }).first();
+}
+
+async function setPersonStatus(page, field, value) {
+  await page.locator(`input[type="radio"][name="${field}"][value="${value}"]`).check();
+}
+
+async function applyPersonFilter(page, filterId) {
+  const [response] = await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/manager/person') && r.request().headers()['hx-request'] === 'true'),
+    page.locator(`#${filterId}`).check(),
+  ]);
+  expect(response.status()).toBe(200);
 }
 
 async function executeRepartition(page, sessionId) {
@@ -274,4 +287,76 @@ test('Émargement par clic du surveillant WILLIAM pour Ma Dalton', async ({ page
   // La ligne de Ma Dalton doit être verte (table-success = présent)
   const maDaltonRow = page.locator('table#tablePresence tbody tr.table-success', { hasText: 'ma' }).first();
   await expect(maDaltonRow).toBeVisible();
+});
+
+test('Création d’une personne avec statuts forcés (synchronisation ADE désactivée)', async ({ page }) => {
+  await loginWithCas(page, USERNAME);
+  await page.goto(`/${CONTEXT_KEY}/manager/person?form`);
+  await page.locator('input[name="eppn"]').fill(LUCKY);
+  await page.locator('input[name="numIdentifiant"]').fill('99990001');
+
+  // Par défaut la synchronisation ADE est active : les statuts ne sont pas modifiables
+  await expect(page.locator('input[name="lockSyncAde"][value="true"]')).toBeChecked();
+  await expect(page.locator('input[name="isBoursier"][value="true"]')).toBeDisabled();
+  await expect(page.locator('input[name="hasTierTempory"][value="true"]')).toBeDisabled();
+  await expect(page.locator('input[name="isRSE"][value="true"]')).toBeDisabled();
+
+  await setPersonStatus(page, 'lockSyncAde', 'false');
+  await expect(page.locator('input[name="isBoursier"][value="true"]')).toBeEnabled();
+
+  await setPersonStatus(page, 'isBoursier', 'true');
+  await setPersonStatus(page, 'hasTierTempory', 'true');
+  await setPersonStatus(page, 'isRSE', 'false');
+  await page.locator('input[type="submit"][value="Valider"]').click();
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/person`);
+
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky`);
+  const row = personRow(page, LUCKY);
+  await expect(row).toBeVisible();
+  await expect(row.locator('span.badge[title="Boursier"]')).toBeVisible();
+  await expect(row.locator('span.badge[title="Tiers temps"]')).toBeVisible();
+  await expect(row.locator('span.badge[title="Aménagement RSE"]')).toHaveCount(0);
+  await expect(row.locator('span.badge[title="Synchronisation ADE inactive"]')).toHaveText('Non');
+});
+
+test('Filtres et modification des statuts d’une personne, puis suppression', async ({ page }) => {
+  await loginWithCas(page, USERNAME);
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky`);
+  await expect(personRow(page, LUCKY)).toBeVisible();
+
+  // Boursier : la personne reste listée ; boursier + RSE : elle disparaît
+  await applyPersonFilter(page, 'filterBoursier');
+  await expect(personRow(page, LUCKY)).toBeVisible();
+  await applyPersonFilter(page, 'filterRse');
+  await expect(personRow(page, LUCKY)).toHaveCount(0);
+
+  // Passage en RSE, non boursier
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky`);
+  await personRow(page, LUCKY).locator('a.edit').click();
+  await expect(page.locator('input[name="lockSyncAde"][value="false"]')).toBeChecked();
+  await setPersonStatus(page, 'isBoursier', 'false');
+  await setPersonStatus(page, 'isRSE', 'true');
+  await page.locator('input[type="submit"][value="Valider"]').click();
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/person`);
+
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky&rse=true`);
+  const row = personRow(page, LUCKY);
+  await expect(row.locator('span.badge[title="Aménagement RSE"]')).toBeVisible();
+  await expect(row.locator('span.badge[title="Tiers temps"]')).toBeVisible();
+  await expect(row.locator('span.badge[title="Boursier"]')).toHaveCount(0);
+
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky&boursier=true`);
+  await expect(personRow(page, LUCKY)).toHaveCount(0);
+
+  // Suppression via la modale de confirmation
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky`);
+  const personId = (await personRow(page, LUCKY).locator('a.show').getAttribute('href')).split('/').pop();
+  await personRow(page, LUCKY).locator('a[title="Supprimer"]').click();
+  const modal = page.locator(`#modal-warning${personId}`);
+  await expect(modal).toBeVisible();
+  await modal.locator('button[type="submit"]').click();
+  await page.waitForURL(`**/${CONTEXT_KEY}/manager/person`);
+
+  await page.goto(`/${CONTEXT_KEY}/manager/person?search=lucky`);
+  await expect(personRow(page, LUCKY)).toHaveCount(0);
 });

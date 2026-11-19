@@ -344,4 +344,8 @@ public class UserAppService {
 	                    .thenComparing(UserApp::getPrenom, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
 	            .collect(Collectors.toList());
 	}
+
+	public UserApp getCurrentUserApp(Context context) {
+		return userAppRepository.findByEppnAndContext(getUserAppEppn(), context);
+	}
 }

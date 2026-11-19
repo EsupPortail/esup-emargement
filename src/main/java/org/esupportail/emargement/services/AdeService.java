@@ -3,6 +3,7 @@ package org.esupportail.emargement.services;
 import java.io.IOException;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -509,6 +510,34 @@ public class AdeService {
 		se.setTypeSession(typeSession);
 	}
 	
+	private void processStudentInformations(Person person, String stateAde) {
+		if (!stateAde.isEmpty()) {
+			if (person.getLockSyncAde()) {
+				String[] infosState = stateAde.split(";");
+				if (infosState.length > 0) {
+					if(!infosState[0].isEmpty() && Character.isUpperCase(infosState[0].charAt(0))) {
+						person.setFormationType(infosState[0]);
+					} else {
+						person.setFormationType(null);
+					}
+				}
+				if (infosState.length > 1) {
+					boolean isBoursier = infosState[1].toUpperCase().startsWith("O");
+					person.setIsBoursier(isBoursier);
+				}
+				if (infosState.length > 2) {
+					boolean isTiers = infosState[2].toUpperCase().startsWith("O");
+					person.setHasTierTempory(isTiers);
+				}
+				if (infosState.length > 3) {
+					boolean isRSE = infosState[3].toUpperCase().startsWith("O");
+					person.setIsRSE(isRSE);
+				}										
+				person.setUserModif(null);
+			}
+		}
+		personRepository.save(person);
+	}
 	private int processStudents(SessionEpreuve se, AdeResourceBean ade, String sessionId, List<Long> groupes, Context ctx) {
 		int nbStudents = 0;
 
@@ -611,16 +640,22 @@ public class AdeService {
 					    }
 		
 						String filter = "code".equals(adeAttribute)? "supannEtuId" : "mail";
-						Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allCodes, filter);
+						List<String> allEppns = allCodes.stream()
+							.map(code -> code.split("\\|")[0])
+							.collect(Collectors.toList());
+						Map<String, LdapUser> users =  ldapService.getLdapUsersFromNumList(allEppns, filter);
 						if(!allCodes.isEmpty()) {
 							for (String code : allCodes) {
-								String numIdentifiant = code;
+								String[] dataParts = code.split("\\|");
+								String eppn = dataParts[0];
+								String numIdentifiant = "";
+								String stateAde = dataParts.length > 1 ? dataParts[1] : ""; 
                                 if("mail".equals(filter)) {
-                                    LdapUser ldapUser = users.get(code);
+                                    LdapUser ldapUser = users.get(eppn);
                                     if (ldapUser != null) {
                                         numIdentifiant = ldapUser.getNumEtudiant();
                                     } else {
-                                        log.warn("Utilisateur LDAP non trouvé pour le code : " + code);
+                                        log.warn("Utilisateur LDAP non trouvé pour le code : " + eppn);
                                         continue; 
                                     }
                                 }
@@ -629,22 +664,25 @@ public class AdeService {
 								boolean isUnknown = false;
 								if(!persons.isEmpty()) {
 									person = persons.get(0);
+									person.setSyncUpdatedAt(LocalDateTime.now());
+									processStudentInformations(person, stateAde);
 								}else {
 									person = new Person();
 									person.setContext(ctx);
 									if(!users.isEmpty()) {
-										LdapUser ldapUser = users.get(code);
+										LdapUser ldapUser = users.get(eppn);
 										if(ldapUser !=null) {
 											person.setEppn(ldapUser.getEppn());
 											person.setNumIdentifiant(ldapUser.getNumEtudiant());
 											person.setType("student");
-											personRepository.save(person);
+											person.setCreatedAt(LocalDateTime.now());
+											processStudentInformations(person, stateAde);
 										}else {
 											isUnknown= true;
-											log.info("code inconnu : " + code +  "  --> ne sera pas enregistré");
+											log.info("code inconnu : " + eppn +  "  --> ne sera pas enregistré");
 										}
 									}else {
-										log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + code);
+										log.info("Le numéro de cet étudiant à importer d'Ade Campus n'a pas été trouvé dans le ldap : " + eppn);
 									}
 								}
 								if(!isUnknown) {
@@ -662,6 +700,7 @@ public class AdeService {
 										tc.setContext(ctx);
 										tc.setPerson(person);
 										tc.setSessionEpreuve(se);
+										tc.setIsTiersTemps(person.getHasTierTempory());
 										tagCheckRepository.save(tc);
 										nbStudents++;
 									}

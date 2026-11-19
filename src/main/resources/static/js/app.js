@@ -318,6 +318,100 @@ function initAbsenceEtudiantForm() {
     }
 }
 
+function initPersonFormationType() {
+	var hidden = document.getElementById("formationType");
+	var radios = document.querySelectorAll('input[name="regimeChoice"]');
+	if (!hidden || !radios.length) {
+		return;
+	}
+
+	function syncFormationType() {
+		var selected = document.querySelector('input[name="regimeChoice"]:checked');
+		if (selected) {
+			hidden.value = selected.value;
+		}
+	}
+
+	radios.forEach(function (radio) {
+		radio.addEventListener("change", syncFormationType);
+	});
+	var form = hidden.closest("form");
+	if (form) {
+		form.addEventListener("submit", syncFormationType);
+	}
+}
+function initPersonIdentifiantLock() {
+	var radios = document.querySelectorAll('input[name="lockSyncLdap"]');
+	var warning = document.getElementById("identifiantUnlockWarning");
+	var eppn = document.getElementById("eppn");
+	var numIdentifiant = document.getElementById("numIdentifiant");
+	var type = document.getElementById("type");
+	if (!radios.length) {
+		return;
+	}
+
+	function syncIdentifiantLock() {
+		var selected = document.querySelector('input[name="lockSyncLdap"]:checked');
+		var locked = selected && selected.value === "true";
+		if (eppn) {
+			eppn.readOnly = locked;
+			eppn.classList.toggle("identifiant-locked", locked);
+		}
+		if (numIdentifiant) {
+			numIdentifiant.readOnly = locked;
+			numIdentifiant.classList.toggle("identifiant-locked", locked);
+		}
+		if (type) {
+			type.readOnly = locked;
+			type.classList.toggle("identifiant-locked", locked);
+		}
+		if (warning) {
+			warning.classList.toggle("d-none", locked);
+		}
+	}
+
+	radios.forEach(function (radio) {
+		radio.addEventListener("change", syncIdentifiantLock);
+	});
+	syncIdentifiantLock();
+}
+
+function initPersonStatusLock() {
+	var radios = document.querySelectorAll('input[name="lockSyncAde"]');
+	var statusFields = document.querySelectorAll(
+		'input[name="regimeChoice"], #formationTypeAutre, input[name="isBoursier"], input[name="hasTierTempory"], input[name="isRSE"]'
+	);
+	if (!radios.length || !statusFields.length) {
+		return;
+	}
+
+	function syncStatusLock() {
+		var selected = document.querySelector('input[name="lockSyncAde"]:checked');
+		var locked = selected && selected.value === "true";
+		statusFields.forEach(function (field) {
+			if (field.type === "text") {
+				field.readOnly = locked;
+				field.classList.toggle("identifiant-locked", locked);
+			} else {
+				field.disabled = locked;
+			}
+		});
+	}
+
+	radios.forEach(function (radio) {
+		radio.addEventListener("change", syncStatusLock);
+	});
+	var form = radios[0].closest("form");
+	if (form) {
+		form.addEventListener("submit", function () {
+			statusFields.forEach(function (field) {
+				field.disabled = false;
+			});
+		});
+	}
+	syncStatusLock();
+}
+
 // ---------- Plugins divers ----------
 function setupModal(modalId, fields) {
     const modal = document.getElementById(modalId);
@@ -2122,7 +2216,7 @@ function dtSetupAbsenceFilters() {
 function initDataTables() {
     // Assiduité
     dtInitTable('table.assiduite', buildDataTableOptions([[4, 'desc'], [6, 'asc']]));
-    dtInitTable('table.assiduite2', buildDataTableOptions([[4, 'desc'], [7, 'asc']]));
+    dtInitTable('table.assiduite2', buildDataTableOptions([[6, 'desc'], [0, 'asc']]));
     dtInitTable('table.assiduite3', buildDataTableOptions([[0, 'asc'], [1, 'asc']]));
 
     // Tâches / nettoyage / sessions HTTP
@@ -2364,9 +2458,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initCommunicationPdf();
     initCreateTagCheckForm();
     initAbsenceEtudiantForm();
+    initPersonFormationType();
+	initPersonIdentifiantLock();
     initDuplicateSessions();
     initIncludeLogo();
     initSessionSearch();
+    initPersonStatusLock();
 
     // Navigation, calendrier, pagination
     initCalendars();
