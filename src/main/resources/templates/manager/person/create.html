@@ -4,129 +4,248 @@
 	<body>
 		<nav th:replace="fragments/menu :: menu(activeMenu)"></nav>
 		<div th:replace="fragments/help :: help"></div>
-		<div class="container-fluid">
-           	<div class="card">
-		    	<div class="card-header"><h2>Ajouter un individu</h2></div>
-  				<div class="card-body">
-                    <form action="#" th:action="@{/{ctx}/manager/person/create(ctx=${eContext})}" th:object="${person}" method="post">
-		                    <div class="form-group">
-		                        <label for="eppn" class="form-label">Eppn</label>
-		                        <input type="text" th:field="*{eppn}" class="form-control">
-		                    </div>
-		                    <div class="form-group">
-		                        <label for="numIdentifiant" class="form-label">Numéro d'identifiant</label>
-		                        <input type="text" th:field="*{numIdentifiant}" class="form-control">
-		                    </div>
-		                    <div class="form-group mb-0">
-		                        <label for="type" class="form-label">Type</label>
-		                        <input type="text" th:field="*{type}" class="form-control">
-		                    </div>
-						<fieldset class="border rounded px-3 pt-2 pb-3 mt-3"
-							th:with="ft=${person.formationType}, isAutre=${ft != null and !#strings.isEmpty(ft) and (formationTypes == null or !#lists.contains(formationTypes, ft))}">
-							<input type="hidden" th:field="*{formationType}">
-							<div class="row mt-3 align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">
-									<i class="fa fa-lock" aria-hidden="true"></i> Synchroniser avec ADE ?
-								</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="true">
-										<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Oui</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="false">
-										<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Non</label>
+		<div class="container-fluid px-3 px-md-4 my-2">
+			<div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 mb-3">
+				<h2 class="fs-3 mb-1">Ajouter un individu</h2>
+				<div class="d-flex align-items-center gap-2">
+					<div class="d-flex align-items-center gap-2">
+						<a th:href="@{/{ctx}/manager/person(ctx=${eContext})}" class="btn btn-info"
+							title="Inscrits"><i class="fa fa-home fa-lg"></i></a>
+					</div>
+				</div>				
+			</div>
+            <form action="#" th:action="@{/{ctx}/manager/person/create(ctx=${eContext})}" th:object="${person}" method="post">
+                    <div class="form-group">
+                        <label for="eppn" class="form-label">Eppn</label>
+                        <input type="text" th:field="*{eppn}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="numIdentifiant" class="form-label">Numéro d'identifiant</label>
+                        <input type="text" th:field="*{numIdentifiant}" class="form-control">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label for="type" class="form-label">Type</label>
+                        <input type="text" th:field="*{type}" class="form-control">
+                    </div>
+				<fieldset class="border rounded px-3 pt-2 pb-3 mt-3"
+					th:with="ft=${person.formationType}, isAutre=${ft != null and !#strings.isEmpty(ft) and (formationTypes == null or !#lists.contains(formationTypes, ft))}">
+					<input type="hidden" th:field="*{formationType}">
+					<div class="row mt-3 align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">
+							<i class="fa fa-lock" aria-hidden="true"></i> Synchroniser avec ADE ?
+						</label>
+						<div class="col-sm-8">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="true">
+								<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="false">
+								<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Non</label>
+							</div>
+						</div>
+					</div>
+					<div class="alert alert-info mt-2">
+						Si vous utilisez l'importation des statuts étudiants dans l'importation ADE, lors de la réimportation de cet étudiant, le type de formation, l'aménagement tiers temps, le statut boursier et l'aménagement RSE sont mis à jour depuis ADE tant que la synchronisation avec ADE est activée "oui". Si vous choisissez "non" la synchronisation des statuts pour cet étudiant avec ADE ne sera plus actif ( Forcer les statuts ) .
+					</div>
+					<div class="row mb-2 align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">Régime</label>
+						<div class="col-sm-8">
+							<div class="form-check form-check-inline" th:each="regime, stat : ${formationTypes}"
+								th:if="${regime != null and !#strings.isEmpty(regime)}">
+								<input class="form-check-input" type="radio" name="regimeChoice"
+									th:id="|regime${stat.index}|" th:value="${regime}"
+									th:checked="${ft != null and #strings.equals(#strings.trim(ft), regime)}">
+								<label class="form-check-label" th:for="|regime${stat.index}|" th:text="${regime}"></label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" name="regimeChoice" id="regimeAucun" value=""
+									th:checked="${ft == null or #strings.isEmpty(ft)}">
+								<label class="form-check-label" for="regimeAucun">Pas renseigné</label>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-2 align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">Boursier</label>
+						<div class="col-sm-8">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="true">
+								<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="false">
+								<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Non</label>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-2 align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">Aménagement Tiers temps</label>
+						<div class="col-sm-8">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="true">
+								<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="false">
+								<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Non</label>
+							</div>
+						</div>
+					</div>
+					<div class="row align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">Aménagement RSE</label>
+						<div class="col-sm-8">						<form action="#" th:action="@{/{ctx}/manager/person/create(ctx=${eContext})}" th:object="${person}" method="post">
+						        <div class="form-group">
+						            <label for="eppn" class="form-label">Eppn</label>
+						            <input type="text" th:field="*{eppn}" class="form-control">
+						        </div>
+						        <div class="form-group">
+						            <label for="numIdentifiant" class="form-label">Numéro d'identifiant</label>
+						            <input type="text" th:field="*{numIdentifiant}" class="form-control">
+						        </div>
+						        <div class="form-group mb-0">
+						            <label for="type" class="form-label">Type</label>
+						            <input type="text" th:field="*{type}" class="form-control">
+						        </div>
+							<fieldset class="border rounded px-3 pt-2 pb-3 mt-3"
+								th:with="ft=${person.formationType}, isAutre=${ft != null and !#strings.isEmpty(ft) and (formationTypes == null or !#lists.contains(formationTypes, ft))}">
+								<input type="hidden" th:field="*{formationType}">
+								<div class="row mt-3 align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">
+										<i class="fa fa-lock" aria-hidden="true"></i> Synchroniser avec ADE ?
+									</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="true">
+											<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Oui</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{lockSyncAde}" th:value="false">
+											<label class="form-check-label" th:for="${#ids.prev('lockSyncAde')}">Non</label>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="alert alert-info mt-2">
-								Si vous utilisez l'importation des statuts étudiants dans l'importation ADE, lors de la réimportation de cet étudiant, le type de formation, l'aménagement tiers temps, le statut boursier et l'aménagement RSE sont mis à jour depuis ADE tant que la synchronisation avec ADE est activée "oui". Si vous choisissez "non" la synchronisation des statuts pour cet étudiant avec ADE ne sera plus actif ( Forcer les statuts ) .
-							</div>
-							<div class="row mb-2 align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">Régime</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline" th:each="regime, stat : ${formationTypes}"
-										th:if="${regime != null and !#strings.isEmpty(regime)}">
-										<input class="form-check-input" type="radio" name="regimeChoice"
-											th:id="|regime${stat.index}|" th:value="${regime}"
-											th:checked="${ft != null and #strings.equals(#strings.trim(ft), regime)}">
-										<label class="form-check-label" th:for="|regime${stat.index}|" th:text="${regime}"></label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" name="regimeChoice" id="regimeAucun" value=""
-											th:checked="${ft == null or #strings.isEmpty(ft)}">
-										<label class="form-check-label" for="regimeAucun">Pas renseigné</label>
+								<div class="alert alert-info mt-2">
+									Si vous utilisez l'importation des statuts étudiants dans l'importation ADE, lors de la réimportation de cet étudiant, le type de formation, l'aménagement tiers temps, le statut boursier et l'aménagement RSE sont mis à jour depuis ADE tant que la synchronisation avec ADE est activée "oui". Si vous choisissez "non" la synchronisation des statuts pour cet étudiant avec ADE ne sera plus actif ( Forcer les statuts ) .
+								</div>
+								<div class="row mb-2 align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">Régime</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline" th:each="regime, stat : ${formationTypes}"
+											th:if="${regime != null and !#strings.isEmpty(regime)}">
+											<input class="form-check-input" type="radio" name="regimeChoice"
+												th:id="|regime${stat.index}|" th:value="${regime}"
+												th:checked="${ft != null and #strings.equals(#strings.trim(ft), regime)}">
+											<label class="form-check-label" th:for="|regime${stat.index}|" th:text="${regime}"></label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" name="regimeChoice" id="regimeAucun" value=""
+												th:checked="${ft == null or #strings.isEmpty(ft)}">
+											<label class="form-check-label" for="regimeAucun">Pas renseigné</label>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">Boursier</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="true">
-										<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Oui</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="false">
-										<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Non</label>
-									</div>
-								</div>
-							</div>
-							<div class="row mb-2 align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">Aménagement Tiers temps</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="true">
-										<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Oui</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="false">
-										<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Non</label>
+								<div class="row mb-2 align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">Boursier</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="true">
+											<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Oui</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{isBoursier}" th:value="false">
+											<label class="form-check-label" th:for="${#ids.prev('isBoursier')}">Non</label>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="row align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">Aménagement RSE</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="true">
-										<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Oui</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="false">
-										<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Non</label>
-									</div>
-								</div>
-							</div>
-						</fieldset>
-						<fieldset class="border rounded px-3 pb-3 mt-3">
-							<legend class="float-none w-auto px-2 mb-0">Liaison aux SI externes</legend>
-							<div class="alert alert-info mt-2">
-								Les valeurs ne sont pas modifiables, ce sont les liaisons avec des services externes.
-							</div>
-							<div class="row align-items-center">
-								<label class="col-sm-4 col-form-label mb-0">Liaison formaSup</label>
-								<div class="col-sm-8">
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" disabled th:checked="${person.formasupLinked}">
-										<label class="form-check-label">Oui</label>
-									</div>
-									<div class="form-check form-check-inline">
-										<input class="form-check-input" type="radio" disabled th:checked="${!person.formasupLinked}">
-										<label class="form-check-label">Non</label>
+								<div class="row mb-2 align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">Aménagement Tiers temps</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="true">
+											<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Oui</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{hasTierTempory}" th:value="false">
+											<label class="form-check-label" th:for="${#ids.prev('hasTierTempory')}">Non</label>
+										</div>
 									</div>
 								</div>
-							</div>
-						</fieldset>
+								<div class="row align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">Aménagement RSE</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="true">
+											<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Oui</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="false">
+											<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Non</label>
+										</div>
+									</div>
+								</div>
+							</fieldset>
+							<fieldset class="border rounded px-3 pb-3 mt-3">
+								<legend class="float-none w-auto px-2 mb-0">Liaison aux SI externes</legend>
+								<div class="alert alert-info mt-2">
+									Les valeurs ne sont pas modifiables, ce sont les liaisons avec des services externes.
+								</div>
+								<div class="row align-items-center">
+									<label class="col-sm-4 col-form-label mb-0">Liaison formaSup</label>
+									<div class="col-sm-8">
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" disabled th:checked="${person.formasupLinked}">
+											<label class="form-check-label">Oui</label>
+										</div>
+										<div class="form-check form-check-inline">
+											<input class="form-check-input" type="radio" disabled th:checked="${!person.formasupLinked}">
+											<label class="form-check-label">Non</label>
+										</div>
+									</div>
+								</div>
+							</fieldset>
 
-                        <div class="row">
-                            <div class="col-md-6 mt-5">
-                                <input type="submit" class="btn btn-success" value="Valider">
-                            </div>
-                        </div>                  
-                    </form>
-                </div>
-            </div>
+						    <div class="row">
+						        <div class="col-md-6 mt-5">
+						            <input type="submit" class="btn btn-success" value="Valider">
+						        </div>
+						    </div>                  
+						</form>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="true">
+								<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" th:field="*{isRSE}" th:value="false">
+								<label class="form-check-label" th:for="${#ids.prev('isRSE')}">Non</label>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+				<fieldset class="border rounded px-3 pb-3 mt-3">
+					<legend class="float-none w-auto px-2 mb-0">Liaison aux SI externes</legend>
+					<div class="alert alert-info mt-2">
+						Les valeurs ne sont pas modifiables, ce sont les liaisons avec des services externes.
+					</div>
+					<div class="row align-items-center">
+						<label class="col-sm-4 col-form-label mb-0">Liaison formaSup</label>
+						<div class="col-sm-8">
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" disabled th:checked="${person.formasupLinked}">
+								<label class="form-check-label">Oui</label>
+							</div>
+							<div class="form-check form-check-inline">
+								<input class="form-check-input" type="radio" disabled th:checked="${!person.formasupLinked}">
+								<label class="form-check-label">Non</label>
+							</div>
+						</div>
+					</div>
+				</fieldset>
+                <div class="row">
+                    <div class="col-md-6 mt-5">
+                        <input type="submit" class="btn btn-success" value="Valider">
+                    </div>
+                </div>                  
+            </form>
 		</div>
 		<footer th:replace="fragments/footer :: footer"></footer>
 	</body>
