@@ -1308,23 +1308,19 @@ public class AdeApiWebService implements AdeApiService {
 					sax.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 					sax.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 					org.jdom2.Document doc = sax.build(input);
-					org.jdom2.Element rootNode = doc.getRootElement();
-					List<org.jdom2.Element> list = rootNode.getChildren("category");
-					for (org.jdom2.Element target : list) {
-						List<org.jdom2.Element> branch = target.getChildren("branch");
-						for (org.jdom2.Element target1 : branch) {
-							List<org.jdom2.Element> branch2 = target1.getChildren("branch");
-							for (org.jdom2.Element target2 : branch2) {
-								String code = target2.getAttributeValue("code");
-									if(code!=null) {
-										String splitCode [] = code.split("_");
-										if(splitCode.length>1) {
-											vet = splitCode[1];
-										}
-									}
-							}
+					// On parcourt tous les éléments <leaf> pour récupérer l'attribut "codeY"
+					java.util.Iterator<org.jdom2.Element> iterator = doc.getRootElement()
+							.getDescendants(org.jdom2.filter.Filters.element("leaf"));
+
+					while (iterator.hasNext()) {
+						org.jdom2.Element currentElement = iterator.next();
+						String code = currentElement.getAttributeValue("codeY"); 
+						
+						if (code != null && !code.isEmpty()) {
+							vet = code;
 						}
 					}
+
 				}catch (IOException | JDOMException e) {
 		 			log.error("Erreur lors de la récupération de la vet, url : " + urlVet, e);
 				}
