@@ -95,7 +95,7 @@ public class SecurityConfig {
     public SessionInformationExpiredStrategy sessionInformationExpiredStrategy() {
         return event -> {
             HttpServletResponse response = event.getResponse();
-            response.sendRedirect("/session-expired");  // Redirect or handle the session invalidation
+            response.sendRedirect(event.getRequest().getContextPath() + "/session-expired");  // Redirect or handle the session invalidation
         };
     }
 
