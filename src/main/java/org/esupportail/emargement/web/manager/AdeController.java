@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -322,10 +323,11 @@ public class AdeController {
 	}
 
 	@GetMapping(value = "/manager/adeCampus/disconnect")
-	public ResponseEntity<Void> disconnect(@PathVariable String emargementContext, @RequestParam String projectId) {
+	public ResponseEntity<Void> disconnect(@PathVariable String emargementContext, @RequestParam String projectId,
+			HttpServletRequest request) {
 		adeService.disconnectSession(emargementContext, projectId);
 		 return ResponseEntity.noContent()
-		            .header("HX-Redirect", "/" + emargementContext + "/manager/adeCampus")
+		            .header("HX-Redirect", request.getContextPath() + "/" + emargementContext + "/manager/adeCampus")
 		            .build();
 	}
 

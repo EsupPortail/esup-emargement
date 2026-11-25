@@ -2008,7 +2008,7 @@ window.initAffinage = initAffinage;
 // DataTables 3.x : plus de plugins de dates (datetime-moment / date-eu), `dom` remplacé par `layout`,
 // options communes factorisées. Helpers préfixés "dt" pour éviter les collisions de noms globaux.
 
-const DT_LANG_URL = '/webjars/datatables-plugins/i18n/fr-FR.json';
+const DT_LANG_URL = rootUrl + 'webjars/datatables-plugins/i18n/fr-FR.json';
 
 const DT_DATE_SHORT = 'DD/MM/YY';
 const DT_DATE_LONG = 'DD/MM/YYYY';

@@ -86,7 +86,7 @@
 							</div>
 							<select class="form-select initTags" id="validationTagsJson"
 								name="courriels" multiple data-allow-new="false"
-								th:attr="data-server=${'/' + eContext + '/supervisor/searchEmails'}"
+								th:attr="data-server=@{/{ctx}/supervisor/searchEmails(ctx=${eContext})}"
 								data-live-server="1" data-max="30"
 								data-suggestionsThreshold='4' data-allow-clear="true">
 								<option disabled value="">Ajouter des adresses</option>

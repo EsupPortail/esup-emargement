@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -226,7 +227,7 @@ public class PresenceController {
 			@RequestParam(required = false) String tcer, @RequestParam(required = false) String msgError,
 			@RequestParam(required = false) Long update, @RequestParam(required = false) String sessionUser,
 			@RequestParam(required = false) String keyStatut,
-			@RequestHeader(value = "HX-Request", required = false) String hxRequest) {
+			@RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletRequest request) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		String eppnAuth = sessionUser!=null ? sessionUser: auth.getName();
 		boolean isTrombiViewEnabled = appliConfigService.isTrombiViewEnabled();
@@ -252,8 +253,8 @@ public class PresenceController {
         		}
     		}
     		params += "&sessionUser=" + eppnAuth;
-            String redirectUrl = String.format("/%s/supervisor/presence?keyStatut=%s%s",
-                                               emargementContext, keyStatut, params);
+            String redirectUrl = String.format("%s/%s/supervisor/presence?keyStatut=%s%s",
+                                               request.getContextPath(), emargementContext, keyStatut, params);
             return ResponseEntity.ok()
                     .header("HX-Redirect", redirectUrl)
                     .build();
