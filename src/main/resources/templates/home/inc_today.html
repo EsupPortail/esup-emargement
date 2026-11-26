@@ -68,7 +68,7 @@
 							<td class="text-center text-nowrap" th:text="${s.inconnus}"></td>
 							<td class="text-end" th:if="${dashboard.isHasSupervisorSessions()}">
 							    <a th:if="${s.isLinkDisplayed}"
-							       th:href="${s.supervisorUrl}"
+							       th:href="@{${s.supervisorUrl}}"
 							       class="btn btn-sm btn-outline-primary"
 							       title="Interface surveillant">
 							        <i class="fa-solid fa-clipboard-check"></i>
